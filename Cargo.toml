@@ -1,0 +1,5 @@
+[package]
+
+name = "amp"
+version = "0.0.1"
+authors = ["Jordan MacDonald <jordan@wastedintelligence.com>"]
