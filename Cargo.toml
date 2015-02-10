@@ -3,3 +3,9 @@
 name = "amp"
 version = "0.0.1"
 authors = ["Jordan MacDonald <jordan@wastedintelligence.com>"]
+
+[dependencies]
+scribe = "0.0.2"
+
+[dependencies.rustbox]
+git = "https://github.com/gchp/rustbox.git"

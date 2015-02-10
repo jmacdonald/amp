@@ -1,0 +1,32 @@
+[root]
+name = "amp"
+version = "0.0.1"
+dependencies = [
+ "rustbox 0.2.12 (git+https://github.com/gchp/rustbox.git)",
+ "scribe 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "bitflags"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "rustbox"
+version = "0.2.12"
+source = "git+https://github.com/gchp/rustbox.git#628e57fe884bd60ba5a0582038d61031e3cdb292"
+dependencies = [
+ "bitflags 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "termbox-sys 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "scribe"
+version = "0.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "termbox-sys"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
