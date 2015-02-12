@@ -1,10 +1,13 @@
 extern crate scribe;
 extern crate rustbox;
 
+use std::os;
+
 mod view;
 
 fn main() {
-    let mut buffer = scribe::buffer::from_file(&Path::new("./Cargo.toml")).unwrap();
+    let path = os::args()[1].clone();
+    let mut buffer = scribe::buffer::from_file(&Path::new(path)).unwrap();
     let view = view::new();
     view.display(buffer.data().as_slice());
     view.set_cursor(&*buffer.cursor);
