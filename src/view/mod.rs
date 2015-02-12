@@ -4,7 +4,7 @@ extern crate scribe;
 use std::char;
 use std::error::Error;
 use std::num::ToPrimitive;
-use rustbox::{Color, RustBox, InitOption};
+use rustbox::{Color, RustBox, InitOption, InputMode};
 use scribe::buffer::Position;
 
 struct View {
@@ -25,14 +25,17 @@ impl View {
     }
 
     pub fn get_input(&self) -> Option<char> {
-        match self.rustbox.poll_event() {
-            Ok(rustbox::Event::KeyEvent(_, _, ch)) => {
-                match char::from_u32(ch) {
-                    Some(c) => return Some(c),
-                    _ => return None
+        match self.rustbox.poll_event().unwrap() {
+            rustbox::Event::KeyEvent(_, key, ch) => {
+                match key {
+                    0 => Some(char::from_u32(ch).unwrap()),
+                    k => match k {
+                        13 => Some('\n'),
+                        27 => Some('\\'),
+                        _ => None,
+                    }
                 }
             },
-            Err(e) => panic!("{}", e.description()),
             _ => None,
         }
     }
