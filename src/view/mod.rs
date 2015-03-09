@@ -30,8 +30,11 @@ impl View {
                 match key {
                     0 => Some(char::from_u32(ch).unwrap()),
                     k => match k {
+                        8 => Some('\u{8}'),
                         13 => Some('\n'),
                         27 => Some('\\'),
+                        32 => Some(' '),
+                        127 => Some('\u{127}'),
                         _ => None,
                     }
                 }

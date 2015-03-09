@@ -20,8 +20,17 @@ fn main() {
                     if c == '\\' {
                         insert = false
                     } else {
-                        buffer.insert(c.to_string().as_slice());
-                        buffer.cursor.move_right();
+                        if c == '\u{8}' || c == '\u{127}' {
+                            buffer.cursor.move_left();
+                            buffer.delete();
+                        } else {
+                            buffer.insert(c.to_string().as_slice());
+                            if c == '\n' {
+                                buffer.cursor.move_down();
+                            } else {
+                                buffer.cursor.move_right();
+                            }
+                        }
                         view.set_cursor(&*buffer.cursor);
                         view.display(buffer.data().as_slice());
                     }
