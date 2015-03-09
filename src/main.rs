@@ -53,6 +53,11 @@ fn main() {
                             buffer.cursor.move_right();
                             view.set_cursor(&*buffer.cursor);
                         },
+                        'x' => {
+                            buffer.delete();
+                            view.display(buffer.tokens());
+                            view.set_cursor(&*buffer.cursor);
+                        },
                         'i' => {
                             insert = true;
                         },
