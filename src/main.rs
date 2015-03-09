@@ -9,7 +9,7 @@ fn main() {
     let path = os::args()[1].clone();
     let mut buffer = scribe::buffer::from_file(&Path::new(path)).unwrap();
     let view = view::new();
-    view.display(buffer.data().as_slice());
+    view.display(buffer.tokens());
     view.set_cursor(&*buffer.cursor);
     let mut insert = false;
 
@@ -32,7 +32,7 @@ fn main() {
                             }
                         }
                         view.set_cursor(&*buffer.cursor);
-                        view.display(buffer.data().as_slice());
+                        view.display(buffer.tokens());
                     }
                 } else {
                     match c {
