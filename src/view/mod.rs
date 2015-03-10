@@ -16,21 +16,22 @@ struct View {
 impl View {
     pub fn display(&self, tokens: Vec<Token>) {
         self.rustbox.clear();
-        let mut row = 0;
-        let mut column = 0;
+        let mut line = 0;
+        let mut offset = 0;
         for token in tokens.iter() {
-            for (line_number, line) in token.lexeme.lines().enumerate() {
-                if line_number != 0 {
-                    column = 0;
+            let color = match token.category {
+                Category::String => Color::Red,
+                Category::Brace => Color::White,
+                _ => Color::Default,
+            };
+            for character in token.lexeme.chars() {
+                if character == '\n' {
+                    line += 1;
+                    offset = 0;
+                } else {
+                    self.rustbox.print_char(offset, line, rustbox::RB_BOLD, color, Color::Default, character);
+                    offset += 1;
                 }
-                let color = match token.category {
-                    Category::String => Color::Red,
-                    Category::Brace => Color::White,
-                    _ => Color::Default,
-                };
-                self.rustbox.print(column, row, rustbox::RB_BOLD, color, Color::Default, line);
-                column += line.len();
-                row += line_number;
             }
         }
         self.rustbox.present();
