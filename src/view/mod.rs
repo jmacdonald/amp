@@ -21,7 +21,6 @@ impl View {
         for token in tokens.iter() {
             let color = match token.category {
                 Category::String => Color::Red,
-                Category::Brace => Color::White,
                 _ => Color::Default,
             };
             for character in token.lexeme.chars() {
@@ -29,7 +28,7 @@ impl View {
                     line += 1;
                     offset = 0;
                 } else {
-                    self.rustbox.print_char(offset, line, rustbox::RB_BOLD, color, Color::Default, character);
+                    self.rustbox.print_char(offset, line, rustbox::RB_NORMAL, color, Color::Default, character);
                     offset += 1;
                 }
             }
