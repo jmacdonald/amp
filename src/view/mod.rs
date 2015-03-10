@@ -20,6 +20,8 @@ impl View {
         let mut offset = 0;
         for token in tokens.iter() {
             let color = match token.category {
+                Category::Keyword => Color::Yellow,
+                Category::Identifier => Color::Green,
                 Category::String => Color::Red,
                 _ => Color::Default,
             };
