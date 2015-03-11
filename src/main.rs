@@ -27,6 +27,7 @@ fn main() {
                             buffer.insert(c.to_string().as_slice());
                             if c == '\n' {
                                 buffer.cursor.move_down();
+                                buffer.cursor.move_to_start_of_line();
                             } else {
                                 buffer.cursor.move_right();
                             }
