@@ -21,8 +21,14 @@ fn main() {
                         insert = false
                     } else {
                         if c == '\u{8}' || c == '\u{127}' {
-                            buffer.cursor.move_left();
-                            buffer.delete();
+                            if buffer.cursor.offset == 0 {
+                                buffer.cursor.move_up();
+                                buffer.cursor.move_to_end_of_line();
+                                buffer.delete();
+                            } else {
+                                buffer.cursor.move_left();
+                                buffer.delete();
+                            }
                         } else {
                             buffer.insert(c.to_string().as_slice());
                             if c == '\n' {
