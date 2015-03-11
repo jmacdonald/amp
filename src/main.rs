@@ -71,6 +71,14 @@ fn main() {
                         's' => {
                             buffer.save();
                         },
+                        'H' => {
+                            buffer.cursor.move_to_start_of_line();
+                            view.set_cursor(&*buffer.cursor);
+                        },
+                        'L' => {
+                            buffer.cursor.move_to_end_of_line();
+                            view.set_cursor(&*buffer.cursor);
+                        },
                         _ => continue,
                     }
                 }
