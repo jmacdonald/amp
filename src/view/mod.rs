@@ -18,7 +18,10 @@ impl View {
         self.rustbox.clear();
         let mut line = 0;
         let mut offset = 0;
+        let line_limit = self.rustbox.height()-2;
         for token in tokens.iter() {
+            if line == line_limit { break; }
+
             let color = match token.category {
                 Category::Keyword => Color::Yellow,
                 Category::Identifier => Color::Green,
