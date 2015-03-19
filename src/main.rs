@@ -23,6 +23,12 @@ fn main() {
     let mut buffer = workspace.current_buffer().unwrap();
     view.display(buffer.tokens());
     view.set_cursor(&*buffer.cursor);
+
+    // Print the buffer's filename to the status bar, if available.
+    match buffer.filename() {
+        Some(filename) => view.display_status_bar(filename.as_slice()),
+        None => (),
+    }
     let mut insert = false;
 
     loop {
