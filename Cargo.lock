@@ -2,6 +2,7 @@
 name = "amp"
 version = "0.0.1"
 dependencies = [
+ "pad 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustbox 0.2.12 (git+https://github.com/gchp/rustbox.git)",
  "scribe 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -9,6 +10,11 @@ dependencies = [
 [[package]]
 name = "bitflags"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "pad"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]

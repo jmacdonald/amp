@@ -8,6 +8,7 @@ use rustbox::{Color, RustBox, InitOption, InputMode};
 use scribe::buffer::Position;
 use scribe::buffer::Token;
 use scribe::buffer::Category;
+use pad::PadStr;
 
 struct View {
     rustbox: RustBox,
@@ -63,6 +64,13 @@ impl View {
             },
             _ => None,
         }
+    }
+
+    pub fn display_status_bar(&self, content: &str) {
+        let line = self.rustbox.height()-1;
+        let padded_content = content.pad_to_width(self.rustbox.width());
+        self.rustbox.print(0, line, rustbox::RB_BOLD, Color::White, Color::Black, padded_content.as_slice());
+        self.rustbox.present();
     }
 }
 

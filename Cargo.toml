@@ -6,6 +6,7 @@ authors = ["Jordan MacDonald <jordan@wastedintelligence.com>"]
 
 [dependencies]
 scribe = "0.0.2"
+pad = "0.1.2"
 
 [dependencies.rustbox]
 git = "https://github.com/gchp/rustbox.git"

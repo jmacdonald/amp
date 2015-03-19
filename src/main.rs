@@ -1,5 +1,6 @@
 extern crate scribe;
 extern crate rustbox;
+extern crate pad;
 
 use std::os;
 
