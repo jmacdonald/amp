@@ -54,6 +54,7 @@ impl View {
                     0 => Some(char::from_u32(ch).unwrap()),
                     k => match k {
                         8 => Some('\u{8}'),
+                        9 => Some('\t'),
                         13 => Some('\n'),
                         27 => Some('\\'),
                         32 => Some(' '),

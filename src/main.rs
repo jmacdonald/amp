@@ -20,24 +20,26 @@ fn main() {
     workspace.add_buffer(argument_buffer);
 
     let view = view::new();
-    let mut buffer = workspace.current_buffer().unwrap();
-    view.display(buffer.tokens());
-    view.set_cursor(&*buffer.cursor);
-
-    // Print the buffer's filename to the status bar, if available.
-    match buffer.filename() {
-        Some(filename) => view.display_status_bar(filename.as_slice()),
-        None => (),
-    }
     let mut insert = false;
 
     loop {
+        // Refresh the text and cursor on-screen.
+        view.display(workspace.current_buffer().unwrap().tokens());
+        view.set_cursor(&*workspace.current_buffer().unwrap().cursor);
+
+        // Print the buffer's filename to the status bar, if available.
+        match workspace.current_buffer().unwrap().filename() {
+            Some(filename) => view.display_status_bar(filename.as_slice()),
+            None => (),
+        }
+
         match view.get_input() {
             Some(c) => {
                 if insert {
                     if c == '\\' {
                         insert = false
                     } else {
+                        let mut buffer = workspace.current_buffer().unwrap();
                         if c == '\u{8}' || c == '\u{127}' {
                             if buffer.cursor.offset == 0 {
                                 buffer.cursor.move_up();
@@ -56,48 +58,43 @@ fn main() {
                                 buffer.cursor.move_right();
                             }
                         }
-                        view.set_cursor(&*buffer.cursor);
-                        view.display(buffer.tokens());
                     }
                 } else {
-                    match c {
-                        'q' => break,
-                        'j' => {
-                            buffer.cursor.move_down();
-                            view.set_cursor(&*buffer.cursor);
-                        },
-                        'k' => {
-                            buffer.cursor.move_up();
-                            view.set_cursor(&*buffer.cursor);
-                        },
-                        'h' => {
-                            buffer.cursor.move_left();
-                            view.set_cursor(&*buffer.cursor);
-                        },
-                        'l' => {
-                            buffer.cursor.move_right();
-                            view.set_cursor(&*buffer.cursor);
-                        },
-                        'x' => {
-                            buffer.delete();
-                            view.display(buffer.tokens());
-                            view.set_cursor(&*buffer.cursor);
-                        },
-                        'i' => {
-                            insert = true;
-                        },
-                        's' => {
-                            buffer.save();
-                        },
-                        'H' => {
-                            buffer.cursor.move_to_start_of_line();
-                            view.set_cursor(&*buffer.cursor);
-                        },
-                        'L' => {
-                            buffer.cursor.move_to_end_of_line();
-                            view.set_cursor(&*buffer.cursor);
-                        },
-                        _ => continue,
+                    if c == '\t' {
+                        workspace.next_buffer();
+                    } else {
+                        let mut buffer = workspace.current_buffer().unwrap();
+                        match c {
+                            'q' => break,
+                            'j' => {
+                                buffer.cursor.move_down();
+                            },
+                            'k' => {
+                                buffer.cursor.move_up();
+                            },
+                            'h' => {
+                                buffer.cursor.move_left();
+                            },
+                            'l' => {
+                                buffer.cursor.move_right();
+                            },
+                            'x' => {
+                                buffer.delete();
+                            },
+                            'i' => {
+                                insert = true;
+                            },
+                            's' => {
+                                buffer.save();
+                            },
+                            'H' => {
+                                buffer.cursor.move_to_start_of_line();
+                            },
+                            'L' => {
+                                buffer.cursor.move_to_end_of_line();
+                            },
+                            _ => continue,
+                        }
                     }
                 }
             },
