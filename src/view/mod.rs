@@ -10,6 +10,8 @@ use scribe::buffer::Token;
 use scribe::buffer::Category;
 use pad::PadStr;
 
+mod scrollable_region;
+
 struct View {
     rustbox: RustBox,
 }
