@@ -17,7 +17,7 @@ struct View {
 }
 
 impl View {
-    pub fn display(&self, tokens: Vec<Token>) {
+    pub fn display(&self, tokens: &Vec<Token>) {
         self.rustbox.clear();
         let mut line = 0;
         let mut offset = 0;

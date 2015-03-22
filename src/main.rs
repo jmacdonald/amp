@@ -31,6 +31,7 @@ fn main() {
         // Refresh the text and cursor on-screen.
         view.display(workspace.current_buffer().unwrap().tokens());
         view.set_cursor(&*workspace.current_buffer().unwrap().cursor);
+        view.display(&workspace.current_buffer().unwrap().tokens());
 
         // Print the buffer's filename to the status bar, if available.
         match workspace.current_buffer().unwrap().filename() {
