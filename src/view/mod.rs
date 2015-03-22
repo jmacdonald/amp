@@ -11,6 +11,7 @@ use scribe::buffer::Category;
 use pad::PadStr;
 
 mod scrollable_region;
+mod jump_token;
 
 struct View {
     rustbox: RustBox,
