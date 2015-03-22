@@ -14,6 +14,7 @@ mod scrollable_region;
 
 struct View {
     rustbox: RustBox,
+    buffer_region: scrollable_region::ScrollableRegion,
 }
 
 impl View {
@@ -21,10 +22,8 @@ impl View {
         self.rustbox.clear();
         let mut line = 0;
         let mut offset = 0;
-        let line_limit = self.rustbox.height()-2;
-        for token in tokens.iter() {
-            if line == line_limit { break; }
-
+        let visible_range = self.buffer_region.visible_range();
+        'print_loop: for token in tokens.iter() {
             let color = match token.category {
                 Category::Keyword => Color::Yellow,
                 Category::Identifier => Color::Green,
@@ -33,10 +32,14 @@ impl View {
             };
             for character in token.lexeme.chars() {
                 if character == '\n' {
+                    // Bail out if we're about to exit the visible range.
+                    if line == visible_range.end { break 'print_loop; }
+
                     line += 1;
                     offset = 0;
-                } else {
-                    self.rustbox.print_char(offset, line, rustbox::RB_NORMAL, color, Color::Default, character);
+                } else if line >= visible_range.start {
+                    // Only start printing once we enter the visible range.
+                    self.rustbox.print_char(offset, line-visible_range.start, rustbox::RB_NORMAL, color, Color::Default, character);
                     offset += 1;
                 }
             }
@@ -44,9 +47,11 @@ impl View {
         self.rustbox.present();
     }
 
-    pub fn set_cursor(&self, position: &Position) {
-        self.rustbox.set_cursor(position.offset.to_int().unwrap(), position.line.to_int().unwrap());
-        self.rustbox.present();
+    pub fn set_cursor(&mut self, position: &Position) {
+        self.buffer_region.scroll_into_view(position.line);
+
+        let line = self.buffer_region.relative_position(position.line);
+        self.rustbox.set_cursor(position.offset.to_int().unwrap(), line.to_int().unwrap());
     }
 
     pub fn get_input(&self) -> Option<char> {
@@ -83,5 +88,6 @@ pub fn new() -> View {
         Err(e) => panic!("{}", e.description()),
     };
 
-    View{ rustbox: rustbox }
+    let region = scrollable_region::new(rustbox.height()-2);
+    View{ rustbox: rustbox, buffer_region: region }
 }

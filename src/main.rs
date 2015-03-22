@@ -24,12 +24,11 @@ fn main() {
     let mut argument_buffer = scribe::buffer::from_file(Path::new(path)).unwrap();
     workspace.add_buffer(argument_buffer);
 
-    let view = view::new();
+    let mut view = view::new();
     let mut mode = Mode::Normal;
 
     loop {
         // Refresh the text and cursor on-screen.
-        view.display(workspace.current_buffer().unwrap().tokens());
         view.set_cursor(&*workspace.current_buffer().unwrap().cursor);
         view.display(&workspace.current_buffer().unwrap().tokens());
 
