@@ -3,13 +3,9 @@ extern crate rustbox;
 extern crate pad;
 
 use std::os;
+use view::Mode;
 
 mod view;
-
-enum Mode {
-    Normal,
-    Insert,
-}
 
 fn main() {
     // Set up a workspace in the current directory.
@@ -25,7 +21,7 @@ fn main() {
     workspace.add_buffer(argument_buffer);
 
     let mut view = view::new();
-    let mut mode = Mode::Normal;
+    let mut jump_input = String::new();
 
     loop {
         // Refresh the text and cursor on-screen.
@@ -40,10 +36,10 @@ fn main() {
 
         match view.get_input() {
             Some(c) => {
-                match mode {
+                match view.mode {
                     Mode::Insert => {
                         if c == '\\' {
-                            mode = Mode::Normal;
+                            view.mode = Mode::Normal;
                         } else {
                             let mut buffer = workspace.current_buffer().unwrap();
                             if c == '\u{8}' || c == '\u{127}' {
@@ -89,7 +85,7 @@ fn main() {
                                     buffer.delete();
                                 },
                                 'i' => {
-                                    mode = Mode::Insert;
+                                    view.mode = Mode::Insert;
                                 },
                                 's' => {
                                     buffer.save();
@@ -100,10 +96,39 @@ fn main() {
                                 'L' => {
                                     buffer.cursor.move_to_end_of_line();
                                 },
+                                'f' => {
+                                    view.mode = Mode::Jump;
+                                    jump_input = String::new();
+                                },
                                 _ => continue,
                             }
                         }
-                    }
+                    },
+                    Mode::Jump => {
+                        if c == '\\' {
+                            view.mode = Mode::Normal;
+                        } else {
+                            // Add the input to whatever we've received in jump mode so far.
+                            jump_input.push(c);
+
+                            match jump_input.len() {
+                                0 | 1 => (), // Not enough data to match to a position.
+                                _ => { 
+                                    // Try to find a position, falling back
+                                    // to normal mode whether or not we find one.
+                                    match view.jump_token_positions.get(&jump_input) {
+                                        Some(position) => {
+                                            workspace.current_buffer().unwrap().cursor.move_to(position.clone());
+                                        }
+                                        None => (),
+                                    }
+
+                                    // All done here.
+                                    view.mode = Mode::Normal;
+                                },
+                            }
+                        }
+                    },
                 }
             },
             None => {},
