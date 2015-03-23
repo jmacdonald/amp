@@ -18,17 +18,17 @@ impl Sequence {
 }
 
 // Builds a new zero-indexed jump token sequence.
-pub fn new() -> Sequence {
+pub fn new_sequence() -> Sequence {
     Sequence{ index: 0 }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::new;
+    use super::new_sequence;
 
     #[test]
     fn next_token_returns_sequential_letters_of_the_alphabet() {
-        let mut sequence = new();
+        let mut sequence = new_sequence();
         assert_eq!(sequence.next_token(), "aa");
         assert_eq!(sequence.next_token(), "ab");
         assert_eq!(sequence.next_token(), "ac");
@@ -36,7 +36,7 @@ mod tests {
 
     #[test]
     fn next_token_carries_overflows_to_the_next_letter() {
-        let mut sequence = new();
+        let mut sequence = new_sequence();
         for _ in 0..26 { sequence.next_token(); }
         assert_eq!(sequence.next_token(), "ba");
         assert_eq!(sequence.next_token(), "bb");
