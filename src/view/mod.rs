@@ -29,6 +29,7 @@ pub struct View {
     rustbox: RustBox,
     buffer_region: scrollable_region::ScrollableRegion,
     pub jump_token_positions: HashMap<String, Position>,
+    pub status_line: String,
 }
 
 impl View {
@@ -90,6 +91,12 @@ impl View {
                 }
             }
         }
+
+        // Draw the status line.
+        let line = self.rustbox.height()-1;
+        let padded_content = self.status_line.pad_to_width(self.rustbox.width());
+        self.rustbox.print(0, line, rustbox::RB_BOLD, Color::White, Color::Black, padded_content.as_slice());
+
         self.rustbox.present();
     }
 
@@ -115,13 +122,6 @@ impl View {
             _ => None,
         }
     }
-
-    pub fn display_status_bar(&self, content: &str) {
-        let line = self.rustbox.height()-1;
-        let padded_content = content.pad_to_width(self.rustbox.width());
-        self.rustbox.print(0, line, rustbox::RB_BOLD, Color::White, Color::Black, padded_content.as_slice());
-        self.rustbox.present();
-    }
 }
 
 pub fn new() -> View {
@@ -134,5 +134,6 @@ pub fn new() -> View {
     };
 
     let region = scrollable_region::new(rustbox.height()-2);
-    View{ mode: Mode::Normal, rustbox: rustbox, buffer_region: region, jump_token_positions: HashMap::new() }
+    View{ mode: Mode::Normal, rustbox: rustbox, buffer_region: region,
+        jump_token_positions: HashMap::new(), status_line: String::new() }
 }

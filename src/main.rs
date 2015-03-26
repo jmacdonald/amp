@@ -26,16 +26,16 @@ fn main() {
     let mut jump_input = String::new();
     let mut tokens = workspace.current_buffer().unwrap().tokens();
 
+    // Set the view's initial status line.
+    match workspace.current_buffer().unwrap().file_name() {
+        Some(file_name) => view.status_line = file_name,
+        None => (),
+    }
+
     loop {
         // Refresh the text and cursor on-screen.
         view.set_cursor(&*workspace.current_buffer().unwrap().cursor);
         view.display(&tokens);
-
-        // Print the buffer's file name to the status bar, if available.
-        match workspace.current_buffer().unwrap().file_name() {
-            Some(file_name) => view.display_status_bar(file_name.as_slice()),
-            None => (),
-        }
 
         match view.get_input() {
             Some(c) => {
