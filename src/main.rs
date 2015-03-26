@@ -24,11 +24,12 @@ fn main() {
 
     let mut view = view::new();
     let mut jump_input = String::new();
+    let mut tokens = workspace.current_buffer().unwrap().tokens();
 
     loop {
         // Refresh the text and cursor on-screen.
         view.set_cursor(&*workspace.current_buffer().unwrap().cursor);
-        view.display(&workspace.current_buffer().unwrap().tokens());
+        view.display(&tokens);
 
         // Print the buffer's file name to the status bar, if available.
         match workspace.current_buffer().unwrap().file_name() {
@@ -62,6 +63,7 @@ fn main() {
                                     buffer.cursor.move_right();
                                 }
                             }
+                            tokens = buffer.tokens(); 
                         }
                     },
                     Mode::Normal => {
