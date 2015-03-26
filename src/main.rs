@@ -3,21 +3,23 @@ extern crate rustbox;
 extern crate pad;
 
 use std::os;
+use std::env;
 use view::Mode;
+use std::path::PathBuf;
 
 mod view;
 
 fn main() {
     // Set up a workspace in the current directory.
-    let mut workspace = match os::getcwd() {
-        Ok(path) => scribe::workspace::new(path),
+    let mut workspace = match env::current_dir() {
+        Ok(path) => scribe::workspace::new(PathBuf::new(path)),
         Err(error) => panic!("Could not initialize workspace to the current directory."),
     };
 
     // Try to open the specified file.
     // TODO: Handle non-existent files as new empty buffers.
     let path = os::args()[1].clone();
-    let mut argument_buffer = scribe::buffer::from_file(Path::new(path)).unwrap();
+    let mut argument_buffer = scribe::buffer::from_file(PathBuf::new(path)).unwrap();
     workspace.add_buffer(argument_buffer);
 
     let mut view = view::new();
@@ -28,9 +30,9 @@ fn main() {
         view.set_cursor(&*workspace.current_buffer().unwrap().cursor);
         view.display(&workspace.current_buffer().unwrap().tokens());
 
-        // Print the buffer's filename to the status bar, if available.
-        match workspace.current_buffer().unwrap().filename() {
-            Some(filename) => view.display_status_bar(filename.as_slice()),
+        // Print the buffer's file name to the status bar, if available.
+        match workspace.current_buffer().unwrap().file_name() {
+            Some(file_name) => view.display_status_bar(file_name.as_slice()),
             None => (),
         }
 

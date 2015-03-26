@@ -1,4 +1,4 @@
-struct TokenSequence {
+pub struct TokenSequence {
     index: u32,
 }
 

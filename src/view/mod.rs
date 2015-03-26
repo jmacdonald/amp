@@ -3,8 +3,11 @@ extern crate scribe;
 
 use std::char;
 use std::error::Error;
+use std::old_io::stdio;
+use std::default::Default;
 use std::num::ToPrimitive;
-use rustbox::{Color, RustBox, InitOption, InputMode};
+use rustbox::{Color, RustBox, InitOptions, InputMode};
+use rustbox::keyboard::Key;
 use scribe::buffer::Position;
 use scribe::buffer::Token;
 use scribe::buffer::Category;
@@ -21,7 +24,7 @@ pub enum Mode {
     Jump,
 }
 
-struct View {
+pub struct View {
     pub mode: Mode,
     rustbox: RustBox,
     buffer_region: scrollable_region::ScrollableRegion,
@@ -98,19 +101,15 @@ impl View {
     }
 
     pub fn get_input(&self) -> Option<char> {
-        match self.rustbox.poll_event().unwrap() {
-            rustbox::Event::KeyEvent(_, key, ch) => {
+        match self.rustbox.poll_event(false) {
+            Ok(rustbox::Event::KeyEvent(key)) => {
                 match key {
-                    0 => Some(char::from_u32(ch).unwrap()),
-                    k => match k {
-                        8 => Some('\u{8}'),
-                        9 => Some('\t'),
-                        13 => Some('\n'),
-                        27 => Some('\\'),
-                        32 => Some(' '),
-                        127 => Some('\u{127}'),
-                        _ => None,
-                    }
+                    Some(Key::Tab) => Some('\t'),
+                    Some(Key::Esc) => Some('\\'),
+                    Some(Key::Enter) => Some('\n'),
+                    Some(Key::Backspace) => Some('\u{8}'),
+                    Some(Key::Char(c)) => Some(c),
+                    _ => None,
                 }
             },
             _ => None,
@@ -126,7 +125,10 @@ impl View {
 }
 
 pub fn new() -> View {
-    let rustbox = match RustBox::init(&[None]) {
+    let rustbox = match RustBox::init(InitOptions {
+        buffer_stderr: stdio::stderr_raw().isatty(),
+        ..Default::default()
+    }) {
         Ok(r) => r,
         Err(e) => panic!("{}", e.description()),
     };
