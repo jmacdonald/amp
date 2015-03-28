@@ -15,7 +15,7 @@ use pad::PadStr;
 use std::collections::HashMap;
 
 mod scrollable_region;
-mod jump;
+mod jump_mode;
 
 #[derive(PartialEq)]
 pub enum Mode {
@@ -28,14 +28,14 @@ pub struct View {
     pub mode: Mode,
     rustbox: RustBox,
     buffer_region: scrollable_region::ScrollableRegion,
-    pub jump_token_positions: HashMap<String, Position>,
+    pub jump_tag_positions: HashMap<String, Position>,
     pub status_line: String,
 }
 
 impl View {
     pub fn display(&mut self, tokens: &Vec<Token>) {
-        let mut jump_token_sequence = jump::token_sequence::new();
-        self.jump_token_positions.clear();
+        let mut tag_generator = jump_mode::tag_generator::new();
+        self.jump_tag_positions.clear();
         self.rustbox.clear();
         let mut line = 0;
         let mut offset = 0;
@@ -52,20 +52,20 @@ impl View {
             if self.mode == Mode::Jump && token.category != Category::Whitespace &&
                 token.lexeme.len() > 1 && line >= visible_range.start {
                 // Get a token we can use to label this jump location.
-                let jump_token = jump_token_sequence.next_token();
+                let jump_tag = tag_generator.next();
 
                 // Print the token to the screen using a red/highlight color.
                 self.rustbox.print(offset,
-                   line-visible_range.start, rustbox::RB_NORMAL, Color::Red, Color::Default, jump_token.as_slice());
+                   line-visible_range.start, rustbox::RB_NORMAL, Color::Red, Color::Default, &jump_tag);
 
                 // Make the rest of the token text plain. We
-                // want to draw attention to the jump token.
+                // want to draw attention to the jump tag.
                 color = Color::Default;
 
                 // Keep a token -> position mapping so that we can
                 // move the cursor to the token location when its
                 // text is entered by the user.
-                self.jump_token_positions.insert(jump_token, Position{ line: line, offset: offset });
+                self.jump_tag_positions.insert(jump_tag, Position{ line: line, offset: offset });
 
                 // Move the offset tracker ahead, as we've just printed two characters.
                 // It's important that this happens after storing the position above.
@@ -135,5 +135,5 @@ pub fn new() -> View {
 
     let region = scrollable_region::new(rustbox.height()-2);
     View{ mode: Mode::Normal, rustbox: rustbox, buffer_region: region,
-        jump_token_positions: HashMap::new(), status_line: String::new() }
+        jump_tag_positions: HashMap::new(), status_line: String::new() }
 }
