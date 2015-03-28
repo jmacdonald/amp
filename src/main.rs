@@ -14,13 +14,13 @@ fn main() {
     // Set up a workspace in the current directory.
     let mut workspace = match env::current_dir() {
         Ok(path) => scribe::workspace::new(path),
-        Err(error) => panic!("Could not initialize workspace to the current directory."),
+        Err(_) => panic!("Could not initialize workspace to the current directory."),
     };
 
     // Try to open the specified file.
     // TODO: Handle non-existent files as new empty buffers.
     for path in env::args() {
-        let mut argument_buffer = scribe::buffer::from_file(PathBuf::from(path)).unwrap();
+        let argument_buffer = scribe::buffer::from_file(PathBuf::from(path)).unwrap();
         workspace.add_buffer(argument_buffer);
     }
 

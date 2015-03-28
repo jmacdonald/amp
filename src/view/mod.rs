@@ -1,10 +1,9 @@
 extern crate rustbox;
 extern crate scribe;
 
-use std::char;
 use std::error::Error;
 use std::default::Default;
-use rustbox::{Color, RustBox, InitOptions, InputMode};
+use rustbox::{Color, RustBox, InitOptions};
 use rustbox::keyboard::Key;
 use scribe::buffer::Position;
 use scribe::buffer::Token;
