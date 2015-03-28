@@ -18,9 +18,10 @@ fn main() {
 
     // Try to open the specified file.
     // TODO: Handle non-existent files as new empty buffers.
-    let path = os::args()[1].clone();
-    let mut argument_buffer = scribe::buffer::from_file(PathBuf::new(path)).unwrap();
-    workspace.add_buffer(argument_buffer);
+    for path in env::args() {
+        let mut argument_buffer = scribe::buffer::from_file(PathBuf::from(path)).unwrap();
+        workspace.add_buffer(argument_buffer);
+    }
 
     let mut view = view::new();
     let mut jump_input = String::new();
