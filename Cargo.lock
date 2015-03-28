@@ -3,13 +3,13 @@ name = "amp"
 version = "0.0.1"
 dependencies = [
  "pad 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "rustbox 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustbox 0.4.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "scribe 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "bitflags"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -24,11 +24,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "rustbox"
-version = "0.4.2"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "bitflags 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "termbox-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bitflags 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "termbox-sys 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -41,6 +41,6 @@ dependencies = [
 
 [[package]]
 name = "termbox-sys"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
