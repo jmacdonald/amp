@@ -1,8 +1,9 @@
+#![feature(convert)]
+
 extern crate scribe;
 extern crate rustbox;
 extern crate pad;
 
-use std::os;
 use std::env;
 use view::Mode;
 use std::path::PathBuf;
@@ -12,7 +13,7 @@ mod view;
 fn main() {
     // Set up a workspace in the current directory.
     let mut workspace = match env::current_dir() {
-        Ok(path) => scribe::workspace::new(PathBuf::new(path)),
+        Ok(path) => scribe::workspace::new(path),
         Err(error) => panic!("Could not initialize workspace to the current directory."),
     };
 
@@ -56,7 +57,7 @@ fn main() {
                                     buffer.delete();
                                 }
                             } else {
-                                buffer.insert(c.to_string().as_slice());
+                                buffer.insert(&c.to_string());
                                 if c == '\n' {
                                     buffer.cursor.move_down();
                                     buffer.cursor.move_to_start_of_line();
@@ -121,7 +122,7 @@ fn main() {
                                 _ => { 
                                     // Try to find a position, falling back
                                     // to normal mode whether or not we find one.
-                                    match view.jump_token_positions.get(&jump_input) {
+                                    match view.jump_tag_positions.get(&jump_input) {
                                         Some(position) => {
                                             workspace.current_buffer().unwrap().cursor.move_to(position.clone());
                                         }

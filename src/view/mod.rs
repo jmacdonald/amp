@@ -3,9 +3,7 @@ extern crate scribe;
 
 use std::char;
 use std::error::Error;
-use std::old_io::stdio;
 use std::default::Default;
-use std::num::ToPrimitive;
 use rustbox::{Color, RustBox, InitOptions, InputMode};
 use rustbox::keyboard::Key;
 use scribe::buffer::Position;
@@ -95,7 +93,7 @@ impl View {
         // Draw the status line.
         let line = self.rustbox.height()-1;
         let padded_content = self.status_line.pad_to_width(self.rustbox.width());
-        self.rustbox.print(0, line, rustbox::RB_BOLD, Color::White, Color::Black, padded_content.as_slice());
+        self.rustbox.print(0, line, rustbox::RB_BOLD, Color::White, Color::Black, &padded_content);
 
         self.rustbox.present();
     }
@@ -104,7 +102,7 @@ impl View {
         self.buffer_region.scroll_into_view(position.line);
 
         let line = self.buffer_region.relative_position(position.line);
-        self.rustbox.set_cursor(position.offset.to_int().unwrap(), line.to_int().unwrap());
+        self.rustbox.set_cursor(position.offset as isize, line as isize);
     }
 
     pub fn get_input(&self) -> Option<char> {
@@ -125,10 +123,7 @@ impl View {
 }
 
 pub fn new() -> View {
-    let rustbox = match RustBox::init(InitOptions {
-        buffer_stderr: stdio::stderr_raw().isatty(),
-        ..Default::default()
-    }) {
+    let rustbox = match RustBox::init(InitOptions {..Default::default()}) {
         Ok(r) => r,
         Err(e) => panic!("{}", e.description()),
     };
