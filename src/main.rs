@@ -37,7 +37,15 @@ fn main() {
     loop {
         // Refresh the text and cursor on-screen.
         view.set_cursor(&*workspace.current_buffer().unwrap().cursor);
-        view.display(&tokens);
+        match view.mode {
+            Mode::Jump => {
+                // Transform the buffer tokens before displaying them.
+                let jump_tokens = view.jump_mode.tokens(&tokens);
+
+                view.display(&jump_tokens);
+            },
+            _ => view.display(&tokens),
+        }
 
         match view.get_input() {
             Some(c) => {
@@ -122,7 +130,7 @@ fn main() {
                                 _ => { 
                                     // Try to find a position, falling back
                                     // to normal mode whether or not we find one.
-                                    match view.jump_tag_positions.get(&jump_input) {
+                                    match view.jump_mode.map_tag(&jump_input) {
                                         Some(position) => {
                                             workspace.current_buffer().unwrap().cursor.move_to(position.clone());
                                         }
