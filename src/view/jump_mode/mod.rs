@@ -70,6 +70,10 @@ impl JumpMode {
 
         jump_tokens
     }
+
+    pub fn map_tag(&self, tag: &str) -> Option<&Position> {
+        self.tag_positions.get(tag)
+    }
 }
 
 pub fn new() -> JumpMode {
@@ -135,5 +139,18 @@ mod tests {
         jump_mode.tokens(&source_tokens);
         jump_mode.tokens(&vec![]);
         assert!(jump_mode.tag_positions.is_empty());
+    }
+
+    #[test]
+    fn map_tag_returns_position_when_available() {
+        let mut jump_mode = new();
+        let source_tokens = vec![
+            Token{ lexeme: "class".to_string(), category: Category::Keyword},
+            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
+            Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
+        ];
+        jump_mode.tokens(&source_tokens);
+        assert_eq!(jump_mode.map_tag("ab"), Some(&Position{ line: 1, offset: 2 }));
+        assert_eq!(jump_mode.map_tag("none"), None);
     }
 }
