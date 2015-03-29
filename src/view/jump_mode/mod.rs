@@ -23,6 +23,9 @@ impl JumpMode {
         let mut line = 0;
         let mut offset = 0;
 
+        // Previous tag positions don't apply.
+        self.tag_positions.clear();
+
         for token in tokens {
             // Handle line breaks inside of tokens.
             let token_newlines = token.lexeme.lines().count()-1;
@@ -119,5 +122,18 @@ mod tests {
 
         assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(), Position{ line: 0, offset: 0 });
         assert_eq!(*jump_mode.tag_positions.get("ab").unwrap(), Position{ line: 1, offset: 2 });
+    }
+
+    #[test]
+    fn tokens_clears_tracked_positions_on_each_invocation() {
+        let mut jump_mode = new();
+        let source_tokens = vec![
+            Token{ lexeme: "class".to_string(), category: Category::Keyword},
+            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
+            Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
+        ];
+        jump_mode.tokens(&source_tokens);
+        jump_mode.tokens(&vec![]);
+        assert!(jump_mode.tag_positions.is_empty());
     }
 }
