@@ -18,6 +18,11 @@ impl TagGenerator {
             Err(_) => panic!("Couldn't generate a valid UTF-8 jump mode tag.")
         }
     }
+
+    // Restarts the generator sequence at the beginning.
+    pub fn reset(&mut self) {
+        self.index = 0;
+    }
 }
 
 // Builds a new zero-indexed tag generator.
@@ -44,5 +49,13 @@ mod tests {
         assert_eq!(generator.next(), "ba");
         assert_eq!(generator.next(), "bb");
         assert_eq!(generator.next(), "bc");
+    }
+
+    #[test]
+    fn reset_sets_the_index_to_zero() {
+        let mut generator = new();
+        generator.next();
+        generator.reset();
+        assert_eq!(generator.index, 0);
     }
 }
