@@ -19,14 +19,21 @@ fn main() {
 
     // Try to open the specified file.
     // TODO: Handle non-existent files as new empty buffers.
-    for path in env::args() {
-        let argument_buffer = scribe::buffer::from_file(PathBuf::from(path)).unwrap();
+    for path in env::args().skip(1) {
+        let argument_buffer = match scribe::buffer::from_file(PathBuf::from(path.clone())) {
+            Ok(buf) => buf,
+            Err(_) => panic!("Ran into an error trying to open {}.", path),
+        };
+
         workspace.add_buffer(argument_buffer);
     }
 
     let mut view = view::new();
     let mut jump_input = String::new();
-    let mut tokens = workspace.current_buffer().unwrap().tokens();
+    let mut tokens = match workspace.current_buffer() {
+        Some(buf) => buf.tokens(),
+        None => panic!("I'm not yet built to handle a workspace without any buffers."),
+    };
 
     // Set the view's initial status line.
     match workspace.current_buffer().unwrap().file_name() {

@@ -31,7 +31,10 @@ impl JumpMode {
             let token_newlines = token.lexeme.lines().count()-1;
             if token_newlines > 0 {
                 line += token_newlines;
-                offset = token.lexeme.lines().last().unwrap().len();
+                offset = match token.lexeme.lines().last() {
+                    Some(l) => l.len(),
+                    None => 0,
+                };
             }
 
             match token.category {

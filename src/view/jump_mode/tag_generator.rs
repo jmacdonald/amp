@@ -13,7 +13,10 @@ impl TagGenerator {
         self.index += 1;
 
         // Stitch the two calculated letters together.
-        String::from_utf8(vec![first_letter as u8, second_letter as u8]).unwrap()
+        match String::from_utf8(vec![first_letter as u8, second_letter as u8]) {
+            Ok(tag) => tag,
+            Err(_) => panic!("Couldn't generate a valid UTF-8 jump mode tag.")
+        }
     }
 }
 
