@@ -26,20 +26,27 @@ impl JumpMode {
         // Previous tag positions don't apply.
         self.tag_positions.clear();
 
-        for token in tokens {
-            // Handle line breaks inside of tokens.
-            let token_newlines = token.lexeme.lines().count()-1;
-            if token_newlines > 0 {
-                line += token_newlines;
-                offset = match token.lexeme.lines().last() {
-                    Some(l) => l.len(),
-                    None => 0,
-                };
-            }
+        // Restart tags from the beginning.
+        self.tag_generator.reset();
 
+        for token in tokens {
             match token.category {
                 // Don't bother tagging whitespace.
-                Category::Whitespace => jump_tokens.push(token.clone()),
+                Category::Whitespace => {
+                    jump_tokens.push(token.clone());
+
+                    // Handle line breaks inside of tokens.
+                    let token_newlines = token.lexeme.chars().filter(|&c| c == '\n').count();
+                    if token_newlines > 0 {
+                        line += token_newlines;
+                        offset = match token.lexeme.lines().last() {
+                            Some(l) => l.len(),
+                            None => 0,
+                        };
+                    } else {
+                        offset += token.lexeme.len();
+                    }
+                },
                 _ => {
                     if token.lexeme.len() < 2 {
                         // We also don't do anything to tokens
@@ -128,14 +135,28 @@ mod tests {
     fn tokens_tracks_the_positions_of_each_jump_token() {
         let mut jump_mode = new();
         let source_tokens = vec![
+            Token{ lexeme: "start".to_string(), category: Category::Keyword},
+            Token{ lexeme: "\n".to_string(), category: Category::Whitespace},
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
-            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace},
             Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
         ];
         jump_mode.tokens(&source_tokens);
 
         assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(), Position{ line: 0, offset: 0 });
-        assert_eq!(*jump_mode.tag_positions.get("ab").unwrap(), Position{ line: 1, offset: 2 });
+        assert_eq!(*jump_mode.tag_positions.get("ab").unwrap(), Position{ line: 1, offset: 0 });
+        assert_eq!(*jump_mode.tag_positions.get("ac").unwrap(), Position{ line: 1, offset: 6 });
+    }
+
+    #[test]
+    fn tokens_restarts_tags_on_each_invocation() {
+        let mut jump_mode = new();
+        let source_tokens = vec![
+            Token{ lexeme: "class".to_string(), category: Category::Keyword},
+        ];
+        jump_mode.tokens(&source_tokens);
+        let results = jump_mode.tokens(&source_tokens);
+        assert_eq!(results[0].lexeme, "aa");
     }
 
     #[test]
