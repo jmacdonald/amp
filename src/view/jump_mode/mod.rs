@@ -51,7 +51,7 @@ impl JumpMode {
                                 });
                                 jump_tokens.push(Token{
                                     lexeme: token.lexeme[2..].to_string(),
-                                    category: Category::String
+                                    category: Category::Text
                                 });
 
                                 // Track the location of this tag.
@@ -114,10 +114,10 @@ mod tests {
 
         let expected_tokens = vec![
             Token{ lexeme: "aa".to_string(), category: Category::Keyword},
-            Token{ lexeme: "ass".to_string(), category: Category::String},
+            Token{ lexeme: "ass".to_string(), category: Category::Text},
             Token{ lexeme: " ".to_string(), category: Category::Whitespace},
             Token{ lexeme: "ab".to_string(), category: Category::Keyword},
-            Token{ lexeme: "p".to_string(), category: Category::String},
+            Token{ lexeme: "p".to_string(), category: Category::Text},
         ];
 
         let result = jump_mode.tokens(&source_tokens);
@@ -135,7 +135,7 @@ mod tests {
             // non-whitespace string and category achieves two things:
             // it ensures that we don't ignore trailing newlines, and
             // that we look for them in non-whitespace tokens.
-            Token{ lexeme: "another\n".to_string(), category: Category::String},
+            Token{ lexeme: "another\n".to_string(), category: Category::Text},
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
             Token{ lexeme: " ".to_string(), category: Category::Whitespace},
             Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
