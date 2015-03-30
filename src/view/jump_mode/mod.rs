@@ -46,23 +46,30 @@ impl JumpMode {
                         // less than two characters in length.
                         jump_tokens.push(token.clone());
                     } else {
-                        // Get a tag that we'll use to create
-                        // a jump location for this token.
-                        let tag = self.tag_generator.next();
+                        // Try to get a tag that we'll use to
+                        // create a jump location for this token.
+                        match self.tag_generator.next() {
+                            Some(tag) => {
+                                // Split the token in two: a leading jump token
+                                // and the rest of the lexeme as regular text.
+                                jump_tokens.push(Token{
+                                    lexeme: tag.clone(),
+                                    category: Category::Keyword
+                                });
+                                jump_tokens.push(Token{
+                                    lexeme: token.lexeme[2..].to_string(),
+                                    category: Category::String
+                                });
 
-                        // Split the token in two: a leading jump token
-                        // and the remainder of the lexeme as regular text.
-                        jump_tokens.push(Token{
-                            lexeme: tag.clone(),
-                            category: Category::Keyword
-                        });
-                        jump_tokens.push(Token{
-                            lexeme: token.lexeme[2..].to_string(),
-                            category: Category::String
-                        });
-
-                        // Track the location of this tag.
-                        self.tag_positions.insert(tag, Position{ line: line, offset: offset });
+                                // Track the location of this tag.
+                                self.tag_positions.insert(tag, Position{
+                                    line: line,
+                                    offset: offset
+                                });
+                            },
+                            // We've run out of tags; just push the token.
+                            None => jump_tokens.push(token.clone()),
+                        }
                     }
 
                     // Move the tracked offset ahead.
