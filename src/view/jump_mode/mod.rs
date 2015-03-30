@@ -32,21 +32,7 @@ impl JumpMode {
         for token in tokens {
             match token.category {
                 // Don't bother tagging whitespace.
-                Category::Whitespace => {
-                    jump_tokens.push(token.clone());
-
-                    // Handle line breaks inside of tokens.
-                    let token_newlines = token.lexeme.chars().filter(|&c| c == '\n').count();
-                    if token_newlines > 0 {
-                        line += token_newlines;
-                        offset = match token.lexeme.lines().last() {
-                            Some(l) => l.len(),
-                            None => 0,
-                        };
-                    } else {
-                        offset += token.lexeme.len();
-                    }
-                },
+                Category::Whitespace => jump_tokens.push(token.clone()),
                 _ => {
                     if token.lexeme.len() < 2 {
                         // We also don't do anything to tokens
@@ -78,11 +64,20 @@ impl JumpMode {
                             None => jump_tokens.push(token.clone()),
                         }
                     }
-
-                    // Move the tracked offset ahead.
-                    offset += token.lexeme.len();
                 },
             };
+
+            // Handle line breaks inside of tokens.
+            let token_newlines = token.lexeme.chars().filter(|&c| c == '\n').count();
+            if token_newlines > 0 {
+                line += token_newlines;
+                offset = match token.lexeme.split('\n').last() {
+                    Some(l) => l.len(),
+                    None => 0,
+                };
+            } else {
+                offset += token.lexeme.len();
+            }
         }
 
         jump_tokens
@@ -136,7 +131,11 @@ mod tests {
         let mut jump_mode = new();
         let source_tokens = vec![
             Token{ lexeme: "start".to_string(), category: Category::Keyword},
-            Token{ lexeme: "\n".to_string(), category: Category::Whitespace},
+            // Putting a trailing newline character at the end of a
+            // non-whitespace string and category achieves two things:
+            // it ensures that we don't ignore trailing newlines, and
+            // that we look for them in non-whitespace tokens.
+            Token{ lexeme: "another\n".to_string(), category: Category::String},
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
             Token{ lexeme: " ".to_string(), category: Category::Whitespace},
             Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
@@ -144,8 +143,9 @@ mod tests {
         jump_mode.tokens(&source_tokens);
 
         assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(), Position{ line: 0, offset: 0 });
-        assert_eq!(*jump_mode.tag_positions.get("ab").unwrap(), Position{ line: 1, offset: 0 });
-        assert_eq!(*jump_mode.tag_positions.get("ac").unwrap(), Position{ line: 1, offset: 6 });
+        assert_eq!(*jump_mode.tag_positions.get("ab").unwrap(), Position{ line: 0, offset: 5 });
+        assert_eq!(*jump_mode.tag_positions.get("ac").unwrap(), Position{ line: 1, offset: 0 });
+        assert_eq!(*jump_mode.tag_positions.get("ad").unwrap(), Position{ line: 1, offset: 6 });
     }
 
     #[test]
