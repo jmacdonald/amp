@@ -4,54 +4,35 @@ extern crate scribe;
 extern crate rustbox;
 extern crate pad;
 
-use std::env;
 use view::Mode;
-use std::path::PathBuf;
 
+mod application;
 mod view;
 
 fn main() {
-    // Set up a workspace in the current directory.
-    let mut workspace = match env::current_dir() {
-        Ok(path) => scribe::workspace::new(path),
-        Err(_) => panic!("Could not initialize workspace to the current directory."),
-    };
-
-    // Try to open the specified file.
-    // TODO: Handle non-existent files as new empty buffers.
-    for path in env::args().skip(1) {
-        let argument_buffer = match scribe::buffer::from_file(PathBuf::from(path.clone())) {
-            Ok(buf) => buf,
-            Err(_) => panic!("Ran into an error trying to open {}.", path),
-        };
-
-        workspace.add_buffer(argument_buffer);
-    }
-
+    let mut application = application::new();
     let mut view = view::new();
     let mut jump_input = String::new();
-    let mut tokens = match workspace.current_buffer() {
-        Some(buf) => buf.tokens(),
-        None => panic!("I'm not yet built to handle a workspace without any buffers."),
-    };
 
     // Set the view's initial status line.
-    match workspace.current_buffer().unwrap().file_name() {
+    match application.workspace.current_buffer().unwrap().file_name() {
         Some(file_name) => view.status_line = file_name,
         None => (),
     }
 
     loop {
         // Refresh the text and cursor on-screen.
-        view.set_cursor(&*workspace.current_buffer().unwrap().cursor);
+        view.set_cursor(&*application.workspace.current_buffer().unwrap().cursor);
         match view.mode {
             Mode::Jump => {
                 // Transform the buffer tokens before displaying them.
-                let jump_tokens = view.jump_mode.tokens(&tokens);
+                let jump_tokens = view.jump_mode.tokens(&application.workspace.current_buffer().unwrap().tokens());
 
                 view.display(&jump_tokens);
             },
-            _ => view.display(&tokens),
+            _ => {
+                view.display(&application.workspace.current_buffer().unwrap().tokens());
+            },
         }
 
         match view.get_input() {
@@ -61,7 +42,7 @@ fn main() {
                         if c == '\\' {
                             view.mode = Mode::Normal;
                         } else {
-                            let mut buffer = workspace.current_buffer().unwrap();
+                            let mut buffer = application.workspace.current_buffer().unwrap();
                             if c == '\u{8}' || c == '\u{127}' {
                                 if buffer.cursor.offset == 0 {
                                     buffer.cursor.move_up();
@@ -80,14 +61,13 @@ fn main() {
                                     buffer.cursor.move_right();
                                 }
                             }
-                            tokens = buffer.tokens(); 
                         }
                     },
                     Mode::Normal => {
                         if c == '\t' {
-                            workspace.next_buffer();
+                            application.workspace.next_buffer();
                         } else {
-                            let mut buffer = workspace.current_buffer().unwrap();
+                            let mut buffer = application.workspace.current_buffer().unwrap();
                             match c {
                                 'q' => break,
                                 'j' => {
@@ -139,7 +119,7 @@ fn main() {
                                     // to normal mode whether or not we find one.
                                     match view.jump_mode.map_tag(&jump_input) {
                                         Some(position) => {
-                                            workspace.current_buffer().unwrap().cursor.move_to(position.clone());
+                                            application.workspace.current_buffer().unwrap().cursor.move_to(position.clone());
                                         }
                                         None => (),
                                     }
