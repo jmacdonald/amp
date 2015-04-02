@@ -6,7 +6,6 @@ mod jump_mode;
 
 use terminal::Terminal;
 use rustbox::Color;
-use rustbox::keyboard::Key;
 use scribe::buffer::Position;
 use scribe::buffer::Token;
 use scribe::buffer::Category;
@@ -68,22 +67,6 @@ impl View {
 
         let line = self.buffer_region.relative_position(position.line);
         terminal.set_cursor(position.offset as isize, line as isize);
-    }
-
-    pub fn get_input(&self, terminal: &Terminal) -> Option<char> {
-        match terminal.poll_event(false) {
-            Ok(rustbox::Event::KeyEvent(key)) => {
-                match key {
-                    Some(Key::Tab) => Some('\t'),
-                    Some(Key::Esc) => Some('\\'),
-                    Some(Key::Enter) => Some('\n'),
-                    Some(Key::Backspace) => Some('\u{8}'),
-                    Some(Key::Char(c)) => Some(c),
-                    _ => None,
-                }
-            },
-            _ => None,
-        }
     }
 }
 

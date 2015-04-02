@@ -37,7 +37,7 @@ fn main() {
             },
         }
 
-        match view.get_input(&terminal) {
+        match terminal.get_input() {
             Some(c) => {
                 match view.mode {
                     Mode::Insert => {
