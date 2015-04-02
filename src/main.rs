@@ -4,7 +4,7 @@ extern crate scribe;
 extern crate rustbox;
 extern crate pad;
 
-use view::Mode;
+use application::Mode;
 
 mod application;
 mod terminal;
@@ -25,7 +25,7 @@ fn main() {
     loop {
         // Refresh the text and cursor on-screen.
         view.set_cursor(&terminal, &*application.workspace.current_buffer().unwrap().cursor);
-        match view.mode {
+        match application.mode {
             Mode::Jump => {
                 // Transform the buffer tokens before displaying them.
                 let jump_tokens = view.jump_mode.tokens(&application.workspace.current_buffer().unwrap().tokens());
@@ -39,10 +39,10 @@ fn main() {
 
         match terminal.get_input() {
             Some(c) => {
-                match view.mode {
+                match application.mode {
                     Mode::Insert => {
                         if c == '\\' {
-                            view.mode = Mode::Normal;
+                            application.mode = Mode::Normal;
                         } else {
                             let mut buffer = application.workspace.current_buffer().unwrap();
                             if c == '\u{8}' || c == '\u{127}' {
@@ -88,7 +88,7 @@ fn main() {
                                     buffer.delete();
                                 },
                                 'i' => {
-                                    view.mode = Mode::Insert;
+                                    application.mode = Mode::Insert;
                                 },
                                 's' => {
                                     buffer.save();
@@ -100,7 +100,7 @@ fn main() {
                                     buffer.cursor.move_to_end_of_line();
                                 },
                                 'f' => {
-                                    view.mode = Mode::Jump;
+                                    application.mode = Mode::Jump;
                                     jump_input = String::new();
                                 },
                                 _ => continue,
@@ -109,7 +109,7 @@ fn main() {
                     },
                     Mode::Jump => {
                         if c == '\\' {
-                            view.mode = Mode::Normal;
+                            application.mode = Mode::Normal;
                         } else {
                             // Add the input to whatever we've received in jump mode so far.
                             jump_input.push(c);
@@ -127,7 +127,7 @@ fn main() {
                                     }
 
                                     // All done here.
-                                    view.mode = Mode::Normal;
+                                    application.mode = Mode::Normal;
                                 },
                             }
                         }

@@ -5,7 +5,15 @@ use std::env;
 use std::path::PathBuf;
 use scribe::workspace::Workspace;
 
+#[derive(PartialEq)]
+pub enum Mode {
+    Normal,
+    Insert,
+    Jump,
+}
+
 pub struct Application {
+    pub mode: Mode,
     pub workspace: Workspace,
 }
 
@@ -27,5 +35,5 @@ pub fn new() -> Application {
         workspace.add_buffer(argument_buffer);
     }
 
-    Application{ workspace: workspace }
+    Application{ mode: Mode::Normal, workspace: workspace }
 }

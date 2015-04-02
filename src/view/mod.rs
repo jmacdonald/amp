@@ -11,15 +11,7 @@ use scribe::buffer::Token;
 use scribe::buffer::Category;
 use pad::PadStr;
 
-#[derive(PartialEq)]
-pub enum Mode {
-    Normal,
-    Insert,
-    Jump,
-}
-
 pub struct View {
-    pub mode: Mode,
     buffer_region: scrollable_region::ScrollableRegion,
     pub status_line: String,
     pub jump_mode: jump_mode::JumpMode,
@@ -72,6 +64,6 @@ impl View {
 
 pub fn new(terminal: &Terminal) -> View {
     let region = scrollable_region::new(terminal.height()-2);
-    View{ mode: Mode::Normal, buffer_region: region,
+    View{ buffer_region: region,
         status_line: String::new(), jump_mode: jump_mode::new() }
 }
