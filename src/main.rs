@@ -9,6 +9,7 @@ use application::Mode;
 mod application;
 mod terminal;
 mod view;
+mod input;
 
 fn main() {
     let mut application = application::new();
@@ -65,48 +66,7 @@ fn main() {
                             }
                         }
                     },
-                    Mode::Normal => {
-                        if c == '\t' {
-                            application.workspace.next_buffer();
-                        } else {
-                            let mut buffer = application.workspace.current_buffer().unwrap();
-                            match c {
-                                'q' => break,
-                                'j' => {
-                                    buffer.cursor.move_down();
-                                },
-                                'k' => {
-                                    buffer.cursor.move_up();
-                                },
-                                'h' => {
-                                    buffer.cursor.move_left();
-                                },
-                                'l' => {
-                                    buffer.cursor.move_right();
-                                },
-                                'x' => {
-                                    buffer.delete();
-                                },
-                                'i' => {
-                                    application.mode = Mode::Insert;
-                                },
-                                's' => {
-                                    buffer.save();
-                                },
-                                'H' => {
-                                    buffer.cursor.move_to_start_of_line();
-                                },
-                                'L' => {
-                                    buffer.cursor.move_to_end_of_line();
-                                },
-                                'f' => {
-                                    application.mode = Mode::Jump;
-                                    jump_input = String::new();
-                                },
-                                _ => continue,
-                            }
-                        }
-                    },
+                    Mode::Normal => (input::modes::normal::handle(c))(&mut application),
                     Mode::Jump => {
                         if c == '\\' {
                             application.mode = Mode::Normal;
