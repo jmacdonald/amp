@@ -7,11 +7,13 @@ extern crate pad;
 use view::Mode;
 
 mod application;
+mod terminal;
 mod view;
 
 fn main() {
     let mut application = application::new();
-    let mut view = view::new();
+    let terminal = terminal::new();
+    let mut view = view::new(&terminal);
     let mut jump_input = String::new();
 
     // Set the view's initial status line.
@@ -22,20 +24,20 @@ fn main() {
 
     loop {
         // Refresh the text and cursor on-screen.
-        view.set_cursor(&*application.workspace.current_buffer().unwrap().cursor);
+        view.set_cursor(&terminal, &*application.workspace.current_buffer().unwrap().cursor);
         match view.mode {
             Mode::Jump => {
                 // Transform the buffer tokens before displaying them.
                 let jump_tokens = view.jump_mode.tokens(&application.workspace.current_buffer().unwrap().tokens());
 
-                view.display(&jump_tokens);
+                view.display(&terminal, &jump_tokens);
             },
             _ => {
-                view.display(&application.workspace.current_buffer().unwrap().tokens());
+                view.display(&terminal, &application.workspace.current_buffer().unwrap().tokens());
             },
         }
 
-        match view.get_input() {
+        match view.get_input(&terminal) {
             Some(c) => {
                 match view.mode {
                     Mode::Insert => {
