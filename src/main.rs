@@ -132,6 +132,7 @@ fn main() {
                             }
                         }
                     },
+                    Mode::Exit => break,
                 }
             },
             None => {},

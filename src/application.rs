@@ -10,6 +10,7 @@ pub enum Mode {
     Normal,
     Insert,
     Jump,
+    Exit,
 }
 
 pub struct Application {
