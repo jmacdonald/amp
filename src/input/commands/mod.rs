@@ -7,11 +7,11 @@ pub mod cursor;
 
 pub struct Command {
     pub data: char,
-    pub operation: fn(&mut Application),
+    pub operation: fn(&mut Application, &char),
 }
 
 impl Command {
     pub fn execute(&self, app: &mut Application) {
-        (self.operation)(app);
+        (self.operation)(app, &self.data);
     }
 }

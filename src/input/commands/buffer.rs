@@ -1,10 +1,10 @@
 use application::Application;
 
-pub fn save(app: &mut Application) {
+pub fn save(app: &mut Application, _: &char) {
     app.workspace.current_buffer().unwrap().save();
 }
 
-pub fn delete(app: &mut Application) {
+pub fn delete(app: &mut Application, _: &char) {
     app.workspace.current_buffer().unwrap().delete();
 }
 
