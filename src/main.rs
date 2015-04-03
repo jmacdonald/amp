@@ -66,7 +66,7 @@ fn main() {
                             }
                         }
                     },
-                    Mode::Normal => (input::modes::normal::handle(c))(&mut application),
+                    Mode::Normal => input::modes::normal::handle(c).execute(&mut application),
                     Mode::Jump => {
                         if c == '\\' {
                             application.mode = Mode::Normal;

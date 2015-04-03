@@ -1,8 +1,8 @@
 use application::Application;
-use input::commands::{application, workspace, cursor, buffer};
+use input::commands::{Command, application, workspace, cursor, buffer};
 
-pub fn handle(input: char) -> fn(&mut Application) {
-    match input {
+pub fn handle(input: char) -> Command {
+    let operation: fn(&mut Application) = match input {
         '\t' => workspace::next_buffer,
         'q'  => application::exit,
         'j'  => cursor::move_down,
@@ -16,7 +16,9 @@ pub fn handle(input: char) -> fn(&mut Application) {
         'L'  => cursor::move_to_end_of_line,
         'f'  => application::switch_to_jump_mode,
         _    => do_nothing,
-    }
+    };
+
+    Command{ data: ' ', operation: operation }
 }
 
 pub fn do_nothing(app: &mut Application) {
