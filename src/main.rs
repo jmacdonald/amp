@@ -41,31 +41,7 @@ fn main() {
         match terminal.get_input() {
             Some(c) => {
                 match application.mode {
-                    Mode::Insert => {
-                        if c == '\\' {
-                            application.mode = Mode::Normal;
-                        } else {
-                            let mut buffer = application.workspace.current_buffer().unwrap();
-                            if c == '\u{8}' || c == '\u{127}' {
-                                if buffer.cursor.offset == 0 {
-                                    buffer.cursor.move_up();
-                                    buffer.cursor.move_to_end_of_line();
-                                    buffer.delete();
-                                } else {
-                                    buffer.cursor.move_left();
-                                    buffer.delete();
-                                }
-                            } else {
-                                buffer.insert(&c.to_string());
-                                if c == '\n' {
-                                    buffer.cursor.move_down();
-                                    buffer.cursor.move_to_start_of_line();
-                                } else {
-                                    buffer.cursor.move_right();
-                                }
-                            }
-                        }
-                    },
+                    Mode::Insert => input::modes::insert::handle(c).execute(&mut application),
                     Mode::Normal => input::modes::normal::handle(c).execute(&mut application),
                     Mode::Jump => {
                         if c == '\\' {
