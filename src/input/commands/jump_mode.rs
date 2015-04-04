@@ -5,9 +5,6 @@ use application::jump_mode;
 pub fn match_tag(app: &mut Application, data: &char) {
     let done = match app.mode {
         Mode::Jump(ref mut jump_mode) => {
-            // Add the input to whatever we've received in jump mode so far.
-            jump_mode.input.push(data.clone());
-
             match jump_mode.input.len() {
                 0 | 1 => false, // Not enough data to match to a position.
                 _ => { 
