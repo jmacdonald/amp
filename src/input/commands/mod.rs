@@ -4,6 +4,7 @@ pub mod application;
 pub mod workspace;
 pub mod buffer;
 pub mod cursor;
+pub mod jump_mode;
 
 pub struct Command {
     pub data: char,
