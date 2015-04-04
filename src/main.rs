@@ -15,7 +15,6 @@ fn main() {
     let mut application = application::new();
     let terminal = terminal::new();
     let mut view = view::new(&terminal);
-    let mut jump_input = String::new();
 
     // Set the view's initial status line.
     match application.workspace.current_buffer().unwrap().file_name() {
@@ -27,9 +26,9 @@ fn main() {
         // Refresh the text and cursor on-screen.
         view.set_cursor(&terminal, &*application.workspace.current_buffer().unwrap().cursor);
         match application.mode {
-            Mode::Jump => {
+            Mode::Jump(ref mut jump_mode) => {
                 // Transform the buffer tokens before displaying them.
-                let jump_tokens = view.jump_mode.tokens(&application.workspace.current_buffer().unwrap().tokens());
+                let jump_tokens = jump_mode.tokens(&application.workspace.current_buffer().unwrap().tokens());
 
                 view.display(&terminal, &jump_tokens);
             },
@@ -43,31 +42,7 @@ fn main() {
                 match application.mode {
                     Mode::Insert => input::modes::insert::handle(c).execute(&mut application),
                     Mode::Normal => input::modes::normal::handle(c).execute(&mut application),
-                    Mode::Jump => {
-                        if c == '\\' {
-                            application.mode = Mode::Normal;
-                        } else {
-                            // Add the input to whatever we've received in jump mode so far.
-                            jump_input.push(c);
-
-                            match jump_input.len() {
-                                0 | 1 => (), // Not enough data to match to a position.
-                                _ => { 
-                                    // Try to find a position, falling back
-                                    // to normal mode whether or not we find one.
-                                    match view.jump_mode.map_tag(&jump_input) {
-                                        Some(position) => {
-                                            application.workspace.current_buffer().unwrap().cursor.move_to(position.clone());
-                                        }
-                                        None => (),
-                                    }
-
-                                    // All done here.
-                                    application.mode = Mode::Normal;
-                                },
-                            }
-                        }
-                    },
+                    Mode::Jump(_) => input::modes::jump::handle(c).execute(&mut application),
                     Mode::Exit => break,
                 }
             },
