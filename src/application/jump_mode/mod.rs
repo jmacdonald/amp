@@ -5,6 +5,7 @@ use scribe::buffer::Position;
 use scribe::buffer::{Token, Category};
 
 pub struct JumpMode {
+    pub input: String,
     tag_generator: tag_generator::TagGenerator,
     tag_positions: HashMap<String, Position>,
 }
@@ -90,6 +91,7 @@ impl JumpMode {
 
 pub fn new() -> JumpMode {
     JumpMode{
+        input: String::new(),
         tag_generator: tag_generator::new(),
         tag_positions: HashMap::new()
     }
