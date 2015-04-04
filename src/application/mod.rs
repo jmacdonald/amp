@@ -1,20 +1,23 @@
 extern crate scribe;
 extern crate rustbox;
 
+pub mod jump_mode;
+
 use std::env;
 use std::path::PathBuf;
+use self::jump_mode::JumpMode;
 use scribe::workspace::Workspace;
 
 #[derive(PartialEq)]
-pub enum Mode {
+pub enum Mode<J> {
     Normal,
     Insert,
-    Jump,
+    Jump(J),
     Exit,
 }
 
 pub struct Application {
-    pub mode: Mode,
+    pub mode: Mode<JumpMode>,
     pub workspace: Workspace,
 }
 

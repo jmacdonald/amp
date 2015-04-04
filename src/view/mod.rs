@@ -2,7 +2,6 @@ extern crate rustbox;
 extern crate scribe;
 
 mod scrollable_region;
-mod jump_mode;
 
 use terminal::Terminal;
 use rustbox::Color;
@@ -14,7 +13,6 @@ use pad::PadStr;
 pub struct View {
     buffer_region: scrollable_region::ScrollableRegion,
     pub status_line: String,
-    pub jump_mode: jump_mode::JumpMode,
 }
 
 impl View {
@@ -64,6 +62,5 @@ impl View {
 
 pub fn new(terminal: &Terminal) -> View {
     let region = scrollable_region::new(terminal.height()-2);
-    View{ buffer_region: region,
-        status_line: String::new(), jump_mode: jump_mode::new() }
+    View{ buffer_region: region, status_line: String::new() }
 }
