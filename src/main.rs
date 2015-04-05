@@ -40,7 +40,7 @@ fn main() {
         match terminal.get_input() {
             Some(c) => {
                 match application.mode {
-                    Mode::Insert => input::modes::insert::handle(c),
+                    Mode::Insert(ref mut i) => input::modes::insert::handle(i, c),
                     Mode::Normal => input::modes::normal::handle(c),
                     Mode::Jump(ref mut j) => input::modes::jump::handle(j, c),
                     Mode::Exit => break,

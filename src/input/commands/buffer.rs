@@ -1,4 +1,5 @@
 use application::Application;
+use application::Mode;
 
 pub fn save(app: &mut Application, _: &char) {
     app.workspace.current_buffer().unwrap().save();
@@ -21,14 +22,25 @@ pub fn backspace(app: &mut Application, _: &char) {
     }
 }
 
-pub fn insert_char(app: &mut Application, data: &char) {
+pub fn insert_char(app: &mut Application, _: &char) {
     let mut buffer = app.workspace.current_buffer().unwrap();
 
-    buffer.insert(&data.to_string());
-    if *data == '\n' {
-        buffer.cursor.move_down();
-        buffer.cursor.move_to_start_of_line();
-    } else {
-        buffer.cursor.move_right();
-    }
+    match app.mode {
+        Mode::Insert(ref mut insert_mode) => {
+            match insert_mode.input {
+                Some(input) => {
+                    buffer.insert(&input.to_string());
+                    if input == '\n' {
+                        buffer.cursor.move_down();
+                        buffer.cursor.move_to_start_of_line();
+                    } else {
+                        buffer.cursor.move_right();
+                    }
+                },
+                None => (),
+            }
+        },
+        _ => (),
+    };
+
 }
