@@ -39,12 +39,12 @@ fn main() {
 
         match terminal.get_input() {
             Some(c) => {
-                match application.mode {
+                (match application.mode {
                     Mode::Insert(ref mut i) => input::modes::insert::handle(i, c),
                     Mode::Normal => input::modes::normal::handle(c),
                     Mode::Jump(ref mut j) => input::modes::jump::handle(j, c),
                     Mode::Exit => break,
-                }.execute(&mut application)
+                })(&mut application)
             },
             None => {},
         }

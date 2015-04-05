@@ -1,15 +1,15 @@
 use application::Application;
 use application::Mode;
 
-pub fn save(app: &mut Application, _: &char) {
+pub fn save(app: &mut Application) {
     app.workspace.current_buffer().unwrap().save();
 }
 
-pub fn delete(app: &mut Application, _: &char) {
+pub fn delete(app: &mut Application) {
     app.workspace.current_buffer().unwrap().delete();
 }
 
-pub fn backspace(app: &mut Application, _: &char) {
+pub fn backspace(app: &mut Application) {
     let mut buffer = app.workspace.current_buffer().unwrap();
 
     if buffer.cursor.offset == 0 {
@@ -22,7 +22,7 @@ pub fn backspace(app: &mut Application, _: &char) {
     }
 }
 
-pub fn insert_char(app: &mut Application, _: &char) {
+pub fn insert_char(app: &mut Application) {
     let mut buffer = app.workspace.current_buffer().unwrap();
 
     match app.mode {

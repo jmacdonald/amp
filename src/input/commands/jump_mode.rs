@@ -2,7 +2,7 @@ use application::Mode;
 use application::Application;
 use application::modes::jump;
 
-pub fn match_tag(app: &mut Application, data: &char) {
+pub fn match_tag(app: &mut Application) {
     let done = match app.mode {
         Mode::Jump(ref mut jump_mode) => {
             match jump_mode.input.len() {
