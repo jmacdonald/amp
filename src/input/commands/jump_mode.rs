@@ -1,6 +1,6 @@
 use application::Mode;
 use application::Application;
-use application::jump_mode;
+use application::modes::jump;
 
 pub fn match_tag(app: &mut Application, data: &char) {
     let done = match app.mode {

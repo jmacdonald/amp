@@ -1,5 +1,5 @@
 use application::Application;
-use application::jump_mode::JumpMode;
+use application::modes::jump::JumpMode;
 use input::commands::{Command, application, jump_mode};
 
 pub fn handle(mode: &mut JumpMode, input: char) -> Command {

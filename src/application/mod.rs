@@ -1,11 +1,11 @@
 extern crate scribe;
 extern crate rustbox;
 
-pub mod jump_mode;
+pub mod modes;
 
 use std::env;
 use std::path::PathBuf;
-use self::jump_mode::JumpMode;
+use self::modes::jump::JumpMode;
 use scribe::workspace::Workspace;
 
 #[derive(PartialEq)]
