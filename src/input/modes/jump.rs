@@ -1,4 +1,3 @@
-use application::Application;
 use application::modes::jump::JumpMode;
 use input::commands::{Command, application, jump_mode};
 

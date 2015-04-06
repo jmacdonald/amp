@@ -25,17 +25,15 @@ fn main() {
     loop {
         // Refresh the text and cursor on-screen.
         view.set_cursor(&terminal, &*application.workspace.current_buffer().unwrap().cursor);
-        match application.mode {
+        let tokens = match application.mode {
             Mode::Jump(ref mut jump_mode) => {
-                // Transform the buffer tokens before displaying them.
-                let jump_tokens = jump_mode.tokens(&application.workspace.current_buffer().unwrap().tokens());
-
-                view.display(&terminal, &jump_tokens);
+                jump_mode.tokens(&application.workspace.current_buffer().unwrap().tokens())
             },
             _ => {
-                view.display(&terminal, &application.workspace.current_buffer().unwrap().tokens());
+                application.workspace.current_buffer().unwrap().tokens()
             },
-        }
+        };
+        view.display(&terminal, &tokens);
 
         match terminal.get_input() {
             Some(c) => {

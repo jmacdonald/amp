@@ -19,5 +19,5 @@ pub fn handle(input: char) -> Command {
     }
 }
 
-pub fn do_nothing(app: &mut Application) {
+pub fn do_nothing(_: &mut Application) {
 }
