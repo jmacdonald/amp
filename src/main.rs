@@ -42,7 +42,14 @@ fn main() {
                     Mode::Normal => input::modes::normal::handle(c),
                     Mode::Jump(ref mut j) => input::modes::jump::handle(j, c),
                     Mode::Exit => break,
-                })(&mut application)
+                })(&mut application);
+
+                // Check if the command resulted in an exit, before
+                // looping again and asking for input we won't use.
+                match application.mode {
+                    Mode::Exit => break,
+                    _ => {}
+                }
             },
             None => {},
         }
