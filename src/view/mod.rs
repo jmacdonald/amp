@@ -23,10 +23,12 @@ impl View {
         let visible_range = self.buffer_region.visible_range();
         'print_loop: for token in tokens.iter() {
             let color = match token.category {
-                Category::Keyword => Color::Yellow,
-                Category::Identifier => Color::Green,
-                Category::String => Color::Red,
-                _ => Color::Default,
+                Category::Keyword    => Color::Magenta,
+                Category::Identifier => Color::Yellow,
+                Category::String     => Color::Red,
+                Category::Comment    => Color::Blue,
+                Category::Method     => Color::Cyan,
+                _                    => Color::Default,
             };
 
             for character in token.lexeme.chars() {
