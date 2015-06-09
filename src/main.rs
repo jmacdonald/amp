@@ -1,5 +1,3 @@
-#![feature(convert)]
-
 extern crate scribe;
 extern crate rustbox;
 extern crate pad;
