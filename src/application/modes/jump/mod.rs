@@ -1,3 +1,5 @@
+extern crate luthor;
+
 pub mod tag_generator;
 
 use std::collections::HashMap;
@@ -31,53 +33,68 @@ impl JumpMode {
         self.tag_generator.reset();
 
         for token in tokens {
-            match token.category {
-                // Don't bother tagging whitespace.
-                Category::Whitespace => jump_tokens.push(token.clone()),
-                _ => {
-                    if token.lexeme.len() < 2 {
-                        // We also don't do anything to tokens
-                        // less than two characters in length.
-                        jump_tokens.push(token.clone());
+            // Split the token's lexeme on whitespace. Comments and strings are the most
+            // notable examples of tokens with whitespace; we want to be able to jump to
+            // points within these.
+            let subtokens = luthor::lexers::default::lex(&token.lexeme);
+            for subtoken in subtokens {
+                if subtoken.category == Category::Whitespace {
+                    // Handle line breaks inside of whitespace tokens.
+                    let subtoken_newlines = subtoken.lexeme.chars().filter(|&c| c == '\n').count();
+                    if subtoken_newlines > 0 {
+                        line += subtoken_newlines;
+                        offset = match subtoken.lexeme.split('\n').last() {
+                            Some(l) => l.len(),
+                            None => 0,
+                        };
                     } else {
-                        // Try to get a tag that we'll use to
-                        // create a jump location for this token.
-                        match self.tag_generator.next() {
-                            Some(tag) => {
-                                // Split the token in two: a leading jump token
-                                // and the rest of the lexeme as regular text.
-                                jump_tokens.push(Token{
-                                    lexeme: tag.clone(),
-                                    category: Category::Keyword
-                                });
-                                jump_tokens.push(Token{
-                                    lexeme: token.lexeme[2..].to_string(),
-                                    category: Category::Text
-                                });
+                        offset += subtoken.lexeme.len();
+                    }
 
-                                // Track the location of this tag.
-                                self.tag_positions.insert(tag, Position{
-                                    line: line,
-                                    offset: offset
-                                });
-                            },
-                            // We've run out of tags; just push the token.
-                            None => jump_tokens.push(token.clone()),
+                    // We don't do anything to whitespace tokens.
+                    jump_tokens.push(subtoken);
+
+                } else if subtoken.lexeme.len() < 2 {
+                    // We also don't do anything to tokens
+                    // less than two characters in length.
+                    jump_tokens.push(Token{
+                        lexeme: subtoken.lexeme.to_string(),
+                        category: Category::Text
+                    });
+
+                    offset += subtoken.lexeme.len();
+                } else {
+                    // Try to get a tag that we'll use to create
+                    // a jump location for this token.
+                    match self.tag_generator.next() {
+                        Some(tag) => {
+                            // Split the token in two: a leading jump
+                            // token and the rest as regular text.
+                            jump_tokens.push(Token{
+                                lexeme: tag.clone(),
+                                category: Category::Keyword
+                            });
+                            jump_tokens.push(Token{
+                                lexeme: subtoken.lexeme[2..].to_string(),
+                                category: Category::Text
+                            });
+
+                            // Track the location of this tag.
+                            self.tag_positions.insert(tag, Position{
+                                line: line,
+                                offset: offset
+                            });
+                        },
+                        // We've run out of tags; just push the token.
+                        None => {
+                            let mut cloned_token = token.clone();
+                            cloned_token.lexeme = subtoken.lexeme.to_string();
+                            jump_tokens.push(cloned_token);
                         }
                     }
-                },
-            };
 
-            // Handle line breaks inside of tokens.
-            let token_newlines = token.lexeme.chars().filter(|&c| c == '\n').count();
-            if token_newlines > 0 {
-                line += token_newlines;
-                offset = match token.lexeme.split('\n').last() {
-                    Some(l) => l.len(),
-                    None => 0,
-                };
-            } else {
-                offset += token.lexeme.len();
+                    offset += subtoken.lexeme.len();
+                }
             }
         }
 
@@ -129,10 +146,36 @@ mod tests {
     }
 
     #[test]
+    fn tokens_splits_passed_tokens_on_whitespace() {
+        let mut jump_mode = new();
+        let source_tokens = vec![
+            Token{ lexeme: "# comment string".to_string(), category: Category::Comment},
+        ];
+
+        let expected_tokens = vec![
+            Token{ lexeme: "#".to_string(), category: Category::Text},
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace},
+            Token{ lexeme: "aa".to_string(), category: Category::Keyword},
+            Token{ lexeme: "mment".to_string(), category: Category::Text},
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace},
+            Token{ lexeme: "ab".to_string(), category: Category::Keyword},
+            Token{ lexeme: "ring".to_string(), category: Category::Text},
+        ];
+
+        let result = jump_mode.tokens(&source_tokens);
+        for (index, token) in expected_tokens.iter().enumerate() {
+            assert_eq!(*token, result[index]);
+        };
+    }
+
+    #[test]
     fn tokens_tracks_the_positions_of_each_jump_token() {
         let mut jump_mode = new();
         let source_tokens = vec![
-            Token{ lexeme: "start".to_string(), category: Category::Keyword},
+            // Adding space to a token invokes subtoken handling, since we split
+            // tokens on whitespace. It's important to ensure the tracked positions
+            // take this into account, too, which is why there's leading whitespace.
+            Token{ lexeme: "  start".to_string(), category: Category::Keyword},
             // Putting a trailing newline character at the end of a
             // non-whitespace string and category achieves two things:
             // it ensures that we don't ignore trailing newlines, and
@@ -144,8 +187,8 @@ mod tests {
         ];
         jump_mode.tokens(&source_tokens);
 
-        assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(), Position{ line: 0, offset: 0 });
-        assert_eq!(*jump_mode.tag_positions.get("ab").unwrap(), Position{ line: 0, offset: 5 });
+        assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(), Position{ line: 0, offset: 2 });
+        assert_eq!(*jump_mode.tag_positions.get("ab").unwrap(), Position{ line: 0, offset: 7 });
         assert_eq!(*jump_mode.tag_positions.get("ac").unwrap(), Position{ line: 1, offset: 0 });
         assert_eq!(*jump_mode.tag_positions.get("ad").unwrap(), Position{ line: 1, offset: 6 });
     }
