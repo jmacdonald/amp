@@ -2,6 +2,7 @@
 name = "amp"
 version = "0.0.1"
 dependencies = [
+ "luthor 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "pad 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustbox 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "scribe 0.0.8 (registry+https://github.com/rust-lang/crates.io-index)",

@@ -8,3 +8,4 @@ authors = ["Jordan MacDonald <jordan@wastedintelligence.com>"]
 scribe = "0.0.8"
 pad = "0.1.4"
 rustbox = "0.6.1"
+luthor = "0.1.1"
