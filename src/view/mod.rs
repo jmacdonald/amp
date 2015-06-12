@@ -5,9 +5,7 @@ mod scrollable_region;
 
 use terminal::Terminal;
 use rustbox::Color;
-use scribe::buffer::Position;
-use scribe::buffer::Token;
-use scribe::buffer::Category;
+use scribe::buffer::{Position, Token, Category, LineRange};
 use pad::PadStr;
 
 pub struct View {
@@ -59,6 +57,10 @@ impl View {
 
         let line = self.buffer_region.relative_position(position.line);
         terminal.set_cursor(position.offset as isize, line as isize);
+    }
+
+    pub fn visible_lines(&self) -> LineRange {
+        self.buffer_region.visible_range()
     }
 }
 
