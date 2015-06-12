@@ -1,7 +1,4 @@
-pub struct LineRange {
-    pub start: usize,
-    pub end: usize,
-}
+use scribe::buffer::LineRange;
 
 /// Abstract representation of a fixed-height section of the screen.
 /// Used to determine visible ranges of lines based on previous state,
