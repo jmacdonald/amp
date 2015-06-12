@@ -25,7 +25,7 @@ fn main() {
         view.set_cursor(&terminal, &*application.workspace.current_buffer().unwrap().cursor);
         let tokens = match application.mode {
             Mode::Jump(ref mut jump_mode) => {
-                jump_mode.tokens(&application.workspace.current_buffer().unwrap().tokens())
+                jump_mode.tokens(&application.workspace.current_buffer().unwrap().tokens(), None)
             },
             _ => {
                 application.workspace.current_buffer().unwrap().tokens()
