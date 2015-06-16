@@ -15,6 +15,7 @@ pub fn handle(input: char) -> Command {
         'H'  => cursor::move_to_start_of_line,
         'L'  => cursor::move_to_end_of_line,
         'A'  => cursor::insert_at_end_of_line,
+        'o'  => cursor::insert_with_newline,
         'f'  => application::switch_to_jump_mode,
         _    => do_nothing,
     }
