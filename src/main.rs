@@ -35,7 +35,11 @@ fn main() {
                 application.workspace.current_buffer().unwrap().tokens()
             },
         };
-        view.display(&terminal, &tokens);
+
+        match application.mode {
+            Mode::Insert(_) => view.display(&terminal, &tokens, true),
+            _ => view.display(&terminal, &tokens, false),
+        };
 
         match terminal.get_input() {
             Some(c) => {

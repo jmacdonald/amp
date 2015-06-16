@@ -14,7 +14,7 @@ pub struct View {
 }
 
 impl View {
-    pub fn display(&mut self, terminal: &Terminal, tokens: &Vec<Token>) {
+    pub fn display(&mut self, terminal: &Terminal, tokens: &Vec<Token>, insert_mode: bool) {
         terminal.clear();
         let mut line = 0;
         let mut offset = 0;
@@ -47,7 +47,11 @@ impl View {
         // Draw the status line.
         let line = terminal.height()-1;
         let padded_content = self.status_line.pad_to_width(terminal.width());
-        terminal.print(0, line, rustbox::RB_BOLD, Color::White, Color::Black, &padded_content);
+        if insert_mode {
+            terminal.print(0, line, rustbox::RB_BOLD, Color::White, Color::Green, &padded_content);
+        } else {
+            terminal.print(0, line, rustbox::RB_BOLD, Color::White, Color::Black, &padded_content);
+        }
 
         terminal.present();
     }
