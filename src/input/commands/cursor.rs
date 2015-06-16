@@ -60,6 +60,11 @@ pub fn insert_at_end_of_line(app: &mut Application) {
     application::switch_to_insert_mode(app);
 }
 
+pub fn insert_at_first_word_of_line(app: &mut Application) {
+    move_to_first_word_of_line(app);
+    application::switch_to_insert_mode(app);
+}
+
 pub fn insert_with_newline(app: &mut Application) {
     move_to_end_of_line(app);
     buffer::insert_newline(app);
