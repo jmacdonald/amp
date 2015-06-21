@@ -78,6 +78,13 @@ pub fn insert_newline(app: &mut Application) {
     }
 }
 
+pub fn undo(app: &mut Application) {
+    match app.workspace.current_buffer() {
+        Some(buffer) => buffer.undo(),
+        None => (),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     extern crate scribe;
