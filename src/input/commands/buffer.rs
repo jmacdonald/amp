@@ -78,6 +78,20 @@ pub fn insert_newline(app: &mut Application) {
     }
 }
 
+pub fn start_command_group(app: &mut Application) {
+    match app.workspace.current_buffer() {
+        Some(buffer) => buffer.start_operation_group(),
+        None => (),
+    }
+}
+
+pub fn end_command_group(app: &mut Application) {
+    match app.workspace.current_buffer() {
+        Some(buffer) => buffer.end_operation_group(),
+        None => (),
+    }
+}
+
 pub fn undo(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => buffer.undo(),

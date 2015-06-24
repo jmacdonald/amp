@@ -67,6 +67,7 @@ pub fn insert_at_first_word_of_line(app: &mut Application) {
 
 pub fn insert_with_newline(app: &mut Application) {
     move_to_end_of_line(app);
+    buffer::start_command_group(app);
     buffer::insert_newline(app);
     application::switch_to_insert_mode(app);
 }
