@@ -99,6 +99,13 @@ pub fn undo(app: &mut Application) {
     }
 }
 
+pub fn redo(app: &mut Application) {
+    match app.workspace.current_buffer() {
+        Some(buffer) => buffer.redo(),
+        None => (),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     extern crate scribe;

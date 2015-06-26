@@ -19,6 +19,7 @@ pub fn handle(input: char) -> Command {
         'o'  => cursor::insert_with_newline,
         'f'  => application::switch_to_jump_mode,
         'u'  => buffer::undo,
+        'r'  => buffer::redo,
         _    => do_nothing,
     }
 }
