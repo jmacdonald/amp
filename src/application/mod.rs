@@ -7,18 +7,20 @@ use std::env;
 use std::path::PathBuf;
 use self::modes::jump::JumpMode;
 use self::modes::insert::InsertMode;
+use self::modes::open::OpenMode;
 use scribe::workspace::Workspace;
 
 #[derive(PartialEq)]
-pub enum Mode<I, J> {
+pub enum Mode<I, J, O> {
     Normal,
     Insert(I),
     Jump(J),
+    Open(O),
     Exit,
 }
 
 pub struct Application {
-    pub mode: Mode<InsertMode, JumpMode>,
+    pub mode: Mode<InsertMode, JumpMode, OpenMode>,
     pub workspace: Workspace,
 }
 
