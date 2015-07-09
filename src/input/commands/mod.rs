@@ -5,5 +5,6 @@ pub mod workspace;
 pub mod buffer;
 pub mod cursor;
 pub mod jump_mode;
+pub mod open_mode;
 
 pub type Command = fn(&mut Application);
