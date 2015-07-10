@@ -2,6 +2,7 @@
 name = "amp"
 version = "0.0.1"
 dependencies = [
+ "bloodhound 0.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "luthor 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "pad 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustbox 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -11,6 +12,11 @@ dependencies = [
 [[package]]
 name = "bitflags"
 version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "bloodhound"
+version = "0.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
