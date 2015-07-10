@@ -17,7 +17,7 @@ pub fn switch_to_jump_mode(app: &mut Application) {
 }
 
 pub fn switch_to_open_mode(app: &mut Application) {
-    app.mode = Mode::Open(open::new());
+    app.mode = Mode::Open(open::new(app.workspace.path.clone()));
 }
 
 pub fn exit(app: &mut Application) {
