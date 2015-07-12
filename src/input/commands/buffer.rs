@@ -11,6 +11,10 @@ pub fn delete(app: &mut Application) {
     app.workspace.current_buffer().unwrap().delete();
 }
 
+pub fn close(app: &mut Application) {
+    app.workspace.close_current_buffer();
+}
+
 pub fn backspace(app: &mut Application) {
     let mut buffer = app.workspace.current_buffer().unwrap();
 

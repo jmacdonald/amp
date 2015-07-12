@@ -4,7 +4,8 @@ use input::commands::{Command, application, workspace, cursor, buffer};
 pub fn handle(input: char) -> Command {
     match input {
         '\t' => workspace::next_buffer,
-        'q'  => application::exit,
+        'q'  => buffer::close,
+        'Q'  => application::exit,
         'j'  => cursor::move_down,
         'k'  => cursor::move_up,
         'h'  => cursor::move_left,
