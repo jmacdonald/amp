@@ -7,7 +7,7 @@ use self::bloodhound::matching::Result;
 pub struct OpenMode {
     pub input: String,
     pub index: Index,
-    results: Option<Vec<Result>>,
+    pub results: Option<Vec<Result>>,
     pub selected_result_index: usize,
 }
 

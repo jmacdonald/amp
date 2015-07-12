@@ -10,10 +10,17 @@ use pad::PadStr;
 
 pub fn display(terminal: &Terminal, tokens: &Vec<Token>, mode: &OpenMode) {
     terminal.clear();
-    for (line, result) in bloodhound::matching::find(&mode.input, &mode.index.entries, 5).iter().enumerate() {
-        let color = if line == mode.selected_result_index { Color::Black } else { Color::Default };
-        let padded_content = result.path.as_path().to_str().unwrap().pad_to_width(terminal.width());
-        terminal.print(0, line, rustbox::RB_NORMAL, Color::White, color, &padded_content);
+
+    // Draw the list of search results.
+    match mode.results {
+        Some(ref results) => {
+            for (line, result) in results.iter().enumerate() {
+                let color = if line == mode.selected_result_index { Color::Black } else { Color::Default };
+                let padded_content = result.path.as_path().to_str().unwrap().pad_to_width(terminal.width());
+                terminal.print(0, line, rustbox::RB_NORMAL, Color::White, color, &padded_content);
+            }
+        },
+        None => (),
     }
 
     // Draw the divider.
