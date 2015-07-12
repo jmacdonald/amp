@@ -6,9 +6,9 @@ use self::bloodhound::matching::Result;
 
 pub struct OpenMode {
     pub input: String,
-    index: Index,
+    pub index: Index,
     results: Option<Vec<Result>>,
-    selected_result_index: usize,
+    pub selected_result_index: usize,
 }
 
 pub fn new(path: PathBuf) -> OpenMode {

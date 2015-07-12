@@ -1,6 +1,7 @@
 extern crate rustbox;
 extern crate scribe;
 
+pub mod open;
 mod scrollable_region;
 
 use terminal::Terminal;

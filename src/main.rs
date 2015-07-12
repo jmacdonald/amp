@@ -38,6 +38,7 @@ fn main() {
 
         match application.mode {
             Mode::Insert(_) => view.display(&terminal, &tokens, true),
+            Mode::Open(ref open_mode) => view::open::display(&terminal, &tokens, open_mode),
             _ => view.display(&terminal, &tokens, false),
         };
 
