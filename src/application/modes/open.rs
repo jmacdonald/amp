@@ -8,7 +8,7 @@ const MAX_RESULTS: usize = 5;
 
 pub struct OpenMode {
     pub input: String,
-    pub index: Index,
+    index: Index,
     pub results: Vec<Result>,
     selected_result_index: usize,
 }
