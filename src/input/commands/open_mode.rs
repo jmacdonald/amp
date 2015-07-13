@@ -8,14 +8,11 @@ use input::commands;
 pub fn open(app: &mut Application) {
     match app.mode {
         Mode::Open(ref mut mode) => {
-            match mode.results {
-                Some(ref results) => {
-                    let ref selection = results[mode.selected_result_index];
-                    match scribe::buffer::from_file(selection.path.clone()) {
-                        Ok(buffer) => {
-                            app.workspace.add_buffer(buffer);
-                        },
-                        Err(_) => (),
+            match mode.selected_path() {
+                Some(path) => {
+                    match scribe::buffer::from_file(path) {
+                        Ok(buffer) => app.workspace.add_buffer(buffer),
+                        _ => (),
                     }
                 },
                 None => (),
@@ -31,15 +28,7 @@ pub fn open(app: &mut Application) {
 
 pub fn search(app: &mut Application) {
     match app.mode {
-        Mode::Open(ref mut mode) => {
-            mode.results = Some(
-                bloodhound::matching::find(
-                    &mode.input,         // The query string (needle).
-                    &mode.index.entries, // The indexed files (haystack).
-                    5                    // The max number of results.
-                )
-            );
-        },
+        Mode::Open(ref mut mode) => mode.search(),
         _ => (),
     }
 }
