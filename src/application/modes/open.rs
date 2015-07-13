@@ -10,7 +10,7 @@ pub struct OpenMode {
     pub input: String,
     pub index: Index,
     pub results: Vec<Result>,
-    pub selected_result_index: usize,
+    selected_result_index: usize,
 }
 
 impl OpenMode {
@@ -19,6 +19,10 @@ impl OpenMode {
             Some(ref result) => Some(result.path.clone()),
             None => None
         }
+    }
+
+    pub fn selected_index(&self) -> usize {
+        self.selected_result_index
     }
 
     pub fn search(&mut self) {
