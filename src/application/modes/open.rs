@@ -32,6 +32,18 @@ impl OpenMode {
             MAX_RESULTS          // Limit the amount of returned results.
         );
     }
+
+    pub fn select_next_path(&mut self) {
+        if self.selected_result_index < self.results.len() {
+            self.selected_result_index += 1
+        }
+    }
+
+    pub fn select_previous_path(&mut self) {
+        if self.selected_result_index > 0 {
+            self.selected_result_index -= 1
+        }
+    }
 }
 
 pub fn new(path: PathBuf) -> OpenMode {
@@ -65,5 +77,37 @@ mod tests {
         mode.input = "Cargo.toml".to_string();
         mode.search();
         assert_eq!(mode.selected_path(), Some(PathBuf::from(mode.input)));
+    }
+
+    #[test]
+    fn select_next_path_advances_until_the_end_of_the_result_set() {
+        let mut mode = super::new(env::current_dir().unwrap());
+        mode.input = "Cargo.toml".to_string();
+        mode.search();
+        assert_eq!(mode.selected_index(), 0);
+
+        for _ in 0..10 {
+            mode.select_next_path()
+        }
+        assert_eq!(mode.selected_index(), 5);
+    }
+
+    #[test]
+    fn select_previous_path_reverses_until_the_start_of_the_result_set() {
+        let mut mode = super::new(env::current_dir().unwrap());
+        mode.input = "Cargo.toml".to_string();
+        mode.search();
+
+        // Advance the selection.
+        for _ in 0..5 {
+            mode.select_next_path()
+        }
+        assert_eq!(mode.selected_index(), 5);
+
+        // Reverse the selection.
+        for _ in 0..10 {
+            mode.select_previous_path()
+        }
+        assert_eq!(mode.selected_index(), 0);
     }
 }
