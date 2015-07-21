@@ -11,6 +11,9 @@ use pad::PadStr;
 pub fn display(terminal: &Terminal, tokens: &Vec<Token>, mode: &OpenMode) {
     terminal.clear();
 
+    // Place the cursor on the search input line, right after its contents.
+    terminal.set_cursor(mode.input.len() as isize, 5);
+
     // Draw the list of search results.
     for (line, result) in mode.results.iter().enumerate() {
         let color = if line == mode.selected_index() { Color::Black } else { Color::Default };
