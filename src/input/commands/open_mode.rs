@@ -32,3 +32,17 @@ pub fn search(app: &mut Application) {
         _ => (),
     }
 }
+
+pub fn select_next_path(app: &mut Application) {
+    match app.mode {
+        Mode::Open(ref mut mode) => mode.select_next_path(),
+        _ => (),
+    }
+}
+
+pub fn select_previous_path(app: &mut Application) {
+    match app.mode {
+        Mode::Open(ref mut mode) => mode.select_previous_path(),
+        _ => (),
+    }
+}

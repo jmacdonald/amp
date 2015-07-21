@@ -6,6 +6,8 @@ pub fn handle(mode: &mut OpenMode, input: Key) -> Option<Command> {
     match input {
         Key::Esc       => Some(application::switch_to_normal_mode),
         Key::Enter     => Some(open_mode::open),
+        Key::Ctrl('j') => Some(open_mode::select_next_path),
+        Key::Ctrl('k') => Some(open_mode::select_previous_path),
         Key::Backspace => {
             // Delete the last character of the search term.
             mode.input.pop();
