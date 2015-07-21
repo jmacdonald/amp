@@ -1,23 +1,25 @@
 use application::modes::open::OpenMode;
 use input::commands::{Command, application, open_mode};
+use rustbox::keyboard::Key;
 
-pub fn handle(mode: &mut OpenMode, input: char) -> Command {
+pub fn handle(mode: &mut OpenMode, input: Key) -> Option<Command> {
     match input {
-        '\\' => application::switch_to_normal_mode,
-        '\n' => open_mode::open,
-        '\u{8}' | '\u{127}' => {
+        Key::Esc       => Some(application::switch_to_normal_mode),
+        Key::Enter     => Some(open_mode::open),
+        Key::Backspace => {
             // Delete the last character of the search term.
             mode.input.pop();
 
             // Re-run the search.
-            open_mode::search
+            Some(open_mode::search)
         },
-        _ => {
+        Key::Char(c)   => {
             // Add a character to the search term.
-            mode.input.push(input);
+            mode.input.push(c);
 
             // Re-run the search.
-            open_mode::search
+            Some(open_mode::search)
         },
+        _              => None,
     }
 }

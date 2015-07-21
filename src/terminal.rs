@@ -19,18 +19,9 @@ impl Deref for Terminal {
 }
 
 impl Terminal {
-    pub fn get_input(&self) -> Option<char> {
+    pub fn get_input(&self) -> Option<Key> {
         match self.terminal.poll_event(false) {
-            Ok(rustbox::Event::KeyEvent(key)) => {
-                match key {
-                    Some(Key::Tab) => Some('\t'),
-                    Some(Key::Esc) => Some('\\'),
-                    Some(Key::Enter) => Some('\n'),
-                    Some(Key::Backspace) => Some('\u{8}'),
-                    Some(Key::Char(c)) => Some(c),
-                    _ => None,
-                }
-            },
+            Ok(rustbox::Event::KeyEvent(key)) => key,
             _ => None,
         }
     }

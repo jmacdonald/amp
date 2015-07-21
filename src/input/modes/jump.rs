@@ -1,14 +1,16 @@
 use application::modes::jump::JumpMode;
 use input::commands::{Command, application, jump_mode};
+use rustbox::keyboard::Key;
 
-pub fn handle(mode: &mut JumpMode, input: char) -> Command {
+pub fn handle(mode: &mut JumpMode, input: Key) -> Option<Command> {
     match input {
-        '\\'  => application::switch_to_normal_mode,
-        _ => {
+        Key::Esc     => Some(application::switch_to_normal_mode),
+        Key::Char(c) => {
             // Add the input to whatever we've received in jump mode so far.
-            mode.input.push(input.clone());
+            mode.input.push(c.clone());
 
-            jump_mode::match_tag
+            Some(jump_mode::match_tag)
         },
+        _            => None,
     }
 }

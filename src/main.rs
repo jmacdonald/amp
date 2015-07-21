@@ -43,14 +43,21 @@ fn main() {
         };
 
         match terminal.get_input() {
-            Some(c) => {
-                (match application.mode {
-                    Mode::Normal => input::modes::normal::handle(c),
-                    Mode::Insert(ref mut i) => input::modes::insert::handle(i, c),
-                    Mode::Jump(ref mut j) => input::modes::jump::handle(j, c),
-                    Mode::Open(ref mut o) => input::modes::open::handle(o, c),
+            Some(key) => {
+                // Pass the input to the current mode.
+                let command = match application.mode {
+                    Mode::Normal => input::modes::normal::handle(key),
+                    Mode::Insert(ref mut i) => input::modes::insert::handle(i, key),
+                    Mode::Jump(ref mut j) => input::modes::jump::handle(j, key),
+                    Mode::Open(ref mut o) => input::modes::open::handle(o, key),
                     Mode::Exit => break,
-                })(&mut application);
+                };
+
+                // If the current mode returned a command, run it.
+                match command {
+                    Some(c) => c(&mut application),
+                    None => (),
+                }
 
                 // Check if the command resulted in an exit, before
                 // looping again and asking for input we won't use.
