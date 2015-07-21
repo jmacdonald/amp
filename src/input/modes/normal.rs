@@ -1,4 +1,3 @@
-use application::Application;
 use input::commands::{Command, application, workspace, cursor, buffer};
 use rustbox::keyboard::Key;
 

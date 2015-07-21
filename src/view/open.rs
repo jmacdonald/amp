@@ -5,7 +5,7 @@ extern crate scribe;
 use application::modes::open::OpenMode;
 use terminal::Terminal;
 use rustbox::Color;
-use scribe::buffer::{Position, Token, Category, LineRange};
+use scribe::buffer::{Token, Category};
 use pad::PadStr;
 
 pub fn display(terminal: &Terminal, tokens: &Vec<Token>, mode: &OpenMode) {
