@@ -34,7 +34,7 @@ impl OpenMode {
     }
 
     pub fn select_next_path(&mut self) {
-        if self.selected_result_index < self.results.len() {
+        if self.selected_result_index < self.results.len() - 1 {
             self.selected_result_index += 1
         }
     }
@@ -89,7 +89,7 @@ mod tests {
         for _ in 0..10 {
             mode.select_next_path()
         }
-        assert_eq!(mode.selected_index(), 5);
+        assert_eq!(mode.selected_index(), 4);
     }
 
     #[test]
@@ -99,10 +99,10 @@ mod tests {
         mode.search();
 
         // Advance the selection.
-        for _ in 0..5 {
+        for _ in 0..4 {
             mode.select_next_path()
         }
-        assert_eq!(mode.selected_index(), 5);
+        assert_eq!(mode.selected_index(), 4);
 
         // Reverse the selection.
         for _ in 0..10 {
