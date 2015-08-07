@@ -26,9 +26,8 @@ impl OpenMode {
     }
 
     pub fn search(&mut self) {
-        self.results = bloodhound::matching::find(
+        self.results = self.index.find(
             &self.input,         // The query string (needle).
-            &self.index.entries, // The indexed files (haystack).
             MAX_RESULTS          // Limit the amount of returned results.
         );
     }
