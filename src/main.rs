@@ -14,33 +14,9 @@ fn main() {
     let terminal = terminal::new();
     let mut view = view::new(&terminal);
 
-    // Set the view's initial status line.
-    match application.workspace.current_buffer().unwrap().file_name() {
-        Some(file_name) => view.status_line = file_name,
-        None => (),
-    }
-
     loop {
-        // Refresh the text and cursor on-screen.
-        view.set_cursor(&terminal, &*application.workspace.current_buffer().unwrap().cursor);
-        let tokens = match application.mode {
-            Mode::Jump(ref mut jump_mode) => {
-                let visible_lines = view.visible_lines();
-                jump_mode.tokens(
-                    &application.workspace.current_buffer().unwrap().tokens(),
-                    Some(visible_lines)
-                )
-            },
-            _ => {
-                application.workspace.current_buffer().unwrap().tokens()
-            },
-        };
-
-        match application.mode {
-            Mode::Insert(_) => view.display(&terminal, &tokens, true),
-            Mode::Open(ref open_mode) => view::open::display(&terminal, &tokens, open_mode),
-            _ => view.display(&terminal, &tokens, false),
-        };
+        // Draw the current application state to the screen.
+        view.display(&terminal, &mut application);
 
         match terminal.get_input() {
             Some(key) => {
