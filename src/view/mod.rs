@@ -1,14 +1,14 @@
 extern crate rustbox;
 extern crate scribe;
 
-pub mod open;
+mod open;
 mod scrollable_region;
 
 use application::{Application, Mode};
 use terminal::Terminal;
-use rustbox::Color;
-use scribe::buffer::{Position, Token, Category, LineRange};
+use scribe::buffer::{Token, Category};
 use pad::PadStr;
+use rustbox::Color;
 
 pub struct View {
     buffer_region: scrollable_region::ScrollableRegion,
@@ -16,101 +16,87 @@ pub struct View {
 
 impl View {
     pub fn display(&mut self, terminal: &Terminal, application: &mut Application) {
+        // Wipe the slate clean.
+        terminal.clear();
+
+        // Handle cursor updates.
+        match application.workspace.current_buffer() {
+            Some(buffer) => {
+                // Update the visible buffer range to include the cursor, if necessary.
+                self.buffer_region.scroll_into_view(buffer.cursor.line);
+
+                // Set the terminal cursor, considering any lines we've scrolled over.
+                let line = self.buffer_region.relative_position(buffer.cursor.line);
+                terminal.set_cursor(
+                    buffer.cursor.offset as isize,
+                    line as isize
+                );
+            },
+            None => (),
+        };
+
         // Try to fetch a set of tokens from the current buffer.
         let mut tokens = match application.workspace.current_buffer() {
             Some(buffer) => buffer.tokens(),
             None => Vec::new(),
         };
 
-        // If we're in jump mode, transform the tokens.
+        // If we're in jump mode, transform the tokens to include jump tags.
         match application.mode {
             Mode::Jump(ref mut jump_mode) => {
-                let visible_lines = self.visible_lines();
-                tokens = jump_mode.tokens(&tokens, Some(visible_lines));
+                tokens = jump_mode.tokens(
+                    &tokens,
+                    Some(self.buffer_region.visible_range())
+                );
             },
             _ => (),
         };
 
-        match application.mode {
-            Mode::Open(ref open_mode) => open::display(terminal, &tokens, open_mode),
-            _ => {
-                terminal.clear();
-                let mut line = 0;
-                let mut offset = 0;
-                let visible_range = self.buffer_region.visible_range();
-                'print_loop: for token in tokens.iter() {
-                    let color = map_color(&token.category);
+        // Write the final set of tokens to the terminal, taking
+        // into consideration any scrolling we've performed.
+        let visible_range = self.buffer_region.visible_range();
+        draw_tokens(
+            terminal,
+            &tokens,
+            visible_range.start,
+            visible_range.end
+        );
 
-                    for character in token.lexeme.chars() {
-                        if character == '\n' {
-                            // Bail out if we're about to exit the visible range.
-                            if line == visible_range.end { break 'print_loop; }
-
-                            line += 1;
-                            offset = 0;
-                        } else if line >= visible_range.start {
-                            // Only start printing once we enter the visible range.
-                            terminal.print_char(
-                                offset,
-                                line-visible_range.start,
-                                rustbox::RB_NORMAL,
-                                color,
-                                Color::Default,
-                                character
-                            );
-                            offset += 1;
-                        }
-                    }
-                }
-
-                match application.workspace.current_buffer() {
-                    Some(buffer) => {
-                        // Refresh the text and cursor on-screen.
-                        self.set_cursor(
-                            terminal,
-                            &*buffer.cursor
-                        );
-
-                        match buffer.path {
-                            Some(ref path) => {
-                                // Draw the status line.
-                                let line = terminal.height()-1;
-                                let padded_content = path.to_string_lossy().pad_to_width(terminal.width());
-
-                                let background_color = match application.mode {
-                                    Mode::Insert(_) => { Color::Green },
-                                    _ => { Color::Black }
-                                };
-
-                                terminal.print(
-                                    0,
-                                    line,
-                                    rustbox::RB_BOLD,
-                                    Color::White,
-                                    background_color,
-                                    &padded_content
-                                );
-                            },
-                            None => {},
-                        };
+        // Draw the status line.
+        let line = terminal.height()-1;
+        let padded_content = match application.workspace.current_buffer() {
+            Some(buffer) => {
+                match buffer.path {
+                    Some(ref path) => {
+                        path.to_string_lossy().pad_to_width(terminal.width())
                     },
-                    None => {},
-                };
-
-                terminal.present();
+                    None => String::new(),
+                }
             },
+            None => String::new(),
         };
-    }
+        let background_color = match application.mode {
+            Mode::Insert(_) => { Color::Green },
+            _ => { Color::Black }
+        };
+        terminal.print(
+            0,
+            line,
+            rustbox::RB_BOLD,
+            Color::White,
+            background_color,
+            &padded_content
+        );
 
-    pub fn set_cursor(&mut self, terminal: &Terminal, position: &Position) {
-        self.buffer_region.scroll_into_view(position.line);
+        // Defer to any modes that may further modify
+        // the terminal contents before we render them.
+        match application.mode {
+            Mode::Open(ref open_mode) => open::display(terminal, open_mode),
+            _ => (),
+        };
 
-        let line = self.buffer_region.relative_position(position.line);
-        terminal.set_cursor(position.offset as isize, line as isize);
-    }
-
-    pub fn visible_lines(&self) -> LineRange {
-        self.buffer_region.visible_range()
+        // Render the changes to the screen.
+        terminal.present();
     }
 }
 
@@ -127,5 +113,34 @@ pub fn map_color(category: &Category) -> Color {
         &Category::Comment    => Color::Blue,
         &Category::Method     => Color::Cyan,
         _                    => Color::Default,
+    }
+}
+
+pub fn draw_tokens(terminal: &Terminal, tokens: &Vec<Token>, first_line: usize, last_line: usize) {
+    let mut line = 0;
+    let mut offset = 0;
+    'print_loop: for token in tokens.iter() {
+        let color = map_color(&token.category);
+
+        for character in token.lexeme.chars() {
+            if character == '\n' {
+                // Bail out if we're about to exit the visible range.
+                if line == last_line { break 'print_loop; }
+
+                line += 1;
+                offset = 0;
+            } else if line >= first_line {
+                // Only start printing once we enter the visible range.
+                terminal.print_char(
+                    offset,
+                    line-first_line,
+                    rustbox::RB_NORMAL,
+                    color,
+                    Color::Default,
+                    character
+                );
+                offset += 1;
+            }
+        }
     }
 }
