@@ -5,7 +5,7 @@ mod open;
 mod scrollable_region;
 
 use models::application::{Application, Mode};
-use terminal::Terminal;
+use models::terminal::Terminal;
 use scribe::buffer::{Token, Category};
 use pad::PadStr;
 use rustbox::Color;

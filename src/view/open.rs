@@ -3,7 +3,7 @@ extern crate rustbox;
 extern crate scribe;
 
 use models::application::modes::open::OpenMode;
-use terminal::Terminal;
+use models::terminal::Terminal;
 use rustbox::Color;
 use pad::PadStr;
 

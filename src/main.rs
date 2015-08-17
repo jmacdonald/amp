@@ -5,13 +5,12 @@ extern crate pad;
 use models::application::Mode;
 
 mod models;
-mod terminal;
 mod view;
 mod input;
 
 fn main() {
     let mut application = models::application::new();
-    let terminal = terminal::new();
+    let terminal = models::terminal::new();
     let mut view = view::new(&terminal);
 
     loop {
