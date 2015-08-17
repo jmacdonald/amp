@@ -1,6 +1,5 @@
-use application::Mode;
-use application::Application;
-use application::modes::{insert, jump, open};
+use models::application::{Application, Mode};
+use models::application::modes::{insert, jump, open};
 use input::commands;
 
 pub fn switch_to_normal_mode(app: &mut Application) {

@@ -1,5 +1,4 @@
-use application::Mode;
-use application::Application;
+use models::application::{Mode, Application};
 
 pub fn match_tag(app: &mut Application) {
     let done = match app.mode {

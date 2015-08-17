@@ -1,4 +1,4 @@
-use application::modes::insert::InsertMode;
+use models::application::modes::insert::InsertMode;
 use input::commands::{Command, application, buffer};
 use rustbox::keyboard::Key;
 

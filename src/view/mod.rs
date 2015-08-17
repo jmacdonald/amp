@@ -4,7 +4,7 @@ extern crate scribe;
 mod open;
 mod scrollable_region;
 
-use application::{Application, Mode};
+use models::application::{Application, Mode};
 use terminal::Terminal;
 use scribe::buffer::{Token, Category};
 use pad::PadStr;

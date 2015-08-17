@@ -2,7 +2,7 @@ extern crate bloodhound;
 extern crate rustbox;
 extern crate scribe;
 
-use application::modes::open::OpenMode;
+use models::application::modes::open::OpenMode;
 use terminal::Terminal;
 use rustbox::Color;
 use pad::PadStr;

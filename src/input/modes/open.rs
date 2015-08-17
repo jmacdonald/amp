@@ -1,4 +1,4 @@
-use application::modes::open::OpenMode;
+use models::application::modes::open::OpenMode;
 use input::commands::{Command, application, open_mode};
 use rustbox::keyboard::Key;
 

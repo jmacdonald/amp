@@ -1,7 +1,6 @@
 extern crate scribe;
 
-use application::Application;
-use application::Mode;
+use models::application::{Application, Mode};
 
 pub fn save(app: &mut Application) {
     app.workspace.current_buffer().unwrap().save();
@@ -116,7 +115,7 @@ mod tests {
 
     #[test]
     fn insert_newline_uses_current_line_indentation() {
-        let mut app = ::application::new();
+        let mut app = ::models::application::new();
         let mut buffer = scribe::buffer::new();
 
         // Insert data with indentation and move to the end of the line.

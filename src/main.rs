@@ -2,15 +2,15 @@ extern crate scribe;
 extern crate rustbox;
 extern crate pad;
 
-use application::Mode;
+use models::application::Mode;
 
-mod application;
+mod models;
 mod terminal;
 mod view;
 mod input;
 
 fn main() {
-    let mut application = application::new();
+    let mut application = models::application::new();
     let terminal = terminal::new();
     let mut view = view::new(&terminal);
 

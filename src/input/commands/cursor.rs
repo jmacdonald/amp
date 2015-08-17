@@ -1,6 +1,6 @@
 extern crate scribe;
 
-use application::Application;
+use models::application::Application;
 use super::{application, buffer};
 
 pub fn move_up(app: &mut Application) {
@@ -79,7 +79,7 @@ mod tests {
 
     #[test]
     fn move_to_first_word_of_line_works() {
-        let mut app = ::application::new();
+        let mut app = ::models::application::new();
         let mut buffer = scribe::buffer::new();
 
         // Insert data with indentation and move to the end of the line.

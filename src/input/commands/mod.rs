@@ -1,4 +1,4 @@
-use application::Application;
+use models::application::Application;
 
 pub mod application;
 pub mod workspace;
