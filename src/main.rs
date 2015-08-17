@@ -7,6 +7,7 @@ use models::application::Mode;
 mod models;
 mod view;
 mod input;
+mod commands;
 
 fn main() {
     let mut application = models::application::new();

@@ -1,8 +1,8 @@
 extern crate bloodhound;
 extern crate scribe;
 
+use commands;
 use models::application::{Application, Mode};
-use input::commands;
 
 pub fn open(app: &mut Application) {
     match app.mode {

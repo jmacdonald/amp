@@ -1,4 +1,4 @@
-use input::commands::{Command, application, workspace, cursor, buffer};
+use commands::{Command, application, workspace, cursor, buffer};
 use rustbox::keyboard::Key;
 
 pub fn handle(input: Key) -> Option<Command> {

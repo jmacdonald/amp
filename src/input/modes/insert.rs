@@ -1,5 +1,5 @@
 use models::application::modes::insert::InsertMode;
-use input::commands::{Command, application, buffer};
+use commands::{Command, application, buffer};
 use rustbox::keyboard::Key;
 
 pub fn handle(mode: &mut InsertMode, input: Key) -> Option<Command> {

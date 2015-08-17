@@ -1,5 +1,5 @@
 use models::application::modes::open::OpenMode;
-use input::commands::{Command, application, open_mode};
+use commands::{Command, application, open_mode};
 use rustbox::keyboard::Key;
 
 pub fn handle(mode: &mut OpenMode, input: Key) -> Option<Command> {
