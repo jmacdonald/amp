@@ -63,8 +63,7 @@ impl View {
         );
 
         // Draw the status line.
-        let line = terminal.height()-1;
-        let padded_content = match application.workspace.current_buffer() {
+        let content = match application.workspace.current_buffer() {
             Some(buffer) => {
                 match buffer.path {
                     Some(ref path) => {
@@ -75,18 +74,11 @@ impl View {
             },
             None => String::new(),
         };
-        let background_color = match application.mode {
+        let color = match application.mode {
             Mode::Insert(_) => { Color::Green },
             _ => { Color::Black }
         };
-        terminal.print(
-            0,
-            line,
-            rustbox::RB_BOLD,
-            Color::White,
-            background_color,
-            &padded_content
-        );
+        draw_status_line(terminal, &content, color);
 
         // Defer to any modes that may further modify
         // the terminal contents before we render them.
@@ -143,4 +135,9 @@ pub fn draw_tokens(terminal: &Terminal, tokens: &Vec<Token>, first_line: usize, 
             }
         }
     }
+}
+
+fn draw_status_line(terminal: &Terminal, content: &str, color: Color) {
+    let line = terminal.height()-1;
+    terminal.print(0, line, rustbox::RB_BOLD, Color::White, color, &content);
 }
