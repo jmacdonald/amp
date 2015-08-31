@@ -11,11 +11,21 @@ use pad::PadStr;
 use rustbox::Color;
 
 pub struct View {
-    buffer_region: scrollable_region::ScrollableRegion,
+    pub buffer_region: scrollable_region::ScrollableRegion,
+}
+
+pub struct Data {
+    pub tokens: Vec<Token>,
+    pub status_line: StatusLine
+}
+
+pub struct StatusLine {
+    pub content: String,
+    pub color: Color
 }
 
 impl View {
-    pub fn display(&mut self, terminal: &Terminal, application: &mut Application) {
+    pub fn display(&mut self, terminal: &Terminal, application: &mut Application, data: &Data) {
         // Wipe the slate clean.
         terminal.clear();
 
@@ -35,50 +45,18 @@ impl View {
             None => (),
         };
 
-        // Try to fetch a set of tokens from the current buffer.
-        let mut tokens = match application.workspace.current_buffer() {
-            Some(buffer) => buffer.tokens(),
-            None => Vec::new(),
-        };
-
-        // If we're in jump mode, transform the tokens to include jump tags.
-        match application.mode {
-            Mode::Jump(ref mut jump_mode) => {
-                tokens = jump_mode.tokens(
-                    &tokens,
-                    Some(self.buffer_region.visible_range())
-                );
-            },
-            _ => (),
-        };
-
         // Write the final set of tokens to the terminal, taking
         // into consideration any scrolling we've performed.
         let visible_range = self.buffer_region.visible_range();
         draw_tokens(
             terminal,
-            &tokens,
+            &data.tokens,
             visible_range.start,
             visible_range.end
         );
 
         // Draw the status line.
-        let content = match application.workspace.current_buffer() {
-            Some(buffer) => {
-                match buffer.path {
-                    Some(ref path) => {
-                        path.to_string_lossy().pad_to_width(terminal.width())
-                    },
-                    None => String::new(),
-                }
-            },
-            None => String::new(),
-        };
-        let color = match application.mode {
-            Mode::Insert(_) => { Color::Green },
-            _ => { Color::Black }
-        };
-        draw_status_line(terminal, &content, color);
+        draw_status_line(terminal, &data.status_line.content, data.status_line.color);
 
         // Defer to any modes that may further modify
         // the terminal contents before we render them.
@@ -94,7 +72,7 @@ impl View {
 
 pub fn new(terminal: &Terminal) -> View {
     let region = scrollable_region::new(terminal.height()-2);
-    View{ buffer_region: region  }
+    View{ buffer_region: region }
 }
 
 pub fn map_color(category: &Category) -> Color {
@@ -139,5 +117,12 @@ pub fn draw_tokens(terminal: &Terminal, tokens: &Vec<Token>, first_line: usize, 
 
 fn draw_status_line(terminal: &Terminal, content: &str, color: Color) {
     let line = terminal.height()-1;
-    terminal.print(0, line, rustbox::RB_BOLD, Color::White, color, &content);
+    terminal.print(
+        0,
+        line,
+        rustbox::RB_BOLD,
+        Color::White,
+        color,
+        &content.pad_to_width(terminal.width())
+    );
 }
