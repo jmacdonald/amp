@@ -3,7 +3,7 @@ extern crate rustbox;
 extern crate pad;
 
 mod models;
-mod view;
+pub mod view;
 mod input;
 mod commands;
 
@@ -31,7 +31,10 @@ fn main() {
                 }
             },
         };
-        view::display(&terminal, &mut application, &view_data);
+        match application.mode {
+            Mode::Open(ref mode) => view::modes::open::display(&terminal, &view_data, mode),
+            _ => view::modes::default::display(&terminal, &view_data),
+        }
 
         match terminal.get_input() {
             Some(key) => {
