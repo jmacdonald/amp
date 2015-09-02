@@ -2,20 +2,19 @@ extern crate rustbox;
 extern crate scribe;
 
 mod open;
+pub mod presenters;
 mod scrollable_region;
 
 use models::application::{Application, Mode};
 use models::terminal::Terminal;
-use scribe::buffer::{Token, Category};
+use scribe::buffer::{Category, LineRange, Position, Token};
 use pad::PadStr;
 use rustbox::Color;
 
-pub struct View {
-    pub buffer_region: scrollable_region::ScrollableRegion,
-}
-
 pub struct Data {
     pub tokens: Vec<Token>,
+    pub visible_range: LineRange,
+    pub cursor: Position,
     pub status_line: StatusLine
 }
 
@@ -24,55 +23,28 @@ pub struct StatusLine {
     pub color: Color
 }
 
-impl View {
-    pub fn display(&mut self, terminal: &Terminal, application: &mut Application, data: &Data) {
-        // Wipe the slate clean.
-        terminal.clear();
+pub fn display(terminal: &Terminal, application: &mut Application, data: &Data) {
+    // Wipe the slate clean.
+    terminal.clear();
 
-        // Handle cursor updates.
-        match application.workspace.current_buffer() {
-            Some(buffer) => {
-                // Update the visible buffer range to include the cursor, if necessary.
-                self.buffer_region.scroll_into_view(buffer.cursor.line);
+    // Handle cursor updates.
+    terminal.set_cursor(data.cursor.offset as isize, data.cursor.line as isize);
 
-                // Set the terminal cursor, considering any lines we've scrolled over.
-                let line = self.buffer_region.relative_position(buffer.cursor.line);
-                terminal.set_cursor(
-                    buffer.cursor.offset as isize,
-                    line as isize
-                );
-            },
-            None => (),
-        };
+    // Draw the visible set of tokens to the terminal.
+    draw_tokens(terminal, &data.tokens, &data.visible_range);
 
-        // Write the final set of tokens to the terminal, taking
-        // into consideration any scrolling we've performed.
-        let visible_range = self.buffer_region.visible_range();
-        draw_tokens(
-            terminal,
-            &data.tokens,
-            visible_range.start,
-            visible_range.end
-        );
+    // Draw the status line.
+    draw_status_line(terminal, &data.status_line.content, data.status_line.color);
 
-        // Draw the status line.
-        draw_status_line(terminal, &data.status_line.content, data.status_line.color);
+    // Defer to any modes that may further modify
+    // the terminal contents before we render them.
+    match application.mode {
+        Mode::Open(ref open_mode) => open::display(terminal, open_mode),
+        _ => (),
+    };
 
-        // Defer to any modes that may further modify
-        // the terminal contents before we render them.
-        match application.mode {
-            Mode::Open(ref open_mode) => open::display(terminal, open_mode),
-            _ => (),
-        };
-
-        // Render the changes to the screen.
-        terminal.present();
-    }
-}
-
-pub fn new(terminal: &Terminal) -> View {
-    let region = scrollable_region::new(terminal.height()-2);
-    View{ buffer_region: region }
+    // Render the changes to the screen.
+    terminal.present();
 }
 
 pub fn map_color(category: &Category) -> Color {
@@ -86,7 +58,7 @@ pub fn map_color(category: &Category) -> Color {
     }
 }
 
-pub fn draw_tokens(terminal: &Terminal, tokens: &Vec<Token>, first_line: usize, last_line: usize) {
+pub fn draw_tokens(terminal: &Terminal, tokens: &Vec<Token>, range: &LineRange) {
     let mut line = 0;
     let mut offset = 0;
     'print_loop: for token in tokens.iter() {
@@ -95,15 +67,15 @@ pub fn draw_tokens(terminal: &Terminal, tokens: &Vec<Token>, first_line: usize, 
         for character in token.lexeme.chars() {
             if character == '\n' {
                 // Bail out if we're about to exit the visible range.
-                if line == last_line { break 'print_loop; }
+                if line == range.end { break 'print_loop; }
 
                 line += 1;
                 offset = 0;
-            } else if line >= first_line {
+            } else if line >= range.start {
                 // Only start printing once we enter the visible range.
                 terminal.print_char(
                     offset,
-                    line-first_line,
+                    line-range.start,
                     rustbox::RB_NORMAL,
                     color,
                     Color::Default,

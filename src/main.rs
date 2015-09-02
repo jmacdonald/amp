@@ -10,49 +10,28 @@ mod commands;
 use models::application::Mode;
 use view::{Data, StatusLine};
 use rustbox::Color;
+use scribe::buffer::{LineRange, Position};
 
 fn main() {
     let mut application = models::application::new();
     let terminal = models::terminal::new();
-    let mut view = view::new(&terminal);
+    let mut buffer_presenter = view::presenters::buffer::new(&terminal);
 
     loop {
         // Draw the current application state to the screen.
         let view_data = match application.workspace.current_buffer() {
-            Some(buffer) => {
-                let content = match buffer.path {
-                    Some(ref path) => path.to_string_lossy().into_owned(),
-                    None => String::new(),
-                };
-                let color = match application.mode {
-                    Mode::Insert(_) => { Color::Green },
-                    _ => { Color::Black }
-                };
-
-                let tokens = match application.mode {
-                    Mode::Jump(ref mut jump_mode) => {
-                        jump_mode.tokens(
-                            &buffer.tokens(),
-                            Some(view.buffer_region.visible_range())
-                        )
-                    },
-                    _ => buffer.tokens(),
-                };
-
-                Data{
-                    tokens: tokens,
-                    status_line: StatusLine{ content: content, color: color }
-                }
-            }
+            Some(ref mut buffer) => buffer_presenter.data(buffer, &mut application.mode),
             None => Data{
                 tokens: Vec::new(),
+                visible_range: LineRange{ start: 0, end: 0 },
+                cursor: Position{ line: 0, offset: 0 },
                 status_line: StatusLine{
                     content: "".to_string(),
                     color: Color::Default
                 }
             },
         };
-        view.display(&terminal, &mut application, &view_data);
+        view::display(&terminal, &mut application, &view_data);
 
         match terminal.get_input() {
             Some(key) => {
