@@ -10,6 +10,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('h') => Some(cursor::move_left),
         Key::Char('l') => Some(cursor::move_right),
         Key::Char('x') => Some(buffer::delete),
+        Key::Char('C') => Some(buffer::change_rest_of_line),
         Key::Char('i') => Some(application::switch_to_insert_mode),
         Key::Char('s') => Some(buffer::save),
         Key::Char('H') => Some(cursor::move_to_start_of_line),

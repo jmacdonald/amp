@@ -2,7 +2,7 @@ extern crate scribe;
 extern crate rustbox;
 extern crate pad;
 
-mod models;
+pub mod models;
 pub mod view;
 mod input;
 mod commands;

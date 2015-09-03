@@ -1,6 +1,7 @@
 extern crate scribe;
 
 use models::application::{Application, Mode};
+use scribe::buffer::{Position, Range};
 
 pub fn save(app: &mut Application) {
     app.workspace.current_buffer().unwrap().save();
@@ -81,6 +82,28 @@ pub fn insert_newline(app: &mut Application) {
     }
 }
 
+pub fn change_rest_of_line(app: &mut Application) {
+    match app.workspace.current_buffer() {
+        Some(buffer) => {
+            // Create a range extending from the
+            // cursor's current position to the next line.
+            let starting_position = *buffer.cursor;
+            let target_line = buffer.cursor.line+1;
+            buffer.delete_range(
+                Range{
+                    start: starting_position,
+                    end: Position{ line: target_line, offset: 0 }
+                }
+            );
+
+            // Since we've removed a newline as part of the range, re-add it.
+            buffer.insert("\n");
+        },
+        None => (),
+    }
+    ::commands::application::switch_to_insert_mode(app);
+}
+
 pub fn start_command_group(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => buffer.start_operation_group(),
@@ -135,5 +158,32 @@ mod tests {
         let expected_position = scribe::buffer::Position{ line: 1, offset: 4};
         assert_eq!(app.workspace.current_buffer().unwrap().cursor.line, expected_position.line);
         assert_eq!(app.workspace.current_buffer().unwrap().cursor.offset, expected_position.offset);
+    }
+
+    #[test]
+    fn change_rest_of_line_removes_content_and_switches_to_insert_mode() {
+        let mut app = ::models::application::new();
+        let mut buffer = scribe::buffer::new();
+
+        // Insert data with indentation and move to the end of the line.
+        buffer.insert("    amp\neditor");
+        let position = scribe::buffer::Position{ line: 0, offset: 4};
+        buffer.cursor.move_to(position);
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        super::change_rest_of_line(&mut app);
+
+        // Ensure that the content is removed.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "    \neditor");
+
+        // Ensure that we're in insert mode.
+        assert!(
+            match app.mode {
+                ::models::application::Mode::Insert(_) => true,
+                _ => false,
+            }
+        );
     }
 }
