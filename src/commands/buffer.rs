@@ -11,6 +11,21 @@ pub fn delete(app: &mut Application) {
     app.workspace.current_buffer().unwrap().delete();
 }
 
+pub fn delete_line(app: &mut Application) {
+    match app.workspace.current_buffer() {
+        Some(buffer) => {
+            let line = buffer.cursor.line;
+            buffer.delete_range(
+                Range{
+                    start: Position{ line: line, offset: 0 },
+                    end: Position{ line: line+1, offset: 0 }
+                }
+            );
+        },
+        None => (),
+    }
+}
+
 pub fn close(app: &mut Application) {
     app.workspace.close_current_buffer();
 }
@@ -185,5 +200,24 @@ mod tests {
                 _ => false,
             }
         );
+    }
+
+    #[test]
+    fn delete_line_deletes_current_line() {
+        let mut app = ::models::application::new();
+        let mut buffer = scribe::buffer::new();
+
+        // Insert data with indentation and move to the end of the line.
+        buffer.insert("    amp\neditor");
+        let position = scribe::buffer::Position{ line: 0, offset: 4};
+        buffer.cursor.move_to(position);
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        super::delete_line(&mut app);
+
+        // Ensure that the content is removed.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "editor");
     }
 }
