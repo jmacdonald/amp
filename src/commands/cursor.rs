@@ -4,23 +4,38 @@ use models::application::Application;
 use super::{application, buffer};
 
 pub fn move_up(app: &mut Application) {
-    app.workspace.current_buffer().unwrap().cursor.move_up();
+    match app.workspace.current_buffer() {
+        Some(buffer) => buffer.cursor.move_up(),
+        None => (),
+    }
 }
 
 pub fn move_down(app: &mut Application) {
-    app.workspace.current_buffer().unwrap().cursor.move_down();
+    match app.workspace.current_buffer() {
+        Some(buffer) => buffer.cursor.move_down(),
+        None => (),
+    }
 }
 
 pub fn move_left(app: &mut Application) {
-    app.workspace.current_buffer().unwrap().cursor.move_left();
+    match app.workspace.current_buffer() {
+        Some(buffer) => buffer.cursor.move_left(),
+        None => (),
+    }
 }
 
 pub fn move_right(app: &mut Application) {
-    app.workspace.current_buffer().unwrap().cursor.move_right();
+    match app.workspace.current_buffer() {
+        Some(buffer) => buffer.cursor.move_right(),
+        None => (),
+    }
 }
 
 pub fn move_to_start_of_line(app: &mut Application) {
-    app.workspace.current_buffer().unwrap().cursor.move_to_start_of_line();
+    match app.workspace.current_buffer() {
+        Some(buffer) => buffer.cursor.move_to_start_of_line(),
+        None => (),
+    }
 }
 
 pub fn move_to_first_word_of_line(app: &mut Application) {
@@ -52,7 +67,10 @@ pub fn move_to_first_word_of_line(app: &mut Application) {
 }
 
 pub fn move_to_end_of_line(app: &mut Application) {
-    app.workspace.current_buffer().unwrap().cursor.move_to_end_of_line();
+    match app.workspace.current_buffer() {
+        Some(buffer) => buffer.cursor.move_to_end_of_line(),
+        None => (),
+    }
 }
 
 pub fn insert_at_end_of_line(app: &mut Application) {

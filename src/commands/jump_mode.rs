@@ -10,8 +10,10 @@ pub fn match_tag(app: &mut Application) {
                     // to normal mode whether or not we find one.
                     match jump_mode.map_tag(&jump_mode.input) {
                         Some(position) => {
-                            app.workspace.current_buffer().
-                                unwrap().cursor.move_to(position.clone());
+                            match app.workspace.current_buffer() {
+                                Some(buffer) => buffer.cursor.move_to(position.clone()),
+                                None => false,
+                            };
                         }
                         None => (),
                     }

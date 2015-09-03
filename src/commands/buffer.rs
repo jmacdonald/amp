@@ -4,11 +4,17 @@ use models::application::{Application, Mode};
 use scribe::buffer::{Position, Range};
 
 pub fn save(app: &mut Application) {
-    app.workspace.current_buffer().unwrap().save();
+    match app.workspace.current_buffer() {
+        Some(buffer) => buffer.save(),
+        None => None,
+    };
 }
 
 pub fn delete(app: &mut Application) {
-    app.workspace.current_buffer().unwrap().delete();
+    match app.workspace.current_buffer() {
+        Some(buffer) => buffer.delete(),
+        None => (),
+    }
 }
 
 pub fn delete_line(app: &mut Application) {
@@ -31,34 +37,39 @@ pub fn close(app: &mut Application) {
 }
 
 pub fn backspace(app: &mut Application) {
-    let mut buffer = app.workspace.current_buffer().unwrap();
-
-    if buffer.cursor.offset == 0 {
-        buffer.cursor.move_up();
-        buffer.cursor.move_to_end_of_line();
-        buffer.delete();
-    } else {
-        buffer.cursor.move_left();
-        buffer.delete();
+    match app.workspace.current_buffer() {
+        Some(buffer) => {
+            if buffer.cursor.offset == 0 {
+                buffer.cursor.move_up();
+                buffer.cursor.move_to_end_of_line();
+                buffer.delete();
+            } else {
+                buffer.cursor.move_left();
+                buffer.delete();
+            }
+        },
+        None => (),
     }
 }
 
 pub fn insert_char(app: &mut Application) {
-    let mut buffer = app.workspace.current_buffer().unwrap();
-
-    match app.mode {
-        Mode::Insert(ref mut insert_mode) => {
-            match insert_mode.input {
-                Some(input) => {
-                    buffer.insert(&input.to_string());
-                    buffer.cursor.move_right();
+    match app.workspace.current_buffer() {
+        Some(buffer) => {
+            match app.mode {
+                Mode::Insert(ref mut insert_mode) => {
+                    match insert_mode.input {
+                        Some(input) => {
+                            buffer.insert(&input.to_string());
+                            buffer.cursor.move_right();
+                        },
+                        None => (),
+                    }
                 },
-                None => (),
+                _ => (),
             }
         },
-        _ => (),
-    };
-
+        None => (),
+    }
 }
 
 /// Inserts a newline character at the current cursor position.
