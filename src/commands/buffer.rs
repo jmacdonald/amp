@@ -115,6 +115,7 @@ pub fn change_rest_of_line(app: &mut Application) {
             // cursor's current position to the next line.
             let starting_position = *buffer.cursor;
             let target_line = buffer.cursor.line+1;
+            buffer.start_operation_group();
             buffer.delete_range(
                 Range{
                     start: starting_position,
@@ -124,6 +125,7 @@ pub fn change_rest_of_line(app: &mut Application) {
 
             // Since we've removed a newline as part of the range, re-add it.
             buffer.insert("\n");
+            buffer.end_operation_group();
         },
         None => (),
     }
@@ -211,6 +213,10 @@ mod tests {
                 _ => false,
             }
         );
+
+        // Ensure that sub-commands were run in batch.
+        app.workspace.current_buffer().unwrap().undo();
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "    amp\neditor");
     }
 
     #[test]
