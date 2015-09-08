@@ -224,19 +224,18 @@ pub fn move_to_end_of_current_token(app: &mut Application) {
 mod tests {
     extern crate scribe;
 
+    use models::application::Application;
+
     #[test]
     fn move_to_first_word_of_line_works() {
-        let mut app = ::models::application::new();
-        let mut buffer = scribe::buffer::new();
+        // Set up the application.
+        let mut app = set_up_application("    amp");
 
-        // Insert data with indentation and move to the end of the line.
-        buffer.insert("    amp");
+        // Move to the end of the line.
         let position = scribe::buffer::Position{ line: 0, offset: 7};
-        buffer.cursor.move_to(position);
+        app.workspace.current_buffer().unwrap().cursor.move_to(position);
 
-        // Now that we've set up the buffer, add it
-        // to the application and call the command.
-        app.workspace.add_buffer(buffer);
+        // Call the command.
         super::move_to_first_word_of_line(&mut app);
 
         // Ensure that the cursor is moved to the start of the first word.
@@ -246,17 +245,14 @@ mod tests {
 
     #[test]
     fn move_to_start_of_previous_token_works() {
-        let mut app = ::models::application::new();
-        let mut buffer = scribe::buffer::new();
+        // Set up the application.
+        let mut app = set_up_application("amp editor");
 
-        // Insert data with indentation and move to the end of the line.
-        buffer.insert("amp editor");
+        // Move to the end of the line.
         let position = scribe::buffer::Position{ line: 0, offset: 7};
-        buffer.cursor.move_to(position);
+        app.workspace.current_buffer().unwrap().cursor.move_to(position);
 
-        // Now that we've set up the buffer, add it
-        // to the application and call the command.
-        app.workspace.add_buffer(buffer);
+        // Call the command.
         super::move_to_start_of_previous_token(&mut app);
 
         // Ensure that the cursor is moved to the start of the previous word.
@@ -266,17 +262,14 @@ mod tests {
 
     #[test]
     fn move_to_start_of_previous_token_skips_whitespace() {
-        let mut app = ::models::application::new();
-        let mut buffer = scribe::buffer::new();
+        // Set up the application.
+        let mut app = set_up_application("amp editor");
 
-        // Insert data with indentation and move to the end of the line.
-        buffer.insert("amp editor");
+        // Move to the end of the line.
         let position = scribe::buffer::Position{ line: 0, offset: 7};
-        buffer.cursor.move_to(position);
+        app.workspace.current_buffer().unwrap().cursor.move_to(position);
 
-        // Now that we've set up the buffer, add it
-        // to the application and call the command.
-        app.workspace.add_buffer(buffer);
+        // Call the commands.
         super::move_to_start_of_previous_token(&mut app);
         super::move_to_start_of_previous_token(&mut app);
 
@@ -287,15 +280,8 @@ mod tests {
 
     #[test]
     fn move_to_start_of_next_token_works() {
-        let mut app = ::models::application::new();
-        let mut buffer = scribe::buffer::new();
-
-        // Insert data with indentation and move to the end of the line.
-        buffer.insert("amp editor");
-
-        // Now that we've set up the buffer, add it
-        // to the application and call the command.
-        app.workspace.add_buffer(buffer);
+        // Set up the application and run the command.
+        let mut app = set_up_application("amp editor");
         super::move_to_start_of_next_token(&mut app);
 
         // Ensure that the cursor is moved to the start of the previous word.
@@ -305,19 +291,25 @@ mod tests {
 
     #[test]
     fn move_to_end_of_current_token_works() {
-        let mut app = ::models::application::new();
-        let mut buffer = scribe::buffer::new();
-
-        // Insert data with indentation and move to the end of the line.
-        buffer.insert("amp editor");
-
-        // Now that we've set up the buffer, add it
-        // to the application and call the command.
-        app.workspace.add_buffer(buffer);
+        // Set up the application and run the command.
+        let mut app = set_up_application("amp editor");
         super::move_to_end_of_current_token(&mut app);
 
         // Ensure that the cursor is moved to the start of the previous word.
         assert_eq!(app.workspace.current_buffer().unwrap().cursor.line, 0);
         assert_eq!(app.workspace.current_buffer().unwrap().cursor.offset, 2);
+    }
+
+    fn set_up_application(content: &str) -> Application {
+        let mut app = ::models::application::new();
+        let mut buffer = scribe::buffer::new();
+
+        // Insert data with indentation and move to the end of the line.
+        buffer.insert(content);
+
+        // Now that we've set up the buffer, add it to the application.
+        app.workspace.add_buffer(buffer);
+
+        app
     }
 }
