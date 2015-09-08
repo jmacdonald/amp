@@ -220,6 +220,52 @@ pub fn move_to_end_of_current_token(app: &mut Application) {
     }
 }
 
+pub fn append_to_current_token(app: &mut Application) {
+    match app.workspace.current_buffer() {
+        Some(buffer) => {
+            let tokens = buffer.tokens();
+            let mut line = 0;
+            let mut offset = 0;
+            let mut next_position = Position{ line: 0, offset: 0 };
+            for token in tokens.iter() {
+                // Calculate the position of the next token.
+                match token.lexeme.lines().count() {
+                    1 => {
+                        // There's only one line in this token, so
+                        // only advance the offset by its size.
+                        offset += token.lexeme.len()
+                    },
+                    n => {
+                        // There are multiple lines, so advance the
+                        // line count and set the offset to the last
+                        // line's length
+                        line += n-1;
+                        offset = token.lexeme.lines().last().unwrap().len();
+                    },
+                };
+
+                next_position = Position{ line: line, offset: offset-1 };
+
+                if next_position > *buffer.cursor {
+                    match token.category {
+                        Category::Whitespace => {
+                            break
+                        },
+                        _ => {
+                            buffer.cursor.move_to(next_position);
+                            break
+                        }
+                    };
+                }
+            };
+
+        },
+        None => (),
+    }
+    move_right(app);
+    application::switch_to_insert_mode(app);
+}
+
 #[cfg(test)]
 mod tests {
     extern crate scribe;
@@ -298,6 +344,50 @@ mod tests {
         // Ensure that the cursor is moved to the start of the previous word.
         assert_eq!(app.workspace.current_buffer().unwrap().cursor.line, 0);
         assert_eq!(app.workspace.current_buffer().unwrap().cursor.offset, 2);
+    }
+
+    #[test]
+    fn append_to_current_token_works() {
+        // Set up the application and run the command.
+        let mut app = set_up_application("amp editor");
+        super::append_to_current_token(&mut app);
+
+        // Ensure that the cursor is moved to after the current word.
+        assert_eq!(app.workspace.current_buffer().unwrap().cursor.line, 0);
+        assert_eq!(app.workspace.current_buffer().unwrap().cursor.offset, 3);
+
+        // Ensure that we're in insert mode.
+        assert!(
+            match app.mode {
+                ::models::application::Mode::Insert(_) => true,
+                _ => false,
+            }
+        );
+    }
+
+    #[test]
+    fn append_to_current_token_at_the_end_of_a_word_appends_to_current_word() {
+        // Set up the application and run the command.
+        let mut app = set_up_application("amp editor");
+
+        // Move to the end of the line.
+        let position = scribe::buffer::Position{ line: 0, offset: 2};
+        app.workspace.current_buffer().unwrap().cursor.move_to(position);
+
+        // Call the commands.
+        super::append_to_current_token(&mut app);
+
+        // Ensure that the cursor is moved to after the current word.
+        assert_eq!(app.workspace.current_buffer().unwrap().cursor.line, 0);
+        assert_eq!(app.workspace.current_buffer().unwrap().cursor.offset, 3);
+
+        // Ensure that we're in insert mode.
+        assert!(
+            match app.mode {
+                ::models::application::Mode::Insert(_) => true,
+                _ => false,
+            }
+        );
     }
 
     fn set_up_application(content: &str) -> Application {

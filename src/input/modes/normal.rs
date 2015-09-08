@@ -19,6 +19,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('b') => Some(cursor::move_to_start_of_previous_token),
         Key::Char('w') => Some(cursor::move_to_start_of_next_token),
         Key::Char('e') => Some(cursor::move_to_end_of_current_token),
+        Key::Char('a') => Some(cursor::append_to_current_token),
         Key::Char('I') => Some(cursor::insert_at_first_word_of_line),
         Key::Char('A') => Some(cursor::insert_at_end_of_line),
         Key::Char('o') => Some(cursor::insert_with_newline),
