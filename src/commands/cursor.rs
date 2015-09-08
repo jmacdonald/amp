@@ -178,6 +178,48 @@ pub fn move_to_start_of_next_token(app: &mut Application) {
     }
 }
 
+pub fn move_to_end_of_current_token(app: &mut Application) {
+    match app.workspace.current_buffer() {
+        Some(buffer) => {
+            let tokens = buffer.tokens();
+            let mut line = 0;
+            let mut offset = 0;
+            let mut next_position = Position{ line: 0, offset: 0 };
+            for token in tokens.iter() {
+                // Calculate the position of the next token.
+                match token.lexeme.lines().count() {
+                    1 => {
+                        // There's only one line in this token, so
+                        // only advance the offset by its size.
+                        offset += token.lexeme.len()
+                    },
+                    n => {
+                        // There are multiple lines, so advance the
+                        // line count and set the offset to the last
+                        // line's length
+                        line += n-1;
+                        offset = token.lexeme.lines().last().unwrap().len();
+                    },
+                };
+
+                next_position = Position{ line: line, offset: offset-1 };
+
+                if next_position > *buffer.cursor {
+                    match token.category {
+                        Category::Whitespace => (),
+                        _ => {
+                            buffer.cursor.move_to(next_position);
+                            break
+                        }
+                    };
+                }
+            };
+
+        },
+        None => (),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     extern crate scribe;
@@ -259,5 +301,23 @@ mod tests {
         // Ensure that the cursor is moved to the start of the previous word.
         assert_eq!(app.workspace.current_buffer().unwrap().cursor.line, 0);
         assert_eq!(app.workspace.current_buffer().unwrap().cursor.offset, 4);
+    }
+
+    #[test]
+    fn move_to_end_of_current_token_works() {
+        let mut app = ::models::application::new();
+        let mut buffer = scribe::buffer::new();
+
+        // Insert data with indentation and move to the end of the line.
+        buffer.insert("amp editor");
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        super::move_to_end_of_current_token(&mut app);
+
+        // Ensure that the cursor is moved to the start of the previous word.
+        assert_eq!(app.workspace.current_buffer().unwrap().cursor.line, 0);
+        assert_eq!(app.workspace.current_buffer().unwrap().cursor.offset, 2);
     }
 }
