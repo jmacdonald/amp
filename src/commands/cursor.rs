@@ -2,9 +2,15 @@ extern crate scribe;
 extern crate luthor;
 
 use models::application::Application;
-use scribe::buffer::Position;
+use scribe::buffer::{Buffer, Position};
 use self::luthor::token::Category;
 use super::{application, buffer};
+
+#[derive(PartialEq)]
+enum Direction {
+    Forward,
+    Backward
+}
 
 pub fn move_up(app: &mut Application) {
     match app.workspace.current_buffer() {
@@ -96,41 +102,12 @@ pub fn insert_with_newline(app: &mut Application) {
 pub fn move_to_start_of_previous_token(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
-            let tokens = buffer.tokens();
-            let mut line = 0;
-            let mut offset = 0;
-            let mut closest_position = Position{ line: 0, offset: 0 };
-            let mut next_position = closest_position;
-            for token in tokens.iter() {
-                closest_position = match token.category {
-                    Category::Whitespace => closest_position,
-                    _ => next_position,
-                };
-
-                // Calculate the position of the next token.
-                match token.lexeme.lines().count() {
-                    1 => {
-                        // There's only one line in this token, so
-                        // only advance the offset by its size.
-                        offset += token.lexeme.len()
-                    },
-                    n => {
-                        // There are multiple lines, so advance the
-                        // line count and set the offset to the last
-                        // line's length
-                        line += n-1;
-                        offset = token.lexeme.lines().last().unwrap().len();
-                    },
-                };
-
-                next_position = Position{ line: line, offset: offset };
-
-                if next_position >= *buffer.cursor {
-                    break;
-                }
+            match adjacent_token_position(buffer, false, Direction::Backward) {
+                Some(position) => {
+                    buffer.cursor.move_to(position);
+                },
+                None => (),
             };
-
-            buffer.cursor.move_to(closest_position);
         },
         None => (),
     }
@@ -139,40 +116,12 @@ pub fn move_to_start_of_previous_token(app: &mut Application) {
 pub fn move_to_start_of_next_token(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
-            let tokens = buffer.tokens();
-            let mut line = 0;
-            let mut offset = 0;
-            let mut next_position = Position{ line: 0, offset: 0 };
-            for token in tokens.iter() {
-                if next_position > *buffer.cursor {
-                    match token.category {
-                        Category::Whitespace => (),
-                        _ => {
-                            buffer.cursor.move_to(next_position);
-                            break
-                        }
-                    };
-                }
-
-                // Calculate the position of the next token.
-                match token.lexeme.lines().count() {
-                    1 => {
-                        // There's only one line in this token, so
-                        // only advance the offset by its size.
-                        offset += token.lexeme.len()
-                    },
-                    n => {
-                        // There are multiple lines, so advance the
-                        // line count and set the offset to the last
-                        // line's length
-                        line += n-1;
-                        offset = token.lexeme.lines().last().unwrap().len();
-                    },
-                };
-
-                next_position = Position{ line: line, offset: offset };
+            match adjacent_token_position(buffer, false, Direction::Forward) {
+                Some(position) => {
+                    buffer.cursor.move_to(position);
+                },
+                None => (),
             };
-
         },
         None => (),
     }
@@ -181,40 +130,15 @@ pub fn move_to_start_of_next_token(app: &mut Application) {
 pub fn move_to_end_of_current_token(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
-            let tokens = buffer.tokens();
-            let mut line = 0;
-            let mut offset = 0;
-            let mut next_position = Position{ line: 0, offset: 0 };
-            for token in tokens.iter() {
-                // Calculate the position of the next token.
-                match token.lexeme.lines().count() {
-                    1 => {
-                        // There's only one line in this token, so
-                        // only advance the offset by its size.
-                        offset += token.lexeme.len()
-                    },
-                    n => {
-                        // There are multiple lines, so advance the
-                        // line count and set the offset to the last
-                        // line's length
-                        line += n-1;
-                        offset = token.lexeme.lines().last().unwrap().len();
-                    },
-                };
-
-                next_position = Position{ line: line, offset: offset-1 };
-
-                if next_position > *buffer.cursor {
-                    match token.category {
-                        Category::Whitespace => (),
-                        _ => {
-                            buffer.cursor.move_to(next_position);
-                            break
-                        }
-                    };
-                }
+            match adjacent_token_position(buffer, true, Direction::Forward) {
+                Some(position) => {
+                    buffer.cursor.move_to(Position{
+                        line: position.line,
+                        offset: position.offset-1,
+                    });
+                },
+                None => (),
             };
-
         },
         None => (),
     }
@@ -223,47 +147,76 @@ pub fn move_to_end_of_current_token(app: &mut Application) {
 pub fn append_to_current_token(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
-            let tokens = buffer.tokens();
-            let mut line = 0;
-            let mut offset = 0;
-            let mut next_position = Position{ line: 0, offset: 0 };
-            for token in tokens.iter() {
-                // Calculate the position of the next token.
-                match token.lexeme.lines().count() {
-                    1 => {
-                        // There's only one line in this token, so
-                        // only advance the offset by its size.
-                        offset += token.lexeme.len()
-                    },
-                    n => {
-                        // There are multiple lines, so advance the
-                        // line count and set the offset to the last
-                        // line's length
-                        line += n-1;
-                        offset = token.lexeme.lines().last().unwrap().len();
-                    },
-                };
-
-                next_position = Position{ line: line, offset: offset-1 };
-
-                if next_position > *buffer.cursor {
-                    match token.category {
-                        Category::Whitespace => {
-                            break
-                        },
-                        _ => {
-                            buffer.cursor.move_to(next_position);
-                            break
-                        }
-                    };
-                }
+            match adjacent_token_position(buffer, true, Direction::Forward) {
+                Some(position) => {
+                    buffer.cursor.move_to(position);
+                },
+                None => (),
             };
-
         },
         None => (),
     }
-    move_right(app);
     application::switch_to_insert_mode(app);
+}
+
+fn adjacent_token_position(buffer: &mut Buffer, whitespace: bool, direction: Direction) -> Option<(Position)> {
+    let mut line = 0;
+    let mut offset = 0;
+    let mut previous_position = Position{ line: 0, offset: 0 };
+    for token in buffer.tokens().iter() {
+        let position = Position{ line: line, offset: offset };
+        if position > *buffer.cursor && direction == Direction::Forward {
+            // We've found the next token!
+            if whitespace == true {
+                // We're allowing whitespace, so return the token.
+                return Some(position);
+            } else {
+                // We're not allowing whitespace; skip this token if that's what it is.
+                match token.category {
+                    Category::Whitespace => (),
+                    _ => {
+                        return Some(position);
+                    }
+                }
+            }
+        }
+
+        // We've not yet found it; advance to the next token.
+        match token.lexeme.lines().count() {
+            1 => {
+                // There's only one line in this token, so
+                // only advance the offset by its size.
+                offset += token.lexeme.len()
+            },
+            n => {
+                // There are multiple lines, so advance the
+                // line count and set the offset to the last
+                // line's length
+                line += n-1;
+                offset = token.lexeme.lines().last().unwrap().len();
+            },
+        };
+
+        // If we're looking backwards and the next iteration will pass the
+        // cursor, return the current position, or the previous if it's whitespace.
+        let next_position = Position{ line: line, offset: offset };
+        if next_position >= *buffer.cursor && direction == Direction::Backward {
+            match token.category {
+                Category::Whitespace => {
+                    return Some(previous_position);
+                },
+                _ => {
+                    return Some(position);
+                }
+            }
+        }
+
+        // Keep a reference to the current position in case the next
+        // token is whitespace, and we need to return this instead.
+        previous_position = position;
+    };
+
+    None
 }
 
 #[cfg(test)]
