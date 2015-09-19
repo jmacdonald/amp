@@ -44,6 +44,7 @@ fn main() {
                     Mode::Insert(ref mut i) => input::modes::insert::handle(i, key),
                     Mode::Jump(ref mut j) => input::modes::jump::handle(j, key),
                     Mode::Open(ref mut o) => input::modes::open::handle(o, key),
+                    Mode::Select(_) => input::modes::select::handle(key),
                     Mode::Exit => break,
                 };
 
