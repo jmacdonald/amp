@@ -8,7 +8,7 @@ use models::application::modes::jump::JumpMode;
 use models::application::modes::open::OpenMode;
 use models::application::modes::select::SelectMode;
 use models::terminal::Terminal;
-use scribe::buffer::{Buffer, Position};
+use scribe::buffer::{Buffer, Position, range};
 use rustbox::Color;
 
 pub struct BufferPresenter {
@@ -48,11 +48,23 @@ impl BufferPresenter {
             offset: buffer.cursor.offset
         };
 
+        // If we're in select mode, get the selected range.
+        let highlight = match mode {
+            &mut Mode::Select(ref select_mode) => {
+                Some(range::new(
+                    select_mode.anchor,
+                    *buffer.cursor
+                ))
+            },
+            _ => None,
+        };
+
         // Bundle up the presentable data.
         Data{
             tokens: tokens,
             visible_range: self.region.visible_range(),
             cursor: relative_cursor,
+            highlight: highlight,
             status_line: StatusLine{
                 content: content,
                 color: color

@@ -6,7 +6,7 @@ pub mod presenters;
 mod scrollable_region;
 
 use models::terminal::Terminal;
-use scribe::buffer::{Category, LineRange, Position, Token};
+use scribe::buffer::{Category, LineRange, Position, Range, Token};
 use pad::PadStr;
 use rustbox::Color;
 
@@ -14,6 +14,7 @@ pub struct Data {
     pub tokens: Vec<Token>,
     pub visible_range: LineRange,
     pub cursor: Position,
+    pub highlight: Option<Range>,
     pub status_line: StatusLine
 }
 
@@ -33,7 +34,7 @@ pub fn map_color(category: &Category) -> Color {
     }
 }
 
-pub fn draw_tokens(terminal: &Terminal, tokens: &Vec<Token>, range: &LineRange) {
+pub fn draw_tokens(terminal: &Terminal, tokens: &Vec<Token>, range: &LineRange, highlight: &Option<Range>) {
     let mut line = 0;
     let mut offset = 0;
     'print_loop: for token in tokens.iter() {
@@ -47,13 +48,25 @@ pub fn draw_tokens(terminal: &Terminal, tokens: &Vec<Token>, range: &LineRange) 
                 line += 1;
                 offset = 0;
             } else if line >= range.start {
+                let current_position = Position{ line: line, offset: offset };
+                let background_color =
+                    match highlight {
+                        &Some(ref h) => {
+                            if current_position < h.start() || current_position > h.end() {
+                                Color::Default
+                            } else {
+                                Color::White
+                            }
+                        },
+                        &None => Color::Default
+                    };
                 // Only start printing once we enter the visible range.
                 terminal.print_char(
                     offset,
                     line-range.start,
                     rustbox::RB_NORMAL,
                     color,
-                    Color::Default,
+                    background_color,
                     character
                 );
                 offset += 1;

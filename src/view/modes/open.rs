@@ -14,7 +14,7 @@ pub fn display(terminal: &Terminal, data: &Data, mode: &OpenMode) {
     terminal.clear();
 
     // Draw the visible set of tokens to the terminal.
-    view::draw_tokens(terminal, &data.tokens, &data.visible_range);
+    view::draw_tokens(terminal, &data.tokens, &data.visible_range, &data.highlight);
 
     // Draw the status line.
     view::draw_status_line(terminal, &data.status_line.content, data.status_line.color);

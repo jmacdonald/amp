@@ -25,6 +25,7 @@ fn main() {
                 tokens: Vec::new(),
                 visible_range: LineRange{ start: 0, end: 0 },
                 cursor: Position{ line: 0, offset: 0 },
+                highlight: None,
                 status_line: StatusLine{
                     content: "".to_string(),
                     color: Color::Default
