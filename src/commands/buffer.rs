@@ -1,7 +1,7 @@
 extern crate scribe;
 
 use models::application::{Application, Mode};
-use scribe::buffer::{Position, Range};
+use scribe::buffer::{Position, range};
 
 pub fn save(app: &mut Application) {
     match app.workspace.current_buffer() {
@@ -22,10 +22,10 @@ pub fn delete_line(app: &mut Application) {
         Some(buffer) => {
             let line = buffer.cursor.line;
             buffer.delete_range(
-                Range{
-                    start: Position{ line: line, offset: 0 },
-                    end: Position{ line: line+1, offset: 0 }
-                }
+                range::new(
+                    Position{ line: line, offset: 0 },
+                    Position{ line: line+1, offset: 0 }
+                )
             );
         },
         None => (),
@@ -117,10 +117,10 @@ pub fn change_rest_of_line(app: &mut Application) {
             let target_line = buffer.cursor.line+1;
             buffer.start_operation_group();
             buffer.delete_range(
-                Range{
-                    start: starting_position,
-                    end: Position{ line: target_line, offset: 0 }
-                }
+                range::new(
+                    starting_position,
+                    Position{ line: target_line, offset: 0 }
+                )
             );
 
             // Since we've removed a newline as part of the range, re-add it.
