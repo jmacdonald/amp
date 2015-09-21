@@ -4,6 +4,7 @@ pub mod application;
 pub mod workspace;
 pub mod buffer;
 pub mod cursor;
+pub mod selection;
 pub mod jump_mode;
 pub mod open_mode;
 
