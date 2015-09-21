@@ -25,3 +25,8 @@ pub fn delete(app: &mut Application) {
 
     application::switch_to_normal_mode(app);
 }
+
+pub fn change(app: &mut Application) {
+    delete(app);
+    application::switch_to_insert_mode(app);
+}
