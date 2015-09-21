@@ -1,8 +1,8 @@
 extern crate scribe;
 
 use models::application::{Application, Mode};
-use scribe::buffer::{Buffer, Position, range};
-use super::{application, buffer};
+use scribe::buffer::range;
+use super::application;
 
 pub fn delete(app: &mut Application) {
     match app.workspace.current_buffer() {
