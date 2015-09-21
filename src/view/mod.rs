@@ -52,10 +52,10 @@ pub fn draw_tokens(terminal: &Terminal, tokens: &Vec<Token>, range: &LineRange, 
                 let background_color =
                     match highlight {
                         &Some(ref h) => {
-                            if current_position < h.start() || current_position > h.end() {
-                                Color::Default
-                            } else {
+                            if current_position >= h.start() && current_position < h.end() {
                                 Color::White
+                            } else {
+                                Color::Default
                             }
                         },
                         &None => Color::Default
