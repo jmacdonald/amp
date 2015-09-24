@@ -5,6 +5,8 @@ use scribe::buffer::range;
 use super::application;
 
 pub fn delete(app: &mut Application) {
+    copy_to_clipboard(app);
+
     match app.workspace.current_buffer() {
         Some(buffer) => {
             match app.mode {
@@ -32,6 +34,11 @@ pub fn change(app: &mut Application) {
 }
 
 pub fn copy(app: &mut Application) {
+    copy_to_clipboard(app);
+    application::switch_to_normal_mode(app);
+}
+
+fn copy_to_clipboard(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
             match app.mode {
@@ -54,6 +61,4 @@ pub fn copy(app: &mut Application) {
         },
         None => (),
     };
-
-    application::switch_to_normal_mode(app);
 }
