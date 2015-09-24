@@ -28,6 +28,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('v') => Some(application::switch_to_select_mode),
         Key::Char('u') => Some(buffer::undo),
         Key::Char('r') => Some(buffer::redo),
+        Key::Char('p') => Some(buffer::paste),
         Key::Tab       => Some(workspace::next_buffer),
         _              => None,
     }

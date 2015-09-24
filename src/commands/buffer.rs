@@ -159,6 +159,18 @@ pub fn redo(app: &mut Application) {
     }
 }
 
+pub fn paste(app: &mut Application) {
+    match app.workspace.current_buffer() {
+        Some(buffer) => {
+            match app.clipboard.get_contents() {
+                Ok(content) => buffer.insert(&content),
+                Err(_) => ()
+            }
+        },
+        None => (),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     extern crate scribe;
