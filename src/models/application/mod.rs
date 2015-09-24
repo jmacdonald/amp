@@ -1,5 +1,6 @@
 extern crate scribe;
 extern crate rustbox;
+extern crate clipboard;
 
 pub mod modes;
 
@@ -10,6 +11,7 @@ use self::modes::insert::InsertMode;
 use self::modes::open::OpenMode;
 use self::modes::select::SelectMode;
 use scribe::workspace::Workspace;
+use self::clipboard::ClipboardContext;
 
 #[derive(PartialEq)]
 pub enum Mode<I, J, O, S> {
@@ -24,6 +26,7 @@ pub enum Mode<I, J, O, S> {
 pub struct Application {
     pub mode: Mode<InsertMode, JumpMode, OpenMode, SelectMode>,
     pub workspace: Workspace,
+    pub clipboard: ClipboardContext
 }
 
 pub fn new() -> Application {
@@ -44,5 +47,17 @@ pub fn new() -> Application {
         workspace.add_buffer(argument_buffer);
     }
 
-    Application{ mode: Mode::Normal, workspace: workspace }
+    // Initialize and keep a reference to the clipboard.
+    let clipboard = match ClipboardContext::new() {
+        Ok(c) => c,
+        Err(e) => {
+            panic!("Ran into an error trying to access the clipboard: {}.", e);
+        }
+    };
+
+    Application{
+        mode: Mode::Normal,
+        workspace: workspace,
+        clipboard: clipboard
+    }
 }
