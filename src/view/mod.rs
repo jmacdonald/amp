@@ -37,36 +37,38 @@ pub fn map_color(category: &Category) -> Color {
     }
 }
 
-pub fn draw_tokens(terminal: &Terminal, tokens: &Vec<Token>, range: &LineRange, highlight: &Option<Range>) {
+pub fn draw_tokens(terminal: &Terminal, data: &Data) {
     let mut line = 0;
     let mut offset = 0;
-    'print_loop: for token in tokens.iter() {
+    'print_loop: for token in data.tokens.iter() {
         let color = map_color(&token.category);
 
         for character in token.lexeme.chars() {
             if character == '\n' {
                 // Bail out if we're about to exit the visible range.
-                if line == range.end { break 'print_loop; }
+                if line == data.visible_range.end { break 'print_loop; }
 
                 line += 1;
                 offset = 0;
-            } else if line >= range.start {
+            } else if line >= data.visible_range.start {
                 let current_position = Position{ line: line, offset: offset };
                 let background_color =
-                    match highlight {
-                        &Some(ref h) => {
+                    match data.highlight {
+                        Some(ref h) => {
                             if current_position >= h.start() && current_position < h.end() {
                                 Color::White
                             } else {
                                 Color::Default
                             }
                         },
-                        &None => Color::Default
+                        None => {
+                            Color::Default
+                        }
                     };
                 // Only start printing once we enter the visible range.
                 terminal.print_char(
                     offset,
-                    line-range.start,
+                    line-data.visible_range.start,
                     rustbox::RB_NORMAL,
                     color,
                     background_color,

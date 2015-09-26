@@ -10,7 +10,7 @@ pub fn display(terminal: &Terminal, data: &Data) {
     terminal.set_cursor(data.cursor.offset as isize, data.cursor.line as isize);
 
     // Draw the visible set of tokens to the terminal.
-    view::draw_tokens(terminal, &data.tokens, &data.visible_range, &data.highlight);
+    view::draw_tokens(terminal, &data);
 
     // Draw the status line.
     view::draw_status_line(terminal, &data.status_line.content, data.status_line.color);
