@@ -25,12 +25,15 @@ pub struct StatusLine {
 
 pub fn map_color(category: &Category) -> Color {
     match category {
-        &Category::Keyword    => Color::Magenta,
-        &Category::Identifier => Color::Yellow,
+        &Category::Keyword    => Color::Yellow,
+        &Category::Identifier => Color::Magenta,
         &Category::String     => Color::Red,
+        &Category::Key        => Color::Red,
         &Category::Comment    => Color::Blue,
         &Category::Method     => Color::Cyan,
-        _                    => Color::Default,
+        &Category::Function   => Color::Cyan,
+        &Category::Call       => Color::Cyan,
+        _                     => Color::Default,
     }
 }
 
