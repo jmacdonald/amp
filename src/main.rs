@@ -15,7 +15,7 @@ use scribe::buffer::{LineRange, Position};
 fn main() {
     let mut application = models::application::new();
     let terminal = models::terminal::new();
-    let mut buffer_presenter = view::presenters::buffer::new(&terminal.height()-2);
+    let mut buffer_presenter = view::presenters::buffer::new(terminal.height()-1);
 
     loop {
         // Draw the current application state to the screen.
