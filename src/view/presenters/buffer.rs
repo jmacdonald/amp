@@ -125,6 +125,17 @@ mod tests {
         let mut buffer = scribe::buffer::new();
         buffer.insert("first\nsecond\nthird\nfourth");
 
+        let mut data = presenter.data(&mut buffer, &mut mode);
+        assert_eq!(
+            data.tokens,
+            vec![
+                Token{ lexeme: "first".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+                Token{ lexeme: "second".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+            ]
+        );
+
         // Move the cursor such that we scroll down by one line,
         // leaving lines 2 and 3 visible (since we have a height of 2).
         buffer.cursor.move_to(
@@ -134,7 +145,7 @@ mod tests {
             }
         );
 
-        let data = presenter.data(&mut buffer, &mut mode);
+        data = presenter.data(&mut buffer, &mut mode);
         assert_eq!(
             data.tokens,
             vec![
