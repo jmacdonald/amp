@@ -19,7 +19,7 @@ impl JumpMode {
     //
     // We also track jump tag locations so that tags can be
     // resolved to positions for performing the actual jump later on.
-    pub fn tokens(&mut self, tokens: &Vec<Token>, limit: Option<LineRange>) -> Vec<Token> {
+    pub fn tokens(&mut self, tokens: &Vec<Token>) -> Vec<Token> {
         let mut jump_tokens = Vec::new();
         let mut line = 0;
         let mut offset = 0;
@@ -53,14 +53,8 @@ impl JumpMode {
                     jump_tokens.push(subtoken);
 
                 } else {
-                    let outside_limits = match limit {
-                        Some(ref lim) => line < lim.start || line > lim.end,
-                        None => false,
-                    };
-
-                    // Don't tag tokens that are either outside
-                    // of the set limits, or that are too small.
-                    if outside_limits || subtoken.lexeme.len() < 2 {
+                    // Don't tag tokens that are too small.
+                    if subtoken.lexeme.len() < 2 {
                         jump_tokens.push(Token{
                             lexeme: subtoken.lexeme.to_string(),
                             category: Category::Text
@@ -143,7 +137,7 @@ mod tests {
             Token{ lexeme: "p".to_string(), category: Category::Text},
         ];
 
-        let result = jump_mode.tokens(&source_tokens, None);
+        let result = jump_mode.tokens(&source_tokens);
         for (index, token) in expected_tokens.iter().enumerate() {
             assert_eq!(*token, result[index]);
         };
@@ -166,7 +160,7 @@ mod tests {
             Token{ lexeme: "ring".to_string(), category: Category::Text},
         ];
 
-        let result = jump_mode.tokens(&source_tokens, None);
+        let result = jump_mode.tokens(&source_tokens);
         for (index, token) in expected_tokens.iter().enumerate() {
             assert_eq!(*token, result[index]);
         };
@@ -189,7 +183,7 @@ mod tests {
             Token{ lexeme: " ".to_string(), category: Category::Whitespace},
             Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
         ];
-        jump_mode.tokens(&source_tokens, None);
+        jump_mode.tokens(&source_tokens);
 
         assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(), Position{ line: 0, offset: 2 });
         assert_eq!(*jump_mode.tag_positions.get("ab").unwrap(), Position{ line: 0, offset: 7 });
@@ -203,8 +197,8 @@ mod tests {
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
         ];
-        jump_mode.tokens(&source_tokens, None);
-        let results = jump_mode.tokens(&source_tokens, None);
+        jump_mode.tokens(&source_tokens);
+        let results = jump_mode.tokens(&source_tokens);
         assert_eq!(results[0].lexeme, "aa");
     }
 
@@ -216,8 +210,8 @@ mod tests {
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
             Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
         ];
-        jump_mode.tokens(&source_tokens, None);
-        jump_mode.tokens(&vec![], None);
+        jump_mode.tokens(&source_tokens);
+        jump_mode.tokens(&vec![]);
         assert!(jump_mode.tag_positions.is_empty());
     }
 
@@ -229,40 +223,8 @@ mod tests {
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
             Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
         ];
-        jump_mode.tokens(&source_tokens, None);
+        jump_mode.tokens(&source_tokens);
         assert_eq!(jump_mode.map_tag("ab"), Some(&Position{ line: 1, offset: 2 }));
         assert_eq!(jump_mode.map_tag("none"), None);
-    }
-
-    #[test]
-    fn restricts_the_tagged_lines_when_limit_is_set() {
-        let mut jump_mode = new();
-        let source_tokens = vec![
-            Token{ lexeme: "class".to_string(), category: Category::Keyword},
-            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
-            Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
-            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
-            Token{ lexeme: "Editor".to_string(), category: Category::Identifier},
-            Token{ lexeme: "\n".to_string(), category: Category::Whitespace},
-            Token{ lexeme: "end".to_string(), category: Category::Identifier},
-        ];
-
-        let expected_tokens = vec![
-            Token{ lexeme: "class".to_string(), category: Category::Text},
-            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
-            Token{ lexeme: "aa".to_string(), category: Category::Keyword},
-            Token{ lexeme: "p".to_string(), category: Category::Text},
-            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
-            Token{ lexeme: "ab".to_string(), category: Category::Keyword},
-            Token{ lexeme: "itor".to_string(), category: Category::Text},
-            Token{ lexeme: "\n".to_string(), category: Category::Whitespace},
-            Token{ lexeme: "end".to_string(), category: Category::Text},
-        ];
-
-        let limit = LineRange{ start: 1, end: 2 };
-        let result = jump_mode.tokens(&source_tokens, Some(limit));
-        for (index, token) in expected_tokens.iter().enumerate() {
-            assert_eq!(*token, result[index]);
-        };
     }
 }
