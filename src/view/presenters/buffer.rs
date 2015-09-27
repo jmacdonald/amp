@@ -8,7 +8,7 @@ use models::application::modes::jump::JumpMode;
 use models::application::modes::open::OpenMode;
 use models::application::modes::select::SelectMode;
 use models::terminal::Terminal;
-use scribe::buffer::{Buffer, Position, range};
+use scribe::buffer::{Buffer, Position, range, Token, LineRange};
 use rustbox::Color;
 
 pub struct BufferPresenter {
@@ -30,15 +30,21 @@ impl BufferPresenter {
             _ => { Color::Black }
         };
 
-        // Get the buffer's tokens, transforming them if we're in jump mode.
+        // Get the buffer's tokens and reduce them to the visible set.
+        let visible_tokens = visible_tokens(
+            &buffer.tokens(),
+            self.region.visible_range()
+        );
+
+        // Transform the tokens if we're in jump mode.
         let tokens = match mode {
             &mut Mode::Jump(ref mut jump_mode) => {
                 jump_mode.tokens(
-                    &buffer.tokens(),
+                    &visible_tokens,
                     Some(self.region.visible_range())
                 )
             },
-            _ => buffer.tokens(),
+            _ => visible_tokens,
         };
 
         // The buffer tracks its cursor absolutely, but the
@@ -73,7 +79,76 @@ impl BufferPresenter {
     }
 }
 
-pub fn new(terminal: &Terminal) -> BufferPresenter {
-    let region = scrollable_region::new(terminal.height()-2);
+fn visible_tokens(tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
+    let mut visible_tokens = Vec::new();
+    let mut line = 0;
+    let mut offset = 0;
+
+    for token in tokens {
+        let mut current_lexeme = String::new();
+
+        for character in token.lexeme.chars() {
+            // Use characters in the visible range.
+            if line >= visible_range.start && line < visible_range.end {
+                current_lexeme.push(character);
+            }
+
+            // Handle newline characters.
+            if character == '\n' {
+                line += 1;
+                offset = 0;
+            }
+        }
+
+        // Add visible lexemes to the token set.
+        if !current_lexeme.is_empty() {
+            visible_tokens.push(Token{
+                lexeme: current_lexeme,
+                category: token.category.clone()
+            })
+        }
+    }
+
+    visible_tokens
+}
+
+pub fn new(height: usize) -> BufferPresenter {
+    let region = scrollable_region::new(height);
     BufferPresenter{ region: region }
+}
+
+#[cfg(test)]
+mod tests {
+    extern crate scribe;
+
+    use models::application::Mode;
+    use self::scribe::buffer::{Category, Position, Token};
+
+    #[test]
+    fn data_only_returns_tokens_in_visible_range() {
+        let mut presenter = super::new(2);
+        let mut mode = Mode::Normal;
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("first\nsecond\nthird\nfourth");
+
+        // Move the cursor such that we scroll down by one line,
+        // leaving lines 2 and 3 visible (since we have a height of 2).
+        buffer.cursor.move_to(
+            Position{
+                line: 3,
+                offset: 0,
+            }
+        );
+
+        let data = presenter.data(&mut buffer, &mut mode);
+        assert_eq!(
+            data.tokens,
+            vec![
+                Token{ lexeme: "second".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+                Token{ lexeme: "third".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+            ]
+        );
+    }
 }
