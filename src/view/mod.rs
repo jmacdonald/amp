@@ -6,7 +6,7 @@ pub mod presenters;
 mod scrollable_region;
 
 use models::terminal::Terminal;
-use scribe::buffer::{Category, LineRange, Position, Range, Token};
+use scribe::buffer::{Category, Position, Range, Token};
 use pad::PadStr;
 use rustbox::Color;
 
@@ -50,20 +50,41 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
                         if current_position >= h.start() && current_position < h.end() {
                             Color::White
                         } else {
-                            Color::Default
+                            if line == data.cursor.line {
+                                Color::Black
+                            } else {
+                                Color::Default
+                            }
                         }
                     },
                     None => {
-                        Color::Default
+                        if line == data.cursor.line {
+                            Color::Black
+                        } else {
+                            Color::Default
+                        }
                     }
                 };
 
             if character == '\n' {
+                // Print the rest of the line highlight.
+                if line == data.cursor.line {
+                    for offset in offset..terminal.width() {
+                        terminal.print_char(
+                            offset,
+                            line,
+                            rustbox::RB_NORMAL,
+                            Color::Default,
+                            Color::Black,
+                            ' '
+                        );
+                    }
+                }
+
+                // Move position tracking to the next line.
                 line += 1;
                 offset = 0;
             } else {
-                offset += 1;
-
                 terminal.print_char(
                     offset,
                     line,
@@ -72,7 +93,23 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
                     background_color,
                     character
                 );
+
+                offset += 1;
             }
+        }
+    }
+
+    // Print the rest of the line highlight.
+    if line == data.cursor.line {
+        for offset in offset..terminal.width() {
+            terminal.print_char(
+                offset,
+                line,
+                rustbox::RB_NORMAL,
+                Color::Default,
+                Color::Black,
+                ' '
+            );
         }
     }
 }

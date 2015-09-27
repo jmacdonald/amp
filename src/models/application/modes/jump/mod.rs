@@ -2,7 +2,7 @@ pub mod tag_generator;
 mod lexer;
 
 use std::collections::HashMap;
-use scribe::buffer::{Position, Token, Category, LineRange};
+use scribe::buffer::{Position, Token, Category};
 
 pub struct JumpMode {
     pub input: String,
@@ -116,9 +116,7 @@ pub fn new() -> JumpMode {
 #[cfg(test)]
 mod tests {
     use super::new;
-    use scribe::buffer::{Token, Category, Position, LineRange};
-    use std::cmp::PartialEq;
-    use std::collections::HashMap;
+    use scribe::buffer::{Token, Category, Position};
 
     #[test]
     fn tokens_returns_the_correct_tokens() {

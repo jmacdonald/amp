@@ -10,7 +10,7 @@ mod commands;
 use models::application::Mode;
 use view::{Data, StatusLine};
 use rustbox::Color;
-use scribe::buffer::{LineRange, Position};
+use scribe::buffer::Position;
 
 fn main() {
     let mut application = models::application::new();

@@ -7,7 +7,6 @@ use models::application::modes::insert::InsertMode;
 use models::application::modes::jump::JumpMode;
 use models::application::modes::open::OpenMode;
 use models::application::modes::select::SelectMode;
-use models::terminal::Terminal;
 use scribe::buffer::{Buffer, Position, range, Token, LineRange};
 use rustbox::Color;
 
@@ -76,7 +75,6 @@ impl BufferPresenter {
 fn visible_tokens(tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
     let mut visible_tokens = Vec::new();
     let mut line = 0;
-    let mut offset = 0;
 
     for token in tokens {
         let mut current_lexeme = String::new();
@@ -90,7 +88,6 @@ fn visible_tokens(tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
             // Handle newline characters.
             if character == '\n' {
                 line += 1;
-                offset = 0;
             }
         }
 
