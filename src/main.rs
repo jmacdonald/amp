@@ -23,7 +23,6 @@ fn main() {
             Some(ref mut buffer) => buffer_presenter.data(buffer, &mut application.mode),
             None => Data{
                 tokens: Vec::new(),
-                visible_range: LineRange{ start: 0, end: 0 },
                 cursor: Position{ line: 0, offset: 0 },
                 highlight: None,
                 status_line: StatusLine{

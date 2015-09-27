@@ -63,7 +63,6 @@ impl BufferPresenter {
         // Bundle up the presentable data.
         Data{
             tokens: tokens,
-            visible_range: self.region.visible_range(),
             cursor: relative_cursor,
             highlight: highlight,
             status_line: StatusLine{
