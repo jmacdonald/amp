@@ -140,7 +140,7 @@ mod tests {
         // leaving lines 2 and 3 visible (since we have a height of 2).
         buffer.cursor.move_to(
             Position{
-                line: 3,
+                line: 2,
                 offset: 0,
             }
         );

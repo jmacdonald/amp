@@ -21,8 +21,8 @@ impl ScrollableRegion {
         let range = self.visible_range();
         if line < range.start {
             self.line_offset = line;
-        } else if line > range.end {
-            self.line_offset = line - self.height;
+        } else if line >= range.end {
+            self.line_offset = line - self.height + 1;
         }
     }
 
@@ -64,8 +64,8 @@ mod tests {
         let mut region = ScrollableRegion{ height: 20, line_offset: 10 };
         region.scroll_into_view(40);
         let range = region.visible_range();
-        assert_eq!(range.start, 20);
-        assert_eq!(range.end, 40);
+        assert_eq!(range.start, 21);
+        assert_eq!(range.end, 41);
     }
 
     #[test]
@@ -81,6 +81,6 @@ mod tests {
     fn relative_position_works() {
         let mut region = new(20);
         region.scroll_into_view(30);
-        assert_eq!(region.relative_position(15), 5);
+        assert_eq!(region.relative_position(15), 4);
     }
 }
