@@ -19,7 +19,7 @@ impl JumpMode {
     //
     // We also track jump tag locations so that tags can be
     // resolved to positions for performing the actual jump later on.
-    pub fn tokens(&mut self, tokens: &Vec<Token>) -> Vec<Token> {
+    pub fn tokens(&mut self, tokens: &Vec<Token>, line_offset: usize) -> Vec<Token> {
         let mut jump_tokens = Vec::new();
         let mut line = 0;
         let mut offset = 0;
@@ -79,7 +79,7 @@ impl JumpMode {
 
                                 // Track the location of this tag.
                                 self.tag_positions.insert(tag, Position{
-                                    line: line,
+                                    line: line+line_offset,
                                     offset: offset
                                 });
                             },
@@ -135,7 +135,7 @@ mod tests {
             Token{ lexeme: "p".to_string(), category: Category::Text},
         ];
 
-        let result = jump_mode.tokens(&source_tokens);
+        let result = jump_mode.tokens(&source_tokens, 0);
         for (index, token) in expected_tokens.iter().enumerate() {
             assert_eq!(*token, result[index]);
         };
@@ -158,7 +158,7 @@ mod tests {
             Token{ lexeme: "ring".to_string(), category: Category::Text},
         ];
 
-        let result = jump_mode.tokens(&source_tokens);
+        let result = jump_mode.tokens(&source_tokens, 0);
         for (index, token) in expected_tokens.iter().enumerate() {
             assert_eq!(*token, result[index]);
         };
@@ -181,7 +181,7 @@ mod tests {
             Token{ lexeme: " ".to_string(), category: Category::Whitespace},
             Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
         ];
-        jump_mode.tokens(&source_tokens);
+        jump_mode.tokens(&source_tokens, 0);
 
         assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(), Position{ line: 0, offset: 2 });
         assert_eq!(*jump_mode.tag_positions.get("ab").unwrap(), Position{ line: 0, offset: 7 });
@@ -195,8 +195,8 @@ mod tests {
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
         ];
-        jump_mode.tokens(&source_tokens);
-        let results = jump_mode.tokens(&source_tokens);
+        jump_mode.tokens(&source_tokens, 0);
+        let results = jump_mode.tokens(&source_tokens, 0);
         assert_eq!(results[0].lexeme, "aa");
     }
 
@@ -208,9 +208,22 @@ mod tests {
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
             Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
         ];
-        jump_mode.tokens(&source_tokens);
-        jump_mode.tokens(&vec![]);
+        jump_mode.tokens(&source_tokens, 0);
+        jump_mode.tokens(&vec![], 0);
         assert!(jump_mode.tag_positions.is_empty());
+    }
+
+    #[test]
+    fn tokens_adds_specified_line_offset_to_tracked_positions() {
+        let mut jump_mode = new();
+        let source_tokens = vec![
+            Token{ lexeme: "class".to_string(), category: Category::Keyword},
+            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
+            Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
+        ];
+        jump_mode.tokens(&source_tokens, 10);
+        assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(), Position{ line: 10, offset: 0 });
+        assert_eq!(*jump_mode.tag_positions.get("ab").unwrap(), Position{ line: 11, offset: 2 });
     }
 
     #[test]
@@ -221,7 +234,7 @@ mod tests {
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
             Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
         ];
-        jump_mode.tokens(&source_tokens);
+        jump_mode.tokens(&source_tokens, 0);
         assert_eq!(jump_mode.map_tag("ab"), Some(&Position{ line: 1, offset: 2 }));
         assert_eq!(jump_mode.map_tag("none"), None);
     }

@@ -37,7 +37,9 @@ impl BufferPresenter {
 
         // Transform the tokens if we're in jump mode.
         let tokens = match mode {
-            &mut Mode::Jump(ref mut jump_mode) => jump_mode.tokens(&visible_tokens),
+            &mut Mode::Jump(ref mut jump_mode) => {
+                jump_mode.tokens(&visible_tokens, 0)
+            },
             _ => visible_tokens,
         };
 
