@@ -46,8 +46,8 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
             let current_position = Position{ line: line, offset: offset };
             let background_color =
                 match data.highlight {
-                    Some(ref h) => {
-                        if current_position >= h.start() && current_position < h.end() {
+                    Some(ref highlight_range) => {
+                        if highlight_range.includes(&current_position) {
                             Color::White
                         } else {
                             if line == data.cursor.line {

@@ -1,4 +1,4 @@
-use scribe::buffer::LineRange;
+use scribe::buffer::{line_range, LineRange};
 
 /// Abstract representation of a fixed-height section of the screen.
 /// Used to determine visible ranges of lines based on previous state,
@@ -11,7 +11,7 @@ pub struct ScrollableRegion {
 impl ScrollableRegion {
     // Determines the visible lines based on the current line offset and height.
     pub fn visible_range(&self) -> LineRange {
-        LineRange{ start: self.line_offset, end: self.height + self.line_offset }
+        line_range::new(self.line_offset, self.height + self.line_offset)
     }
 
     /// If necessary, moves the line offset such that the specified line is
@@ -19,9 +19,9 @@ impl ScrollableRegion {
     /// the top or bottom of the new visible range.
     pub fn scroll_into_view(&mut self, line: usize) {
         let range = self.visible_range();
-        if line < range.start {
+        if line < range.start() {
             self.line_offset = line;
-        } else if line >= range.end {
+        } else if line >= range.end() {
             self.line_offset = line - self.height + 1;
         }
     }
@@ -47,16 +47,16 @@ mod tests {
         let height = 20;
         let region = new(height);
         let range = region.visible_range();
-        assert_eq!(range.start, 0);
-        assert_eq!(range.end, height);
+        assert_eq!(range.start(), 0);
+        assert_eq!(range.end(), height);
     }
 
     #[test]
     fn visible_range_works_for_non_zero_line_offsets() {
         let region = ScrollableRegion{ height: 20, line_offset: 10 };
         let range = region.visible_range();
-        assert_eq!(range.start, 10);
-        assert_eq!(range.end, 30);
+        assert_eq!(range.start(), 10);
+        assert_eq!(range.end(), 30);
     }
 
     #[test]
@@ -64,8 +64,8 @@ mod tests {
         let mut region = ScrollableRegion{ height: 20, line_offset: 10 };
         region.scroll_into_view(40);
         let range = region.visible_range();
-        assert_eq!(range.start, 21);
-        assert_eq!(range.end, 41);
+        assert_eq!(range.start(), 21);
+        assert_eq!(range.end(), 41);
     }
 
     #[test]
@@ -73,8 +73,8 @@ mod tests {
         let mut region = ScrollableRegion{ height: 20, line_offset: 10 };
         region.scroll_into_view(5);
         let range = region.visible_range();
-        assert_eq!(range.start, 5);
-        assert_eq!(range.end, 25);
+        assert_eq!(range.start(), 5);
+        assert_eq!(range.end(), 25);
     }
 
     #[test]

@@ -83,7 +83,7 @@ fn visible_tokens(tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
 
         for character in token.lexeme.chars() {
             // Use characters in the visible range.
-            if line >= visible_range.start && line < visible_range.end {
+            if visible_range.includes(line) {
                 current_lexeme.push(character);
             }
 
