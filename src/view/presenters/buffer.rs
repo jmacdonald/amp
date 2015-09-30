@@ -8,6 +8,7 @@ use models::application::modes::jump::JumpMode;
 use models::application::modes::open::OpenMode;
 use models::application::modes::select::SelectMode;
 use models::application::modes::search_insert::SearchInsertMode;
+use models::application::modes::search_results::SearchResultsMode;
 use scribe::buffer::{Buffer, Position, range, Token, LineRange};
 use rustbox::Color;
 
@@ -16,7 +17,7 @@ pub struct BufferPresenter {
 }
 
 impl BufferPresenter {
-    pub fn data(&mut self, buffer: &mut Buffer, mode: &mut Mode<InsertMode, JumpMode, OpenMode, SelectMode, SearchInsertMode>) -> Data {
+    pub fn data(&mut self, buffer: &mut Buffer, mode: &mut Mode<InsertMode, JumpMode, OpenMode, SelectMode, SearchInsertMode, SearchResultsMode>) -> Data {
         // Update the visible buffer range to include the cursor, if necessary.
         self.region.scroll_into_view(buffer.cursor.line);
 

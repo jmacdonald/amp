@@ -4,13 +4,14 @@ use rustbox::keyboard::Key;
 
 pub fn handle(mode: &mut SearchInsertMode, input: Key) -> Option<Command> {
     match input {
-        Key::Esc       => Some(application::switch_to_normal_mode),
+        Key::Esc     => Some(application::switch_to_normal_mode),
+        Key::Enter   => Some(application::switch_to_search_results_mode),
         Key::Char(c) => {
             // Add a character to the search term.
             mode.input.push(c);
 
             None
         },
-        _              => None,
+        _            => None,
     }
 }
