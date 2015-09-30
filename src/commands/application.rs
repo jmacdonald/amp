@@ -1,6 +1,6 @@
 use commands;
 use models::application::{Application, Mode};
-use models::application::modes::{insert, jump, open, select};
+use models::application::modes::{insert, jump, open, select, search_insert};
 
 pub fn switch_to_normal_mode(app: &mut Application) {
     commands::buffer::end_command_group(app);
@@ -27,6 +27,10 @@ pub fn switch_to_select_mode(app: &mut Application) {
         },
         None => (),
     }
+}
+
+pub fn switch_to_search_insert_mode(app: &mut Application) {
+    app.mode = Mode::SearchInsert(search_insert::new());
 }
 
 pub fn exit(app: &mut Application) {

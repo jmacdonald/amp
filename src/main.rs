@@ -33,6 +33,7 @@ fn main() {
         };
         match application.mode {
             Mode::Open(ref mode) => view::modes::open::display(&terminal, &view_data, mode),
+            Mode::SearchInsert(ref mode) => view::modes::search_insert::display(&terminal, &view_data, mode),
             _ => view::modes::default::display(&terminal, &view_data),
         }
 
@@ -45,6 +46,7 @@ fn main() {
                     Mode::Jump(ref mut j) => input::modes::jump::handle(j, key),
                     Mode::Open(ref mut o) => input::modes::open::handle(o, key),
                     Mode::Select(_) => input::modes::select::handle(key),
+                    Mode::SearchInsert(ref mut s) => input::modes::search_insert::handle(s, key),
                     Mode::Exit => break,
                 };
 
