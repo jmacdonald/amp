@@ -30,7 +30,9 @@ pub fn switch_to_select_mode(app: &mut Application) {
 }
 
 pub fn switch_to_search_insert_mode(app: &mut Application) {
-    app.mode = Mode::SearchInsert(search_insert::new());
+    if app.workspace.current_buffer().is_some() {
+        app.mode = Mode::SearchInsert(search_insert::new());
+    }
 }
 
 pub fn exit(app: &mut Application) {
