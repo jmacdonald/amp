@@ -1,4 +1,3 @@
-use models::application::modes::search_results::SearchResultsMode;
 use commands::{Command, application, search};
 use rustbox::keyboard::Key;
 
