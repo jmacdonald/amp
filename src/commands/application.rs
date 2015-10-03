@@ -1,6 +1,12 @@
 use commands;
+use models::application::modes::jump::JumpMode;
+use models::application::modes::insert::InsertMode;
+use models::application::modes::open::OpenMode;
+use models::application::modes::select::SelectMode;
+use models::application::modes::search_insert::SearchInsertMode;
+use models::application::modes::search_results::SearchResultsMode;
 use models::application::{Application, Mode};
-use models::application::modes::{insert, jump, open, select, search_insert};
+use models::application::modes::{insert, jump, open, select, search_insert, search_results};
 
 pub fn switch_to_normal_mode(app: &mut Application) {
     commands::buffer::end_command_group(app);
@@ -35,6 +41,69 @@ pub fn switch_to_search_insert_mode(app: &mut Application) {
     }
 }
 
+pub fn switch_to_search_results_mode(app: &mut Application) {
+    let mode: Option<Mode<InsertMode, JumpMode, OpenMode, SelectMode, SearchInsertMode, SearchResultsMode>> = match app.mode {
+        Mode::SearchInsert(ref s) => {
+            match app.workspace.current_buffer() {
+                Some(buffer) => {
+                    Some(
+                        Mode::SearchResults(
+                            search_results::new(
+                                buffer.search(&s.input)
+                            )
+                        )
+                    )
+                },
+                None => None
+            }
+        }
+        _ => None
+    };
+
+    if mode.is_some() {
+        app.mode = mode.unwrap()
+    }
+}
+
 pub fn exit(app: &mut Application) {
     app.mode = Mode::Exit;
+}
+
+#[cfg(test)]
+mod tests {
+    extern crate scribe;
+
+    use scribe::buffer;
+    use scribe::buffer::Position;
+    use models::application;
+    use models::application::Mode;
+
+    #[test]
+    fn switch_to_search_results_mode_populates_results() {
+        // Build a workspace with a buffer and text.
+        let mut app = application::new();
+        let mut buffer = buffer::new();
+        buffer.insert("amp editor");
+        app.workspace.add_buffer(buffer);
+
+        // Enter search mode and add a search value.
+        super::switch_to_search_insert_mode(&mut app);
+        match app.mode {
+            Mode::SearchInsert(ref mut mode) => mode.input = "ed".to_string(),
+            _ => ()
+        };
+
+        // Switch to results mode and get the current result.
+        super::switch_to_search_results_mode(&mut app);
+        let result = match app.mode {
+            Mode::SearchResults(mode) => mode.current_result(),
+            _ => None
+        };
+
+        // Ensure the current result is what we're expecting.
+        assert_eq!(
+            result,
+            Some(Position{ line: 0, offset: 4 })
+        );
+    }
 }
