@@ -63,6 +63,8 @@ pub fn switch_to_search_results_mode(app: &mut Application) {
     if mode.is_some() {
         app.mode = mode.unwrap()
     }
+
+    commands::search::move_to_current_result(app);
 }
 
 pub fn exit(app: &mut Application) {
@@ -83,7 +85,7 @@ mod tests {
         // Build a workspace with a buffer and text.
         let mut app = application::new();
         let mut buffer = buffer::new();
-        buffer.insert("amp editor");
+        buffer.insert("amp editor\nedits");
         app.workspace.add_buffer(buffer);
 
         // Enter search mode and add a search value.
@@ -99,11 +101,18 @@ mod tests {
             Mode::SearchResults(mode) => mode.current_result(),
             _ => None
         };
+        let expected_position = Position{ line: 0, offset: 4};
 
         // Ensure the current result is what we're expecting.
         assert_eq!(
             result,
-            Some(Position{ line: 0, offset: 4 })
+            Some(expected_position)
+        );
+
+        // Ensure the buffer cursor is at the expected position.
+        assert_eq!(
+            *app.workspace.current_buffer().unwrap().cursor,
+            expected_position
         );
     }
 }

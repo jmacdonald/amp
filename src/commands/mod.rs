@@ -7,5 +7,6 @@ pub mod cursor;
 pub mod selection;
 pub mod jump_mode;
 pub mod open_mode;
+pub mod search;
 
 pub type Command = fn(&mut Application);
