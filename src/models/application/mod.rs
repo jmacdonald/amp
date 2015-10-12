@@ -30,7 +30,8 @@ pub enum Mode<I, J, O, Sl, Si, Sr> {
 pub struct Application {
     pub mode: Mode<InsertMode, JumpMode, OpenMode, SelectMode, SearchInsertMode, SearchResultsMode>,
     pub workspace: Workspace,
-    pub clipboard: ClipboardContext
+    pub clipboard: ClipboardContext,
+    pub search_query: Option<String>,
 }
 
 pub fn new() -> Application {
@@ -62,6 +63,7 @@ pub fn new() -> Application {
     Application{
         mode: Mode::Normal,
         workspace: workspace,
-        clipboard: clipboard
+        clipboard: clipboard,
+        search_query: None,
     }
 }

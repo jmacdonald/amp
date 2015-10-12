@@ -1,3 +1,4 @@
+use commands;
 use models::application::{Application, Mode};
 
 pub fn select_next_result(app: &mut Application) {
@@ -38,6 +39,18 @@ pub fn move_to_current_result(app: &mut Application) {
             }
         },
         _ => (),
+    }
+}
+
+pub fn accept_query(app: &mut Application) {
+    let query = match app.mode {
+        Mode::SearchInsert(ref mode) => Some(mode.input.clone()),
+        _ => None,
+    };
+
+    if query.is_some() {
+        commands::application::switch_to_normal_mode(app);
+        app.search_query = query;
     }
 }
 
@@ -99,5 +112,31 @@ mod tests {
             *app.workspace.current_buffer().unwrap().cursor,
             Position{ line: 1, offset: 0 }
         );
+    }
+
+    #[test]
+    fn accept_query_sets_application_search_query_and_switches_to_normal_mode() {
+        let mut app = ::models::application::new();
+        let mut buffer = scribe::buffer::new();
+        app.workspace.add_buffer(buffer);
+
+        // Enter search mode and add a search value.
+        commands::application::switch_to_search_insert_mode(&mut app);
+        match app.mode {
+            Mode::SearchInsert(ref mut mode) => mode.input = "ed".to_string(),
+            _ => ()
+        };
+        commands::search::accept_query(&mut app);
+
+        // Ensure that we're in normal mode.
+        assert!(
+            match app.mode {
+                ::models::application::Mode::Normal => true,
+                _ => false,
+            }
+        );
+
+        // Ensure that sub-commands and subsequent inserts are run in batch.
+        assert_eq!(app.search_query, Some("ed".to_string()));
     }
 }
