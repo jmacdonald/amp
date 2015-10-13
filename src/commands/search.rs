@@ -1,44 +1,61 @@
 use commands;
 use models::application::{Application, Mode};
 
-pub fn select_next_result(app: &mut Application) {
-    match app.mode {
-        Mode::SearchResults(ref mut mode) => {
-            mode.select_next_result();
-        },
-        _ => (),
-    }
+pub fn move_to_previous_result(app: &mut Application) {
+    match app.search_query {
+        Some(ref query) => {
+            match app.workspace.current_buffer() {
+                Some(buffer) => {
+                    let positions = buffer.search(query);
+                    for position in positions.iter().rev() {
+                        if position < &*buffer.cursor {
+                            buffer.cursor.move_to(position.clone());
+                            return;
+                        }
+                    }
 
-    move_to_current_result(app);
-}
-
-pub fn select_previous_result(app: &mut Application) {
-    match app.mode {
-        Mode::SearchResults(ref mut mode) => {
-            mode.select_previous_result();
-        },
-        _ => (),
-    }
-
-    move_to_current_result(app);
-}
-
-pub fn move_to_current_result(app: &mut Application) {
-    match app.mode {
-        Mode::SearchResults(ref mut mode) => {
-            match mode.current_result() {
-                Some(position) => {
-                    match app.workspace.current_buffer() {
-                        Some(buffer) => {
-                            buffer.cursor.move_to(position);
+                    // There's nothing before the cursor, so wrap
+                    // to the last match, if there are any at all.
+                    match positions.last() {
+                        Some(position) => {
+                            buffer.cursor.move_to(position.clone());
                         },
-                        None => ()
+                        None => (),
                     }
                 },
-                None => ()
+                None => (),
             }
         },
-        _ => (),
+        None => (),
+    }
+}
+
+pub fn move_to_next_result(app: &mut Application) {
+    match app.search_query {
+        Some(ref query) => {
+            match app.workspace.current_buffer() {
+                Some(buffer) => {
+                    let positions = buffer.search(query);
+                    for position in positions.iter() {
+                        if position > &*buffer.cursor {
+                            buffer.cursor.move_to(position.clone());
+                            return;
+                        }
+                    }
+
+                    // There's nothing after the cursor, so wrap
+                    // to the first match, if there are any at all.
+                    match positions.first() {
+                        Some(position) => {
+                            buffer.cursor.move_to(position.clone());
+                        },
+                        None => (),
+                    }
+                },
+                None => (),
+            }
+        },
+        None => (),
     }
 }
 
@@ -65,22 +82,23 @@ mod tests {
     use commands;
 
     #[test]
-    fn select_next_result_moves_cursor_to_next_result() {
+    fn move_to_previous_result_moves_cursor_to_previous_result() {
         // Build a workspace with a buffer and text.
         let mut app = application::new();
         let mut buffer = buffer::new();
-        buffer.insert("amp editor\nedits");
+        buffer.insert("amp editor\nedit\nedit");
         app.workspace.add_buffer(buffer);
 
-        // Enter search mode and add a search value.
-        commands::application::switch_to_search_insert_mode(&mut app);
-        match app.mode {
-            Mode::SearchInsert(ref mut mode) => mode.input = "ed".to_string(),
-            _ => ()
-        };
+        // Set the search query for the application.
+        app.search_query = Some("ed".to_string());
 
-        commands::application::switch_to_search_results_mode(&mut app);
-        commands::search::select_next_result(&mut app);
+        // Move beyond the second result.
+        app.workspace.current_buffer().unwrap().cursor.move_to(
+            Position{ line: 2, offset: 0}
+        );
+
+        // Reverse to the second result.
+        commands::search::move_to_previous_result(&mut app);
 
         // Ensure the buffer cursor is at the expected position.
         assert_eq!(
@@ -90,27 +108,70 @@ mod tests {
     }
 
     #[test]
-    fn select_previous_result_moves_cursor_to_previous_result() {
+    fn move_to_previous_result_wraps_to_the_end_of_the_document() {
         // Build a workspace with a buffer and text.
         let mut app = application::new();
         let mut buffer = buffer::new();
-        buffer.insert("amp editor\nedits");
+        buffer.insert("amp editor\nedit\nedit");
         app.workspace.add_buffer(buffer);
 
-        // Enter search mode and add a search value.
-        commands::application::switch_to_search_insert_mode(&mut app);
-        match app.mode {
-            Mode::SearchInsert(ref mut mode) => mode.input = "ed".to_string(),
-            _ => ()
-        };
+        // Set the search query for the application.
+        app.search_query = Some("ed".to_string());
 
-        commands::application::switch_to_search_results_mode(&mut app);
-        commands::search::select_previous_result(&mut app);
+        // Reverse to the previous result, forcing the wrap.
+        commands::search::move_to_previous_result(&mut app);
 
         // Ensure the buffer cursor is at the expected position.
         assert_eq!(
             *app.workspace.current_buffer().unwrap().cursor,
-            Position{ line: 1, offset: 0 }
+            Position{ line: 2, offset: 0 }
+        );
+    }
+
+    #[test]
+    fn move_to_next_result_moves_cursor_to_next_result() {
+        // Build a workspace with a buffer and text.
+        let mut app = application::new();
+        let mut buffer = buffer::new();
+        buffer.insert("amp editor\nedit\nedit");
+        app.workspace.add_buffer(buffer);
+
+        // Set the search query for the application.
+        app.search_query = Some("ed".to_string());
+
+        // Advance to the second result.
+        commands::search::move_to_next_result(&mut app);
+
+        // Ensure the buffer cursor is at the expected position.
+        assert_eq!(
+            *app.workspace.current_buffer().unwrap().cursor,
+            Position{ line: 0, offset: 4 }
+        );
+    }
+
+    #[test]
+    fn move_to_next_result_wraps_to_the_start_of_the_document() {
+        // Build a workspace with a buffer and text.
+        let mut app = application::new();
+        let mut buffer = buffer::new();
+        buffer.insert("amp editor\nedit\nedit");
+        app.workspace.add_buffer(buffer);
+
+        // Set the search query for the application.
+        app.search_query = Some("ed".to_string());
+
+        // Move to the end of the document.
+        app.workspace.current_buffer().unwrap().cursor.move_to(
+            Position{ line: 2, offset: 0}
+        );
+
+        // Advance to the next result, forcing the wrap.
+        commands::search::move_to_next_result(&mut app);
+
+        // Ensure the buffer cursor is at the expected position.
+        assert_eq!(
+            *app.workspace.current_buffer().unwrap().cursor,
+            Position{ line: 0, offset: 4 }
         );
     }
 

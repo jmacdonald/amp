@@ -1,4 +1,4 @@
-use commands::{Command, application, workspace, cursor, buffer};
+use commands::{Command, application, workspace, cursor, buffer, search};
 use rustbox::keyboard::Key;
 
 pub fn handle(input: Key) -> Option<Command> {
@@ -30,6 +30,8 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('u') => Some(buffer::undo),
         Key::Char('r') => Some(buffer::redo),
         Key::Char('p') => Some(buffer::paste),
+        Key::Char('n') => Some(search::move_to_next_result),
+        Key::Char('N') => Some(search::move_to_previous_result),
         Key::Tab       => Some(workspace::next_buffer),
         _              => None,
     }
