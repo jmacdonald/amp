@@ -1,9 +1,4 @@
 use commands;
-use models::application::modes::jump::JumpMode;
-use models::application::modes::insert::InsertMode;
-use models::application::modes::open::OpenMode;
-use models::application::modes::select::SelectMode;
-use models::application::modes::search_insert::SearchInsertMode;
 use models::application::{Application, Mode};
 use models::application::modes::{insert, jump, open, select, search_insert};
 

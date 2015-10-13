@@ -68,6 +68,7 @@ pub fn accept_query(app: &mut Application) {
     if query.is_some() {
         commands::application::switch_to_normal_mode(app);
         app.search_query = query;
+        move_to_next_result(app);
     }
 }
 
@@ -176,9 +177,10 @@ mod tests {
     }
 
     #[test]
-    fn accept_query_sets_application_search_query_and_switches_to_normal_mode() {
+    fn accept_query_sets_application_search_query_switches_to_normal_mode_and_moves_to_first_match() {
         let mut app = ::models::application::new();
         let mut buffer = scribe::buffer::new();
+        buffer.insert("amp editor\nedit\nedit");
         app.workspace.add_buffer(buffer);
 
         // Enter search mode and add a search value.
@@ -199,5 +201,11 @@ mod tests {
 
         // Ensure that sub-commands and subsequent inserts are run in batch.
         assert_eq!(app.search_query, Some("ed".to_string()));
+
+        // Ensure the buffer cursor is at the expected position.
+        assert_eq!(
+            *app.workspace.current_buffer().unwrap().cursor,
+            Position{ line: 0, offset: 4 }
+        );
     }
 }
