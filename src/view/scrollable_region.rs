@@ -31,6 +31,12 @@ impl ScrollableRegion {
     pub fn relative_position(&self, line: usize) -> usize {
         line - self.line_offset
     }
+
+    /// The number of lines the region has scrolled over.
+    /// A value of zero represents an unscrolled region.
+    pub fn line_offset(&self) -> usize {
+        self.line_offset
+    }
 }
 
 pub fn new(height: usize) -> ScrollableRegion {
