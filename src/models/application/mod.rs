@@ -11,24 +11,22 @@ use self::modes::insert::InsertMode;
 use self::modes::open::OpenMode;
 use self::modes::select::SelectMode;
 use self::modes::search_insert::SearchInsertMode;
-use self::modes::search_results::SearchResultsMode;
 use scribe::workspace::Workspace;
 use self::clipboard::ClipboardContext;
 
 #[derive(PartialEq)]
-pub enum Mode<I, J, O, Sl, Si, Sr> {
+pub enum Mode<I, J, O, Sl, Si> {
     Normal,
     Insert(I),
     Jump(J),
     Open(O),
     Select(Sl),
     SearchInsert(Si),
-    SearchResults(Sr),
     Exit,
 }
 
 pub struct Application {
-    pub mode: Mode<InsertMode, JumpMode, OpenMode, SelectMode, SearchInsertMode, SearchResultsMode>,
+    pub mode: Mode<InsertMode, JumpMode, OpenMode, SelectMode, SearchInsertMode>,
     pub workspace: Workspace,
     pub clipboard: ClipboardContext,
     pub search_query: Option<String>,
