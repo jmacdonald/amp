@@ -2,7 +2,7 @@ extern crate rustbox;
 extern crate scribe;
 
 pub mod modes;
-pub mod presenters;
+pub mod buffer;
 mod scrollable_region;
 
 use models::terminal::Terminal;

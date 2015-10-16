@@ -19,7 +19,7 @@ fn main() {
     loop {
         // Draw the current application state to the screen.
         let view_data = match application.workspace.current_buffer() {
-            Some(ref mut buffer) => application.buffer_presenter.data(buffer, &mut application.mode),
+            Some(ref mut buffer) => application.buffer_view.data(buffer, &mut application.mode),
             None => Data{
                 tokens: Vec::new(),
                 cursor: Position{ line: 0, offset: 0 },

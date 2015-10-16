@@ -13,7 +13,7 @@ use self::modes::select::SelectMode;
 use self::modes::search_insert::SearchInsertMode;
 use scribe::workspace::Workspace;
 use self::clipboard::ClipboardContext;
-use view::presenters::buffer::BufferPresenter;
+use view::buffer::BufferView;
 
 #[derive(PartialEq)]
 pub enum Mode<I, J, O, Sl, Si> {
@@ -31,7 +31,7 @@ pub struct Application {
     pub workspace: Workspace,
     pub clipboard: ClipboardContext,
     pub search_query: Option<String>,
-    pub buffer_presenter: BufferPresenter,
+    pub buffer_view: BufferView,
 }
 
 pub fn new(buffer_height: usize) -> Application {
@@ -60,13 +60,13 @@ pub fn new(buffer_height: usize) -> Application {
         }
     };
 
-    let mut buffer_presenter = ::view::presenters::buffer::new(buffer_height);
+    let mut buffer_view = ::view::buffer::new(buffer_height);
 
     Application{
         mode: Mode::Normal,
         workspace: workspace,
         clipboard: clipboard,
         search_query: None,
-        buffer_presenter: buffer_presenter,
+        buffer_view: buffer_view,
     }
 }

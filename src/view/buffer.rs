@@ -11,11 +11,11 @@ use models::application::modes::search_insert::SearchInsertMode;
 use scribe::buffer::{Buffer, Position, range, Token, LineRange};
 use rustbox::Color;
 
-pub struct BufferPresenter {
+pub struct BufferView {
     region: scrollable_region::ScrollableRegion,
 }
 
-impl BufferPresenter {
+impl BufferView {
     pub fn data(&mut self, buffer: &mut Buffer, mode: &mut Mode<InsertMode, JumpMode, OpenMode, SelectMode, SearchInsertMode>) -> Data {
         // Update the visible buffer range to include the cursor, if necessary.
         self.region.scroll_into_view(buffer.cursor.line);
@@ -106,9 +106,9 @@ fn visible_tokens(tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
     visible_tokens
 }
 
-pub fn new(height: usize) -> BufferPresenter {
+pub fn new(height: usize) -> BufferView {
     let region = scrollable_region::new(height);
-    BufferPresenter{ region: region }
+    BufferView{ region: region }
 }
 
 #[cfg(test)]
@@ -120,12 +120,12 @@ mod tests {
 
     #[test]
     fn data_only_returns_tokens_in_visible_range() {
-        let mut presenter = super::new(2);
+        let mut buffer_view = super::new(2);
         let mut mode = Mode::Normal;
         let mut buffer = scribe::buffer::new();
         buffer.insert("first\nsecond\nthird\nfourth");
 
-        let mut data = presenter.data(&mut buffer, &mut mode);
+        let mut data = buffer_view.data(&mut buffer, &mut mode);
         assert_eq!(
             data.tokens,
             vec![
@@ -145,7 +145,7 @@ mod tests {
             }
         );
 
-        data = presenter.data(&mut buffer, &mut mode);
+        data = buffer_view.data(&mut buffer, &mut mode);
         assert_eq!(
             data.tokens,
             vec![
