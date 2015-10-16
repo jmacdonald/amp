@@ -60,7 +60,7 @@ pub fn new(buffer_height: usize) -> Application {
         }
     };
 
-    let mut buffer_view = ::view::buffer::new(buffer_height);
+    let buffer_view = ::view::buffer::new(buffer_height);
 
     Application{
         mode: Mode::Normal,
