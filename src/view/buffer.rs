@@ -79,6 +79,18 @@ impl BufferView {
             }
         }
     }
+
+    pub fn scroll_to_cursor(&mut self, buffer: &Buffer) {
+        self.region.scroll_into_view(buffer.cursor.line);
+    }
+
+    pub fn scroll_up(&mut self, amount: usize) {
+        self.region.scroll_up(amount);
+    }
+
+    pub fn scroll_down(&mut self, amount: usize) {
+        self.region.scroll_down(amount);
+    }
 }
 
 fn visible_tokens(tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
@@ -142,14 +154,8 @@ mod tests {
             ]
         );
 
-        // Move the cursor such that we scroll down by one line,
-        // leaving lines 2 and 3 visible (since we have a height of 2).
-        buffer.cursor.move_to(
-            Position{
-                line: 2,
-                offset: 0,
-            }
-        );
+        // Scroll down one line, leaving lines 2 and 3 visible (since we have a height of 2).
+        buffer_view.scroll_down(1);
 
         data = buffer_view.data(&mut buffer, &mut mode);
         assert_eq!(
