@@ -37,6 +37,17 @@ impl ScrollableRegion {
     pub fn line_offset(&self) -> usize {
         self.line_offset
     }
+
+    pub fn scroll_up(&mut self, amount: usize) {
+        self.line_offset = match self.line_offset.checked_sub(amount) {
+            Some(amount) => amount,
+            None => 0,
+        };
+    }
+
+    pub fn scroll_down(&mut self, amount: usize) {
+        self.line_offset += amount;
+    }
 }
 
 pub fn new(height: usize) -> ScrollableRegion {
@@ -45,8 +56,11 @@ pub fn new(height: usize) -> ScrollableRegion {
 
 #[cfg(test)]
 mod tests {
+    extern crate scribe;
+
     use super::new;
     use super::ScrollableRegion;
+    use scribe::buffer::line_range;
 
     #[test]
     fn visible_range_works_for_zero_based_line_offsets() {
@@ -88,5 +102,36 @@ mod tests {
         let mut region = new(20);
         region.scroll_into_view(30);
         assert_eq!(region.relative_position(15), 4);
+    }
+
+    #[test]
+    fn scroll_down_increases_line_offset_by_amount() {
+        let mut region = new(20);
+        region.scroll_down(10);
+        assert_eq!(
+            region.visible_range(),
+            line_range::new(10, 30)
+        );
+    }
+
+    #[test]
+    fn scroll_up_decreases_line_offset_by_amount() {
+        let mut region = new(20);
+        region.scroll_down(10);
+        region.scroll_up(5);
+        assert_eq!(
+            region.visible_range(),
+            line_range::new(5, 25)
+        );
+    }
+
+    #[test]
+    fn scroll_up_does_not_scroll_beyond_top_of_region() {
+        let mut region = new(20);
+        region.scroll_up(5);
+        assert_eq!(
+            region.visible_range(),
+            line_range::new(0, 20)
+        );
     }
 }
