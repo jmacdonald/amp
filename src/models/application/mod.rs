@@ -13,6 +13,7 @@ use self::modes::select::SelectMode;
 use self::modes::search_insert::SearchInsertMode;
 use scribe::workspace::Workspace;
 use self::clipboard::ClipboardContext;
+use view::presenters::buffer::BufferPresenter;
 
 #[derive(PartialEq)]
 pub enum Mode<I, J, O, Sl, Si> {
@@ -30,9 +31,10 @@ pub struct Application {
     pub workspace: Workspace,
     pub clipboard: ClipboardContext,
     pub search_query: Option<String>,
+    pub buffer_presenter: BufferPresenter,
 }
 
-pub fn new() -> Application {
+pub fn new(buffer_height: usize) -> Application {
     // Set up a workspace in the current directory.
     let mut workspace = match env::current_dir() {
         Ok(path) => scribe::workspace::new(path),
@@ -58,10 +60,13 @@ pub fn new() -> Application {
         }
     };
 
+    let mut buffer_presenter = ::view::presenters::buffer::new(buffer_height);
+
     Application{
         mode: Mode::Normal,
         workspace: workspace,
         clipboard: clipboard,
         search_query: None,
+        buffer_presenter: buffer_presenter,
     }
 }

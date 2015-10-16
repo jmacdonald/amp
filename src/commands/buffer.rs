@@ -177,7 +177,7 @@ mod tests {
 
     #[test]
     fn insert_newline_uses_current_line_indentation() {
-        let mut app = ::models::application::new();
+        let mut app = ::models::application::new(10);
         let mut buffer = scribe::buffer::new();
 
         // Insert data with indentation and move to the end of the line.
@@ -201,7 +201,7 @@ mod tests {
 
     #[test]
     fn change_rest_of_line_removes_content_and_switches_to_insert_mode() {
-        let mut app = ::models::application::new();
+        let mut app = ::models::application::new(10);
         let mut buffer = scribe::buffer::new();
 
         // Insert data with indentation and move to the end of the line.
@@ -233,7 +233,7 @@ mod tests {
 
     #[test]
     fn delete_line_deletes_current_line() {
-        let mut app = ::models::application::new();
+        let mut app = ::models::application::new(10);
         let mut buffer = scribe::buffer::new();
 
         // Insert data with indentation and move to the end of the line.

@@ -344,7 +344,7 @@ mod tests {
     }
 
     fn set_up_application(content: &str) -> Application {
-        let mut app = ::models::application::new();
+        let mut app = ::models::application::new(10);
         let mut buffer = scribe::buffer::new();
 
         // Insert data with indentation and move to the end of the line.

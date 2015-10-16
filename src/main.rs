@@ -13,14 +13,13 @@ use rustbox::Color;
 use scribe::buffer::Position;
 
 fn main() {
-    let mut application = models::application::new();
     let terminal = models::terminal::new();
-    let mut buffer_presenter = view::presenters::buffer::new(terminal.height()-1);
+    let mut application = models::application::new(terminal.height()-1);
 
     loop {
         // Draw the current application state to the screen.
         let view_data = match application.workspace.current_buffer() {
-            Some(ref mut buffer) => buffer_presenter.data(buffer, &mut application.mode),
+            Some(ref mut buffer) => application.buffer_presenter.data(buffer, &mut application.mode),
             None => Data{
                 tokens: Vec::new(),
                 cursor: Position{ line: 0, offset: 0 },

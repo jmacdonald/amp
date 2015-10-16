@@ -85,7 +85,7 @@ mod tests {
     #[test]
     fn move_to_previous_result_moves_cursor_to_previous_result() {
         // Build a workspace with a buffer and text.
-        let mut app = application::new();
+        let mut app = application::new(10);
         let mut buffer = buffer::new();
         buffer.insert("amp editor\nedit\nedit");
         app.workspace.add_buffer(buffer);
@@ -111,7 +111,7 @@ mod tests {
     #[test]
     fn move_to_previous_result_wraps_to_the_end_of_the_document() {
         // Build a workspace with a buffer and text.
-        let mut app = application::new();
+        let mut app = application::new(10);
         let mut buffer = buffer::new();
         buffer.insert("amp editor\nedit\nedit");
         app.workspace.add_buffer(buffer);
@@ -132,7 +132,7 @@ mod tests {
     #[test]
     fn move_to_next_result_moves_cursor_to_next_result() {
         // Build a workspace with a buffer and text.
-        let mut app = application::new();
+        let mut app = application::new(10);
         let mut buffer = buffer::new();
         buffer.insert("amp editor\nedit\nedit");
         app.workspace.add_buffer(buffer);
@@ -153,7 +153,7 @@ mod tests {
     #[test]
     fn move_to_next_result_wraps_to_the_start_of_the_document() {
         // Build a workspace with a buffer and text.
-        let mut app = application::new();
+        let mut app = application::new(10);
         let mut buffer = buffer::new();
         buffer.insert("amp editor\nedit\nedit");
         app.workspace.add_buffer(buffer);
@@ -178,7 +178,7 @@ mod tests {
 
     #[test]
     fn accept_query_sets_application_search_query_switches_to_normal_mode_and_moves_to_first_match() {
-        let mut app = ::models::application::new();
+        let mut app = ::models::application::new(10);
         let mut buffer = scribe::buffer::new();
         buffer.insert("amp editor\nedit\nedit");
         app.workspace.add_buffer(buffer);
