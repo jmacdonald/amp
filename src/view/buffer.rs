@@ -17,9 +17,6 @@ pub struct BufferView {
 
 impl BufferView {
     pub fn data(&mut self, buffer: &mut Buffer, mode: &mut Mode<InsertMode, JumpMode, OpenMode, SelectMode, SearchInsertMode>) -> Data {
-        // Update the visible buffer range to include the cursor, if necessary.
-        self.region.scroll_into_view(buffer.cursor.line);
-
         // Build status line data.
         let content = match buffer.path {
             Some(ref path) => path.to_string_lossy().into_owned(),
