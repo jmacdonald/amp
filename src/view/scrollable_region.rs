@@ -28,8 +28,8 @@ impl ScrollableRegion {
 
     /// Converts an absolutely positioned line number into
     /// one relative to the scrollable regions visible range.
-    pub fn relative_position(&self, line: usize) -> usize {
-        line - self.line_offset
+    pub fn relative_position(&self, line: usize) -> Option<usize> {
+        line.checked_sub(self.line_offset)
     }
 
     /// The number of lines the region has scrolled over.
@@ -98,10 +98,17 @@ mod tests {
     }
 
     #[test]
-    fn relative_position_works() {
+    fn relative_position_returns_correct_value_when_positive() {
         let mut region = new(20);
         region.scroll_into_view(30);
-        assert_eq!(region.relative_position(15), 4);
+        assert_eq!(region.relative_position(15), Some(4));
+    }
+
+    #[test]
+    fn relative_position_returns_none_when_negative() {
+        let mut region = new(20);
+        region.scroll_into_view(30);
+        assert!(region.relative_position(0).is_none());
     }
 
     #[test]

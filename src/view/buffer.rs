@@ -44,12 +44,18 @@ impl BufferView {
             _ => visible_tokens,
         };
 
-        // The buffer tracks its cursor absolutely, but the
-        // view must display it relative to any scrolling.
-        let relative_cursor = Some(Position{
-            line: self.region.relative_position(buffer.cursor.line),
-            offset: buffer.cursor.offset
-        });
+        // The buffer tracks its cursor absolutely, but the view must display it
+        // relative to any scrolling. Given that, it may also be outside the
+        // visible range, at which point we'll use a None value.
+        let relative_cursor = match self.region.relative_position(buffer.cursor.line) {
+            Some(line) => {
+                Some(Position{
+                    line: line,
+                    offset: buffer.cursor.offset
+                })
+            },
+            None => None,
+        };
 
         // If we're in select mode, get the selected range.
         let highlight = match mode {
