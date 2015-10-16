@@ -7,7 +7,10 @@ pub fn display(terminal: &Terminal, data: &Data) {
     terminal.clear();
 
     // Handle cursor updates.
-    terminal.set_cursor(data.cursor.offset as isize, data.cursor.line as isize);
+    match data.cursor {
+        Some(position) => terminal.set_cursor(position.offset as isize, position.line as isize),
+        None => terminal.set_cursor(-1, -1),
+    }
 
     // Draw the visible set of tokens to the terminal.
     view::draw_tokens(terminal, &data);

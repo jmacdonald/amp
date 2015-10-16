@@ -12,7 +12,7 @@ use rustbox::Color;
 
 pub struct Data {
     pub tokens: Vec<Token>,
-    pub cursor: Position,
+    pub cursor: Option<Position>,
     pub highlight: Option<Range>,
     pub status_line: StatusLine
 }
@@ -50,35 +50,50 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
                         if highlight_range.includes(&current_position) {
                             Color::White
                         } else {
-                            if line == data.cursor.line {
-                                Color::Black
-                            } else {
-                                Color::Default
+                            match data.cursor {
+                                Some(cursor) => {
+                                    if line == cursor.line {
+                                        Color::Black
+                                    } else {
+                                        Color::Default
+                                    }
+                                },
+                                None => Color::Default,
                             }
                         }
                     },
                     None => {
-                        if line == data.cursor.line {
-                            Color::Black
-                        } else {
-                            Color::Default
+                        match data.cursor {
+                            Some(cursor) => {
+                                if line == cursor.line {
+                                    Color::Black
+                                } else {
+                                    Color::Default
+                                }
+                            },
+                            None => Color::Default,
                         }
                     }
                 };
 
             if character == '\n' {
                 // Print the rest of the line highlight.
-                if line == data.cursor.line {
-                    for offset in offset..terminal.width() {
-                        terminal.print_char(
-                            offset,
-                            line,
-                            rustbox::RB_NORMAL,
-                            Color::Default,
-                            Color::Black,
-                            ' '
-                        );
+                match data.cursor {
+                    Some(cursor) => {
+                        if line == cursor.line {
+                            for offset in offset..terminal.width() {
+                                terminal.print_char(
+                                    offset,
+                                    line,
+                                    rustbox::RB_NORMAL,
+                                    Color::Default,
+                                    Color::Black,
+                                    ' '
+                                );
+                            }
+                        }
                     }
+                    None => (),
                 }
 
                 // Move position tracking to the next line.
@@ -100,17 +115,22 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
     }
 
     // Print the rest of the line highlight.
-    if line == data.cursor.line {
-        for offset in offset..terminal.width() {
-            terminal.print_char(
-                offset,
-                line,
-                rustbox::RB_NORMAL,
-                Color::Default,
-                Color::Black,
-                ' '
-            );
-        }
+    match data.cursor {
+        Some(cursor) => {
+            if line == cursor.line {
+                for offset in offset..terminal.width() {
+                    terminal.print_char(
+                        offset,
+                        line,
+                        rustbox::RB_NORMAL,
+                        Color::Default,
+                        Color::Black,
+                        ' '
+                    );
+                }
+            }
+        },
+        None => (),
     }
 }
 

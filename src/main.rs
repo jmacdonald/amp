@@ -22,7 +22,7 @@ fn main() {
             Some(ref mut buffer) => application.buffer_view.data(buffer, &mut application.mode),
             None => Data{
                 tokens: Vec::new(),
-                cursor: Position{ line: 0, offset: 0 },
+                cursor: None,
                 highlight: None,
                 status_line: StatusLine{
                     content: "".to_string(),

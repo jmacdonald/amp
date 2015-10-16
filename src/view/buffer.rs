@@ -46,10 +46,10 @@ impl BufferView {
 
         // The buffer tracks its cursor absolutely, but the
         // view must display it relative to any scrolling.
-        let relative_cursor = Position{
+        let relative_cursor = Some(Position{
             line: self.region.relative_position(buffer.cursor.line),
             offset: buffer.cursor.offset
-        };
+        });
 
         // If we're in select mode, get the selected range.
         let highlight = match mode {
