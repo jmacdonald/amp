@@ -131,7 +131,7 @@ mod tests {
     extern crate scribe;
 
     use models::application::Mode;
-    use self::scribe::buffer::{Category, Position, Token};
+    use self::scribe::buffer::{Category, Token};
 
     #[test]
     fn data_only_returns_tokens_in_visible_range() {

@@ -124,7 +124,7 @@ mod tests {
 
     #[test]
     fn relative_position_returns_none_when_beyond_visible_range() {
-        let mut region = new(20);
+        let region = new(20);
         assert!(region.relative_position(20).is_none());
     }
 

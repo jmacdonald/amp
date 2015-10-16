@@ -9,6 +9,7 @@ pub fn switch_to_normal_mode(app: &mut Application) {
 pub fn switch_to_insert_mode(app: &mut Application) {
     commands::buffer::start_command_group(app);
     app.mode = Mode::Insert(insert::new());
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn switch_to_jump_mode(app: &mut Application) {
@@ -27,6 +28,7 @@ pub fn switch_to_select_mode(app: &mut Application) {
         },
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn switch_to_search_insert_mode(app: &mut Application) {

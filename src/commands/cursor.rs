@@ -1,6 +1,7 @@
 extern crate scribe;
 extern crate luthor;
 
+use commands;
 use models::application::Application;
 use scribe::buffer::{Buffer, Position};
 use self::luthor::token::Category;
@@ -17,6 +18,7 @@ pub fn move_up(app: &mut Application) {
         Some(buffer) => buffer.cursor.move_up(),
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn move_down(app: &mut Application) {
@@ -24,6 +26,7 @@ pub fn move_down(app: &mut Application) {
         Some(buffer) => buffer.cursor.move_down(),
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn move_left(app: &mut Application) {
@@ -31,6 +34,7 @@ pub fn move_left(app: &mut Application) {
         Some(buffer) => buffer.cursor.move_left(),
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn move_right(app: &mut Application) {
@@ -38,6 +42,7 @@ pub fn move_right(app: &mut Application) {
         Some(buffer) => buffer.cursor.move_right(),
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn move_to_start_of_line(app: &mut Application) {
@@ -45,6 +50,7 @@ pub fn move_to_start_of_line(app: &mut Application) {
         Some(buffer) => buffer.cursor.move_to_start_of_line(),
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn move_to_first_word_of_line(app: &mut Application) {
@@ -73,6 +79,7 @@ pub fn move_to_first_word_of_line(app: &mut Application) {
         },
         None => ()
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn move_to_end_of_line(app: &mut Application) {
@@ -80,16 +87,19 @@ pub fn move_to_end_of_line(app: &mut Application) {
         Some(buffer) => buffer.cursor.move_to_end_of_line(),
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn insert_at_end_of_line(app: &mut Application) {
     move_to_end_of_line(app);
     application::switch_to_insert_mode(app);
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn insert_at_first_word_of_line(app: &mut Application) {
     move_to_first_word_of_line(app);
     application::switch_to_insert_mode(app);
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn insert_with_newline(app: &mut Application) {
@@ -97,6 +107,7 @@ pub fn insert_with_newline(app: &mut Application) {
     buffer::start_command_group(app);
     buffer::insert_newline(app);
     application::switch_to_insert_mode(app);
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn move_to_start_of_previous_token(app: &mut Application) {
@@ -111,6 +122,7 @@ pub fn move_to_start_of_previous_token(app: &mut Application) {
         },
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn move_to_start_of_next_token(app: &mut Application) {
@@ -125,6 +137,7 @@ pub fn move_to_start_of_next_token(app: &mut Application) {
         },
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn move_to_end_of_current_token(app: &mut Application) {
@@ -142,6 +155,7 @@ pub fn move_to_end_of_current_token(app: &mut Application) {
         },
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn append_to_current_token(app: &mut Application) {

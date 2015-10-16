@@ -28,6 +28,7 @@ pub fn move_to_previous_result(app: &mut Application) {
         },
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn move_to_next_result(app: &mut Application) {
@@ -57,6 +58,7 @@ pub fn move_to_next_result(app: &mut Application) {
         },
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn accept_query(app: &mut Application) {

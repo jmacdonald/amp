@@ -1,5 +1,6 @@
 extern crate scribe;
 
+use commands;
 use models::application::{Application, Mode};
 use scribe::buffer::{Position, range};
 
@@ -15,6 +16,7 @@ pub fn delete(app: &mut Application) {
         Some(buffer) => buffer.delete(),
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn delete_line(app: &mut Application) {
@@ -30,6 +32,7 @@ pub fn delete_line(app: &mut Application) {
         },
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn close(app: &mut Application) {
@@ -50,6 +53,7 @@ pub fn backspace(app: &mut Application) {
         },
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn insert_char(app: &mut Application) {
@@ -70,6 +74,7 @@ pub fn insert_char(app: &mut Application) {
         },
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 /// Inserts a newline character at the current cursor position.
@@ -106,6 +111,7 @@ pub fn insert_newline(app: &mut Application) {
         },
         None => ()
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn change_rest_of_line(app: &mut Application) {
@@ -128,7 +134,7 @@ pub fn change_rest_of_line(app: &mut Application) {
         },
         None => (),
     }
-    ::commands::application::switch_to_insert_mode(app);
+    commands::application::switch_to_insert_mode(app);
 }
 
 pub fn start_command_group(app: &mut Application) {
@@ -150,6 +156,7 @@ pub fn undo(app: &mut Application) {
         Some(buffer) => buffer.undo(),
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn redo(app: &mut Application) {
@@ -157,6 +164,7 @@ pub fn redo(app: &mut Application) {
         Some(buffer) => buffer.redo(),
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn paste(app: &mut Application) {
@@ -169,6 +177,7 @@ pub fn paste(app: &mut Application) {
         },
         None => (),
     }
+    commands::view::scroll_to_cursor(app);
 }
 
 #[cfg(test)]

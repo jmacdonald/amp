@@ -10,7 +10,6 @@ mod commands;
 use models::application::Mode;
 use view::{Data, StatusLine};
 use rustbox::Color;
-use scribe::buffer::Position;
 
 fn main() {
     let terminal = models::terminal::new();

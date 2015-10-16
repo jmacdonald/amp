@@ -3,6 +3,7 @@ extern crate scribe;
 use models::application::{Application, Mode};
 use scribe::buffer::range;
 use super::application;
+use commands;
 
 pub fn delete(app: &mut Application) {
     copy_to_clipboard(app);
@@ -26,6 +27,7 @@ pub fn delete(app: &mut Application) {
     };
 
     application::switch_to_normal_mode(app);
+    commands::view::scroll_to_cursor(app);
 }
 
 pub fn change(app: &mut Application) {
@@ -36,6 +38,7 @@ pub fn change(app: &mut Application) {
 pub fn copy(app: &mut Application) {
     copy_to_clipboard(app);
     application::switch_to_normal_mode(app);
+    commands::view::scroll_to_cursor(app);
 }
 
 fn copy_to_clipboard(app: &mut Application) {
