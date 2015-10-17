@@ -16,6 +16,11 @@ pub enum Visibility {
 }
 
 impl ScrollableRegion {
+    // The height of the scrollable region.
+    pub fn height(&self) -> usize {
+        self.height
+    }
+    
     // Determines the visible lines based on the current line offset and height.
     pub fn visible_range(&self) -> LineRange {
         line_range::new(self.line_offset, self.height + self.line_offset)
