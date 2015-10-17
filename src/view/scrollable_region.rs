@@ -8,6 +8,13 @@ pub struct ScrollableRegion {
     line_offset: usize,
 }
 
+#[derive(PartialEq, Debug)]
+pub enum Visibility {
+    AboveRegion,
+    Visible(usize),
+    BelowRegion,
+}
+
 impl ScrollableRegion {
     // Determines the visible lines based on the current line offset and height.
     pub fn visible_range(&self) -> LineRange {
@@ -28,18 +35,18 @@ impl ScrollableRegion {
 
     /// Converts an absolutely positioned line number into
     /// one relative to the scrollable regions visible range.
-    /// If the relative position is outside of the region's visible
-    /// range, a `None` value is returned instead.
-    pub fn relative_position(&self, line: usize) -> Option<usize> {
+    /// The visibility type is based on whether or not the line
+    /// is outside of the region's visible range.
+    pub fn relative_position(&self, line: usize) -> Visibility {
         match line.checked_sub(self.line_offset) {
             Some(line) => {
                 if line >= self.height {
-                    None
+                    Visibility::BelowRegion
                 } else {
-                    Some(line)
+                    Visibility::Visible(line)
                 }
             },
-            None => None,
+            None => Visibility::AboveRegion,
         }
     }
 
@@ -69,8 +76,7 @@ pub fn new(height: usize) -> ScrollableRegion {
 mod tests {
     extern crate scribe;
 
-    use super::new;
-    use super::ScrollableRegion;
+    use super::{new, ScrollableRegion, Visibility};
     use scribe::buffer::line_range;
 
     #[test]
@@ -112,20 +118,20 @@ mod tests {
     fn relative_position_returns_correct_value_when_positive() {
         let mut region = new(20);
         region.scroll_into_view(30);
-        assert_eq!(region.relative_position(15), Some(4));
+        assert_eq!(region.relative_position(15), Visibility::Visible(4));
     }
 
     #[test]
-    fn relative_position_returns_none_when_negative() {
+    fn relative_position_returns_above_region_when_negative() {
         let mut region = new(20);
         region.scroll_into_view(30);
-        assert!(region.relative_position(0).is_none());
+        assert_eq!(region.relative_position(0), Visibility::AboveRegion);
     }
 
     #[test]
-    fn relative_position_returns_none_when_beyond_visible_range() {
+    fn relative_position_returns_below_region_when_beyond_visible_range() {
         let region = new(20);
-        assert!(region.relative_position(20).is_none());
+        assert_eq!(region.relative_position(20), Visibility::BelowRegion);
     }
 
     #[test]

@@ -2,6 +2,7 @@ extern crate scribe;
 extern crate rustbox;
 
 use view::{Data, StatusLine, scrollable_region};
+use view::scrollable_region::Visibility;
 use models::application::Mode;
 use models::application::modes::insert::InsertMode;
 use models::application::modes::jump::JumpMode;
@@ -45,13 +46,13 @@ impl BufferView {
         // relative to any scrolling. Given that, it may also be outside the
         // visible range, at which point we'll use a None value.
         let relative_cursor = match self.region.relative_position(buffer.cursor.line) {
-            Some(line) => {
+            Visibility::Visible(line) => {
                 Some(Position{
                     line: line,
                     offset: buffer.cursor.offset
                 })
             },
-            None => None,
+            _ => None,
         };
 
         // If we're in select mode, get the selected range.
