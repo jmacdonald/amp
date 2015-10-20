@@ -2,7 +2,7 @@ extern crate scribe;
 extern crate rustbox;
 
 use view::{Data, StatusLine, scrollable_region};
-use view::scrollable_region::Visibility;
+use view::scrollable_region::{ScrollableRegion, Visibility};
 use models::application::Mode;
 use models::application::modes::insert::InsertMode;
 use models::application::modes::jump::JumpMode;
@@ -11,13 +11,17 @@ use models::application::modes::select::SelectMode;
 use models::application::modes::search_insert::SearchInsertMode;
 use scribe::buffer::{Buffer, Position, range, Range, Token, LineRange};
 use rustbox::Color;
+use std::collections::hash_map::HashMap;
 
 pub struct BufferView {
-    region: scrollable_region::ScrollableRegion,
+    height: usize,
+    regions: HashMap<usize, scrollable_region::ScrollableRegion>,
 }
 
 impl BufferView {
-    pub fn data(&self, buffer: &mut Buffer, mode: &mut Mode<InsertMode, JumpMode, OpenMode, SelectMode, SearchInsertMode>) -> Data {
+    pub fn data(&mut self, buffer: &mut Buffer, mode: &mut Mode<InsertMode, JumpMode, OpenMode, SelectMode, SearchInsertMode>) -> Data {
+        let region = self.get_region(buffer);
+
         // Build status line data.
         let content = match buffer.path {
             Some(ref path) => path.to_string_lossy().into_owned(),
@@ -31,13 +35,13 @@ impl BufferView {
         // Get the buffer's tokens and reduce them to the visible set.
         let visible_tokens = visible_tokens(
             &buffer.tokens(),
-            self.region.visible_range()
+            region.visible_range()
         );
 
         // Transform the tokens if we're in jump mode.
         let tokens = match mode {
             &mut Mode::Jump(ref mut jump_mode) => {
-                jump_mode.tokens(&visible_tokens, self.region.line_offset())
+                jump_mode.tokens(&visible_tokens, region.line_offset())
             },
             _ => visible_tokens,
         };
@@ -45,7 +49,7 @@ impl BufferView {
         // The buffer tracks its cursor absolutely, but the view must display it
         // relative to any scrolling. Given that, it may also be outside the
         // visible range, at which point we'll use a None value.
-        let relative_cursor = match self.region.relative_position(buffer.cursor.line) {
+        let relative_cursor = match region.relative_position(buffer.cursor.line) {
             Visibility::Visible(line) => {
                 Some(Position{
                     line: line,
@@ -58,7 +62,8 @@ impl BufferView {
         // If we're in select mode, get the selected range.
         let highlight = match mode {
             &mut Mode::Select(ref select_mode) => {
-                Some(self.relative_range(
+                Some(relative_range(
+                    region,
                     &select_mode.anchor,
                     &*buffer.cursor
                 ))
@@ -79,32 +84,50 @@ impl BufferView {
     }
 
     pub fn scroll_to_cursor(&mut self, buffer: &Buffer) {
-        self.region.scroll_into_view(buffer.cursor.line);
+        self.get_region(buffer).scroll_into_view(buffer.cursor.line);
     }
 
-    pub fn scroll_up(&mut self, amount: usize) {
-        self.region.scroll_up(amount);
+    pub fn scroll_up(&mut self, buffer: &Buffer, amount: usize) {
+        self.get_region(buffer).scroll_up(amount);
     }
 
-    pub fn scroll_down(&mut self, amount: usize) {
-        self.region.scroll_down(amount);
+    pub fn scroll_down(&mut self, buffer: &Buffer, amount: usize) {
+        self.get_region(buffer).scroll_down(amount);
     }
+
+    fn get_region(&mut self, buffer: &Buffer) -> &mut ScrollableRegion {
+        if self.regions.contains_key(&buffer_key(buffer)) {
+            self.regions.get_mut(&buffer_key(buffer)).unwrap()
+        } else {
+            self.regions.insert(
+                buffer_key(buffer),
+                scrollable_region::new(self.height)
+            );
+            self.regions.get_mut(&buffer_key(buffer)).unwrap()
+        }
+    }
+}
+
+// Converts the buffer's memory location to an integer.
+// Used as a key for in-memory buffer scrollable regions.
+fn buffer_key(buffer: &Buffer) -> usize {
+    (buffer as *const Buffer) as usize
+}
+
+fn relative_range(region: &ScrollableRegion, first_position: &Position, second_position: &Position) -> Range {
+    let first_relative_position = match region.relative_position(first_position.line) {
+        Visibility::Visible(line) => Position{ line: line, offset: first_position.offset },
+        Visibility::AboveRegion => Position{ line: 0, offset: 0 },
+        Visibility::BelowRegion => Position{ line: region.height()+1, offset: 0 }
+    };
     
-    fn relative_range(&self, first_position: &Position, second_position: &Position) -> Range {
-        let first_relative_position = match self.region.relative_position(first_position.line) {
-            Visibility::Visible(line) => Position{ line: line, offset: first_position.offset },
-            Visibility::AboveRegion => Position{ line: 0, offset: 0 },
-            Visibility::BelowRegion => Position{ line: self.region.height()+1, offset: 0 }
-        };
-        
-        let second_relative_position = match self.region.relative_position(second_position.line) {
-            Visibility::Visible(line) => Position{ line: line, offset: second_position.offset },
-            Visibility::AboveRegion => Position{ line: 0, offset: 0 },
-            Visibility::BelowRegion => Position{ line: self.region.height()+1, offset: 0 }
-        };
-        
-        range::new(first_relative_position, second_relative_position)
-    }
+    let second_relative_position = match region.relative_position(second_position.line) {
+        Visibility::Visible(line) => Position{ line: line, offset: second_position.offset },
+        Visibility::AboveRegion => Position{ line: 0, offset: 0 },
+        Visibility::BelowRegion => Position{ line: region.height()+1, offset: 0 }
+    };
+    
+    range::new(first_relative_position, second_relative_position)
 }
 
 fn visible_tokens(tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
@@ -139,8 +162,10 @@ fn visible_tokens(tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
 }
 
 pub fn new(height: usize) -> BufferView {
-    let region = scrollable_region::new(height);
-    BufferView{ region: region }
+    BufferView{
+        height: height,
+        regions: HashMap::new()
+    }
 }
 
 #[cfg(test)]
@@ -171,7 +196,7 @@ mod tests {
         );
 
         // Scroll down one line, leaving lines 2 and 3 visible (since we have a height of 2).
-        buffer_view.scroll_down(1);
+        buffer_view.scroll_down(&buffer, 1);
 
         data = buffer_view.data(&mut buffer, &mut mode);
         assert_eq!(
@@ -200,7 +225,7 @@ mod tests {
         );
         
         // Scroll down one line, leaving lines 2 and 3 visible (since we have a height of 2).
-        buffer_view.scroll_down(1);
+        buffer_view.scroll_down(&buffer, 1);
 
         let data = buffer_view.data(&mut buffer, &mut mode);
         assert_eq!(
@@ -209,6 +234,55 @@ mod tests {
                 Position{ line: 0, offset: 0 },
                 Position{ line: 3, offset: 0 }
             ))
+        );
+    }
+
+    #[test]
+    fn data_tracks_scrolling_per_buffer() {
+        let mut buffer_view = super::new(2);
+        let mut mode = Mode::Normal;
+        let mut first_buffer = scribe::buffer::new();
+        let mut second_buffer = scribe::buffer::new();
+        first_buffer.insert("first\nsecond\nthird\nfourth");
+        second_buffer.insert("first\nsecond\nthird\nfourth");
+
+        // Scroll down one line, leaving lines 2 and 3 visible (since we have a height of 2).
+        buffer_view.scroll_down(&first_buffer, 1);
+
+        // Ensure the first buffer is scrolled.
+        let mut data = buffer_view.data(&mut first_buffer, &mut mode);
+        assert_eq!(
+            data.tokens,
+            vec![
+                Token{ lexeme: "second".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+                Token{ lexeme: "third".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+            ]
+        );
+
+        // Ensure the second buffer is not scrolled.
+        data = buffer_view.data(&mut second_buffer, &mut mode);
+        assert_eq!(
+            data.tokens,
+            vec![
+                Token{ lexeme: "first".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+                Token{ lexeme: "second".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+            ]
+        );
+
+        // Ensure the first buffer is still scrolled.
+        let data = buffer_view.data(&mut first_buffer, &mut mode);
+        assert_eq!(
+            data.tokens,
+            vec![
+                Token{ lexeme: "second".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+                Token{ lexeme: "third".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+            ]
         );
     }
 }
