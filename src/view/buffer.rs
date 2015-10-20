@@ -17,7 +17,7 @@ pub struct BufferView {
 }
 
 impl BufferView {
-    pub fn data(&mut self, buffer: &mut Buffer, mode: &mut Mode<InsertMode, JumpMode, OpenMode, SelectMode, SearchInsertMode>) -> Data {
+    pub fn data(&self, buffer: &mut Buffer, mode: &mut Mode<InsertMode, JumpMode, OpenMode, SelectMode, SearchInsertMode>) -> Data {
         // Build status line data.
         let content = match buffer.path {
             Some(ref path) => path.to_string_lossy().into_owned(),
