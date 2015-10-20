@@ -15,19 +15,18 @@ use scribe::workspace::Workspace;
 use self::clipboard::ClipboardContext;
 use view::buffer::BufferView;
 
-#[derive(PartialEq)]
-pub enum Mode<I, J, O, Sl, Si> {
+pub enum Mode {
     Normal,
-    Insert(I),
-    Jump(J),
-    Open(O),
-    Select(Sl),
-    SearchInsert(Si),
+    Insert(InsertMode),
+    Jump(JumpMode),
+    Open(OpenMode),
+    Select(SelectMode),
+    SearchInsert(SearchInsertMode),
     Exit,
 }
 
 pub struct Application {
-    pub mode: Mode<InsertMode, JumpMode, OpenMode, SelectMode, SearchInsertMode>,
+    pub mode: Mode,
     pub workspace: Workspace,
     pub clipboard: ClipboardContext,
     pub search_query: Option<String>,

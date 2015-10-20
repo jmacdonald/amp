@@ -4,11 +4,6 @@ extern crate rustbox;
 use view::{Data, StatusLine, scrollable_region};
 use view::scrollable_region::{ScrollableRegion, Visibility};
 use models::application::Mode;
-use models::application::modes::insert::InsertMode;
-use models::application::modes::jump::JumpMode;
-use models::application::modes::open::OpenMode;
-use models::application::modes::select::SelectMode;
-use models::application::modes::search_insert::SearchInsertMode;
 use scribe::buffer::{Buffer, Position, range, Range, Token, LineRange};
 use rustbox::Color;
 use std::collections::hash_map::HashMap;
@@ -19,7 +14,7 @@ pub struct BufferView {
 }
 
 impl BufferView {
-    pub fn data(&mut self, buffer: &mut Buffer, mode: &mut Mode<InsertMode, JumpMode, OpenMode, SelectMode, SearchInsertMode>) -> Data {
+    pub fn data(&mut self, buffer: &mut Buffer, mode: &mut Mode) -> Data {
         let region = self.get_region(buffer);
 
         // Build status line data.
