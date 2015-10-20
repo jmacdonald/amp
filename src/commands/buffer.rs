@@ -170,9 +170,9 @@ pub fn redo(app: &mut Application) {
 pub fn paste(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
-            match app.clipboard.get_contents() {
-                Ok(content) => buffer.insert(&content),
-                Err(_) => ()
+            match app.clipboard {
+                Some(ref content) => buffer.insert(content),
+                None => (),
             }
         },
         None => (),

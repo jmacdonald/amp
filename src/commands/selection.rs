@@ -53,9 +53,7 @@ fn copy_to_clipboard(app: &mut Application) {
                     );
 
                     match buffer.read(&selected_range.clone()) {
-                        Some(selected_data) => {
-                            app.clipboard.set_contents(selected_data);
-                        },
+                        Some(selected_data) => app.clipboard = Some(selected_data),
                         None => ()
                     }
                 },

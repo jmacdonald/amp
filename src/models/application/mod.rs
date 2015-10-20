@@ -1,6 +1,5 @@
 extern crate scribe;
 extern crate rustbox;
-extern crate clipboard;
 
 pub mod modes;
 
@@ -12,7 +11,6 @@ use self::modes::open::OpenMode;
 use self::modes::select::SelectMode;
 use self::modes::search_insert::SearchInsertMode;
 use scribe::workspace::Workspace;
-use self::clipboard::ClipboardContext;
 use view::buffer::BufferView;
 
 pub enum Mode {
@@ -28,7 +26,7 @@ pub enum Mode {
 pub struct Application {
     pub mode: Mode,
     pub workspace: Workspace,
-    pub clipboard: ClipboardContext,
+    pub clipboard: Option<String>,
     pub search_query: Option<String>,
     pub buffer_view: BufferView,
 }
@@ -51,20 +49,12 @@ pub fn new(buffer_height: usize) -> Application {
         workspace.add_buffer(argument_buffer);
     }
 
-    // Initialize and keep a reference to the clipboard.
-    let clipboard = match ClipboardContext::new() {
-        Ok(c) => c,
-        Err(e) => {
-            panic!("Ran into an error trying to access the clipboard: {}.", e);
-        }
-    };
-
     let buffer_view = ::view::buffer::new(buffer_height);
 
     Application{
         mode: Mode::Normal,
         workspace: workspace,
-        clipboard: clipboard,
+        clipboard: None,
         search_query: None,
         buffer_view: buffer_view,
     }
