@@ -43,13 +43,16 @@ pub fn move_to_next_result(app: &mut Application) {
                     for position in positions.iter() {
                         if position > &*buffer.cursor {
                             buffer.cursor.move_to(position.clone());
+                            
+                            // We've found one; track that and stop looking.
                             moved = true;
+                            break;
                         }
                     }
 
-                    // If there's nothing after the cursor, wrap to
-                    // the first match, if there are any matches at all.
                     if !moved {
+                        // We haven't found anything after the cursor, so wrap
+                        // to the first match, if there are any matches at all.
                         match positions.first() {
                             Some(position) => {
                                 buffer.cursor.move_to(position.clone());
@@ -207,7 +210,7 @@ mod tests {
             }
         );
 
-        // Ensure that sub-commands and subsequent inserts are run in batch.
+        // Ensure that the search query is properly set.
         assert_eq!(app.search_query, Some("ed".to_string()));
 
         // Ensure the buffer cursor is at the expected position.
