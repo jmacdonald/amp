@@ -44,14 +44,20 @@ impl BufferView {
         // The buffer tracks its cursor absolutely, but the view must display it
         // relative to any scrolling. Given that, it may also be outside the
         // visible range, at which point we'll use a None value.
-        let relative_cursor = match region.relative_position(buffer.cursor.line) {
-            Visibility::Visible(line) => {
-                Some(Position{
-                    line: line,
-                    offset: buffer.cursor.offset
-                })
-            },
-            _ => None,
+        let relative_cursor = match mode {
+            // Don't display the cursor in select line mode.
+            &mut Mode::SelectLine(_) => None,
+            _ => {
+                match region.relative_position(buffer.cursor.line) {
+                    Visibility::Visible(line) => {
+                        Some(Position{
+                            line: line,
+                            offset: buffer.cursor.offset
+                        })
+                    },
+                    _ => None,
+                }
+            }
         };
 
         // If we're in select mode, get the selected range.
@@ -61,6 +67,15 @@ impl BufferView {
                     region,
                     &select_mode.anchor,
                     &*buffer.cursor
+                ))
+            },
+            &mut Mode::SelectLine(ref mode) => {
+                let range = mode.to_range(&*buffer.cursor);
+
+                Some(relative_range(
+                    region,
+                    &range.start(),
+                    &range.end()
                 ))
             },
             _ => None,

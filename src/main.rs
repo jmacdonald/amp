@@ -44,6 +44,7 @@ fn main() {
                     Mode::Jump(ref mut j) => input::modes::jump::handle(j, key),
                     Mode::Open(ref mut o) => input::modes::open::handle(o, key),
                     Mode::Select(_) => input::modes::select::handle(key),
+                    Mode::SelectLine(_) => input::modes::select_line::handle(key),
                     Mode::SearchInsert(ref mut s) => input::modes::search_insert::handle(s, key),
                     Mode::Exit => break,
                 };

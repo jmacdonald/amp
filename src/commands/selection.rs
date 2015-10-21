@@ -20,6 +20,11 @@ pub fn delete(app: &mut Application) {
                     buffer.delete_range(delete_range.clone());
                     buffer.cursor.move_to(delete_range.start());
                 },
+                Mode::SelectLine(ref mode) => {
+                    let delete_range = mode.to_range(&*buffer.cursor);
+                    buffer.delete_range(delete_range.clone());
+                    buffer.cursor.move_to(delete_range.start());
+                },
                 _ => ()
             };
         },
@@ -51,6 +56,14 @@ fn copy_to_clipboard(app: &mut Application) {
                         cursor_position,
                         select_mode.anchor
                     );
+
+                    match buffer.read(&selected_range.clone()) {
+                        Some(selected_data) => app.clipboard = Some(selected_data),
+                        None => ()
+                    }
+                },
+                Mode::SelectLine(ref mode) => {
+                    let selected_range = mode.to_range(&*buffer.cursor);
 
                     match buffer.read(&selected_range.clone()) {
                         Some(selected_data) => app.clipboard = Some(selected_data),

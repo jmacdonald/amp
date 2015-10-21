@@ -9,6 +9,7 @@ use self::modes::jump::JumpMode;
 use self::modes::insert::InsertMode;
 use self::modes::open::OpenMode;
 use self::modes::select::SelectMode;
+use self::modes::select_line::SelectLineMode;
 use self::modes::search_insert::SearchInsertMode;
 use scribe::workspace::Workspace;
 use view::buffer::BufferView;
@@ -19,6 +20,7 @@ pub enum Mode {
     Jump(JumpMode),
     Open(OpenMode),
     Select(SelectMode),
+    SelectLine(SelectLineMode),
     SearchInsert(SearchInsertMode),
     Exit,
 }

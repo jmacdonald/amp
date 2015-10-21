@@ -26,6 +26,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('f') => Some(application::switch_to_jump_mode),
         Key::Char('0') => Some(application::switch_to_open_mode),
         Key::Char('v') => Some(application::switch_to_select_mode),
+        Key::Char('V') => Some(application::switch_to_select_line_mode),
         Key::Char('/') => Some(application::switch_to_search_insert_mode),
         Key::Char('u') => Some(buffer::undo),
         Key::Char('r') => Some(buffer::redo),

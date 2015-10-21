@@ -1,6 +1,6 @@
 use commands;
 use models::application::{Application, Mode};
-use models::application::modes::{insert, jump, open, select, search_insert};
+use models::application::modes::{insert, jump, open, select, select_line, search_insert};
 
 pub fn switch_to_normal_mode(app: &mut Application) {
     commands::buffer::end_command_group(app);
@@ -25,6 +25,16 @@ pub fn switch_to_select_mode(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
             app.mode = Mode::Select(select::new(*buffer.cursor.clone()));
+        },
+        None => (),
+    }
+    commands::view::scroll_to_cursor(app);
+}
+
+pub fn switch_to_select_line_mode(app: &mut Application) {
+    match app.workspace.current_buffer() {
+        Some(buffer) => {
+            app.mode = Mode::SelectLine(select_line::new(buffer.cursor.line));
         },
         None => (),
     }
