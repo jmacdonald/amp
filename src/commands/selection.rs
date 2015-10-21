@@ -36,6 +36,7 @@ pub fn delete(app: &mut Application) {
 }
 
 pub fn change(app: &mut Application) {
+    copy_to_clipboard(app);
     delete(app);
     application::switch_to_insert_mode(app);
 }
