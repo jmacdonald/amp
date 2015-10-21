@@ -114,6 +114,29 @@ pub fn insert_newline(app: &mut Application) {
     commands::view::scroll_to_cursor(app);
 }
 
+pub fn indent_line(app: &mut Application) {
+    match app.workspace.current_buffer() {
+        Some(buffer) => {
+            // FIXME: Determine this based on file type and/or user config.
+            let tab_content = "    ";
+            let target_position = Position{
+                line: buffer.cursor.line,
+                offset: buffer.cursor.offset + tab_content.len()
+            };
+
+            // Move to the start of the current line and insert the content.
+            buffer.cursor.move_to(
+                Position{ line: target_position.line, offset: 0 }
+            );
+            buffer.insert(tab_content);
+
+            // Move to the original position, shifted to compensate for the indent.
+            buffer.cursor.move_to(target_position);
+        },
+        None => (),
+    }
+}
+
 pub fn change_rest_of_line(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
@@ -183,6 +206,8 @@ pub fn paste(app: &mut Application) {
 #[cfg(test)]
 mod tests {
     extern crate scribe;
+
+    use scribe::buffer::Position;
 
     #[test]
     fn insert_newline_uses_current_line_indentation() {
@@ -258,4 +283,24 @@ mod tests {
         // Ensure that the content is removed.
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "editor");
     }
+
+    #[test]
+    fn indent_line_inserts_four_spaces_at_start_of_line() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("amp\neditor");
+        buffer.cursor.move_to(Position{ line: 1, offset: 2 });
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        super::indent_line(&mut app);
+
+        // Ensure that the content is inserted correctly.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\n    editor");
+
+        // Ensure that the cursor is updated.
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor, Position{ line: 1, offset: 6 });
+    }
+
 }
