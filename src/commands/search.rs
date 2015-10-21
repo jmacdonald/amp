@@ -36,21 +36,26 @@ pub fn move_to_next_result(app: &mut Application) {
         Some(ref query) => {
             match app.workspace.current_buffer() {
                 Some(buffer) => {
+                    let mut moved = false;
                     let positions = buffer.search(query);
+
+                    // Try to find a result after the cursor.
                     for position in positions.iter() {
                         if position > &*buffer.cursor {
                             buffer.cursor.move_to(position.clone());
-                            return;
+                            moved = true;
                         }
                     }
 
-                    // There's nothing after the cursor, so wrap
-                    // to the first match, if there are any at all.
-                    match positions.first() {
-                        Some(position) => {
-                            buffer.cursor.move_to(position.clone());
-                        },
-                        None => (),
+                    // If there's nothing after the cursor, wrap to
+                    // the first match, if there are any matches at all.
+                    if !moved {
+                        match positions.first() {
+                            Some(position) => {
+                                buffer.cursor.move_to(position.clone());
+                            },
+                            None => (),
+                        }
                     }
                 },
                 None => (),
@@ -58,6 +63,7 @@ pub fn move_to_next_result(app: &mut Application) {
         },
         None => (),
     }
+
     commands::view::scroll_to_cursor(app);
 }
 
