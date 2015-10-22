@@ -5,6 +5,7 @@ use models::application::{Application, Mode};
 use scribe::buffer::{Position, range};
 
 pub fn save(app: &mut Application) {
+    remove_trailing_whitespace(app);
     match app.workspace.current_buffer() {
         Some(buffer) => buffer.save(),
         None => None,
@@ -209,6 +210,63 @@ pub fn paste(app: &mut Application) {
     commands::view::scroll_to_cursor(app);
 }
 
+pub fn remove_trailing_whitespace(app: &mut Application) {
+    match app.workspace.current_buffer() {
+        Some(buffer) => {
+            let mut line = 0;
+            let mut offset = 0;
+            let mut space_count = 0;
+            let mut ranges = Vec::new();
+            
+            for character in buffer.data().chars() {
+                if character == '\n' {
+                    if space_count > 0 {
+                        // We've found some trailing whitespace; track it.
+                        ranges.push(range::new(
+                            Position{ line: line, offset: offset - space_count },
+                            Position{ line: line, offset: offset }
+                        ));
+                    }
+
+                    // We've hit a newline, so increase the line
+                    // count and reset other counters.
+                    line += 1;
+                    offset = 0;
+                    space_count = 0;
+                } else {
+                    if character == ' ' {
+                        // We've run into a space; track it.
+                        space_count += 1;
+                    } else {
+                        // We've run into a non-space; reset the counter.
+                        space_count = 0;
+                    }
+
+                    offset += 1;
+                }
+            }
+            
+            // The file may not have a trailing newline. If there is
+            // any trailing whitespace on the last line, track it.
+            if space_count > 0 {
+                ranges.push(range::new(
+                    Position{ line: line, offset: offset - space_count },
+                    Position{ line: line, offset: offset }
+                ));
+            }
+
+            // Step through the whitespace ranges in reverse order
+            // and remove them from the buffer. We do this in
+            // reverse as deletions would shift/invalidate ranges 
+            // that occur after the deleted range.
+            for range in ranges.into_iter().rev() {
+                buffer.delete_range(range);
+            }
+        },
+        None => (),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     extern crate scribe;
@@ -338,5 +396,35 @@ mod tests {
 
         // Ensure that the cursor is not updated.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor, Position{ line: 1, offset: 2 });
+    }
+    
+    #[test]
+    fn remove_trailing_whitespace_works() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("  amp\n  \neditor ");
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        super::remove_trailing_whitespace(&mut app);
+
+        // Ensure that trailing whitespace is removed.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "  amp\n\neditor");
+    }
+    
+    #[test]
+    fn save_removes_trailing_whitespace() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("  amp\n  \neditor ");
+
+        // Now that we've set up the buffer, add it
+        // to the application, and save it.
+        app.workspace.add_buffer(buffer);
+        super::save(&mut app);
+
+        // Ensure that trailing whitespace is removed.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "  amp\n\neditor");
     }
 }
