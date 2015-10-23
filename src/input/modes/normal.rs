@@ -36,6 +36,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char(',') => Some(view::scroll_up),
         Key::Char('m') => Some(view::scroll_down),
         Key::Char('>') => Some(buffer::indent_line),
+        Key::Char('<') => Some(buffer::outdent_line),
         Key::Tab       => Some(workspace::next_buffer),
         _              => None,
     }

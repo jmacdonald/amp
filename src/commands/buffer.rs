@@ -144,6 +144,45 @@ pub fn indent_line(app: &mut Application) {
     }
 }
 
+pub fn outdent_line(app: &mut Application) {
+    match app.workspace.current_buffer() {
+        Some(buffer) => {
+            // FIXME: Determine this based on file type and/or user config.
+            let tab_content = "    ";
+
+            let line = buffer.cursor.line;
+            let data = buffer.data();
+            let line_content = data.lines().nth(line);
+
+            match line_content {
+                Some(content) => {
+                    let mut space_char_count = 0;
+
+                    // Check for leading whitespace.
+                    for character in content.chars().take(tab_content.len()) {
+                        if character == ' ' {
+                            space_char_count += 1;
+                        } else {
+                            // We've run into a non-whitespace character; stop here.
+                            break;
+                        }
+                    }
+
+                    // Remove leading whitespace, up to indent size, if we found any.
+                    if space_char_count > 0 {
+                        buffer.delete_range(range::new(
+                            Position{ line: line, offset: 0 },
+                            Position{ line: line, offset: space_char_count }
+                        ));
+                    }
+                },
+                None => (),
+            }
+        },
+        None => (),
+    }
+}
+
 pub fn change_rest_of_line(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
@@ -217,7 +256,7 @@ pub fn remove_trailing_whitespace(app: &mut Application) {
             let mut offset = 0;
             let mut space_count = 0;
             let mut ranges = Vec::new();
-            
+
             for character in buffer.data().chars() {
                 if character == '\n' {
                     if space_count > 0 {
@@ -245,7 +284,7 @@ pub fn remove_trailing_whitespace(app: &mut Application) {
                     offset += 1;
                 }
             }
-            
+
             // The file may not have a trailing newline. If there is
             // any trailing whitespace on the last line, track it.
             if space_count > 0 {
@@ -257,7 +296,7 @@ pub fn remove_trailing_whitespace(app: &mut Application) {
 
             // Step through the whitespace ranges in reverse order
             // and remove them from the buffer. We do this in
-            // reverse as deletions would shift/invalidate ranges 
+            // reverse as deletions would shift/invalidate ranges
             // that occur after the deleted range.
             for range in ranges.into_iter().rev() {
                 buffer.delete_range(range);
@@ -397,7 +436,56 @@ mod tests {
         // Ensure that the cursor is not updated.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor, Position{ line: 1, offset: 2 });
     }
-    
+
+    #[test]
+    fn outdent_line_removes_four_spaces_from_start_of_line() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("amp\n    editor");
+        buffer.cursor.move_to(Position{ line: 1, offset: 2 });
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        super::outdent_line(&mut app);
+
+        // Ensure that the content is inserted correctly.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor");
+    }
+
+    #[test]
+    fn outdent_line_removes_as_much_space_as_it_can_from_start_of_line_if_less_than_full_indent() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("amp\n  editor");
+        buffer.cursor.move_to(Position{ line: 1, offset: 2 });
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        super::outdent_line(&mut app);
+
+        // Ensure that the content is inserted correctly.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor");
+    }
+
+    #[test]
+    fn outdent_does_nothing_if_there_is_no_leading_whitespace() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+
+        // Add some trailing whitespace to trip up naive implementations.
+        buffer.insert("amp\neditor   ");
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        super::outdent_line(&mut app);
+
+        // Ensure that the content is inserted correctly.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor   ");
+    }
+
     #[test]
     fn remove_trailing_whitespace_works() {
         let mut app = ::models::application::new(10);
@@ -412,7 +500,7 @@ mod tests {
         // Ensure that trailing whitespace is removed.
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "  amp\n\neditor");
     }
-    
+
     #[test]
     fn save_removes_trailing_whitespace() {
         let mut app = ::models::application::new(10);
