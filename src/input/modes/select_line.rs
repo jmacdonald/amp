@@ -12,7 +12,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('b') => Some(cursor::move_to_start_of_previous_token),
         Key::Char('w') => Some(cursor::move_to_start_of_next_token),
         Key::Char('e') => Some(cursor::move_to_end_of_current_token),
-        Key::Char('x') => Some(selection::delete),
+        Key::Char('d') => Some(selection::delete),
         Key::Char('c') => Some(selection::change),
         Key::Char('y') => Some(selection::copy),
         Key::Esc       => Some(application::switch_to_normal_mode),
