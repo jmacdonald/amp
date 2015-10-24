@@ -1,4 +1,4 @@
-use commands::{Command, cursor, application, selection};
+use commands::{Command, cursor, application, buffer, selection};
 use rustbox::keyboard::Key;
 
 pub fn handle(input: Key) -> Option<Command> {
@@ -15,6 +15,8 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('d') => Some(selection::delete),
         Key::Char('c') => Some(selection::change),
         Key::Char('y') => Some(selection::copy),
+        Key::Char('>') => Some(buffer::indent_line),
+        Key::Char('<') => Some(buffer::outdent_line),
         Key::Esc       => Some(application::switch_to_normal_mode),
         _              => None,
     }

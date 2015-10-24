@@ -24,12 +24,19 @@ pub fn delete_line(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
             let line = buffer.cursor.line;
-            buffer.delete_range(
-                range::new(
-                    Position{ line: line, offset: 0 },
-                    Position{ line: line+1, offset: 0 }
-                )
-            );
+            match buffer.data().lines().nth(line) {
+                Some(line_content) => {
+                    app.clipboard = Some(format!("{}\n", line_content));
+
+                    buffer.delete_range(
+                        range::new(
+                            Position{ line: line, offset: 0 },
+                            Position{ line: line, offset: line_content.len()+1 }
+                        )
+                    );
+                },
+                None => (),
+            }
         },
         None => (),
     }
@@ -131,11 +138,22 @@ pub fn indent_line(app: &mut Application) {
                 _ => *buffer.cursor.clone(),
             };
 
+            // Get the range of lines we'll indent based on
+            // either the current selection or cursor line.
+            let lines = match app.mode {
+                Mode::SelectLine(ref mode) => {
+                    mode.anchor
+                },
+                _ => buffer.cursor.line
+            }..buffer.cursor.line+1;
+
             // Move to the start of the current line and insert the content.
-            buffer.cursor.move_to(
-                Position{ line: target_position.line, offset: 0 }
-            );
-            buffer.insert(tab_content);
+            for line in lines {
+                buffer.cursor.move_to(
+                    Position{ line: line, offset: 0 }
+                );
+                buffer.insert(tab_content);
+            }
 
             // Move to the original position, shifted to compensate for the indent.
             buffer.cursor.move_to(target_position);
@@ -149,34 +167,44 @@ pub fn outdent_line(app: &mut Application) {
         Some(buffer) => {
             // FIXME: Determine this based on file type and/or user config.
             let tab_content = "    ";
-
-            let line = buffer.cursor.line;
             let data = buffer.data();
-            let line_content = data.lines().nth(line);
 
-            match line_content {
-                Some(content) => {
-                    let mut space_char_count = 0;
-
-                    // Check for leading whitespace.
-                    for character in content.chars().take(tab_content.len()) {
-                        if character == ' ' {
-                            space_char_count += 1;
-                        } else {
-                            // We've run into a non-whitespace character; stop here.
-                            break;
-                        }
-                    }
-
-                    // Remove leading whitespace, up to indent size, if we found any.
-                    if space_char_count > 0 {
-                        buffer.delete_range(range::new(
-                            Position{ line: line, offset: 0 },
-                            Position{ line: line, offset: space_char_count }
-                        ));
-                    }
+            // Get the range of lines we'll outdent based on
+            // either the current selection or cursor line.
+            let lines = match app.mode {
+                Mode::SelectLine(ref mode) => {
+                    mode.anchor
                 },
-                None => (),
+                _ => buffer.cursor.line
+            }..buffer.cursor.line+1;
+
+            for line in lines {
+                let line_content = data.lines().nth(line);
+
+                match line_content {
+                    Some(content) => {
+                        let mut space_char_count = 0;
+
+                        // Check for leading whitespace.
+                        for character in content.chars().take(tab_content.len()) {
+                            if character == ' ' {
+                                space_char_count += 1;
+                            } else {
+                                // We've run into a non-whitespace character; stop here.
+                                break;
+                            }
+                        }
+
+                        // Remove leading whitespace, up to indent size, if we found any.
+                        if space_char_count > 0 {
+                            buffer.delete_range(range::new(
+                                Position{ line: line, offset: 0 },
+                                Position{ line: line, offset: space_char_count }
+                            ));
+                        }
+                    },
+                    None => (),
+                }
             }
         },
         None => (),
@@ -405,6 +433,23 @@ mod tests {
     }
 
     #[test]
+    fn indent_line_works_in_select_line_mode() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("amp\n  editor");
+
+        // Now that we've set up the buffer, add it to the
+        // application, select all lines, and call the command.
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app);
+        commands::cursor::move_down(&mut app);
+        super::indent_line(&mut app);
+
+        // Ensure that the content is inserted correctly.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "    amp\n      editor");
+    }
+
+    #[test]
     fn indent_line_moves_cursor_in_insert_mode() {
         let mut app = ::models::application::new(10);
         let mut buffer = scribe::buffer::new();
@@ -484,6 +529,23 @@ mod tests {
 
         // Ensure that the content is inserted correctly.
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor   ");
+    }
+
+    #[test]
+    fn outdent_line_works_in_select_line_mode() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("  amp\n  editor");
+
+        // Now that we've set up the buffer, add it to the
+        // application, select all lines, and call the command.
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app);
+        commands::cursor::move_down(&mut app);
+        super::outdent_line(&mut app);
+
+        // Ensure that the content is inserted correctly.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor");
     }
 
     #[test]
