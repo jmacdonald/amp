@@ -1,7 +1,7 @@
 extern crate bloodhound;
 
 use std::path::PathBuf;
-use self::bloodhound::index::Index;
+use self::bloodhound::Index;
 use self::bloodhound::matching::Result;
 
 const MAX_RESULTS: usize = 5;
@@ -47,7 +47,7 @@ impl OpenMode {
 
 pub fn new(path: PathBuf) -> OpenMode {
     // Build and populate the index.
-    let mut index = bloodhound::index::new(path);
+    let mut index = Index::new(path);
     index.populate();
 
     OpenMode{
