@@ -6,6 +6,7 @@ pub mod models;
 pub mod view;
 mod input;
 mod commands;
+mod helpers;
 
 use models::application::Mode;
 use view::{Data, StatusLine};
