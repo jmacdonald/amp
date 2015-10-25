@@ -1,7 +1,7 @@
 extern crate scribe;
 
 use commands;
-use models::application::{Application, Mode};
+use models::application::{Application, Clipboard, Mode};
 use scribe::buffer::{Position, range};
 
 pub fn save(app: &mut Application) {
@@ -26,7 +26,7 @@ pub fn delete_line(app: &mut Application) {
             let line = buffer.cursor.line;
             match buffer.data().lines().nth(line) {
                 Some(line_content) => {
-                    app.clipboard = Some(format!("{}\n", line_content));
+                    app.clipboard = Clipboard::Block(format!("{}\n", line_content));
 
                     buffer.delete_range(
                         range::new(
@@ -268,8 +268,39 @@ pub fn paste(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
             match app.clipboard {
-                Some(ref content) => buffer.insert(content),
-                None => (),
+                Clipboard::Inline(ref content) => buffer.insert(content),
+                Clipboard::Block(ref content) => {
+                    let original_cursor_position = *buffer.cursor.clone();
+                    let line = original_cursor_position.line;
+
+                    // Try to move to the start of the line below to insert the data.
+                    buffer.cursor.move_to(
+                        Position{ line: line + 1, offset: 0 }
+                    );
+
+                    if *buffer.cursor == original_cursor_position {
+                        // That didn't work because we're at the last line.
+                        // Move to the end of the line to insert the data.
+                        match buffer.data().lines().nth(line) {
+                            Some(line_content) => {
+                                buffer.cursor.move_to(Position{
+                                    line: line,
+                                    offset: line_content.len(),
+                                });
+                                buffer.insert(&format!("\n{}", content));
+                                buffer.cursor.move_to(original_cursor_position);
+                            },
+                            None => {
+                                // We're on a trailing newline, which doesn't
+                                // have any data; just insert the content here.
+                                buffer.insert(content);
+                            }
+                        }
+                    } else {
+                        buffer.insert(content);
+                    }
+                }
+                Clipboard::None => (),
             }
         },
         None => (),
@@ -576,5 +607,84 @@ mod tests {
 
         // Ensure that trailing whitespace is removed.
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "  amp\n\neditor");
+    }
+
+    #[test]
+    fn paste_inserts_at_cursor_when_pasting_inline_data() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("amp\neditor");
+
+        // Now that we've set up the buffer, add it
+        // to the application, copy the first line to
+        // the buffer, and then paste the clipboard contents.
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_mode(&mut app);
+        commands::cursor::move_right(&mut app);
+        commands::selection::copy(&mut app);
+        commands::buffer::paste(&mut app);
+
+        // Ensure that the clipboard contents are pasted to the line below.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "aamp\neditor");
+    }
+
+    #[test]
+    fn paste_inserts_on_line_below_when_pasting_block_data() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("amp\neditor");
+        buffer.cursor.move_to(Position{ line: 0, offset: 2 });
+
+        // Now that we've set up the buffer, add it
+        // to the application, copy the first line to
+        // the buffer, and then paste the clipboard contents.
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app);
+        commands::selection::copy(&mut app);
+        commands::buffer::paste(&mut app);
+
+        // Ensure that the clipboard contents are pasted to the line below.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\namp\neditor");
+    }
+
+    #[test]
+    fn paste_works_at_end_of_buffer_when_pasting_block_data() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("amp\neditor");
+        buffer.cursor.move_to(Position{ line: 0, offset: 0 });
+
+        // Now that we've set up the buffer, add it
+        // to the application, copy the first line to
+        // the buffer, and then paste it at the end of the buffer.
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app);
+        commands::selection::copy(&mut app);
+        commands::cursor::move_down(&mut app);
+        commands::buffer::paste(&mut app);
+
+        // Ensure that the clipboard contents are pasted to the line below.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor\namp\n");
+    }
+
+    #[test]
+    fn paste_works_on_trailing_newline_when_pasting_block_data() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("amp\neditor\n");
+        buffer.cursor.move_to(Position{ line: 0, offset: 0 });
+
+        // Now that we've set up the buffer, add it
+        // to the application, copy the first line to
+        // the buffer, and then paste it at the end of the buffer.
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app);
+        commands::selection::copy(&mut app);
+        commands::cursor::move_down(&mut app);
+        commands::cursor::move_down(&mut app);
+        commands::buffer::paste(&mut app);
+
+        // Ensure that the clipboard contents are pasted to the line below.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor\namp\n");
     }
 }

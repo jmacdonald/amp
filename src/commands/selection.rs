@@ -1,9 +1,10 @@
 extern crate scribe;
 
-use models::application::{Application, Mode};
-use scribe::buffer::range;
+use models::application::{Application, Clipboard, Mode};
+use scribe::buffer::{line_range, range};
 use super::application;
 use commands;
+use helpers;
 
 pub fn delete(app: &mut Application) {
     copy_to_clipboard(app);
@@ -59,15 +60,18 @@ fn copy_to_clipboard(app: &mut Application) {
                     );
 
                     match buffer.read(&selected_range.clone()) {
-                        Some(selected_data) => app.clipboard = Some(selected_data),
+                        Some(selected_data) => app.clipboard = Clipboard::Inline(selected_data),
                         None => ()
                     }
                 },
                 Mode::SelectLine(ref mode) => {
-                    let selected_range = mode.to_range(&*buffer.cursor);
+                    let selected_range = helpers::inclusive_range(
+                        &line_range::new(mode.anchor, buffer.cursor.line),
+                        buffer
+                    );
 
                     match buffer.read(&selected_range.clone()) {
-                        Some(selected_data) => app.clipboard = Some(selected_data),
+                        Some(selected_data) => app.clipboard = Clipboard::Block(selected_data),
                         None => ()
                     }
                 },

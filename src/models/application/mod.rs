@@ -25,10 +25,16 @@ pub enum Mode {
     Exit,
 }
 
+pub enum Clipboard {
+    Inline(String),
+    Block(String),
+    None,
+}
+
 pub struct Application {
     pub mode: Mode,
     pub workspace: Workspace,
-    pub clipboard: Option<String>,
+    pub clipboard: Clipboard,
     pub search_query: Option<String>,
     pub buffer_view: BufferView,
 }
@@ -56,7 +62,7 @@ pub fn new(buffer_height: usize) -> Application {
     Application{
         mode: Mode::Normal,
         workspace: workspace,
-        clipboard: None,
+        clipboard: Clipboard::None,
         search_query: None,
         buffer_view: buffer_view,
     }
