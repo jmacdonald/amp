@@ -1,6 +1,6 @@
 extern crate luthor;
 
-use self::luthor::tokenizer::{new, Tokenizer, StateFunction};
+use self::luthor::{Tokenizer, StateFunction};
 use self::luthor::token::{Token, Category};
 
 fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
@@ -80,7 +80,7 @@ fn uppercase(lexer: &mut Tokenizer) -> Option<StateFunction> {
 }
 
 pub fn lex(data: &str) -> Vec<Token> {
-    let mut lexer = new(data);
+    let mut lexer = Tokenizer::new(data);
     let mut state_function = StateFunction(initial_state);
     loop {
         let StateFunction(actual_function) = state_function;
