@@ -9,6 +9,8 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('k') => Some(cursor::move_up),
         Key::Char('h') => Some(cursor::move_left),
         Key::Char('l') => Some(cursor::move_right),
+        Key::Char('J') => Some(cursor::move_to_end_of_buffer),
+        Key::Char('K') => Some(cursor::move_to_start_of_buffer),
         Key::Char('x') => Some(buffer::delete),
         Key::Char('D') => Some(buffer::delete_line),
         Key::Char('C') => Some(buffer::change_rest_of_line),
