@@ -2,10 +2,10 @@
 name = "amp"
 version = "0.0.1"
 dependencies = [
- "bloodhound 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bloodhound 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "luthor 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "pad 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "rustbox 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rustbox 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "scribe 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -16,7 +16,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "bloodhound"
-version = "0.1.2"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -79,13 +79,14 @@ dependencies = [
 
 [[package]]
 name = "rustbox"
-version = "0.6.2"
+version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "bitflags 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "gag 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libc 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.1.25 (registry+https://github.com/rust-lang/crates.io-index)",
- "termbox-sys 0.2.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "termbox-sys 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "time 0.1.26 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -115,11 +116,8 @@ dependencies = [
 
 [[package]]
 name = "termbox-sys"
-version = "0.2.7"
+version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "libc 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
 [[package]]
 name = "time"
