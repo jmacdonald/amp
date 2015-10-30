@@ -195,12 +195,25 @@ pub fn outdent_line(app: &mut Application) {
                             }
                         }
 
-                        // Remove leading whitespace, up to indent size, if we found any.
+                        // Remove leading whitespace, up to indent size,
+                        // if we found any, and adjust cursor accordingly.
                         if space_char_count > 0 {
                             buffer.delete_range(range::new(
                                 Position{ line: line, offset: 0 },
                                 Position{ line: line, offset: space_char_count }
                             ));
+
+                            // Figure out where the cursor should sit, guarding against underflow.
+                            let target_offset = match buffer.cursor.offset.checked_sub(space_char_count) {
+                                Some(offset) => offset,
+                                None => 0,
+                            };
+                            let target_line = buffer.cursor.line;
+
+                            buffer.cursor.move_to(Position{
+                                line: target_line,
+                                offset: target_offset
+                            });
                         }
                     },
                     None => (),
@@ -518,15 +531,18 @@ mod tests {
         let mut app = ::models::application::new(10);
         let mut buffer = scribe::buffer::new();
         buffer.insert("amp\n    editor");
-        buffer.cursor.move_to(Position{ line: 1, offset: 2 });
+        buffer.cursor.move_to(Position{ line: 1, offset: 6 });
 
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
         super::outdent_line(&mut app);
 
-        // Ensure that the content is inserted correctly.
+        // Ensure that the content is removed.
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor");
+
+        // Ensure that the cursor is updated.
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor, Position{ line: 1, offset: 2 });
     }
 
     #[test]
