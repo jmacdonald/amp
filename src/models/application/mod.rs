@@ -6,6 +6,7 @@ pub mod modes;
 use std::env;
 use std::path::PathBuf;
 use self::modes::jump::JumpMode;
+use self::modes::line_jump::LineJumpMode;
 use self::modes::insert::InsertMode;
 use self::modes::open::OpenMode;
 use self::modes::select::SelectMode;
@@ -18,6 +19,7 @@ pub enum Mode {
     Normal,
     Insert(InsertMode),
     Jump(JumpMode),
+    LineJump(LineJumpMode),
     Open(OpenMode),
     Select(SelectMode),
     SelectLine(SelectLineMode),

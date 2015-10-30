@@ -33,6 +33,7 @@ fn main() {
         match application.mode {
             Mode::Open(ref mode) => view::modes::open::display(&terminal, &view_data, mode),
             Mode::SearchInsert(ref mode) => view::modes::search_insert::display(&terminal, &view_data, mode),
+            Mode::LineJump(ref mode) => view::modes::line_jump::display(&terminal, &view_data, mode),
             _ => view::modes::default::display(&terminal, &view_data),
         }
 
@@ -43,6 +44,7 @@ fn main() {
                     Mode::Normal => input::modes::normal::handle(key),
                     Mode::Insert(ref mut i) => input::modes::insert::handle(i, key),
                     Mode::Jump(ref mut j) => input::modes::jump::handle(j, key),
+                    Mode::LineJump(ref mut j) => input::modes::line_jump::handle(j, key),
                     Mode::Open(ref mut o) => input::modes::open::handle(o, key),
                     Mode::Select(_) => input::modes::select::handle(key),
                     Mode::SelectLine(_) => input::modes::select_line::handle(key),
