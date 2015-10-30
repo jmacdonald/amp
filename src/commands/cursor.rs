@@ -163,7 +163,7 @@ pub fn move_to_end_of_current_token(app: &mut Application) {
                 Some(position) => {
                     buffer.cursor.move_to(Position{
                         line: position.line,
-                        offset: position.offset-1,
+                        offset: position.offset,
                     });
                 },
                 None => (),
@@ -212,7 +212,7 @@ fn adjacent_token_position(buffer: &mut Buffer, whitespace: bool, direction: Dir
         }
 
         // We've not yet found it; advance to the next token.
-        match token.lexeme.lines().count() {
+        match token.lexeme.split("\n").count() {
             1 => {
                 // There's only one line in this token, so
                 // only advance the offset by its size.
@@ -223,7 +223,7 @@ fn adjacent_token_position(buffer: &mut Buffer, whitespace: bool, direction: Dir
                 // line count and set the offset to the last
                 // line's length
                 line += n-1;
-                offset = token.lexeme.lines().last().unwrap().len();
+                offset = token.lexeme.split("\n").last().unwrap().len();
             },
         };
 
@@ -254,6 +254,7 @@ mod tests {
     extern crate scribe;
 
     use models::application::Application;
+    use scribe::buffer::Position;
 
     #[test]
     fn move_to_first_word_of_line_works() {
@@ -268,101 +269,100 @@ mod tests {
         super::move_to_first_word_of_line(&mut app);
 
         // Ensure that the cursor is moved to the start of the first word.
-        assert_eq!(app.workspace.current_buffer().unwrap().cursor.line, 0);
-        assert_eq!(app.workspace.current_buffer().unwrap().cursor.offset, 4);
+        assert_eq!(
+            *app.workspace.current_buffer().unwrap().cursor,
+            Position{ line: 0, offset: 4 }
+        );
     }
 
     #[test]
     fn move_to_start_of_previous_token_works() {
         // Set up the application.
-        let mut app = set_up_application("amp editor");
+        let mut app = set_up_application("\namp editor");
 
-        // Move to the end of the line.
-        let position = scribe::buffer::Position{ line: 0, offset: 7};
-        app.workspace.current_buffer().unwrap().cursor.move_to(position);
+        // Move past the first non-whitespace token.
+        app.workspace.current_buffer().unwrap().cursor.move_to(Position{ line: 1, offset: 2 });
 
         // Call the command.
         super::move_to_start_of_previous_token(&mut app);
 
         // Ensure that the cursor is moved to the start of the previous word.
-        assert_eq!(app.workspace.current_buffer().unwrap().cursor.line, 0);
-        assert_eq!(app.workspace.current_buffer().unwrap().cursor.offset, 4);
+        assert_eq!(
+            *app.workspace.current_buffer().unwrap().cursor,
+            Position{ line: 1, offset: 0 }
+        );
     }
 
     #[test]
     fn move_to_start_of_previous_token_skips_whitespace() {
         // Set up the application.
-        let mut app = set_up_application("amp editor");
+        let mut app = set_up_application("\namp editor");
 
-        // Move to the end of the line.
-        let position = scribe::buffer::Position{ line: 0, offset: 7};
-        app.workspace.current_buffer().unwrap().cursor.move_to(position);
+        // Move to the start of the second non-whitespace word.
+        app.workspace.current_buffer().unwrap().cursor.move_to(Position{ line: 1, offset: 4 });
 
-        // Call the commands.
-        super::move_to_start_of_previous_token(&mut app);
+        // Call the command.
         super::move_to_start_of_previous_token(&mut app);
 
         // Ensure that the cursor is moved to the start of the previous word.
-        assert_eq!(app.workspace.current_buffer().unwrap().cursor.line, 0);
-        assert_eq!(app.workspace.current_buffer().unwrap().cursor.offset, 0);
+        assert_eq!(
+            *app.workspace.current_buffer().unwrap().cursor,
+            Position{ line: 1, offset: 0 }
+        );
     }
 
     #[test]
     fn move_to_start_of_next_token_works() {
-        // Set up the application and run the command.
-        let mut app = set_up_application("amp editor");
+        // Set up the application.
+        let mut app = set_up_application("\namp editor");
+
+        // Move to the start of the first non-whitespace word.
+        app.workspace.current_buffer().unwrap().cursor.move_to(Position{ line: 1, offset: 0 });
+
+        // Call the command.
         super::move_to_start_of_next_token(&mut app);
 
-        // Ensure that the cursor is moved to the start of the previous word.
-        assert_eq!(app.workspace.current_buffer().unwrap().cursor.line, 0);
-        assert_eq!(app.workspace.current_buffer().unwrap().cursor.offset, 4);
+        // Ensure that the cursor is moved to the start of the next word.
+        assert_eq!(
+            *app.workspace.current_buffer().unwrap().cursor,
+            Position{ line: 1, offset: 4 }
+        );
     }
 
     #[test]
     fn move_to_end_of_current_token_works() {
         // Set up the application and run the command.
-        let mut app = set_up_application("amp editor");
+        let mut app = set_up_application("\namp editor");
+
+        // Move to the start of the first non-whitespace word.
+        app.workspace.current_buffer().unwrap().cursor.move_to(Position{ line: 1, offset: 0 });
+
+        // Call the command.
         super::move_to_end_of_current_token(&mut app);
 
-        // Ensure that the cursor is moved to the start of the previous word.
-        assert_eq!(app.workspace.current_buffer().unwrap().cursor.line, 0);
-        assert_eq!(app.workspace.current_buffer().unwrap().cursor.offset, 2);
-    }
-
-    #[test]
-    fn append_to_current_token_works() {
-        // Set up the application and run the command.
-        let mut app = set_up_application("amp editor");
-        super::append_to_current_token(&mut app);
-
-        // Ensure that the cursor is moved to after the current word.
-        assert_eq!(app.workspace.current_buffer().unwrap().cursor.line, 0);
-        assert_eq!(app.workspace.current_buffer().unwrap().cursor.offset, 3);
-
-        // Ensure that we're in insert mode.
-        assert!(
-            match app.mode {
-                ::models::application::Mode::Insert(_) => true,
-                _ => false,
-            }
+        // Ensure that the cursor is moved to the end of the current word.
+        assert_eq!(
+            *app.workspace.current_buffer().unwrap().cursor,
+            Position{ line: 1, offset: 3 }
         );
     }
 
     #[test]
-    fn append_to_current_token_at_the_end_of_a_word_appends_to_current_word() {
-        // Set up the application and run the command.
-        let mut app = set_up_application("amp editor");
+    fn append_to_current_token_works() {
+        // Set up the application.
+        let mut app = set_up_application("\namp editor");
 
-        // Move to the end of the line.
-        let position = scribe::buffer::Position{ line: 0, offset: 2};
-        app.workspace.current_buffer().unwrap().cursor.move_to(position);
+        // Move to the start of the first non-whitespace word.
+        app.workspace.current_buffer().unwrap().cursor.move_to(Position{ line: 1, offset: 0 });
 
-        // Call the commands.
+        // Call the command.
         super::append_to_current_token(&mut app);
 
-        // Ensure that the cursor is moved to after the current word.
-        assert_eq!(app.workspace.current_buffer().unwrap().cursor.line, 0);
-        assert_eq!(app.workspace.current_buffer().unwrap().cursor.offset, 3);
+        // Ensure that the cursor is moved to the end of the current word.
+        assert_eq!(
+            *app.workspace.current_buffer().unwrap().cursor,
+            Position{ line: 1, offset: 3 }
+        );
 
         // Ensure that we're in insert mode.
         assert!(
