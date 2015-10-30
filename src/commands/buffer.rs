@@ -48,19 +48,37 @@ pub fn close(app: &mut Application) {
 }
 
 pub fn backspace(app: &mut Application) {
-    match app.workspace.current_buffer() {
+    let outdent = match app.workspace.current_buffer() {
         Some(buffer) => {
             if buffer.cursor.offset == 0 {
                 buffer.cursor.move_up();
                 buffer.cursor.move_to_end_of_line();
                 buffer.delete();
+
+                false
             } else {
-                buffer.cursor.move_left();
-                buffer.delete();
+                match buffer.data().lines().nth(buffer.cursor.line) {
+                    Some(current_line) => {
+                        if current_line.chars().all(|c| c.is_whitespace()) {
+                            true
+                        } else {
+                            buffer.cursor.move_left();
+                            buffer.delete();
+
+                            false
+                        }
+                    },
+                    None => false,
+                }
             }
         },
-        None => (),
+        None => false,
+    };
+
+    if outdent {
+        commands::buffer::outdent_line(app);
     }
+
     commands::view::scroll_to_cursor(app);
 }
 
@@ -702,5 +720,21 @@ mod tests {
 
         // Ensure that the clipboard contents are pasted to the line below.
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor\namp\n");
+    }
+
+    #[test]
+    fn backspace_outdents_line_if_line_is_whitespace() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("amp\neditor\n        ");
+        buffer.cursor.move_to(Position{ line: 2, offset: 8 });
+
+        // Now that we've set up the buffer, add it
+        // to the application and run the command.
+        app.workspace.add_buffer(buffer);
+        commands::buffer::backspace(&mut app);
+
+        // Ensure that the clipboard contents are pasted to the line below.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor\n    ");
     }
 }
