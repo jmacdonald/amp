@@ -48,6 +48,7 @@ pub fn accept_input(app: &mut Application) {
     }
 
     commands::application::switch_to_normal_mode(app);
+    commands::view::scroll_to_cursor(app);
 }
 
 #[cfg(test)]
