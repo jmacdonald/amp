@@ -9,10 +9,7 @@ pub fn open(app: &mut Application) {
         Mode::Open(ref mut mode) => {
             match mode.selected_path() {
                 Some(path) => {
-                    match scribe::buffer::from_file(path) {
-                        Ok(buffer) => app.workspace.add_buffer(buffer),
-                        _ => (),
-                    }
+                    app.workspace.open_buffer(path);
                 },
                 None => (),
             }
@@ -20,8 +17,6 @@ pub fn open(app: &mut Application) {
         _ => (),
     }
 
-    // FIXME: This should be moved into Ok match result, but we cannot
-    // lend out a reference to app once we've matched against its mode.
     commands::application::switch_to_normal_mode(app);
 }
 
