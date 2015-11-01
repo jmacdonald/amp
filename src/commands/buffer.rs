@@ -144,7 +144,7 @@ pub fn indent_line(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
             // FIXME: Determine this based on file type and/or user config.
-            let tab_content = "    ";
+            let tab_content = "  ";
 
             let target_position = match app.mode {
                 Mode::Insert(_) => {
@@ -184,7 +184,7 @@ pub fn outdent_line(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
             // FIXME: Determine this based on file type and/or user config.
-            let tab_content = "    ";
+            let tab_content = "  ";
             let data = buffer.data();
 
             // Get the range of lines we'll outdent based on
@@ -479,7 +479,7 @@ mod tests {
     }
 
     #[test]
-    fn indent_line_inserts_four_spaces_at_start_of_line() {
+    fn indent_line_inserts_two_spaces_at_start_of_line() {
         let mut app = ::models::application::new(10);
         let mut buffer = scribe::buffer::new();
         buffer.insert("amp\neditor");
@@ -491,7 +491,7 @@ mod tests {
         super::indent_line(&mut app);
 
         // Ensure that the content is inserted correctly.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\n    editor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\n  editor");
     }
 
     #[test]
@@ -508,7 +508,7 @@ mod tests {
         super::indent_line(&mut app);
 
         // Ensure that the content is inserted correctly.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "    amp\n      editor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "  amp\n    editor");
     }
 
     #[test]
@@ -525,7 +525,7 @@ mod tests {
         super::indent_line(&mut app);
 
         // Ensure that the cursor is updated.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor, Position{ line: 1, offset: 6 });
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor, Position{ line: 1, offset: 4 });
     }
 
     #[test]
@@ -545,10 +545,10 @@ mod tests {
     }
 
     #[test]
-    fn outdent_line_removes_four_spaces_from_start_of_line() {
+    fn outdent_line_removes_two_spaces_from_start_of_line() {
         let mut app = ::models::application::new(10);
         let mut buffer = scribe::buffer::new();
-        buffer.insert("amp\n    editor");
+        buffer.insert("amp\n  editor");
         buffer.cursor.move_to(Position{ line: 1, offset: 6 });
 
         // Now that we've set up the buffer, add it
@@ -560,14 +560,14 @@ mod tests {
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor");
 
         // Ensure that the cursor is updated.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor, Position{ line: 1, offset: 2 });
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor, Position{ line: 1, offset: 4 });
     }
 
     #[test]
     fn outdent_line_removes_as_much_space_as_it_can_from_start_of_line_if_less_than_full_indent() {
         let mut app = ::models::application::new(10);
         let mut buffer = scribe::buffer::new();
-        buffer.insert("amp\n  editor");
+        buffer.insert("amp\n editor");
         buffer.cursor.move_to(Position{ line: 1, offset: 2 });
 
         // Now that we've set up the buffer, add it
@@ -735,6 +735,6 @@ mod tests {
         commands::buffer::backspace(&mut app);
 
         // Ensure that the clipboard contents are pasted to the line below.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor\n    ");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor\n      ");
     }
 }
