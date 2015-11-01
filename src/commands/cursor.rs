@@ -126,6 +126,15 @@ pub fn insert_with_newline(app: &mut Application) {
     commands::view::scroll_to_cursor(app);
 }
 
+pub fn insert_with_newline_above(app: &mut Application) {
+    move_to_start_of_line(app);
+    buffer::start_command_group(app);
+    buffer::insert_newline(app);
+    commands::cursor::move_up(app);
+    application::switch_to_insert_mode(app);
+    commands::view::scroll_to_cursor(app);
+}
+
 pub fn move_to_start_of_previous_token(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
