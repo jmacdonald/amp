@@ -10,7 +10,7 @@ use std::collections::hash_map::HashMap;
 
 pub struct BufferView {
     height: usize,
-    regions: HashMap<usize, scrollable_region::ScrollableRegion>,
+    regions: HashMap<String, scrollable_region::ScrollableRegion>,
 }
 
 impl BufferView {
@@ -118,10 +118,13 @@ impl BufferView {
     }
 }
 
-// Converts the buffer's memory location to an integer.
-// Used as a key for in-memory buffer scrollable regions.
-fn buffer_key(buffer: &Buffer) -> usize {
-    (buffer as *const Buffer) as usize
+// Converts the buffer's path into an owned String.
+// Used as a key for tracking scrollable region offsets.
+fn buffer_key(buffer: &Buffer) -> String {
+    match buffer.path {
+        Some(ref path) => path.to_string_lossy().into_owned(),
+        None => String::new(),
+    }
 }
 
 fn relative_range(region: &ScrollableRegion, first_position: &Position, second_position: &Position) -> Range {
@@ -130,13 +133,13 @@ fn relative_range(region: &ScrollableRegion, first_position: &Position, second_p
         Visibility::AboveRegion => Position{ line: 0, offset: 0 },
         Visibility::BelowRegion => Position{ line: region.height()+1, offset: 0 }
     };
-    
+
     let second_relative_position = match region.relative_position(second_position.line) {
         Visibility::Visible(line) => Position{ line: line, offset: second_position.offset },
         Visibility::AboveRegion => Position{ line: 0, offset: 0 },
         Visibility::BelowRegion => Position{ line: region.height()+1, offset: 0 }
     };
-    
+
     range::new(first_relative_position, second_relative_position)
 }
 
@@ -186,6 +189,7 @@ mod tests {
     use models::application::modes;
     use self::scribe::buffer;
     use self::scribe::buffer::{Category, Position, Token};
+    use std::path::PathBuf;
 
     #[test]
     fn data_only_returns_tokens_in_visible_range() {
@@ -219,13 +223,13 @@ mod tests {
             ]
         );
     }
-    
+
     #[test]
     fn data_returns_correct_highlight_when_scrolled() {
         let mut buffer_view = super::new(2);
         let mut buffer = scribe::buffer::new();
         buffer.insert("first\nsecond\nthird\nfourth");
-        
+
         // Create a non-zero offset selection starting and ending out of bounds.
         let mut mode = Mode::Select(modes::select::new(
             Position{ line: 0, offset: 3 }
@@ -233,7 +237,7 @@ mod tests {
         buffer.cursor.move_to(
             Position{ line: 3, offset: 1 }
         );
-        
+
         // Scroll down one line, leaving lines 2 and 3 visible (since we have a height of 2).
         buffer_view.scroll_down(&buffer, 1);
 
@@ -255,6 +259,10 @@ mod tests {
         let mut second_buffer = scribe::buffer::new();
         first_buffer.insert("first\nsecond\nthird\nfourth");
         second_buffer.insert("first\nsecond\nthird\nfourth");
+
+        // Set paths for both buffers, which is required for scroll tracking.
+        first_buffer.path = Some(PathBuf::from("first"));
+        second_buffer.path = Some(PathBuf::from("second"));
 
         // Scroll down one line, leaving lines 2 and 3 visible (since we have a height of 2).
         buffer_view.scroll_down(&first_buffer, 1);
