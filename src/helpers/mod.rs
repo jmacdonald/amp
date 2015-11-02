@@ -1,5 +1,7 @@
 extern crate scribe;
 
+pub mod movement_lexer;
+
 use scribe::buffer::{Buffer, LineRange, Position, range, Range};
 
 /// Translates a line range to a regular range, including its last line.

@@ -1,7 +1,7 @@
 pub mod tag_generator;
-mod lexer;
 
 use std::collections::HashMap;
+use helpers::movement_lexer;
 use scribe::buffer::{Position, Token, Category};
 
 pub struct JumpMode {
@@ -34,7 +34,7 @@ impl JumpMode {
             // Split the token's lexeme on whitespace. Comments and strings are the most
             // notable examples of tokens with whitespace; we want to be able to jump to
             // points within these.
-            let subtokens = lexer::lex(&token.lexeme);
+            let subtokens = movement_lexer::lex(&token.lexeme);
             for subtoken in subtokens {
                 if subtoken.category == Category::Whitespace {
                     // Handle line breaks inside of whitespace tokens.

@@ -2,6 +2,7 @@ extern crate scribe;
 extern crate luthor;
 
 use commands;
+use helpers::movement_lexer;
 use models::application::Application;
 use scribe::buffer::{Buffer, Position};
 use self::luthor::token::Category;
@@ -202,7 +203,8 @@ fn adjacent_token_position(buffer: &mut Buffer, whitespace: bool, direction: Dir
     let mut line = 0;
     let mut offset = 0;
     let mut previous_position = Position{ line: 0, offset: 0 };
-    for token in buffer.tokens().iter() {
+    let tokens = movement_lexer::lex(&buffer.data());
+    for token in tokens {
         let position = Position{ line: line, offset: offset };
         if position > *buffer.cursor && direction == Direction::Forward {
             // We've found the next token!
