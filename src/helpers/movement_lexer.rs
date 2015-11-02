@@ -4,6 +4,11 @@ use self::luthor::{Tokenizer, StateFunction};
 use self::luthor::token::{Token, Category};
 
 fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
+    if lexer.has_prefix("::") {
+      lexer.tokenize(Category::Text);
+      lexer.tokenize_next(2, Category::Text);
+    }
+
     match lexer.current_char() {
         Some(c) => {
             match c {
@@ -12,7 +17,7 @@ fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
                     lexer.advance();
                     return Some(StateFunction(whitespace));
                 },
-                '_' | '-' | '.' | '(' | ')' => {
+                '_' | '-' | '.' | '(' | ')' | '{' | '}' | ';' | ',' | ':' | '<' | '>' => {
                     lexer.tokenize(Category::Text);
                     lexer.tokenize_next(1, Category::Text);
                     return Some(StateFunction(whitespace));
