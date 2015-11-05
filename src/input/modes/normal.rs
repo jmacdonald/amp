@@ -12,7 +12,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('J') => Some(cursor::move_to_end_of_buffer),
         Key::Char('K') => Some(cursor::move_to_start_of_buffer),
         Key::Char('x') => Some(buffer::delete),
-        Key::Char('D') => Some(buffer::delete_line),
+        Key::Char('D') => Some(buffer::delete_current_line),
         Key::Char('C') => Some(buffer::change_rest_of_line),
         Key::Char('i') => Some(application::switch_to_insert_mode),
         Key::Char('s') => Some(buffer::save),

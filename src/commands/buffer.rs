@@ -20,26 +20,10 @@ pub fn delete(app: &mut Application) {
     commands::view::scroll_to_cursor(app);
 }
 
-pub fn delete_line(app: &mut Application) {
-    match app.workspace.current_buffer() {
-        Some(buffer) => {
-            let line = buffer.cursor.line;
-            match buffer.data().lines().nth(line) {
-                Some(line_content) => {
-                    app.clipboard = Clipboard::Block(format!("{}\n", line_content));
-
-                    buffer.delete_range(
-                        range::new(
-                            Position{ line: line, offset: 0 },
-                            Position{ line: line, offset: line_content.len()+1 }
-                        )
-                    );
-                },
-                None => (),
-            }
-        },
-        None => (),
-    }
+pub fn delete_current_line(app: &mut Application) {
+    commands::application::switch_to_select_line_mode(app);
+    commands::selection::delete(app);
+    commands::application::switch_to_normal_mode(app);
     commands::view::scroll_to_cursor(app);
 }
 
@@ -460,7 +444,7 @@ mod tests {
     }
 
     #[test]
-    fn delete_line_deletes_current_line() {
+    fn delete_current_line_deletes_current_line() {
         let mut app = ::models::application::new(10);
         let mut buffer = scribe::buffer::new();
 
@@ -472,7 +456,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
-        super::delete_line(&mut app);
+        super::delete_current_line(&mut app);
 
         // Ensure that the content is removed.
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "editor");
