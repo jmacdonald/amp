@@ -149,13 +149,16 @@ pub fn indent_line(app: &mut Application) {
                 _ => buffer.cursor.line
             }..buffer.cursor.line+1;
 
-            // Move to the start of the current line and insert the content.
+            // Move to the start of the current line and
+            // insert the content, as a single operation.
+            buffer.start_operation_group();
             for line in lines {
                 buffer.cursor.move_to(
                     Position{ line: line, offset: 0 }
                 );
                 buffer.insert(tab_content);
             }
+            buffer.end_operation_group();
 
             // Move to the original position, shifted to compensate for the indent.
             buffer.cursor.move_to(target_position);
@@ -179,6 +182,9 @@ pub fn outdent_line(app: &mut Application) {
                 },
                 _ => buffer.cursor.line
             }..buffer.cursor.line+1;
+
+            // Group the individual outdent operations as one.
+            buffer.start_operation_group();
 
             for line in lines {
                 let line_content = data.lines().nth(line);
@@ -221,6 +227,9 @@ pub fn outdent_line(app: &mut Application) {
                     None => (),
                 }
             }
+
+            // Finish grouping the individual outdent operations as one.
+            buffer.end_operation_group();
         },
         None => (),
     }
@@ -529,6 +538,27 @@ mod tests {
     }
 
     #[test]
+    fn indent_line_groups_multi_line_indents_as_a_single_operation() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("amp\n  editor");
+
+        // Now that we've set up the buffer, add it to the
+        // application, select all lines, and call the command.
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app);
+        commands::cursor::move_down(&mut app);
+        super::indent_line(&mut app);
+
+        // Ensure that the indentation is applied correctly.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "  amp\n    editor");
+
+        // Undo the indent and check that it's treated as one operation.
+        super::undo(&mut app);
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\n  editor");
+    }
+
+    #[test]
     fn outdent_line_removes_two_spaces_from_start_of_line() {
         let mut app = ::models::application::new(10);
         let mut buffer = scribe::buffer::new();
@@ -595,6 +625,27 @@ mod tests {
 
         // Ensure that the content is inserted correctly.
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor");
+    }
+
+    #[test]
+    fn outdent_line_groups_multi_line_indents_as_a_single_operation() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("  amp\n  editor");
+
+        // Now that we've set up the buffer, add it to the
+        // application, select all lines, and call the command.
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app);
+        commands::cursor::move_down(&mut app);
+        super::outdent_line(&mut app);
+
+        // Ensure that the indentation is applied correctly.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor");
+
+        // Undo the outdent and check that it's treated as one operation.
+        super::undo(&mut app);
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "  amp\n  editor");
     }
 
     #[test]
