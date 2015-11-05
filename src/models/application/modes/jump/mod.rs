@@ -73,7 +73,7 @@ impl JumpMode {
                                     category: Category::Keyword
                                 });
                                 jump_tokens.push(Token{
-                                    lexeme: subtoken.lexeme[2..].to_string(),
+                                    lexeme: subtoken.lexeme.chars().skip(2).collect(),
                                     category: Category::Text
                                 });
 
@@ -224,6 +224,21 @@ mod tests {
         jump_mode.tokens(&source_tokens, 10);
         assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(), Position{ line: 10, offset: 0 });
         assert_eq!(*jump_mode.tag_positions.get("ab").unwrap(), Position{ line: 11, offset: 2 });
+    }
+
+    #[test]
+    fn tokens_can_handle_unicode_data() {
+        let mut jump_mode = new();
+
+        // It's important to put the unicode character as the
+        // second character to ensure splitting off the first
+        // two characters would cause a panic.
+        let source_tokens = vec![
+            Token{ lexeme: "eéditor".to_string(), category: Category::Text },
+        ];
+
+        // This will panic and cause the test to fail.
+        jump_mode.tokens(&source_tokens, 0);
     }
 
     #[test]
