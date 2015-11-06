@@ -17,8 +17,8 @@ fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
                     lexer.advance();
                     return Some(StateFunction(whitespace));
                 },
-                '_' | '-' | '.' | '(' | ')' | '{' | '}' | ';' |
-                ',' | ':' | '<' | '>' | '\'' | '"' | '?' => {
+                '_' | '-' | '.' | '(' | ')' | '{' | '}' | ';' | '|' |
+                ',' | ':' | '<' | '>' | '\'' | '"' | '?' | '/' | '\\' => {
                     lexer.tokenize(Category::Text);
                     lexer.tokenize_next(1, Category::Text);
                     return Some(StateFunction(whitespace));
