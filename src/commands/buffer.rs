@@ -27,6 +27,44 @@ pub fn delete_current_line(app: &mut Application) {
     commands::view::scroll_to_cursor(app);
 }
 
+pub fn merge_next_line(app: &mut Application) {
+    match app.workspace.current_buffer() {
+        Some(buffer) => {
+            let current_line = buffer.cursor.line;
+            let data = buffer.data();
+
+            // Don't bother if there isn't a line below.
+            if data.lines().nth(current_line+1).is_none() { return }
+
+            // Join the two lines.
+            let mut merged_lines: String = buffer.data().lines().enumerate().skip(current_line).take(2).
+              map(|(index, line)| {
+                if index == current_line { format!("{} ", line) } else { line.trim_left().to_string() }
+              }).collect();
+
+            // Append a newline if there is a line below the next.
+            if buffer.data().lines().nth(current_line+2).is_some() {
+                merged_lines.push('\n');
+            }
+
+            // Remove the two lines, move to the start of the line,
+            // insert the merged lines, and restore the cursor,
+            // batched as a single operation.
+            buffer.start_operation_group();
+            let initial_position = *buffer.cursor.clone();
+            buffer.delete_range(range::new(
+                Position{ line: current_line, offset: 0 },
+                Position{ line: current_line+2, offset: 0 },
+            ));
+            buffer.cursor.move_to(Position{ line: current_line, offset: 0 });
+            buffer.insert(&merged_lines);
+            buffer.cursor.move_to(initial_position);
+            buffer.end_operation_group();
+        },
+        None => (),
+    }
+}
+
 pub fn close(app: &mut Application) {
     app.workspace.close_current_buffer();
 }
@@ -771,5 +809,82 @@ mod tests {
 
         // Ensure that the clipboard contents are pasted to the line below.
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor\n      ");
+    }
+
+    #[test]
+    fn merge_next_line_joins_current_and_next_lines_with_a_space() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("amp\neditor");
+
+        // Now that we've set up the buffer, add it
+        // to the application and run the command.
+        app.workspace.add_buffer(buffer);
+        commands::buffer::merge_next_line(&mut app);
+
+        // Ensure that the lines are merged correctly.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp editor");
+    }
+
+    #[test]
+    fn merge_next_line_does_nothing_if_there_is_no_next_line() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("amp editor");
+
+        // Now that we've set up the buffer, add it
+        // to the application and run the command.
+        app.workspace.add_buffer(buffer);
+        commands::buffer::merge_next_line(&mut app);
+
+        // Ensure that the lines are merged correctly.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp editor");
+    }
+
+    #[test]
+    fn merge_next_line_works_when_the_next_line_has_a_line_after_it() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("amp\neditor\ntest");
+
+        // Now that we've set up the buffer, add it
+        // to the application and run the command.
+        app.workspace.add_buffer(buffer);
+        commands::buffer::merge_next_line(&mut app);
+
+        // Ensure that the lines are merged correctly.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp editor\ntest");
+    }
+
+    #[test]
+    fn merge_next_line_works_when_the_first_line_has_leading_whitespace() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("\n amp\neditor");
+        buffer.cursor.move_to(Position{ line: 1, offset: 0 });
+
+        // Now that we've set up the buffer, add it
+        // to the application and run the command.
+        app.workspace.add_buffer(buffer);
+        commands::buffer::merge_next_line(&mut app);
+
+        // Ensure that the lines are merged correctly.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "\n amp editor");
+    }
+
+
+    #[test]
+    fn merge_next_line_removes_leading_whitespace_from_second_line() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("amp\n    editor");
+
+        // Now that we've set up the buffer, add it
+        // to the application and run the command.
+        app.workspace.add_buffer(buffer);
+        commands::buffer::merge_next_line(&mut app);
+
+        // Ensure that the lines are merged correctly.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp editor");
     }
 }
