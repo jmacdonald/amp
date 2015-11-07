@@ -27,6 +27,13 @@ pub fn delete_current_line(app: &mut Application) {
     commands::view::scroll_to_cursor(app);
 }
 
+pub fn copy_current_line(app: &mut Application) {
+    commands::application::switch_to_select_line_mode(app);
+    commands::selection::copy(app);
+    commands::application::switch_to_normal_mode(app);
+    commands::view::scroll_to_cursor(app);
+}
+
 pub fn merge_next_line(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
@@ -271,6 +278,12 @@ pub fn outdent_line(app: &mut Application) {
         },
         None => (),
     }
+}
+
+pub fn change_current_token(app: &mut Application) {
+    commands::application::switch_to_select_mode(app);
+    commands::cursor::move_to_end_of_current_token(app);
+    commands::selection::change(app);
 }
 
 pub fn change_rest_of_line(app: &mut Application) {
