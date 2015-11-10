@@ -6,6 +6,7 @@ use scribe::buffer::{Position, range};
 
 pub fn save(app: &mut Application) {
     remove_trailing_whitespace(app);
+    ensure_trailing_newline(app);
     match app.workspace.current_buffer() {
         Some(buffer) => buffer.save(),
         None => None,
@@ -440,6 +441,33 @@ pub fn remove_trailing_whitespace(app: &mut Application) {
     }
 }
 
+pub fn ensure_trailing_newline(app: &mut Application) {
+    // Find end of buffer position.
+    match app.workspace.current_buffer() {
+        Some(buffer) => {
+            let data = buffer.data();
+            if data.chars().last().unwrap() != '\n' {
+                match buffer.data().lines().enumerate().last() {
+                    Some((line_no, line)) => {
+                        let original_position = *buffer.cursor;
+                        let target_position = Position{
+                            line: line_no,
+                            offset: line.len()
+                        };
+
+                        if buffer.cursor.move_to(target_position) {
+                            buffer.insert("\n");
+                            buffer.cursor.move_to(original_position);
+                        }
+                    },
+                    None => (),
+                }
+            }
+        },
+        None => (),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     extern crate scribe;
@@ -715,10 +743,10 @@ mod tests {
     }
 
     #[test]
-    fn save_removes_trailing_whitespace() {
+    fn save_removes_trailing_whitespace_and_adds_newlines() {
         let mut app = ::models::application::new(10);
         let mut buffer = scribe::buffer::new();
-        buffer.insert("  amp\n  \neditor ");
+        buffer.insert("amp  \neditor ");
 
         // Now that we've set up the buffer, add it
         // to the application, and save it.
@@ -726,7 +754,7 @@ mod tests {
         super::save(&mut app);
 
         // Ensure that trailing whitespace is removed.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "  amp\n\neditor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor\n");
     }
 
     #[test]
@@ -885,7 +913,6 @@ mod tests {
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "\n amp editor");
     }
 
-
     #[test]
     fn merge_next_line_removes_leading_whitespace_from_second_line() {
         let mut app = ::models::application::new(10);
@@ -899,5 +926,35 @@ mod tests {
 
         // Ensure that the lines are merged correctly.
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp editor");
+    }
+
+    #[test]
+    fn ensure_trailing_newline_adds_newlines_when_missing() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("amp\neditor");
+
+        // Now that we've set up the buffer, add it
+        // to the application and run the command.
+        app.workspace.add_buffer(buffer);
+        commands::buffer::ensure_trailing_newline(&mut app);
+
+        // Ensure that trailing newline is added.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor\n");
+    }
+
+    #[test]
+    fn ensure_trailing_newline_does_nothing_when_already_present() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("amp\neditor\n");
+
+        // Now that we've set up the buffer, add it
+        // to the application and run the command.
+        app.workspace.add_buffer(buffer);
+        commands::buffer::ensure_trailing_newline(&mut app);
+
+        // Ensure that trailing newline is added.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor\n");
     }
 }
