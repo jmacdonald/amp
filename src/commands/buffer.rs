@@ -21,6 +21,12 @@ pub fn delete(app: &mut Application) {
     commands::view::scroll_to_cursor(app);
 }
 
+pub fn delete_token(app: &mut Application) {
+    commands::application::switch_to_select_mode(app);
+    commands::cursor::move_to_end_of_current_token(app);
+    commands::selection::delete(app);
+}
+
 pub fn delete_current_line(app: &mut Application) {
     commands::application::switch_to_select_line_mode(app);
     commands::selection::delete(app);
@@ -529,6 +535,21 @@ mod tests {
         app.workspace.current_buffer().unwrap().insert(" ");
         app.workspace.current_buffer().unwrap().undo();
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "    amp\neditor");
+    }
+
+    #[test]
+    fn delete_token_deletes_current_token() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("amp editor");
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        super::delete_token(&mut app);
+
+        // Ensure that the content is removed.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), " editor");
     }
 
     #[test]
