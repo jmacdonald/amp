@@ -3,9 +3,20 @@ pub mod tag_generator;
 use std::collections::HashMap;
 use helpers::movement_lexer;
 use scribe::buffer::{Position, Token, Category};
+use models::application::modes::select::SelectMode;
+use models::application::modes::select_line::SelectLineMode;
+
+/// Used to compose select and jump modes, allowing jump mode
+/// to be used for cursor navigation (to select a range of text).
+pub enum SelectModeOptions {
+    None,
+    Select(SelectMode),
+    SelectLine(SelectLineMode),
+}
 
 pub struct JumpMode {
     pub input: String,
+    pub select_mode: SelectModeOptions,
     tag_generator: tag_generator::TagGenerator,
     tag_positions: HashMap<String, Position>,
 }
@@ -108,6 +119,7 @@ impl JumpMode {
 pub fn new() -> JumpMode {
     JumpMode{
         input: String::new(),
+        select_mode: SelectModeOptions::None,
         tag_generator: tag_generator::new(),
         tag_positions: HashMap::new()
     }

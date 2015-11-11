@@ -19,6 +19,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('y') => Some(selection::copy),
         Key::Char(',') => Some(view::scroll_up),
         Key::Char('m') => Some(view::scroll_down),
+        Key::Char('f') => Some(application::switch_to_jump_mode),
         Key::Esc       => Some(application::switch_to_normal_mode),
         _              => None,
     }

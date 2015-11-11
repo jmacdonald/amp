@@ -1,4 +1,5 @@
 use commands;
+use std::mem;
 use models::application::{Application, Mode};
 use models::application::modes::{insert, jump, line_jump, open, select, select_line, search_insert};
 
@@ -13,7 +14,32 @@ pub fn switch_to_insert_mode(app: &mut Application) {
 }
 
 pub fn switch_to_jump_mode(app: &mut Application) {
-    app.mode = Mode::Jump(jump::new());
+    // Initialize a new jump mode and swap
+    // it with the current application mode.
+    let jump_mode = Mode::Jump(jump::new());
+    let old_mode = mem::replace(&mut app.mode, jump_mode);
+
+    // If we were previously in a select mode, store it
+    // in the current jump mode so that we can return to
+    // it after we've jumped to a location. This is how
+    // we compose select and jump modes.
+    match old_mode {
+        Mode::Select(select_mode) => {
+            match app.mode {
+                Mode::Jump(ref mut mode) => mode.select_mode =
+                  jump::SelectModeOptions::Select(select_mode),
+                _ => (),
+            }
+        },
+        Mode::SelectLine(select_mode) => {
+          match app.mode {
+              Mode::Jump(ref mut mode) => mode.select_mode =
+                jump::SelectModeOptions::SelectLine(select_mode),
+              _ => (),
+          }
+        },
+        _ => (),
+    };
 }
 
 pub fn switch_to_line_jump_mode(app: &mut Application) {
