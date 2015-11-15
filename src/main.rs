@@ -11,6 +11,7 @@ mod helpers;
 use models::application::Mode;
 use view::{Data, StatusLine};
 use rustbox::Color;
+use models::terminal::Event;
 
 fn main() {
     let terminal = models::terminal::new();
@@ -37,8 +38,8 @@ fn main() {
             _ => view::modes::default::display(&terminal, &view_data),
         }
 
-        match terminal.get_input() {
-            Some(key) => {
+        match terminal.listen() {
+            Event::KeyEvent(Some(key)) => {
                 // Pass the input to the current mode.
                 let command = match application.mode {
                     Mode::Normal => input::modes::normal::handle(key),
@@ -65,7 +66,7 @@ fn main() {
                     _ => {}
                 }
             },
-            None => {},
+            _ => {},
         }
     }
 }

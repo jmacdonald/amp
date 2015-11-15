@@ -4,7 +4,8 @@ use std::ops::Deref;
 use std::error::Error;
 use std::default::Default;
 use rustbox::{RustBox, InitOptions};
-use rustbox::keyboard::Key;
+
+pub use rustbox::Event;
 
 pub struct Terminal {
     terminal: RustBox,
@@ -19,10 +20,10 @@ impl Deref for Terminal {
 }
 
 impl Terminal {
-    pub fn get_input(&self) -> Option<Key> {
+    pub fn listen(&self) -> Event {
         match self.terminal.poll_event(false) {
-            Ok(rustbox::Event::KeyEvent(key)) => key,
-            _ => None,
+            Ok(event) => event,
+            Err(_) => Event::NoEvent,
         }
     }
 }
