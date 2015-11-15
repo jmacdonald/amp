@@ -4,7 +4,7 @@ use scribe::buffer::{line_range, LineRange};
 /// Used to determine visible ranges of lines based on previous state,
 /// explicit line focus, and common scrolling implementation behaviours.
 pub struct ScrollableRegion {
-    height: usize,
+    pub height: usize,
     line_offset: usize,
 }
 
@@ -16,11 +16,6 @@ pub enum Visibility {
 }
 
 impl ScrollableRegion {
-    // The height of the scrollable region.
-    pub fn height(&self) -> usize {
-        self.height
-    }
-    
     // Determines the visible lines based on the current line offset and height.
     pub fn visible_range(&self) -> LineRange {
         line_range::new(self.line_offset, self.height + self.line_offset)

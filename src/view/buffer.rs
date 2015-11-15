@@ -105,6 +105,12 @@ impl BufferView {
         self.get_region(buffer).scroll_down(amount);
     }
 
+    pub fn update_height(&mut self, height: usize) {
+        for (_, region) in self.regions.iter_mut() {
+            region.height = height;
+        }
+    }
+
     fn get_region(&mut self, buffer: &Buffer) -> &mut ScrollableRegion {
         if self.regions.contains_key(&buffer_key(buffer)) {
             self.regions.get_mut(&buffer_key(buffer)).unwrap()
@@ -131,13 +137,13 @@ fn relative_range(region: &ScrollableRegion, first_position: &Position, second_p
     let first_relative_position = match region.relative_position(first_position.line) {
         Visibility::Visible(line) => Position{ line: line, offset: first_position.offset },
         Visibility::AboveRegion => Position{ line: 0, offset: 0 },
-        Visibility::BelowRegion => Position{ line: region.height()+1, offset: 0 }
+        Visibility::BelowRegion => Position{ line: region.height+1, offset: 0 }
     };
 
     let second_relative_position = match region.relative_position(second_position.line) {
         Visibility::Visible(line) => Position{ line: line, offset: second_position.offset },
         Visibility::AboveRegion => Position{ line: 0, offset: 0 },
-        Visibility::BelowRegion => Position{ line: region.height()+1, offset: 0 }
+        Visibility::BelowRegion => Position{ line: region.height+1, offset: 0 }
     };
 
     range::new(first_relative_position, second_relative_position)
@@ -300,6 +306,73 @@ mod tests {
                 Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
                 Token{ lexeme: "third".to_string(), category: Category::Text },
                 Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+            ]
+        );
+    }
+
+    #[test]
+    fn update_height_updates_all_regions() {
+        let mut buffer_view = super::new(2);
+        let mut mode = Mode::Normal;
+        let mut first_buffer = scribe::buffer::new();
+        let mut second_buffer = scribe::buffer::new();
+        first_buffer.insert("first\nsecond\nthird\nfourth");
+        second_buffer.insert("first\nsecond\nthird\nfourth");
+
+        // Set paths for both buffers, which is required for scroll tracking.
+        first_buffer.path = Some(PathBuf::from("first"));
+        second_buffer.path = Some(PathBuf::from("second"));
+
+        // Scroll down one line, leaving lines 2 and 3 visible (since we have a height of 2).
+        buffer_view.scroll_down(&first_buffer, 1);
+        buffer_view.scroll_down(&second_buffer, 1);
+
+        // Ensure the buffers are scrolled.
+        let mut data = buffer_view.data(&mut first_buffer, &mut mode);
+        assert_eq!(
+            data.tokens,
+            vec![
+                Token{ lexeme: "second".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+                Token{ lexeme: "third".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+            ]
+        );
+        data = buffer_view.data(&mut second_buffer, &mut mode);
+        assert_eq!(
+            data.tokens,
+            vec![
+                Token{ lexeme: "second".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+                Token{ lexeme: "third".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+            ]
+        );
+
+        // Update the view height.
+        buffer_view.update_height(3);
+
+        // Ensure both buffer views are updated.
+        data = buffer_view.data(&mut first_buffer, &mut mode);
+        assert_eq!(
+            data.tokens,
+            vec![
+                Token{ lexeme: "second".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+                Token{ lexeme: "third".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+                Token{ lexeme: "fourth".to_string(), category: Category::Text },
+            ]
+        );
+        data = buffer_view.data(&mut second_buffer, &mut mode);
+        assert_eq!(
+            data.tokens,
+            vec![
+                Token{ lexeme: "second".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+                Token{ lexeme: "third".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+                Token{ lexeme: "fourth".to_string(), category: Category::Text },
             ]
         );
     }
