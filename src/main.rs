@@ -66,6 +66,9 @@ fn main() {
                     _ => {}
                 }
             },
+            Event::ResizeEvent(_, height) => {
+                application.buffer_view.update_height((height-1) as usize);
+            },
             _ => {},
         }
     }
