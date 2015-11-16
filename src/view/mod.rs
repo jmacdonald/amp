@@ -10,6 +10,8 @@ use scribe::buffer::{Category, Position, Range, Token};
 use pad::PadStr;
 use rustbox::Color;
 
+const LINE_LENGTH_GUIDE_OFFSET: usize = 80;
+
 pub struct Data {
     pub tokens: Vec<Token>,
     pub cursor: Option<Position>,
@@ -100,6 +102,18 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
                         }
                     }
                     None => (),
+                }
+
+                // Print the length guide for this line.
+                if offset < LINE_LENGTH_GUIDE_OFFSET {
+                    terminal.print_char(
+                        LINE_LENGTH_GUIDE_OFFSET,
+                        line,
+                        rustbox::RB_NORMAL,
+                        Color::Default,
+                        Color::Black,
+                        ' '
+                    );
                 }
 
                 // Move position tracking to the next line.
