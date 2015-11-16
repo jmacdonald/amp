@@ -25,6 +25,8 @@ fn main() {
                 tokens: Vec::new(),
                 cursor: None,
                 highlight: None,
+                line_count: 0,
+                scrolling_offset: 0,
                 status_line: StatusLine{
                     content: "".to_string(),
                     color: Color::Default

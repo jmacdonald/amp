@@ -86,6 +86,8 @@ impl BufferView {
             tokens: tokens,
             cursor: relative_cursor,
             highlight: highlight,
+            line_count: buffer.data().lines().count(),
+            scrolling_offset: region.line_offset(),
             status_line: StatusLine{
                 content: content,
                 color: color

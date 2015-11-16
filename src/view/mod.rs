@@ -16,6 +16,8 @@ pub struct Data {
     pub tokens: Vec<Token>,
     pub cursor: Option<Position>,
     pub highlight: Option<Range>,
+    pub line_count: usize,
+    pub scrolling_offset: usize,
     pub status_line: StatusLine
 }
 
@@ -47,11 +49,88 @@ pub fn map_color(category: &Category) -> Color {
 pub fn draw_tokens(terminal: &Terminal, data: &Data) {
     let mut line = 0;
     let mut offset = 0;
+
+    // Determine the gutter size based on the number of lines.
+    let line_number_width = data.line_count.to_string().len() + 1;
+    let gutter_width = line_number_width + 2;
+
+    // Set the terminal cursor, considering leading line numbers.
+    match data.cursor {
+        Some(position) => {
+            terminal.set_cursor(
+                (position.offset + gutter_width) as isize,
+                position.line as isize
+            );
+        },
+        None => (),
+    }
+
     for token in data.tokens.iter() {
         let color = map_color(&token.category);
 
         for character in token.lexeme.chars() {
-            let current_position = Position{ line: line, offset: offset };
+            // Draw leading line numbers.
+            if offset == 0 {
+                // Line numbers are relative; get absolute version.
+                let absolute_line = line + data.scrolling_offset;
+
+                // Get left-padded string-based line number.
+                let line_number = format!(
+                    "{:>width$}  ",
+                    absolute_line,
+                    width=line_number_width
+                );
+
+                // Print numbers.
+                for number in line_number.chars() {
+                    // Numbers (and their leading spaces) have background
+                    // color, but the right-hand side gutter gap does not.
+                    let background_color = match data.cursor {
+                        Some(cursor) => {
+                            if offset > line_number_width && line != cursor.line {
+                                Color::Default
+                            } else {
+                                Color::Black
+                            }
+                        },
+                        None => {
+                            if offset > line_number_width {
+                                Color::Default
+                            } else {
+                                Color::Black
+                            }
+                        },
+                    };
+
+                    // Current line number is emboldened.
+                    let weight = match data.cursor {
+                        Some(cursor) => {
+                            if line == cursor.line {
+                                rustbox::RB_BOLD
+                            } else {
+                                rustbox::RB_NORMAL
+                            }
+                        },
+                        None => rustbox::RB_NORMAL
+                    };
+
+                    terminal.print_char(
+                        offset,
+                        line,
+                        weight,
+                        Color::Default,
+                        background_color,
+                        number
+                    );
+
+                    offset += 1;
+                }
+            }
+
+            let current_position = Position{
+                line: line,
+                offset: offset - gutter_width
+            };
             let background_color =
                 match data.highlight {
                     Some(ref highlight_range) => {
