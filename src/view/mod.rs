@@ -105,7 +105,7 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
                 }
 
                 // Print the length guide for this line.
-                if offset < LINE_LENGTH_GUIDE_OFFSET {
+                if offset <= LINE_LENGTH_GUIDE_OFFSET {
                     terminal.print_char(
                         LINE_LENGTH_GUIDE_OFFSET,
                         line,
