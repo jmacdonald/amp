@@ -83,7 +83,7 @@ impl BufferView {
 
         // Bundle up the presentable data.
         Data{
-            tokens: tokens,
+            tokens: Some(tokens),
             cursor: relative_cursor,
             highlight: highlight,
             line_count: buffer.data().lines().count(),

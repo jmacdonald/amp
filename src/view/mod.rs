@@ -13,7 +13,7 @@ use rustbox::Color;
 const LINE_LENGTH_GUIDE_OFFSET: usize = 80;
 
 pub struct Data {
-    pub tokens: Vec<Token>,
+    pub tokens: Option<Vec<Token>>,
     pub cursor: Option<Position>,
     pub highlight: Option<Range>,
     pub line_count: usize,
@@ -49,6 +49,12 @@ pub fn map_color(category: &Category) -> Color {
 pub fn draw_tokens(terminal: &Terminal, data: &Data) {
     let mut line = 0;
 
+    // Get the tokens, bailing out if there are none.
+    let tokens = match data.tokens {
+        Some(ref tokens) => tokens,
+        None => return,
+    };
+
     // Determine the gutter size based on the number of lines.
     let line_number_width = data.line_count.to_string().len() + 1;
     let gutter_width = line_number_width + 2;
@@ -73,7 +79,7 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
         line_number_width
     );
 
-    for token in data.tokens.iter() {
+    for token in tokens.iter() {
         let color = map_color(&token.category);
 
         for character in token.lexeme.chars() {

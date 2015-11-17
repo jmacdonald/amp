@@ -22,7 +22,7 @@ fn main() {
         let view_data = match application.workspace.current_buffer() {
             Some(ref mut buffer) => application.buffer_view.data(buffer, &mut application.mode),
             None => Data{
-                tokens: Vec::new(),
+                tokens: None,
                 cursor: None,
                 highlight: None,
                 line_count: 0,
