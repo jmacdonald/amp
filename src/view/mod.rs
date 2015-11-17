@@ -48,7 +48,6 @@ pub fn map_color(category: &Category) -> Color {
 
 pub fn draw_tokens(terminal: &Terminal, data: &Data) {
     let mut line = 0;
-    let mut offset = 0;
 
     // Determine the gutter size based on the number of lines.
     let line_number_width = data.line_count.to_string().len() + 1;
@@ -67,7 +66,7 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
 
     // Draw the first line number.
     // Others will be drawn following newline characters.
-    offset = draw_line_number(
+    let mut offset = draw_line_number(
         terminal,
         0,
         data,
