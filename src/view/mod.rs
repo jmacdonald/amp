@@ -71,8 +71,9 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
         for character in token.lexeme.chars() {
             // Draw leading line numbers.
             if offset == 0 {
-                // Line numbers are relative; get absolute version.
-                let absolute_line = line + data.scrolling_offset;
+                // Line numbers are zero-based and relative;
+                // get non-zero-based absolute version.
+                let absolute_line = line + data.scrolling_offset + 1;
 
                 // Get left-padded string-based line number.
                 let line_number = format!(
