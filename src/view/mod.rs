@@ -71,61 +71,12 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
         for character in token.lexeme.chars() {
             // Draw leading line numbers.
             if offset == 0 {
-                // Line numbers are zero-based and relative;
-                // get non-zero-based absolute version.
-                let absolute_line = line + data.scrolling_offset + 1;
-
-                // Get left-padded string-based line number.
-                let line_number = format!(
-                    "{:>width$}  ",
-                    absolute_line,
-                    width=line_number_width
+                offset = draw_line_numbers(
+                    terminal,
+                    line,
+                    data,
+                    line_number_width
                 );
-
-                // Print numbers.
-                for number in line_number.chars() {
-                    // Numbers (and their leading spaces) have background
-                    // color, but the right-hand side gutter gap does not.
-                    let background_color = match data.cursor {
-                        Some(cursor) => {
-                            if offset > line_number_width && line != cursor.line {
-                                Color::Default
-                            } else {
-                                Color::Black
-                            }
-                        },
-                        None => {
-                            if offset > line_number_width {
-                                Color::Default
-                            } else {
-                                Color::Black
-                            }
-                        },
-                    };
-
-                    // Current line number is emboldened.
-                    let weight = match data.cursor {
-                        Some(cursor) => {
-                            if line == cursor.line {
-                                rustbox::RB_BOLD
-                            } else {
-                                rustbox::RB_NORMAL
-                            }
-                        },
-                        None => rustbox::RB_NORMAL
-                    };
-
-                    terminal.print_char(
-                        offset,
-                        line,
-                        weight,
-                        Color::Default,
-                        background_color,
-                        number
-                    );
-
-                    offset += 1;
-                }
             }
 
             let current_position = Position{
@@ -244,4 +195,66 @@ pub fn draw_status_line(terminal: &Terminal, content: &str, color: Color) {
         color,
         &content.pad_to_width(terminal.width())
     );
+}
+
+fn draw_line_numbers(terminal: &Terminal, line: usize, data: &Data, width: usize) -> usize {
+    let mut offset = 0;
+
+    // Line numbers are zero-based and relative;
+    // get non-zero-based absolute version.
+    let absolute_line = line + data.scrolling_offset + 1;
+
+    // Get left-padded string-based line number.
+    let line_number = format!(
+        "{:>width$}  ",
+        absolute_line,
+        width=width
+    );
+
+    // Print numbers.
+    for number in line_number.chars() {
+        // Numbers (and their leading spaces) have background
+        // color, but the right-hand side gutter gap does not.
+        let background_color = match data.cursor {
+            Some(cursor) => {
+                if offset > width && line != cursor.line {
+                    Color::Default
+                } else {
+                    Color::Black
+                }
+            },
+            None => {
+                if offset > width {
+                    Color::Default
+                } else {
+                    Color::Black
+                }
+            },
+        };
+
+        // Current line number is emboldened.
+        let weight = match data.cursor {
+            Some(cursor) => {
+                if line == cursor.line {
+                    rustbox::RB_BOLD
+                } else {
+                    rustbox::RB_NORMAL
+                }
+            },
+            None => rustbox::RB_NORMAL
+        };
+
+        terminal.print_char(
+            offset,
+            line,
+            weight,
+            Color::Default,
+            background_color,
+            number
+        );
+
+        offset += 1;
+    }
+
+    offset
 }
