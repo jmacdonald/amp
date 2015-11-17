@@ -65,20 +65,19 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
         None => (),
     }
 
+    // Draw the first line number.
+    // Others will be drawn following newline characters.
+    offset = draw_line_number(
+        terminal,
+        0,
+        data,
+        line_number_width
+    );
+
     for token in data.tokens.iter() {
         let color = map_color(&token.category);
 
         for character in token.lexeme.chars() {
-            // Draw leading line numbers.
-            if offset == 0 {
-                offset = draw_line_numbers(
-                    terminal,
-                    line,
-                    data,
-                    line_number_width
-                );
-            }
-
             let current_position = Position{
                 line: line,
                 offset: offset - gutter_width
@@ -147,9 +146,16 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
                     );
                 }
 
-                // Move position tracking to the next line.
+                // Advance to the next line.
                 line += 1;
-                offset = 0;
+
+                // Draw leading line number for the new line.
+                offset = draw_line_number(
+                    terminal,
+                    line,
+                    data,
+                    line_number_width
+                );
             } else {
                 terminal.print_char(
                     offset,
@@ -197,7 +203,7 @@ pub fn draw_status_line(terminal: &Terminal, content: &str, color: Color) {
     );
 }
 
-fn draw_line_numbers(terminal: &Terminal, line: usize, data: &Data, width: usize) -> usize {
+fn draw_line_number(terminal: &Terminal, line: usize, data: &Data, width: usize) -> usize {
     let mut offset = 0;
 
     // Line numbers are zero-based and relative;
