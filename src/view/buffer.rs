@@ -108,6 +108,11 @@ impl BufferView {
     }
 
     pub fn update_height(&mut self, height: usize) {
+        // Update the buffer view's height, which
+        // will apply to all new scrollable regions.
+        self.height = height;
+
+        // Update pre-existing scrollable regions.
         for (_, region) in self.regions.iter_mut() {
             region.height = height;
         }
@@ -375,6 +380,22 @@ mod tests {
                 Token{ lexeme: "third".to_string(), category: Category::Text },
                 Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
                 Token{ lexeme: "fourth".to_string(), category: Category::Text },
+            ]
+        );
+
+        // Ensure new buffers are given the correct height.
+        let mut new_buffer = scribe::buffer::new();
+        new_buffer.insert("first\nsecond\nthird\nfourth");
+        data = buffer_view.data(&mut new_buffer, &mut mode);
+        assert_eq!(
+            data.tokens.unwrap(),
+            vec![
+                Token{ lexeme: "first".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+                Token{ lexeme: "second".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
+                Token{ lexeme: "third".to_string(), category: Category::Text },
+                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
             ]
         );
     }
