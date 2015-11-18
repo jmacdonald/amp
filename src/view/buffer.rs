@@ -208,7 +208,7 @@ mod tests {
 
         let mut data = buffer_view.data(&mut buffer, &mut mode);
         assert_eq!(
-            data.tokens,
+            data.tokens.unwrap(),
             vec![
                 Token{ lexeme: "first".to_string(), category: Category::Text },
                 Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
@@ -222,7 +222,7 @@ mod tests {
 
         data = buffer_view.data(&mut buffer, &mut mode);
         assert_eq!(
-            data.tokens,
+            data.tokens.unwrap(),
             vec![
                 Token{ lexeme: "second".to_string(), category: Category::Text },
                 Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
@@ -278,7 +278,7 @@ mod tests {
         // Ensure the first buffer is scrolled.
         let mut data = buffer_view.data(&mut first_buffer, &mut mode);
         assert_eq!(
-            data.tokens,
+            data.tokens.unwrap(),
             vec![
                 Token{ lexeme: "second".to_string(), category: Category::Text },
                 Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
@@ -290,7 +290,7 @@ mod tests {
         // Ensure the second buffer is not scrolled.
         data = buffer_view.data(&mut second_buffer, &mut mode);
         assert_eq!(
-            data.tokens,
+            data.tokens.unwrap(),
             vec![
                 Token{ lexeme: "first".to_string(), category: Category::Text },
                 Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
@@ -302,7 +302,7 @@ mod tests {
         // Ensure the first buffer is still scrolled.
         let data = buffer_view.data(&mut first_buffer, &mut mode);
         assert_eq!(
-            data.tokens,
+            data.tokens.unwrap(),
             vec![
                 Token{ lexeme: "second".to_string(), category: Category::Text },
                 Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
@@ -332,7 +332,7 @@ mod tests {
         // Ensure the buffers are scrolled.
         let mut data = buffer_view.data(&mut first_buffer, &mut mode);
         assert_eq!(
-            data.tokens,
+            data.tokens.unwrap(),
             vec![
                 Token{ lexeme: "second".to_string(), category: Category::Text },
                 Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
@@ -342,7 +342,7 @@ mod tests {
         );
         data = buffer_view.data(&mut second_buffer, &mut mode);
         assert_eq!(
-            data.tokens,
+            data.tokens.unwrap(),
             vec![
                 Token{ lexeme: "second".to_string(), category: Category::Text },
                 Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
@@ -357,7 +357,7 @@ mod tests {
         // Ensure both buffer views are updated.
         data = buffer_view.data(&mut first_buffer, &mut mode);
         assert_eq!(
-            data.tokens,
+            data.tokens.unwrap(),
             vec![
                 Token{ lexeme: "second".to_string(), category: Category::Text },
                 Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
@@ -368,7 +368,7 @@ mod tests {
         );
         data = buffer_view.data(&mut second_buffer, &mut mode);
         assert_eq!(
-            data.tokens,
+            data.tokens.unwrap(),
             vec![
                 Token{ lexeme: "second".to_string(), category: Category::Text },
                 Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
