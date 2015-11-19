@@ -192,14 +192,18 @@ pub fn indent_line(app: &mut Application) {
                 _ => *buffer.cursor.clone(),
             };
 
-            // Get the range of lines we'll indent based on
+            // Get the range of lines we'll outdent based on
             // either the current selection or cursor line.
             let lines = match app.mode {
                 Mode::SelectLine(ref mode) => {
-                    mode.anchor
+                    if mode.anchor >= buffer.cursor.line {
+                      buffer.cursor.line..mode.anchor+1
+                    } else {
+                      mode.anchor..buffer.cursor.line+1
+                    }
                 },
-                _ => buffer.cursor.line
-            }..buffer.cursor.line+1;
+                _ => buffer.cursor.line..buffer.cursor.line+1,
+            };
 
             // Move to the start of the current line and
             // insert the content, as a single operation.
@@ -230,10 +234,14 @@ pub fn outdent_line(app: &mut Application) {
             // either the current selection or cursor line.
             let lines = match app.mode {
                 Mode::SelectLine(ref mode) => {
-                    mode.anchor
+                    if mode.anchor >= buffer.cursor.line {
+                      buffer.cursor.line..mode.anchor+1
+                    } else {
+                      mode.anchor..buffer.cursor.line+1
+                    }
                 },
-                _ => buffer.cursor.line
-            }..buffer.cursor.line+1;
+                _ => buffer.cursor.line..buffer.cursor.line+1,
+            };
 
             // Group the individual outdent operations as one.
             buffer.start_operation_group();
@@ -659,6 +667,24 @@ mod tests {
     }
 
     #[test]
+    fn indent_line_works_with_reversed_selections() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("amp\neditor");
+
+        // Now that we've set up the buffer, add it to the
+        // application, select all lines, and call the command.
+        app.workspace.add_buffer(buffer);
+        commands::cursor::move_down(&mut app);
+        commands::application::switch_to_select_line_mode(&mut app);
+        commands::cursor::move_up(&mut app);
+        super::indent_line(&mut app);
+
+        // Ensure that the indentation is applied correctly.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "  amp\n  editor");
+    }
+
+    #[test]
     fn outdent_line_removes_two_spaces_from_start_of_line() {
         let mut app = ::models::application::new(10);
         let mut buffer = scribe::buffer::new();
@@ -746,6 +772,24 @@ mod tests {
         // Undo the outdent and check that it's treated as one operation.
         super::undo(&mut app);
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "  amp\n  editor");
+    }
+
+    #[test]
+    fn outdent_line_works_with_reversed_selections() {
+        let mut app = ::models::application::new(10);
+        let mut buffer = scribe::buffer::new();
+        buffer.insert("  amp\n  editor");
+
+        // Now that we've set up the buffer, add it to the
+        // application, select all lines, and call the command.
+        app.workspace.add_buffer(buffer);
+        commands::cursor::move_down(&mut app);
+        commands::application::switch_to_select_line_mode(&mut app);
+        commands::cursor::move_up(&mut app);
+        super::outdent_line(&mut app);
+
+        // Ensure that the indentation is applied correctly.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor");
     }
 
     #[test]
