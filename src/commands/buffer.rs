@@ -62,17 +62,20 @@ pub fn merge_next_line(app: &mut Application) {
             }
 
             // Remove the two lines, move to the start of the line,
-            // insert the merged lines, and restore the cursor,
+            // insert the merged lines, and position the cursor,
             // batched as a single operation.
             buffer.start_operation_group();
-            let initial_position = *buffer.cursor.clone();
+            let target_position = Position{
+              line: current_line,
+              offset: data.lines().nth(current_line).unwrap().len(),
+            };
             buffer.delete_range(range::new(
                 Position{ line: current_line, offset: 0 },
                 Position{ line: current_line+2, offset: 0 },
             ));
             buffer.cursor.move_to(Position{ line: current_line, offset: 0 });
             buffer.insert(&merged_lines);
-            buffer.cursor.move_to(initial_position);
+            buffer.cursor.move_to(target_position);
             buffer.end_operation_group();
         },
         None => (),
@@ -930,6 +933,12 @@ mod tests {
 
         // Ensure that the lines are merged correctly.
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp editor");
+
+        // Ensure that the cursor is moved to the end of the current line.
+        assert_eq!(
+          *app.workspace.current_buffer().unwrap().cursor,
+          Position{ line: 0, offset: 3 }
+        );
     }
 
     #[test]
@@ -945,6 +954,12 @@ mod tests {
 
         // Ensure that the lines are merged correctly.
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp editor");
+
+        // Ensure that the cursor is moved to the end of the current line.
+        assert_eq!(
+          *app.workspace.current_buffer().unwrap().cursor,
+          Position{ line: 0, offset: 0 }
+        );
     }
 
     #[test]
