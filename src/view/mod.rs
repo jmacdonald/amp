@@ -11,7 +11,6 @@ use pad::PadStr;
 use rustbox::Color;
 
 const LINE_LENGTH_GUIDE_OFFSET: usize = 80;
-const HIGHLIGHT_COLOR: Color = Color::White;
 const ALT_BACKGROUND_COLOR: Color = Color::Black;
 
 pub struct Data {
@@ -82,44 +81,35 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
     );
 
     for token in tokens.iter() {
-        let color = map_color(&token.category);
+        let token_color = map_color(&token.category);
 
         for character in token.lexeme.chars() {
             let current_position = Position{
                 line: line,
                 offset: offset - gutter_width
             };
-            let background_color =
-                match data.highlight {
-                    Some(ref highlight_range) => {
-                        if highlight_range.includes(&current_position) {
-                            HIGHLIGHT_COLOR
-                        } else {
-                            match data.cursor {
-                                Some(cursor) => {
-                                    if line == cursor.line {
-                                        ALT_BACKGROUND_COLOR
-                                    } else {
-                                        Color::Default
-                                    }
-                                },
-                                None => Color::Default,
-                            }
-                        }
-                    },
-                    None => {
-                        match data.cursor {
-                            Some(cursor) => {
-                                if line == cursor.line {
-                                    ALT_BACKGROUND_COLOR
-                                } else {
-                                    Color::Default
-                                }
-                            },
-                            None => Color::Default,
-                        }
+
+            let (style, color) = match data.highlight {
+                Some(ref highlight_range) => {
+                    if highlight_range.includes(&current_position) {
+                        (rustbox::RB_REVERSE, Color::Default)
+                    } else {
+                        (rustbox::RB_NORMAL, token_color)
                     }
-                };
+                },
+                None => (rustbox::RB_NORMAL, token_color),
+            };
+
+            let background_color = match data.cursor {
+                Some(cursor) => {
+                    if line == cursor.line {
+                        ALT_BACKGROUND_COLOR
+                    } else {
+                        Color::Default
+                    }
+                },
+                None => Color::Default,
+            };
 
             if character == '\n' {
                 // Print the rest of the line highlight.
@@ -130,7 +120,7 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
                                 terminal.print_char(
                                     offset,
                                     line,
-                                    rustbox::RB_NORMAL,
+                                    style,
                                     Color::Default,
                                     ALT_BACKGROUND_COLOR,
                                     ' '
@@ -146,7 +136,7 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
                     terminal.print_char(
                         LINE_LENGTH_GUIDE_OFFSET,
                         line,
-                        rustbox::RB_NORMAL,
+                        style,
                         Color::Default,
                         ALT_BACKGROUND_COLOR,
                         ' '
@@ -167,7 +157,7 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
                 terminal.print_char(
                     offset,
                     line,
-                    rustbox::RB_NORMAL,
+                    style,
                     color,
                     background_color,
                     character
