@@ -204,7 +204,7 @@ pub fn draw_status_line(terminal: &Terminal, content: &str, color: Color) {
         0,
         line,
         rustbox::RB_BOLD,
-        Color::White,
+        Color::Default,
         color,
         &content.pad_to_width(terminal.width())
     );
