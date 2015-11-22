@@ -7,7 +7,6 @@ use models::application::Mode;
 use scribe::buffer::{Buffer, Position, range, Range, Token, LineRange};
 use rustbox::Color;
 use std::collections::hash_map::HashMap;
-use view::ALT_BACKGROUND_COLOR;
 
 pub struct BufferView {
     height: usize,
@@ -24,8 +23,8 @@ impl BufferView {
             None => String::new(),
         };
         let color = match mode {
-            &mut Mode::Insert(_) => { Color::Green },
-            _ => { ALT_BACKGROUND_COLOR }
+            &mut Mode::Insert(_) => Some(Color::Green),
+            _ => None,
         };
 
         // Get the buffer's tokens and reduce them to the visible set.

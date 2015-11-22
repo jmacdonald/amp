@@ -24,7 +24,7 @@ pub struct Data {
 
 pub struct StatusLine {
     pub content: String,
-    pub color: Color
+    pub color: Option<Color>
 }
 
 pub fn map_color(category: &Category) -> Color {
@@ -188,14 +188,14 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
     }
 }
 
-pub fn draw_status_line(terminal: &Terminal, content: &str, color: Color) {
+pub fn draw_status_line(terminal: &Terminal, content: &str, color: Option<Color>) {
     let line = terminal.height()-1;
     terminal.print(
         0,
         line,
         rustbox::RB_BOLD,
         Color::Default,
-        color,
+        color.unwrap_or(ALT_BACKGROUND_COLOR),
         &content.pad_to_width(terminal.width())
     );
 }

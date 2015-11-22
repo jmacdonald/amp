@@ -10,7 +10,6 @@ mod helpers;
 
 use models::application::Mode;
 use view::{Data, StatusLine};
-use rustbox::Color;
 use models::terminal::Event;
 
 fn main() {
@@ -29,7 +28,7 @@ fn main() {
                 scrolling_offset: 0,
                 status_line: StatusLine{
                     content: "".to_string(),
-                    color: Color::Default
+                    color: None,
                 }
             },
         };
