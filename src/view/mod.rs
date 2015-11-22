@@ -11,6 +11,8 @@ use pad::PadStr;
 use rustbox::Color;
 
 const LINE_LENGTH_GUIDE_OFFSET: usize = 80;
+const HIGHLIGHT_COLOR: Color = Color::White;
+const ALT_BACKGROUND_COLOR: Color = Color::Black;
 
 pub struct Data {
     pub tokens: Option<Vec<Token>>,
@@ -91,12 +93,12 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
                 match data.highlight {
                     Some(ref highlight_range) => {
                         if highlight_range.includes(&current_position) {
-                            Color::White
+                            HIGHLIGHT_COLOR
                         } else {
                             match data.cursor {
                                 Some(cursor) => {
                                     if line == cursor.line {
-                                        Color::Black
+                                        ALT_BACKGROUND_COLOR
                                     } else {
                                         Color::Default
                                     }
@@ -109,7 +111,7 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
                         match data.cursor {
                             Some(cursor) => {
                                 if line == cursor.line {
-                                    Color::Black
+                                    ALT_BACKGROUND_COLOR
                                 } else {
                                     Color::Default
                                 }
@@ -130,7 +132,7 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
                                     line,
                                     rustbox::RB_NORMAL,
                                     Color::Default,
-                                    Color::Black,
+                                    ALT_BACKGROUND_COLOR,
                                     ' '
                                 );
                             }
@@ -146,7 +148,7 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
                         line,
                         rustbox::RB_NORMAL,
                         Color::Default,
-                        Color::Black,
+                        ALT_BACKGROUND_COLOR,
                         ' '
                     );
                 }
@@ -186,7 +188,7 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
                         line,
                         rustbox::RB_NORMAL,
                         Color::Default,
-                        Color::Black,
+                        ALT_BACKGROUND_COLOR,
                         ' '
                     );
                 }
@@ -231,14 +233,14 @@ fn draw_line_number(terminal: &Terminal, line: usize, data: &Data, width: usize)
                 if offset > width && line != cursor.line {
                     Color::Default
                 } else {
-                    Color::Black
+                    ALT_BACKGROUND_COLOR
                 }
             },
             None => {
                 if offset > width {
                     Color::Default
                 } else {
-                    Color::Black
+                    ALT_BACKGROUND_COLOR
                 }
             },
         };
