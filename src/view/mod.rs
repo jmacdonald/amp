@@ -136,7 +136,7 @@ pub fn draw_tokens(terminal: &Terminal, data: &Data) {
                     terminal.print_char(
                         LINE_LENGTH_GUIDE_OFFSET,
                         line,
-                        style,
+                        rustbox::RB_NORMAL,
                         Color::Default,
                         ALT_BACKGROUND_COLOR,
                         ' '
