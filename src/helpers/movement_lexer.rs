@@ -70,15 +70,14 @@ fn whitespace(lexer: &mut Tokenizer) -> Option<StateFunction> {
 fn uppercase(lexer: &mut Tokenizer) -> Option<StateFunction> {
     match lexer.current_char() {
         Some(c) => {
-            if c.is_lowercase() {
-                lexer.advance();
-                Some(StateFunction(initial_state))
-            } else {
+            if c.is_alphabetic() {
                 lexer.advance();
                 Some(StateFunction(uppercase))
+            } else {
+                lexer.tokenize(Category::Text);
+                Some(StateFunction(initial_state))
             }
-        }
-
+        },
         None => {
             lexer.tokenize(Category::Text);
             None
@@ -105,7 +104,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let data = "local_variable = camelCase.method(param)\n  something-else CONSTANT";
+        let data = "local_variable = camelCase.method(param)\n  something-else CONSTANT val";
         let tokens = lex(data);
         let expected_tokens = vec![
             Token{ lexeme: "local".to_string(), category: Category::Text },
@@ -127,6 +126,8 @@ mod tests {
             Token{ lexeme: "else".to_string(), category: Category::Text },
             Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "CONSTANT".to_string(), category: Category::Text },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "val".to_string(), category: Category::Text },
         ];
 
         for (index, token) in tokens.iter().enumerate() {
