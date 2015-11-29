@@ -1,8 +1,7 @@
-use view;
-use view::Data;
+use view::{Data, View};
 use models::terminal::Terminal;
 
-pub fn display(terminal: &Terminal, data: &Data) {
+pub fn display(terminal: &Terminal, data: &Data, view: &View) {
     // Wipe the slate clean.
     terminal.clear();
 
@@ -13,10 +12,10 @@ pub fn display(terminal: &Terminal, data: &Data) {
     }
 
     // Draw the visible set of tokens to the terminal.
-    view::draw_tokens(terminal, &data);
+    view.draw_tokens(terminal, &data);
 
     // Draw the status line.
-    view::draw_status_line(terminal, &data.status_line.content, data.status_line.color);
+    view.draw_status_line(terminal, &data.status_line.content, data.status_line.color);
 
     // Render the changes to the screen.
     terminal.present();

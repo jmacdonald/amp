@@ -14,6 +14,13 @@ pub struct BufferView {
 }
 
 impl BufferView {
+    pub fn new(height: usize) -> BufferView {
+        BufferView{
+            height: height,
+            regions: HashMap::new()
+        }
+    }
+
     pub fn data(&mut self, buffer: &mut Buffer, mode: &mut Mode) -> Data {
         let region = self.get_region(buffer);
 
@@ -187,17 +194,11 @@ fn visible_tokens(tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
     visible_tokens
 }
 
-pub fn new(height: usize) -> BufferView {
-    BufferView{
-        height: height,
-        regions: HashMap::new()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     extern crate scribe;
 
+    use super::BufferView;
     use models::application::Mode;
     use models::application::modes;
     use self::scribe::buffer;
@@ -206,7 +207,7 @@ mod tests {
 
     #[test]
     fn data_only_returns_tokens_in_visible_range() {
-        let mut buffer_view = super::new(2);
+        let mut buffer_view = BufferView::new(2);
         let mut mode = Mode::Normal;
         let mut buffer = scribe::buffer::new();
         buffer.insert("first\nsecond\nthird\nfourth");
@@ -239,7 +240,7 @@ mod tests {
 
     #[test]
     fn data_returns_correct_highlight_when_scrolled() {
-        let mut buffer_view = super::new(2);
+        let mut buffer_view = BufferView::new(2);
         let mut buffer = scribe::buffer::new();
         buffer.insert("first\nsecond\nthird\nfourth");
 
@@ -266,7 +267,7 @@ mod tests {
 
     #[test]
     fn data_tracks_scrolling_per_buffer() {
-        let mut buffer_view = super::new(2);
+        let mut buffer_view = BufferView::new(2);
         let mut mode = Mode::Normal;
         let mut first_buffer = scribe::buffer::new();
         let mut second_buffer = scribe::buffer::new();
@@ -319,7 +320,7 @@ mod tests {
 
     #[test]
     fn update_height_updates_all_regions() {
-        let mut buffer_view = super::new(2);
+        let mut buffer_view = BufferView::new(2);
         let mut mode = Mode::Normal;
         let mut first_buffer = scribe::buffer::new();
         let mut second_buffer = scribe::buffer::new();

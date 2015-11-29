@@ -5,13 +5,13 @@ pub mod modes;
 pub mod buffer;
 mod scrollable_region;
 
+use view::buffer::BufferView;
 use models::terminal::Terminal;
 use scribe::buffer::{Category, Position, Range, Token};
 use pad::PadStr;
 use rustbox::Color;
 
 const LINE_LENGTH_GUIDE_OFFSET: usize = 80;
-const ALT_BACKGROUND_COLOR: Color = Color::Black;
 
 pub struct Data {
     pub tokens: Option<Vec<Token>>,
@@ -27,7 +27,248 @@ pub struct StatusLine {
     pub color: Option<Color>
 }
 
-pub fn map_color(category: &Category) -> Color {
+pub enum Theme {
+    Dark,
+    Light,
+}
+
+pub struct View {
+    pub theme: Theme,
+    pub buffer_view: BufferView,
+}
+
+impl View {
+    pub fn new(height: usize) -> View {
+        View{
+            theme: Theme::Dark,
+            buffer_view: BufferView::new(height),
+        }
+    }
+
+    pub fn draw_tokens(&self, terminal: &Terminal, data: &Data) {
+        let mut line = 0;
+
+        // Get the tokens, bailing out if there are none.
+        let tokens = match data.tokens {
+            Some(ref tokens) => tokens,
+            None => return,
+        };
+
+        // Determine the gutter size based on the number of lines.
+        let line_number_width = data.line_count.to_string().len() + 1;
+        let gutter_width = line_number_width + 2;
+
+        // Set the terminal cursor, considering leading line numbers.
+        match data.cursor {
+            Some(position) => {
+                terminal.set_cursor(
+                    (position.offset + gutter_width) as isize,
+                    position.line as isize
+                );
+            },
+            None => (),
+        }
+
+        // Draw the first line number.
+        // Others will be drawn following newline characters.
+        let mut offset = self.draw_line_number(
+            terminal,
+            0,
+            data,
+            line_number_width
+        );
+
+        for token in tokens.iter() {
+            let token_color = map_color(&token.category);
+
+            for character in token.lexeme.chars() {
+                let current_position = Position{
+                    line: line,
+                    offset: offset - gutter_width
+                };
+
+                let (style, color) = match data.highlight {
+                    Some(ref highlight_range) => {
+                        if highlight_range.includes(&current_position) {
+                            (rustbox::RB_REVERSE, Color::Default)
+                        } else {
+                            (rustbox::RB_NORMAL, token_color)
+                        }
+                    },
+                    None => (rustbox::RB_NORMAL, token_color),
+                };
+
+                let background_color = match data.cursor {
+                    Some(cursor) => {
+                        if line == cursor.line {
+                            self.alt_background_color()
+                        } else {
+                            Color::Default
+                        }
+                    },
+                    None => Color::Default,
+                };
+
+                if character == '\n' {
+                    // Print the rest of the line highlight.
+                    match data.cursor {
+                        Some(cursor) => {
+                            if line == cursor.line {
+                                for offset in offset..terminal.width() {
+                                    terminal.print_char(
+                                        offset,
+                                        line,
+                                        style,
+                                        Color::Default,
+                                        self.alt_background_color(),
+                                        ' '
+                                    );
+                                }
+                            }
+                        }
+                        None => (),
+                    }
+
+                    // Print the length guide for this line.
+                    if offset <= LINE_LENGTH_GUIDE_OFFSET {
+                        terminal.print_char(
+                            LINE_LENGTH_GUIDE_OFFSET,
+                            line,
+                            rustbox::RB_NORMAL,
+                            Color::Default,
+                            self.alt_background_color(),
+                            ' '
+                        );
+                    }
+
+                    // Advance to the next line.
+                    line += 1;
+
+                    // Draw leading line number for the new line.
+                    offset = self.draw_line_number(
+                        terminal,
+                        line,
+                        data,
+                        line_number_width
+                    );
+                } else {
+                    terminal.print_char(
+                        offset,
+                        line,
+                        style,
+                        color,
+                        background_color,
+                        character
+                    );
+
+                    offset += 1;
+                }
+            }
+        }
+
+        // Print the rest of the line highlight.
+        match data.cursor {
+            Some(cursor) => {
+                if line == cursor.line {
+                    for offset in offset..terminal.width() {
+                        terminal.print_char(
+                            offset,
+                            line,
+                            rustbox::RB_NORMAL,
+                            Color::Default,
+                            self.alt_background_color(),
+                            ' '
+                        );
+                    }
+                }
+            },
+            None => (),
+        }
+    }
+
+    pub fn draw_status_line(&self, terminal: &Terminal, content: &str, color: Option<Color>) {
+        let line = terminal.height()-1;
+        terminal.print(
+            0,
+            line,
+            rustbox::RB_BOLD,
+            Color::Default,
+            color.unwrap_or(self.alt_background_color()),
+            &content.pad_to_width(terminal.width())
+        );
+    }
+
+    fn draw_line_number(&self, terminal: &Terminal, line: usize, data: &Data, width: usize) -> usize {
+        let mut offset = 0;
+
+        // Line numbers are zero-based and relative;
+        // get non-zero-based absolute version.
+        let absolute_line = line + data.scrolling_offset + 1;
+
+        // Get left-padded string-based line number.
+        let line_number = format!(
+            "{:>width$}  ",
+            absolute_line,
+            width=width
+        );
+
+        // Print numbers.
+        for number in line_number.chars() {
+            // Numbers (and their leading spaces) have background
+            // color, but the right-hand side gutter gap does not.
+            let background_color = match data.cursor {
+                Some(cursor) => {
+                    if offset > width && line != cursor.line {
+                        Color::Default
+                    } else {
+                        self.alt_background_color()
+                    }
+                },
+                None => {
+                    if offset > width {
+                        Color::Default
+                    } else {
+                        self.alt_background_color()
+                    }
+                },
+            };
+
+            // Current line number is emboldened.
+            let weight = match data.cursor {
+                Some(cursor) => {
+                    if line == cursor.line {
+                        rustbox::RB_BOLD
+                    } else {
+                        rustbox::RB_NORMAL
+                    }
+                },
+                None => rustbox::RB_NORMAL
+            };
+
+            terminal.print_char(
+                offset,
+                line,
+                weight,
+                Color::Default,
+                background_color,
+                number
+            );
+
+            offset += 1;
+        }
+
+        offset
+    }
+
+    pub fn alt_background_color(&self) -> Color {
+        match self.theme {
+            Theme::Dark  => Color::Black,
+            Theme::Light => Color::White,
+        }
+    }
+}
+
+fn map_color(category: &Category) -> Color {
     match category {
         &Category::Keyword     => Color::Yellow,
         &Category::Identifier  => Color::Magenta,
@@ -45,219 +286,4 @@ pub fn map_color(category: &Category) -> Color {
         &Category::Operator    => Color::Cyan,
         _                      => Color::Default,
     }
-}
-
-pub fn draw_tokens(terminal: &Terminal, data: &Data) {
-    let mut line = 0;
-
-    // Get the tokens, bailing out if there are none.
-    let tokens = match data.tokens {
-        Some(ref tokens) => tokens,
-        None => return,
-    };
-
-    // Determine the gutter size based on the number of lines.
-    let line_number_width = data.line_count.to_string().len() + 1;
-    let gutter_width = line_number_width + 2;
-
-    // Set the terminal cursor, considering leading line numbers.
-    match data.cursor {
-        Some(position) => {
-            terminal.set_cursor(
-                (position.offset + gutter_width) as isize,
-                position.line as isize
-            );
-        },
-        None => (),
-    }
-
-    // Draw the first line number.
-    // Others will be drawn following newline characters.
-    let mut offset = draw_line_number(
-        terminal,
-        0,
-        data,
-        line_number_width
-    );
-
-    for token in tokens.iter() {
-        let token_color = map_color(&token.category);
-
-        for character in token.lexeme.chars() {
-            let current_position = Position{
-                line: line,
-                offset: offset - gutter_width
-            };
-
-            let (style, color) = match data.highlight {
-                Some(ref highlight_range) => {
-                    if highlight_range.includes(&current_position) {
-                        (rustbox::RB_REVERSE, Color::Default)
-                    } else {
-                        (rustbox::RB_NORMAL, token_color)
-                    }
-                },
-                None => (rustbox::RB_NORMAL, token_color),
-            };
-
-            let background_color = match data.cursor {
-                Some(cursor) => {
-                    if line == cursor.line {
-                        ALT_BACKGROUND_COLOR
-                    } else {
-                        Color::Default
-                    }
-                },
-                None => Color::Default,
-            };
-
-            if character == '\n' {
-                // Print the rest of the line highlight.
-                match data.cursor {
-                    Some(cursor) => {
-                        if line == cursor.line {
-                            for offset in offset..terminal.width() {
-                                terminal.print_char(
-                                    offset,
-                                    line,
-                                    style,
-                                    Color::Default,
-                                    ALT_BACKGROUND_COLOR,
-                                    ' '
-                                );
-                            }
-                        }
-                    }
-                    None => (),
-                }
-
-                // Print the length guide for this line.
-                if offset <= LINE_LENGTH_GUIDE_OFFSET {
-                    terminal.print_char(
-                        LINE_LENGTH_GUIDE_OFFSET,
-                        line,
-                        rustbox::RB_NORMAL,
-                        Color::Default,
-                        ALT_BACKGROUND_COLOR,
-                        ' '
-                    );
-                }
-
-                // Advance to the next line.
-                line += 1;
-
-                // Draw leading line number for the new line.
-                offset = draw_line_number(
-                    terminal,
-                    line,
-                    data,
-                    line_number_width
-                );
-            } else {
-                terminal.print_char(
-                    offset,
-                    line,
-                    style,
-                    color,
-                    background_color,
-                    character
-                );
-
-                offset += 1;
-            }
-        }
-    }
-
-    // Print the rest of the line highlight.
-    match data.cursor {
-        Some(cursor) => {
-            if line == cursor.line {
-                for offset in offset..terminal.width() {
-                    terminal.print_char(
-                        offset,
-                        line,
-                        rustbox::RB_NORMAL,
-                        Color::Default,
-                        ALT_BACKGROUND_COLOR,
-                        ' '
-                    );
-                }
-            }
-        },
-        None => (),
-    }
-}
-
-pub fn draw_status_line(terminal: &Terminal, content: &str, color: Option<Color>) {
-    let line = terminal.height()-1;
-    terminal.print(
-        0,
-        line,
-        rustbox::RB_BOLD,
-        Color::Default,
-        color.unwrap_or(ALT_BACKGROUND_COLOR),
-        &content.pad_to_width(terminal.width())
-    );
-}
-
-fn draw_line_number(terminal: &Terminal, line: usize, data: &Data, width: usize) -> usize {
-    let mut offset = 0;
-
-    // Line numbers are zero-based and relative;
-    // get non-zero-based absolute version.
-    let absolute_line = line + data.scrolling_offset + 1;
-
-    // Get left-padded string-based line number.
-    let line_number = format!(
-        "{:>width$}  ",
-        absolute_line,
-        width=width
-    );
-
-    // Print numbers.
-    for number in line_number.chars() {
-        // Numbers (and their leading spaces) have background
-        // color, but the right-hand side gutter gap does not.
-        let background_color = match data.cursor {
-            Some(cursor) => {
-                if offset > width && line != cursor.line {
-                    Color::Default
-                } else {
-                    ALT_BACKGROUND_COLOR
-                }
-            },
-            None => {
-                if offset > width {
-                    Color::Default
-                } else {
-                    ALT_BACKGROUND_COLOR
-                }
-            },
-        };
-
-        // Current line number is emboldened.
-        let weight = match data.cursor {
-            Some(cursor) => {
-                if line == cursor.line {
-                    rustbox::RB_BOLD
-                } else {
-                    rustbox::RB_NORMAL
-                }
-            },
-            None => rustbox::RB_NORMAL
-        };
-
-        terminal.print_char(
-            offset,
-            line,
-            weight,
-            Color::Default,
-            background_color,
-            number
-        );
-
-        offset += 1;
-    }
-
-    offset
 }

@@ -19,7 +19,7 @@ fn main() {
     loop {
         // Draw the current application state to the screen.
         let view_data = match application.workspace.current_buffer() {
-            Some(ref mut buffer) => application.buffer_view.data(buffer, &mut application.mode),
+            Some(ref mut buffer) => application.view.buffer_view.data(buffer, &mut application.mode),
             None => Data{
                 tokens: None,
                 cursor: None,
@@ -33,10 +33,10 @@ fn main() {
             },
         };
         match application.mode {
-            Mode::Open(ref mode) => view::modes::open::display(&terminal, &view_data, mode),
-            Mode::SearchInsert(ref mode) => view::modes::search_insert::display(&terminal, &view_data, mode),
-            Mode::LineJump(ref mode) => view::modes::line_jump::display(&terminal, &view_data, mode),
-            _ => view::modes::default::display(&terminal, &view_data),
+            Mode::Open(ref mode) => view::modes::open::display(&terminal, &view_data, mode, &application.view),
+            Mode::SearchInsert(ref mode) => view::modes::search_insert::display(&terminal, &view_data, mode, &application.view),
+            Mode::LineJump(ref mode) => view::modes::line_jump::display(&terminal, &view_data, mode, &application.view),
+            _ => view::modes::default::display(&terminal, &view_data, &application.view),
         }
 
         match terminal.listen() {
@@ -68,7 +68,7 @@ fn main() {
                 }
             },
             Event::ResizeEvent(_, height) => {
-                application.buffer_view.update_height((height-1) as usize);
+                application.view.buffer_view.update_height((height-1) as usize);
             },
             _ => {},
         }

@@ -13,7 +13,7 @@ use self::modes::select::SelectMode;
 use self::modes::select_line::SelectLineMode;
 use self::modes::search_insert::SearchInsertMode;
 use scribe::workspace::Workspace;
-use view::buffer::BufferView;
+use view::View;
 
 pub enum Mode {
     Normal,
@@ -38,7 +38,7 @@ pub struct Application {
     pub workspace: Workspace,
     pub clipboard: Clipboard,
     pub search_query: Option<String>,
-    pub buffer_view: BufferView,
+    pub view: View,
 }
 
 pub fn new(buffer_height: usize) -> Application {
@@ -59,13 +59,13 @@ pub fn new(buffer_height: usize) -> Application {
         workspace.add_buffer(argument_buffer);
     }
 
-    let buffer_view = ::view::buffer::new(buffer_height);
+    let view = View::new(buffer_height);
 
     Application{
         mode: Mode::Normal,
         workspace: workspace,
         clipboard: Clipboard::None,
         search_query: None,
-        buffer_view: buffer_view,
+        view: view,
     }
 }
