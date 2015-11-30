@@ -5,8 +5,8 @@ version = "0.0.1"
 authors = ["Jordan MacDonald <jordan@wastedintelligence.com>"]
 
 [dependencies]
-scribe = "0.3.10"
+scribe = "0.4.0"
 pad = "0.1.4"
 rustbox = "0.7.2"
 bloodhound = "0.2.1"
-luthor = "0.1.5"
+luthor = "0.1.7"

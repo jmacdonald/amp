@@ -56,13 +56,14 @@ mod tests {
     extern crate scribe;
 
     use commands;
+    use scribe::Buffer;
     use scribe::buffer::Position;
     use models::application::Mode;
 
     #[test]
     fn accept_input_moves_cursor_to_requested_line_and_changes_modes() {
         let mut app = ::models::application::new(10);
-        let mut buffer = scribe::buffer::new();
+        let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\neditor");
 
         // Now that we've set up the buffer, add it to the application,
@@ -95,7 +96,7 @@ mod tests {
     #[test]
     fn accept_input_handles_unavailable_offsets() {
         let mut app = ::models::application::new(10);
-        let mut buffer = scribe::buffer::new();
+        let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\namp");
         buffer.cursor.move_to(Position{ line: 1, offset: 3 });
 
@@ -129,7 +130,7 @@ mod tests {
     #[test]
     fn accept_input_ignores_zero_input() {
         let mut app = ::models::application::new(10);
-        let mut buffer = scribe::buffer::new();
+        let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\namp");
 
         // Now that we've set up the buffer, add it to the application,

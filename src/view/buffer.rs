@@ -4,7 +4,7 @@ extern crate rustbox;
 use view::{Data, StatusLine, scrollable_region};
 use view::scrollable_region::{ScrollableRegion, Visibility};
 use models::application::Mode;
-use scribe::buffer::{Buffer, Position, range, Range, Token, LineRange};
+use scribe::buffer::{Buffer, Position, Range, Token, LineRange};
 use rustbox::Color;
 use std::collections::hash_map::HashMap;
 
@@ -160,7 +160,7 @@ fn relative_range(region: &ScrollableRegion, first_position: &Position, second_p
         Visibility::BelowRegion => Position{ line: region.height+1, offset: 0 }
     };
 
-    range::new(first_relative_position, second_relative_position)
+    Range::new(first_relative_position, second_relative_position)
 }
 
 fn visible_tokens(tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
@@ -199,17 +199,16 @@ mod tests {
     extern crate scribe;
 
     use super::BufferView;
-    use models::application::Mode;
-    use models::application::modes;
-    use self::scribe::buffer;
-    use self::scribe::buffer::{Category, Position, Token};
+    use models::application::{modes, Mode};
+    use self::scribe::Buffer;
+    use self::scribe::buffer::{Category, Range, Position, Token};
     use std::path::PathBuf;
 
     #[test]
     fn data_only_returns_tokens_in_visible_range() {
         let mut buffer_view = BufferView::new(2);
         let mut mode = Mode::Normal;
-        let mut buffer = scribe::buffer::new();
+        let mut buffer = Buffer::new();
         buffer.insert("first\nsecond\nthird\nfourth");
 
         let mut data = buffer_view.data(&mut buffer, &mut mode);
@@ -241,7 +240,7 @@ mod tests {
     #[test]
     fn data_returns_correct_highlight_when_scrolled() {
         let mut buffer_view = BufferView::new(2);
-        let mut buffer = scribe::buffer::new();
+        let mut buffer = Buffer::new();
         buffer.insert("first\nsecond\nthird\nfourth");
 
         // Create a non-zero offset selection starting and ending out of bounds.
@@ -258,7 +257,7 @@ mod tests {
         let data = buffer_view.data(&mut buffer, &mut mode);
         assert_eq!(
             data.highlight,
-            Some(buffer::range::new(
+            Some(Range::new(
                 Position{ line: 0, offset: 0 },
                 Position{ line: 3, offset: 0 }
             ))
@@ -269,8 +268,8 @@ mod tests {
     fn data_tracks_scrolling_per_buffer() {
         let mut buffer_view = BufferView::new(2);
         let mut mode = Mode::Normal;
-        let mut first_buffer = scribe::buffer::new();
-        let mut second_buffer = scribe::buffer::new();
+        let mut first_buffer = Buffer::new();
+        let mut second_buffer = Buffer::new();
         first_buffer.insert("first\nsecond\nthird\nfourth");
         second_buffer.insert("first\nsecond\nthird\nfourth");
 
@@ -322,8 +321,8 @@ mod tests {
     fn update_height_updates_all_regions() {
         let mut buffer_view = BufferView::new(2);
         let mut mode = Mode::Normal;
-        let mut first_buffer = scribe::buffer::new();
-        let mut second_buffer = scribe::buffer::new();
+        let mut first_buffer = Buffer::new();
+        let mut second_buffer = Buffer::new();
         first_buffer.insert("first\nsecond\nthird\nfourth");
         second_buffer.insert("first\nsecond\nthird\nfourth");
 
@@ -385,7 +384,7 @@ mod tests {
         );
 
         // Ensure new buffers are given the correct height.
-        let mut new_buffer = scribe::buffer::new();
+        let mut new_buffer = Buffer::new();
         new_buffer.insert("first\nsecond\nthird\nfourth");
         data = buffer_view.data(&mut new_buffer, &mut mode);
         assert_eq!(

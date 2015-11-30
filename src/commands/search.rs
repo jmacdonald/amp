@@ -43,7 +43,7 @@ pub fn move_to_next_result(app: &mut Application) {
                     for position in positions.iter() {
                         if position > &*buffer.cursor {
                             buffer.cursor.move_to(position.clone());
-                            
+
                             // We've found one; track that and stop looking.
                             moved = true;
                             break;
@@ -87,7 +87,7 @@ pub fn accept_query(app: &mut Application) {
 mod tests {
     extern crate scribe;
 
-    use scribe::buffer;
+    use scribe::Buffer;
     use scribe::buffer::Position;
     use models::application;
     use models::application::Mode;
@@ -97,7 +97,7 @@ mod tests {
     fn move_to_previous_result_moves_cursor_to_previous_result() {
         // Build a workspace with a buffer and text.
         let mut app = application::new(10);
-        let mut buffer = buffer::new();
+        let mut buffer = Buffer::new();
         buffer.insert("amp editor\nedit\nedit");
         app.workspace.add_buffer(buffer);
 
@@ -123,7 +123,7 @@ mod tests {
     fn move_to_previous_result_wraps_to_the_end_of_the_document() {
         // Build a workspace with a buffer and text.
         let mut app = application::new(10);
-        let mut buffer = buffer::new();
+        let mut buffer = Buffer::new();
         buffer.insert("amp editor\nedit\nedit");
         app.workspace.add_buffer(buffer);
 
@@ -144,7 +144,7 @@ mod tests {
     fn move_to_next_result_moves_cursor_to_next_result() {
         // Build a workspace with a buffer and text.
         let mut app = application::new(10);
-        let mut buffer = buffer::new();
+        let mut buffer = Buffer::new();
         buffer.insert("amp editor\nedit\nedit");
         app.workspace.add_buffer(buffer);
 
@@ -165,7 +165,7 @@ mod tests {
     fn move_to_next_result_wraps_to_the_start_of_the_document() {
         // Build a workspace with a buffer and text.
         let mut app = application::new(10);
-        let mut buffer = buffer::new();
+        let mut buffer = Buffer::new();
         buffer.insert("amp editor\nedit\nedit");
         app.workspace.add_buffer(buffer);
 
@@ -190,7 +190,7 @@ mod tests {
     #[test]
     fn accept_query_sets_application_search_query_switches_to_normal_mode_and_moves_to_first_match() {
         let mut app = ::models::application::new(10);
-        let mut buffer = scribe::buffer::new();
+        let mut buffer = Buffer::new();
         buffer.insert("amp editor\nedit\nedit");
         app.workspace.add_buffer(buffer);
 

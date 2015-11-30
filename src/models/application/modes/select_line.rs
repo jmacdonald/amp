@@ -1,6 +1,6 @@
 extern crate scribe;
 
-use scribe::buffer::{Position, Range};
+use scribe::buffer::{LineRange, Position, Range};
 
 pub struct SelectLineMode {
     pub anchor: usize,
@@ -8,7 +8,7 @@ pub struct SelectLineMode {
 
 impl SelectLineMode {
     pub fn to_range(&self, cursor: &Position) -> Range {
-        scribe::buffer::line_range::new(
+        LineRange::new(
             self.anchor,
             cursor.line
         ).to_inclusive_range()

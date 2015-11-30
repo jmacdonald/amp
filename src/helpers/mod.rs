@@ -2,7 +2,7 @@ extern crate scribe;
 
 pub mod movement_lexer;
 
-use scribe::buffer::{Buffer, LineRange, Position, range, Range};
+use scribe::buffer::{Buffer, LineRange, Position, Range};
 
 /// Translates a line range to a regular range, including its last line.
 /// Handles ranges including and end line without trailing newline character.
@@ -28,7 +28,7 @@ pub fn inclusive_range(line_range: &LineRange, buffer: &mut Buffer) -> Range {
             }
         };
 
-    range::new(
+    Range::new(
         Position{ line: line_range.start(), offset: 0 },
         end_position
     )
@@ -38,29 +38,30 @@ pub fn inclusive_range(line_range: &LineRange, buffer: &mut Buffer) -> Range {
 mod tests {
     extern crate scribe;
 
-    use scribe::buffer::{line_range, Position, range};
+    use scribe::Buffer;
+    use scribe::buffer::{LineRange, Position, Range};
 
     #[test]
     fn inclusive_range_works_correctly_without_trailing_newline() {
-        let mut buffer = scribe::buffer::new();
+        let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
-        let range = line_range::new(1, 1);
+        let range = LineRange::new(1, 1);
 
         assert_eq!(
             super::inclusive_range(&range, &mut buffer),
-            range::new(Position{ line: 1, offset: 0 }, Position{ line: 1, offset: 6 })
+            Range::new(Position{ line: 1, offset: 0 }, Position{ line: 1, offset: 6 })
         );
     }
 
     #[test]
     fn inclusive_range_works_correctly_with_trailing_newline() {
-        let mut buffer = scribe::buffer::new();
+        let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\n");
-        let range = line_range::new(1, 1);
+        let range = LineRange::new(1, 1);
 
         assert_eq!(
             super::inclusive_range(&range, &mut buffer),
-            range::new(Position{ line: 1, offset: 0 }, Position{ line: 2, offset: 0 })
+            Range::new(Position{ line: 1, offset: 0 }, Position{ line: 2, offset: 0 })
         );
     }
 }

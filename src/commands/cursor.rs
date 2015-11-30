@@ -4,7 +4,8 @@ extern crate luthor;
 use commands;
 use helpers::movement_lexer;
 use models::application::Application;
-use scribe::buffer::{Buffer, Position};
+use scribe::Buffer;
+use scribe::buffer::Position;
 use self::luthor::token::Category;
 use super::{application, buffer};
 
@@ -264,8 +265,9 @@ fn adjacent_token_position(buffer: &mut Buffer, whitespace: bool, direction: Dir
 mod tests {
     extern crate scribe;
 
-    use models::application::Application;
+    use scribe::Buffer;
     use scribe::buffer::Position;
+    use models::application::Application;
 
     #[test]
     fn move_to_first_word_of_line_works() {
@@ -386,7 +388,7 @@ mod tests {
 
     fn set_up_application(content: &str) -> Application {
         let mut app = ::models::application::new(10);
-        let mut buffer = scribe::buffer::new();
+        let mut buffer = Buffer::new();
 
         // Insert data with indentation and move to the end of the line.
         buffer.insert(content);

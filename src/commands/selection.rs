@@ -1,7 +1,7 @@
 extern crate scribe;
 
 use models::application::{Application, Clipboard, Mode};
-use scribe::buffer::{line_range, range};
+use scribe::buffer::{LineRange, Range};
 use super::application;
 use commands;
 use helpers;
@@ -14,7 +14,7 @@ pub fn delete(app: &mut Application) {
             match app.mode {
                 Mode::Select(ref select_mode) => {
                     let cursor_position = *buffer.cursor.clone();
-                    let delete_range = range::new(
+                    let delete_range = Range::new(
                         cursor_position,
                         select_mode.anchor
                     );
@@ -54,7 +54,7 @@ fn copy_to_clipboard(app: &mut Application) {
             match app.mode {
                 Mode::Select(ref select_mode) => {
                     let cursor_position = *buffer.cursor.clone();
-                    let selected_range = range::new(
+                    let selected_range = Range::new(
                         cursor_position,
                         select_mode.anchor
                     );
@@ -66,7 +66,7 @@ fn copy_to_clipboard(app: &mut Application) {
                 },
                 Mode::SelectLine(ref mode) => {
                     let selected_range = helpers::inclusive_range(
-                        &line_range::new(mode.anchor, buffer.cursor.line),
+                        &LineRange::new(mode.anchor, buffer.cursor.line),
                         buffer
                     );
 

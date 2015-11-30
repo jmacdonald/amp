@@ -1,4 +1,4 @@
-use scribe::buffer::{line_range, LineRange};
+use scribe::buffer::LineRange;
 
 /// Abstract representation of a fixed-height section of the screen.
 /// Used to determine visible ranges of lines based on previous state,
@@ -18,7 +18,7 @@ pub enum Visibility {
 impl ScrollableRegion {
     // Determines the visible lines based on the current line offset and height.
     pub fn visible_range(&self) -> LineRange {
-        line_range::new(self.line_offset, self.height + self.line_offset)
+        LineRange::new(self.line_offset, self.height + self.line_offset)
     }
 
     /// If necessary, moves the line offset such that the specified line is
@@ -77,7 +77,7 @@ mod tests {
     extern crate scribe;
 
     use super::{new, ScrollableRegion, Visibility};
-    use scribe::buffer::line_range;
+    use scribe::buffer::LineRange;
 
     #[test]
     fn visible_range_works_for_zero_based_line_offsets() {
@@ -140,7 +140,7 @@ mod tests {
         region.scroll_down(10);
         assert_eq!(
             region.visible_range(),
-            line_range::new(10, 30)
+            LineRange::new(10, 30)
         );
     }
 
@@ -151,7 +151,7 @@ mod tests {
         region.scroll_up(5);
         assert_eq!(
             region.visible_range(),
-            line_range::new(5, 25)
+            LineRange::new(5, 25)
         );
     }
 
@@ -161,7 +161,7 @@ mod tests {
         region.scroll_up(5);
         assert_eq!(
             region.visible_range(),
-            line_range::new(0, 20)
+            LineRange::new(0, 20)
         );
     }
 }
