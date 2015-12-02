@@ -3,7 +3,7 @@ extern crate rustbox;
 use std::ops::Deref;
 use std::error::Error;
 use std::default::Default;
-use rustbox::{RustBox, InitOptions};
+use rustbox::{InitOptions, RustBox};
 
 pub use rustbox::Event;
 
@@ -20,6 +20,15 @@ impl Deref for Terminal {
 }
 
 impl Terminal {
+    pub fn new() -> Terminal {
+        let rustbox = match RustBox::init(InitOptions {..Default::default()}) {
+            Ok(r) => r,
+            Err(e) => panic!("{}", e.description()),
+        };
+
+        Terminal{ terminal: rustbox }
+    }
+
     pub fn listen(&self) -> Event {
         match self.terminal.poll_event(false) {
             Ok(event) => event,

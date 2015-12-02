@@ -1,22 +1,21 @@
 use view::{Data, View};
-use models::terminal::Terminal;
 
-pub fn display(terminal: &Terminal, data: &Data, view: &View) {
+pub fn display(data: &Data, view: &View) {
     // Wipe the slate clean.
-    terminal.clear();
+    view.terminal.clear();
 
     // Handle cursor updates.
     match data.cursor {
-        Some(position) => terminal.set_cursor(position.offset as isize, position.line as isize),
-        None => terminal.set_cursor(-1, -1),
+        Some(position) => view.terminal.set_cursor(position.offset as isize, position.line as isize),
+        None => view.terminal.set_cursor(-1, -1),
     }
 
     // Draw the visible set of tokens to the terminal.
-    view.draw_tokens(terminal, &data);
+    view.draw_tokens(&data);
 
     // Draw the status line.
-    view.draw_status_line(terminal, &data.status_line.content, data.status_line.color);
+    view.draw_status_line(&data.status_line.content, data.status_line.color);
 
     // Render the changes to the screen.
-    terminal.present();
+    view.terminal.present();
 }

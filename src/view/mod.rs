@@ -4,9 +4,10 @@ extern crate scribe;
 pub mod modes;
 pub mod buffer;
 mod scrollable_region;
+pub mod terminal;
 
+use self::terminal::Terminal;
 use view::buffer::BufferView;
-use models::terminal::Terminal;
 use scribe::buffer::{Category, Position, Range, Token};
 use pad::PadStr;
 use rustbox::Color;
@@ -34,18 +35,23 @@ pub enum Theme {
 
 pub struct View {
     pub theme: Theme,
+    pub terminal: Terminal,
     pub buffer_view: BufferView,
 }
 
 impl View {
-    pub fn new(height: usize) -> View {
+    pub fn new() -> View {
+        let terminal = Terminal::new();
+        let height = terminal.height()-1;
+
         View{
             theme: Theme::Dark,
+            terminal: terminal,
             buffer_view: BufferView::new(height),
         }
     }
 
-    pub fn draw_tokens(&self, terminal: &Terminal, data: &Data) {
+    pub fn draw_tokens(&self, data: &Data) {
         let mut line = 0;
 
         // Get the tokens, bailing out if there are none.
@@ -61,7 +67,7 @@ impl View {
         // Set the terminal cursor, considering leading line numbers.
         match data.cursor {
             Some(position) => {
-                terminal.set_cursor(
+                self.terminal.set_cursor(
                     (position.offset + gutter_width) as isize,
                     position.line as isize
                 );
@@ -72,7 +78,6 @@ impl View {
         // Draw the first line number.
         // Others will be drawn following newline characters.
         let mut offset = self.draw_line_number(
-            terminal,
             0,
             data,
             line_number_width
@@ -114,8 +119,8 @@ impl View {
                     match data.cursor {
                         Some(cursor) => {
                             if line == cursor.line {
-                                for offset in offset..terminal.width() {
-                                    terminal.print_char(
+                                for offset in offset..self.terminal.width() {
+                                    self.terminal.print_char(
                                         offset,
                                         line,
                                         style,
@@ -131,7 +136,7 @@ impl View {
 
                     // Print the length guide for this line.
                     if offset <= LINE_LENGTH_GUIDE_OFFSET {
-                        terminal.print_char(
+                        self.terminal.print_char(
                             LINE_LENGTH_GUIDE_OFFSET,
                             line,
                             rustbox::RB_NORMAL,
@@ -146,13 +151,12 @@ impl View {
 
                     // Draw leading line number for the new line.
                     offset = self.draw_line_number(
-                        terminal,
                         line,
                         data,
                         line_number_width
                     );
                 } else {
-                    terminal.print_char(
+                    self.terminal.print_char(
                         offset,
                         line,
                         style,
@@ -170,8 +174,8 @@ impl View {
         match data.cursor {
             Some(cursor) => {
                 if line == cursor.line {
-                    for offset in offset..terminal.width() {
-                        terminal.print_char(
+                    for offset in offset..self.terminal.width() {
+                        self.terminal.print_char(
                             offset,
                             line,
                             rustbox::RB_NORMAL,
@@ -186,19 +190,19 @@ impl View {
         }
     }
 
-    pub fn draw_status_line(&self, terminal: &Terminal, content: &str, color: Option<Color>) {
-        let line = terminal.height()-1;
-        terminal.print(
+    pub fn draw_status_line(&self, content: &str, color: Option<Color>) {
+        let line = self.terminal.height()-1;
+        self.terminal.print(
             0,
             line,
             rustbox::RB_BOLD,
             Color::Default,
             color.unwrap_or(self.alt_background_color()),
-            &content.pad_to_width(terminal.width())
+            &content.pad_to_width(self.terminal.width())
         );
     }
 
-    fn draw_line_number(&self, terminal: &Terminal, line: usize, data: &Data, width: usize) -> usize {
+    fn draw_line_number(&self, line: usize, data: &Data, width: usize) -> usize {
         let mut offset = 0;
 
         // Line numbers are zero-based and relative;
@@ -245,7 +249,7 @@ impl View {
                 None => rustbox::RB_NORMAL
             };
 
-            terminal.print_char(
+            self.terminal.print_char(
                 offset,
                 line,
                 weight,

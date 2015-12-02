@@ -495,7 +495,7 @@ mod tests {
 
     #[test]
     fn insert_newline_uses_current_line_indentation() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
 
         // Insert data with indentation and move to the end of the line.
@@ -519,7 +519,7 @@ mod tests {
 
     #[test]
     fn change_rest_of_line_removes_content_and_switches_to_insert_mode() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
 
         // Insert data with indentation and move to the end of the line.
@@ -551,7 +551,7 @@ mod tests {
 
     #[test]
     fn delete_token_deletes_current_token() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp editor");
 
@@ -566,7 +566,7 @@ mod tests {
 
     #[test]
     fn delete_current_line_deletes_current_line() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
 
         // Insert data with indentation and move to the end of the line.
@@ -585,7 +585,7 @@ mod tests {
 
     #[test]
     fn indent_line_inserts_two_spaces_at_start_of_line() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
         buffer.cursor.move_to(Position{ line: 1, offset: 2 });
@@ -601,7 +601,7 @@ mod tests {
 
     #[test]
     fn indent_line_works_in_select_line_mode() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\n  editor");
 
@@ -618,7 +618,7 @@ mod tests {
 
     #[test]
     fn indent_line_moves_cursor_in_insert_mode() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
         buffer.cursor.move_to(Position{ line: 1, offset: 2 });
@@ -635,7 +635,7 @@ mod tests {
 
     #[test]
     fn indent_line_does_not_move_cursor_in_normal_mode() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
         buffer.cursor.move_to(Position{ line: 1, offset: 2 });
@@ -651,7 +651,7 @@ mod tests {
 
     #[test]
     fn indent_line_groups_multi_line_indents_as_a_single_operation() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\n  editor");
 
@@ -672,7 +672,7 @@ mod tests {
 
     #[test]
     fn indent_line_works_with_reversed_selections() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
 
@@ -690,7 +690,7 @@ mod tests {
 
     #[test]
     fn outdent_line_removes_two_spaces_from_start_of_line() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\n  editor");
         buffer.cursor.move_to(Position{ line: 1, offset: 6 });
@@ -709,7 +709,7 @@ mod tests {
 
     #[test]
     fn outdent_line_removes_as_much_space_as_it_can_from_start_of_line_if_less_than_full_indent() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\n editor");
         buffer.cursor.move_to(Position{ line: 1, offset: 2 });
@@ -725,7 +725,7 @@ mod tests {
 
     #[test]
     fn outdent_does_nothing_if_there_is_no_leading_whitespace() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
 
         // Add some trailing whitespace to trip up naive implementations.
@@ -742,7 +742,7 @@ mod tests {
 
     #[test]
     fn outdent_line_works_in_select_line_mode() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("  amp\n  editor");
 
@@ -759,7 +759,7 @@ mod tests {
 
     #[test]
     fn outdent_line_groups_multi_line_indents_as_a_single_operation() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("  amp\n  editor");
 
@@ -780,7 +780,7 @@ mod tests {
 
     #[test]
     fn outdent_line_works_with_reversed_selections() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("  amp\n  editor");
 
@@ -798,7 +798,7 @@ mod tests {
 
     #[test]
     fn remove_trailing_whitespace_works() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("  amp\n  \neditor ");
 
@@ -813,7 +813,7 @@ mod tests {
 
     #[test]
     fn save_removes_trailing_whitespace_and_adds_newlines() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp  \neditor ");
 
@@ -828,7 +828,7 @@ mod tests {
 
     #[test]
     fn paste_inserts_at_cursor_when_pasting_inline_data() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
 
@@ -847,7 +847,7 @@ mod tests {
 
     #[test]
     fn paste_inserts_on_line_below_when_pasting_block_data() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
         buffer.cursor.move_to(Position{ line: 0, offset: 2 });
@@ -866,7 +866,7 @@ mod tests {
 
     #[test]
     fn paste_works_at_end_of_buffer_when_pasting_block_data() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
         buffer.cursor.move_to(Position{ line: 0, offset: 0 });
@@ -886,7 +886,7 @@ mod tests {
 
     #[test]
     fn paste_works_on_trailing_newline_when_pasting_block_data() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\n");
         buffer.cursor.move_to(Position{ line: 0, offset: 0 });
@@ -907,7 +907,7 @@ mod tests {
 
     #[test]
     fn backspace_outdents_line_if_line_is_whitespace() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\n        ");
         buffer.cursor.move_to(Position{ line: 2, offset: 8 });
@@ -923,7 +923,7 @@ mod tests {
 
     #[test]
     fn merge_next_line_joins_current_and_next_lines_with_a_space() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
 
@@ -944,7 +944,7 @@ mod tests {
 
     #[test]
     fn merge_next_line_does_nothing_if_there_is_no_next_line() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp editor");
 
@@ -965,7 +965,7 @@ mod tests {
 
     #[test]
     fn merge_next_line_works_when_the_next_line_has_a_line_after_it() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\ntest");
 
@@ -980,7 +980,7 @@ mod tests {
 
     #[test]
     fn merge_next_line_works_when_the_first_line_has_leading_whitespace() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("\n amp\neditor");
         buffer.cursor.move_to(Position{ line: 1, offset: 0 });
@@ -996,7 +996,7 @@ mod tests {
 
     #[test]
     fn merge_next_line_removes_leading_whitespace_from_second_line() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\n    editor");
 
@@ -1011,7 +1011,7 @@ mod tests {
 
     #[test]
     fn ensure_trailing_newline_adds_newlines_when_missing() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
 
@@ -1026,7 +1026,7 @@ mod tests {
 
     #[test]
     fn ensure_trailing_newline_does_nothing_when_already_present() {
-        let mut app = ::models::application::new(10);
+        let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\n");
 

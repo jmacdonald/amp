@@ -41,7 +41,7 @@ pub struct Application {
     pub view: View,
 }
 
-pub fn new(buffer_height: usize) -> Application {
+pub fn new() -> Application {
     // Set up a workspace in the current directory.
     let mut workspace = match env::current_dir() {
         Ok(path) => Workspace::new(path),
@@ -59,7 +59,7 @@ pub fn new(buffer_height: usize) -> Application {
         workspace.add_buffer(argument_buffer);
     }
 
-    let view = View::new(buffer_height);
+    let view = View::new();
 
     Application{
         mode: Mode::Normal,

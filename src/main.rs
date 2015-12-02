@@ -10,11 +10,10 @@ mod helpers;
 
 use models::application::Mode;
 use view::{Data, StatusLine};
-use models::terminal::Event;
+use view::terminal::Event;
 
 fn main() {
-    let terminal = models::terminal::new();
-    let mut application = models::application::new(terminal.height()-1);
+    let mut application = models::application::new();
 
     loop {
         // Draw the current application state to the screen.
@@ -33,13 +32,13 @@ fn main() {
             },
         };
         match application.mode {
-            Mode::Open(ref mode) => view::modes::open::display(&terminal, &view_data, mode, &application.view),
-            Mode::SearchInsert(ref mode) => view::modes::search_insert::display(&terminal, &view_data, mode, &application.view),
-            Mode::LineJump(ref mode) => view::modes::line_jump::display(&terminal, &view_data, mode, &application.view),
-            _ => view::modes::default::display(&terminal, &view_data, &application.view),
+            Mode::Open(ref mode) => view::modes::open::display(&view_data, mode, &application.view),
+            Mode::SearchInsert(ref mode) => view::modes::search_insert::display(&view_data, mode, &application.view),
+            Mode::LineJump(ref mode) => view::modes::line_jump::display(&view_data, mode, &application.view),
+            _ => view::modes::default::display(&view_data, &application.view),
         }
 
-        match terminal.listen() {
+        match application.view.terminal.listen() {
             Event::KeyEvent(Some(key)) => {
                 // Pass the input to the current mode.
                 let command = match application.mode {
