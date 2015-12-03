@@ -6,6 +6,9 @@ use rustbox::{Color, InitOptions, RustBox, Style};
 
 pub use rustbox::Event;
 
+/// The terminal type acts as a shim layer on top of Rustbox.
+/// It also enables headless testing; initialization and render calls
+/// are discarded and dimension queries are stubbed with static values.
 pub struct Terminal {
     terminal: Option<RustBox>,
 }
