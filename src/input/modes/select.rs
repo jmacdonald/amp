@@ -1,4 +1,4 @@
-use commands::{Command, cursor, application, selection, view};
+use commands::{application, buffer, Command, cursor, selection, view};
 use rustbox::keyboard::Key;
 
 pub fn handle(input: Key) -> Option<Command> {
@@ -20,6 +20,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char(',') => Some(view::scroll_up),
         Key::Char('m') => Some(view::scroll_down),
         Key::Char('f') => Some(application::switch_to_jump_mode),
+        Key::Char('p') => Some(buffer::paste),
         Key::Esc       => Some(application::switch_to_normal_mode),
         _              => None,
     }

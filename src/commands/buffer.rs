@@ -1,6 +1,7 @@
 extern crate scribe;
 
 use commands;
+use std::mem;
 use models::application::{Application, Clipboard, Mode};
 use scribe::buffer::{Position, Range};
 
@@ -358,6 +359,12 @@ pub fn redo(app: &mut Application) {
 }
 
 pub fn paste(app: &mut Application) {
+    // Delete the selected content without losing the clipboard contents.
+    let mut clipboard = Clipboard::None;
+    mem::swap(&mut clipboard, &mut app.clipboard);
+    commands::selection::delete(app);
+    app.clipboard = clipboard;
+
     match app.workspace.current_buffer() {
         Some(buffer) => {
             match app.clipboard {
@@ -490,6 +497,7 @@ mod tests {
     extern crate scribe;
 
     use commands;
+    use models::application::Clipboard;
     use scribe::Buffer;
     use scribe::buffer::Position;
 
@@ -1037,5 +1045,27 @@ mod tests {
 
         // Ensure that trailing newline is added.
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor\n");
+    }
+
+    #[test]
+    fn paste_with_inline_content_replaces_selection() {
+        let mut app = ::models::application::new();
+        let mut buffer = Buffer::new();
+        buffer.insert("amp");
+        app.clipboard = Clipboard::Inline("editor".to_string());
+
+        // Now that we've set up the buffer, add it to
+        // the application, select its contents, and paste.
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_mode(&mut app);
+        commands::cursor::move_to_end_of_line(&mut app);
+        commands::buffer::paste(&mut app);
+
+        // Ensure that the content is replaced
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "editor");
+
+        // TODO: Ensure that the operation is treated atomically.
+        // commands::buffer::undo(&mut app);
+        // assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp");
     }
 }
