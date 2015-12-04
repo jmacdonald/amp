@@ -5,8 +5,17 @@ use rustbox::keyboard::Key;
 pub fn handle(mode: &mut OpenMode, input: Key) -> Option<Command> {
     match input {
         Key::Backspace => {
-            // Delete the last character of the search term.
-            mode.input.pop();
+            // Remove the last token/word from the query.
+            match mode.input.chars().enumerate().filter(|&(_, c)| c == ' ').last() {
+                Some((i, _)) => {
+                  if mode.input.len() == i+1 {
+                    mode.input.pop();
+                  } else {
+                    mode.input.truncate(i+1);
+                  }
+                },
+                None => mode.input.clear(),
+            };
 
             // Re-run the search.
             Some(open_mode::search)
