@@ -2,6 +2,8 @@ use commands;
 use models::application::{Application, Mode};
 
 pub fn move_to_previous_result(app: &mut Application) {
+    let mut moved = false;
+
     match app.search_query {
         Some(ref query) => {
             match app.workspace.current_buffer() {
@@ -10,17 +12,22 @@ pub fn move_to_previous_result(app: &mut Application) {
                     for position in positions.iter().rev() {
                         if position < &*buffer.cursor {
                             buffer.cursor.move_to(position.clone());
-                            return;
+
+                            // We've found one; track that and stop looking.
+                            moved = true;
+                            break;
                         }
                     }
 
-                    // There's nothing before the cursor, so wrap
-                    // to the last match, if there are any at all.
-                    match positions.last() {
-                        Some(position) => {
-                            buffer.cursor.move_to(position.clone());
-                        },
-                        None => (),
+                    if !moved {
+                        // There's nothing before the cursor, so wrap
+                        // to the last match, if there are any at all.
+                        match positions.last() {
+                            Some(position) => {
+                                buffer.cursor.move_to(position.clone());
+                            },
+                            None => (),
+                        }
                     }
                 },
                 None => (),
@@ -28,15 +35,19 @@ pub fn move_to_previous_result(app: &mut Application) {
         },
         None => (),
     }
-    commands::view::scroll_to_cursor(app);
+
+    if moved {
+        commands::view::scroll_to_cursor(app);
+    }
 }
 
 pub fn move_to_next_result(app: &mut Application) {
+    let mut moved = false;
+
     match app.search_query {
         Some(ref query) => {
             match app.workspace.current_buffer() {
                 Some(buffer) => {
-                    let mut moved = false;
                     let positions = buffer.search(query);
 
                     // Try to find a result after the cursor.
@@ -67,7 +78,9 @@ pub fn move_to_next_result(app: &mut Application) {
         None => (),
     }
 
-    commands::view::scroll_to_cursor(app);
+    if moved {
+        commands::view::scroll_to_cursor(app);
+    }
 }
 
 pub fn accept_query(app: &mut Application) {
