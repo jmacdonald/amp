@@ -22,6 +22,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('>') => Some(buffer::indent_line),
         Key::Char('<') => Some(buffer::outdent_line),
         Key::Char('f') => Some(application::switch_to_jump_mode),
+        Key::Char('p') => Some(buffer::paste),
         Key::Esc       => Some(application::switch_to_normal_mode),
         _              => None,
     }

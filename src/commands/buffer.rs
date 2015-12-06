@@ -359,11 +359,18 @@ pub fn redo(app: &mut Application) {
 }
 
 pub fn paste(app: &mut Application) {
-    // Delete the selected content without losing the clipboard contents.
-    let mut clipboard = Clipboard::None;
-    mem::swap(&mut clipboard, &mut app.clipboard);
-    commands::selection::delete(app);
-    app.clipboard = clipboard;
+    let insert_below = match app.mode {
+        Mode::Select(_) | Mode::SelectLine(_) => {
+            // Delete the selected content without losing the clipboard contents.
+            let mut clipboard = Clipboard::None;
+            mem::swap(&mut clipboard, &mut app.clipboard);
+            commands::selection::delete(app);
+            app.clipboard = clipboard;
+
+            false
+        },
+        _ => true,
+    };
 
     match app.workspace.current_buffer() {
         Some(buffer) => {
@@ -373,28 +380,31 @@ pub fn paste(app: &mut Application) {
                     let original_cursor_position = *buffer.cursor.clone();
                     let line = original_cursor_position.line;
 
-                    // Try to move to the start of the line below to insert the data.
-                    buffer.cursor.move_to(
-                        Position{ line: line + 1, offset: 0 }
-                    );
+                    if insert_below {
+                        buffer.cursor.move_to(
+                            Position{ line: line + 1, offset: 0 }
+                        );
 
-                    if *buffer.cursor == original_cursor_position {
-                        // That didn't work because we're at the last line.
-                        // Move to the end of the line to insert the data.
-                        match buffer.data().lines().nth(line) {
-                            Some(line_content) => {
-                                buffer.cursor.move_to(Position{
-                                    line: line,
-                                    offset: line_content.len(),
-                                });
-                                buffer.insert(&format!("\n{}", content));
-                                buffer.cursor.move_to(original_cursor_position);
-                            },
-                            None => {
-                                // We're on a trailing newline, which doesn't
-                                // have any data; just insert the content here.
-                                buffer.insert(content);
+                        if *buffer.cursor == original_cursor_position {
+                            // That didn't work because we're at the last line.
+                            // Move to the end of the line to insert the data.
+                            match buffer.data().lines().nth(line) {
+                                Some(line_content) => {
+                                    buffer.cursor.move_to(Position{
+                                        line: line,
+                                        offset: line_content.len(),
+                                    });
+                                    buffer.insert(&format!("\n{}", content));
+                                    buffer.cursor.move_to(original_cursor_position);
+                                },
+                                None => {
+                                    // We're on a trailing newline, which doesn't
+                                    // have any data; just insert the content here.
+                                    buffer.insert(content);
+                                }
                             }
+                        } else {
+                            buffer.insert(content);
                         }
                     } else {
                         buffer.insert(content);
@@ -1063,6 +1073,27 @@ mod tests {
 
         // Ensure that the content is replaced
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "editor");
+
+        // TODO: Ensure that the operation is treated atomically.
+        // commands::buffer::undo(&mut app);
+        // assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp");
+    }
+
+    #[test]
+    fn paste_with_block_content_replaces_selection() {
+        let mut app = ::models::application::new();
+        let mut buffer = Buffer::new();
+        buffer.insert("amp\neditor");
+        app.clipboard = Clipboard::Block("paste amp\n".to_string());
+
+        // Now that we've set up the buffer, add it to
+        // the application, select its contents, and paste.
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app);
+        commands::buffer::paste(&mut app);
+
+        // Ensure that the content is replaced
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "paste amp\neditor");
 
         // TODO: Ensure that the operation is treated atomically.
         // commands::buffer::undo(&mut app);
