@@ -55,17 +55,17 @@ pub fn move_to_start_of_line(app: &mut Application) {
     commands::view::scroll_to_cursor(app);
 }
 
-pub fn move_to_start_of_buffer(app: &mut Application) {
+pub fn move_to_first_line(app: &mut Application) {
     match app.workspace.current_buffer() {
-        Some(buffer) => buffer.cursor.move_to_start_of_buffer(),
+        Some(buffer) => buffer.cursor.move_to_first_line(),
         None => (),
     }
     commands::view::scroll_to_cursor(app);
 }
 
-pub fn move_to_end_of_buffer(app: &mut Application) {
+pub fn move_to_last_line(app: &mut Application) {
     match app.workspace.current_buffer() {
-        Some(buffer) => buffer.cursor.move_to_end_of_buffer(),
+        Some(buffer) => buffer.cursor.move_to_last_line(),
         None => (),
     }
     commands::view::scroll_to_cursor(app);
