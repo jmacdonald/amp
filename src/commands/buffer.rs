@@ -418,6 +418,29 @@ pub fn paste(app: &mut Application) {
     commands::view::scroll_to_cursor(app);
 }
 
+pub fn paste_above(app: &mut Application) {
+    match app.workspace.current_buffer() {
+        Some(buffer) => {
+            match app.clipboard {
+                Clipboard::Block(ref content) => {
+                    let mut start_of_line = Position{
+                        line: buffer.cursor.line,
+                        offset: 0
+                    };
+
+                    // Temporarily move the cursor to the start of the line
+                    // to insert the clipboard content (without allocating).
+                    mem::swap(&mut *buffer.cursor, &mut start_of_line);
+                    buffer.insert(content);
+                    mem::swap(&mut *buffer.cursor, &mut start_of_line);
+                },
+                _ => (),
+            }
+        },
+        None => (),
+    }
+}
+
 pub fn remove_trailing_whitespace(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
@@ -1098,5 +1121,23 @@ mod tests {
         // TODO: Ensure that the operation is treated atomically.
         // commands::buffer::undo(&mut app);
         // assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp");
+    }
+
+    #[test]
+    fn paste_above_inserts_clipboard_contents_on_a_new_line_above() {
+        let mut app = ::models::application::new();
+        let mut buffer = Buffer::new();
+        let original_position = Position{ line: 0, offset: 3 };
+        buffer.insert("editor");
+        buffer.cursor.move_to(original_position.clone());
+        app.clipboard = Clipboard::Block("amp\n".to_string());
+
+        // Now that we've set up the buffer, add it to
+        // the application, select its contents, and paste.
+        app.workspace.add_buffer(buffer);
+        commands::buffer::paste_above(&mut app);
+
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor");
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor, original_position);
     }
 }
