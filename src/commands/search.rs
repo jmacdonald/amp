@@ -25,6 +25,7 @@ pub fn move_to_previous_result(app: &mut Application) {
                         match positions.last() {
                             Some(position) => {
                                 buffer.cursor.move_to(position.clone());
+                                moved = true;
                             },
                             None => (),
                         }
@@ -67,6 +68,7 @@ pub fn move_to_next_result(app: &mut Application) {
                         match positions.first() {
                             Some(position) => {
                                 buffer.cursor.move_to(position.clone());
+                                moved = true;
                             },
                             None => (),
                         }
