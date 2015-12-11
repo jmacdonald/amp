@@ -10,7 +10,7 @@ use std::collections::hash_map::HashMap;
 
 pub struct BufferView {
     height: usize,
-    regions: HashMap<String, scrollable_region::ScrollableRegion>,
+    regions: HashMap<usize, scrollable_region::ScrollableRegion>,
 }
 
 impl BufferView {
@@ -140,11 +140,8 @@ impl BufferView {
 
 // Converts the buffer's path into an owned String.
 // Used as a key for tracking scrollable region offsets.
-fn buffer_key(buffer: &Buffer) -> String {
-    match buffer.path {
-        Some(ref path) => path.to_string_lossy().into_owned(),
-        None => String::new(),
-    }
+fn buffer_key(buffer: &Buffer) -> usize {
+    (buffer as *const Buffer) as usize
 }
 
 fn relative_range(region: &ScrollableRegion, first_position: &Position, second_position: &Position) -> Range {
