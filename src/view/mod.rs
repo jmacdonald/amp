@@ -11,6 +11,7 @@ use view::buffer::BufferView;
 use scribe::buffer::{Category, Position, Range, Token};
 use pad::PadStr;
 use rustbox::Color;
+use std::ops::Deref;
 
 const LINE_LENGTH_GUIDE_OFFSET: usize = 80;
 
@@ -35,8 +36,16 @@ pub enum Theme {
 
 pub struct View {
     pub theme: Theme,
-    pub terminal: Terminal,
+    terminal: Terminal,
     pub buffer_view: BufferView,
+}
+
+impl Deref for View {
+    type Target = Terminal;
+
+    fn deref(&self) -> &Terminal {
+        &self.terminal
+    }
 }
 
 impl View {

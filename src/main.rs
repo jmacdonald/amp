@@ -38,7 +38,7 @@ fn main() {
             _ => view::modes::default::display(&view_data, &application.view),
         }
 
-        match application.view.terminal.listen() {
+        match application.view.listen() {
             Event::KeyEvent(Some(key)) => {
                 // Pass the input to the current mode.
                 let command = match application.mode {
