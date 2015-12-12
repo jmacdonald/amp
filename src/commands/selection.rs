@@ -7,8 +7,6 @@ use commands;
 use helpers;
 
 pub fn delete(app: &mut Application) {
-    copy_to_clipboard(app);
-
     match app.workspace.current_buffer() {
         Some(buffer) => {
             match app.mode {
@@ -34,6 +32,11 @@ pub fn delete(app: &mut Application) {
 
     application::switch_to_normal_mode(app);
     commands::view::scroll_to_cursor(app);
+}
+
+pub fn copy_and_delete(app: &mut Application) {
+    copy_to_clipboard(app);
+    delete(app);
 }
 
 pub fn change(app: &mut Application) {

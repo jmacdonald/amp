@@ -25,12 +25,12 @@ pub fn delete(app: &mut Application) {
 pub fn delete_token(app: &mut Application) {
     commands::application::switch_to_select_mode(app);
     commands::cursor::move_to_end_of_current_token(app);
-    commands::selection::delete(app);
+    commands::selection::copy_and_delete(app);
 }
 
 pub fn delete_current_line(app: &mut Application) {
     commands::application::switch_to_select_line_mode(app);
-    commands::selection::delete(app);
+    commands::selection::copy_and_delete(app);
     commands::application::switch_to_normal_mode(app);
     commands::view::scroll_to_cursor(app);
 }
@@ -361,12 +361,7 @@ pub fn redo(app: &mut Application) {
 pub fn paste(app: &mut Application) {
     let insert_below = match app.mode {
         Mode::Select(_) | Mode::SelectLine(_) => {
-            // Delete the selected content without losing the clipboard contents.
-            let mut clipboard = Clipboard::None;
-            mem::swap(&mut clipboard, &mut app.clipboard);
             commands::selection::delete(app);
-            app.clipboard = clipboard;
-
             false
         },
         _ => true,
