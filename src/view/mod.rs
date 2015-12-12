@@ -6,13 +6,14 @@ pub mod buffer;
 mod scrollable_region;
 pub mod terminal;
 mod data;
+mod color;
 
 // Published API
 pub use self::data::{Data, StatusLine};
 
 use self::terminal::Terminal;
 use view::buffer::BufferView;
-use scribe::buffer::{Category, Position};
+use scribe::buffer::Position;
 use pad::PadStr;
 use rustbox::Color;
 use std::ops::Deref;
@@ -83,7 +84,7 @@ impl View {
         );
 
         for token in tokens.iter() {
-            let token_color = map_color(&token.category);
+            let token_color = color::map(&token.category);
 
             for character in token.lexeme.chars() {
                 let current_position = Position{
@@ -268,25 +269,5 @@ impl View {
             Theme::Dark  => Color::Black,
             Theme::Light => Color::White,
         }
-    }
-}
-
-fn map_color(category: &Category) -> Color {
-    match category {
-        &Category::Keyword     => Color::Yellow,
-        &Category::Identifier  => Color::Magenta,
-        &Category::String      => Color::Red,
-        &Category::Key         => Color::Red,
-        &Category::Literal     => Color::Red,
-        &Category::Boolean     => Color::Red,
-        &Category::Comment     => Color::Blue,
-        &Category::Method      => Color::Cyan,
-        &Category::Function    => Color::Cyan,
-        &Category::Call        => Color::Cyan,
-        &Category::Brace       => Color::Cyan,
-        &Category::Bracket     => Color::Cyan,
-        &Category::Parenthesis => Color::Cyan,
-        &Category::Operator    => Color::Cyan,
-        _                      => Color::Default,
     }
 }
