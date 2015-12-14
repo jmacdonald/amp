@@ -2,7 +2,7 @@ extern crate scribe;
 
 use commands;
 use std::mem;
-use models::application::{Application, Clipboard, Mode};
+use models::application::{Application, ClipboardContent, Mode};
 use scribe::buffer::{Position, Range};
 
 pub fn save(app: &mut Application) {
@@ -369,9 +369,9 @@ pub fn paste(app: &mut Application) {
 
     match app.workspace.current_buffer() {
         Some(buffer) => {
-            match app.clipboard {
-                Clipboard::Inline(ref content) => buffer.insert(content),
-                Clipboard::Block(ref content) => {
+            match app.clipboard.get_content() {
+                &ClipboardContent::Inline(ref content) => buffer.insert(content),
+                &ClipboardContent::Block(ref content) => {
                     let original_cursor_position = *buffer.cursor.clone();
                     let line = original_cursor_position.line;
 
@@ -405,7 +405,7 @@ pub fn paste(app: &mut Application) {
                         buffer.insert(content);
                     }
                 }
-                Clipboard::None => (),
+                &ClipboardContent::None => (),
             }
         },
         None => (),
@@ -416,8 +416,8 @@ pub fn paste(app: &mut Application) {
 pub fn paste_above(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
-            match app.clipboard {
-                Clipboard::Block(ref content) => {
+            match app.clipboard.get_content() {
+                &ClipboardContent::Block(ref content) => {
                     let mut start_of_line = Position{
                         line: buffer.cursor.line,
                         offset: 0
@@ -525,7 +525,7 @@ mod tests {
     extern crate scribe;
 
     use commands;
-    use models::application::Clipboard;
+    use models::application::ClipboardContent;
     use scribe::Buffer;
     use scribe::buffer::Position;
 
@@ -1080,7 +1080,7 @@ mod tests {
         let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp");
-        app.clipboard = Clipboard::Inline("editor".to_string());
+        app.clipboard.set_content(ClipboardContent::Inline("editor".to_string()));
 
         // Now that we've set up the buffer, add it to
         // the application, select its contents, and paste.
@@ -1102,7 +1102,7 @@ mod tests {
         let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
-        app.clipboard = Clipboard::Block("paste amp\n".to_string());
+        app.clipboard.set_content(ClipboardContent::Block("paste amp\n".to_string()));
 
         // Now that we've set up the buffer, add it to
         // the application, select its contents, and paste.
@@ -1125,7 +1125,7 @@ mod tests {
         let original_position = Position{ line: 0, offset: 3 };
         buffer.insert("editor");
         buffer.cursor.move_to(original_position.clone());
-        app.clipboard = Clipboard::Block("amp\n".to_string());
+        app.clipboard.set_content(ClipboardContent::Block("amp\n".to_string()));
 
         // Now that we've set up the buffer, add it to
         // the application, select its contents, and paste.

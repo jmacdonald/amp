@@ -2,6 +2,10 @@ extern crate scribe;
 extern crate rustbox;
 
 pub mod modes;
+mod clipboard;
+
+// Published API
+pub use self::clipboard::ClipboardContent;
 
 use std::env;
 use std::path::PathBuf;
@@ -14,6 +18,7 @@ use self::modes::select_line::SelectLineMode;
 use self::modes::search_insert::SearchInsertMode;
 use scribe::{Buffer, Workspace};
 use view::View;
+use self::clipboard::Clipboard;
 
 pub enum Mode {
     Normal,
@@ -27,18 +32,12 @@ pub enum Mode {
     Exit,
 }
 
-pub enum Clipboard {
-    Inline(String),
-    Block(String),
-    None,
-}
-
 pub struct Application {
     pub mode: Mode,
     pub workspace: Workspace,
-    pub clipboard: Clipboard,
     pub search_query: Option<String>,
     pub view: View,
+    pub clipboard: Clipboard,
 }
 
 pub fn new() -> Application {
@@ -60,12 +59,13 @@ pub fn new() -> Application {
     }
 
     let view = View::new();
+    let clipboard = Clipboard::new();
 
     Application{
         mode: Mode::Normal,
         workspace: workspace,
-        clipboard: Clipboard::None,
         search_query: None,
         view: view,
+        clipboard: clipboard,
     }
 }
