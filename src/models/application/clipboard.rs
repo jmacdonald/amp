@@ -31,20 +31,24 @@ impl Clipboard {
         // Check the system clipboard for newer content.
         let new_content = match self.system_clipboard.get_contents() {
             Ok(content) => {
-                // There is system clipboard content we can use.
-                match self.content {
-                    ClipboardContent::Inline(ref app_content) |
-                    ClipboardContent::Block(ref app_content) => {
-                        // We have in-app clipboard content, too. Prefer
-                        // the system clipboard content if it's different.
-                        if content != *app_content {
-                            Some(ClipboardContent::Inline(content))
-                        } else {
-                            None
-                        }
-                    },
-                    // We have no in-app clipboard content. Use the system's.
-                    _ => Some(ClipboardContent::Inline(content)),
+                if content.is_empty() {
+                    None
+                } else {
+                    // There is system clipboard content we can use.
+                    match self.content {
+                        ClipboardContent::Inline(ref app_content) |
+                        ClipboardContent::Block(ref app_content) => {
+                            // We have in-app clipboard content, too. Prefer
+                            // the system clipboard content if they differ.
+                            if content != *app_content {
+                                Some(ClipboardContent::Inline(content))
+                            } else {
+                                None
+                            }
+                        },
+                        // We have no in-app clipboard content. Use the system's.
+                        _ => Some(ClipboardContent::Inline(content)),
+                    }
                 }
             },
             _ => None,
