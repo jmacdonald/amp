@@ -1,7 +1,6 @@
 extern crate rustbox;
 extern crate scribe;
 
-pub mod modes;
 pub mod buffer;
 mod scrollable_region;
 pub mod terminal;
