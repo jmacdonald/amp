@@ -1,4 +1,4 @@
-use view::{Data, View};
+use view::{Data, StatusLine, View};
 use models::application::modes::line_jump::LineJumpMode;
 
 pub fn display(data: &Data, mode: &LineJumpMode, view: &View) {
@@ -10,11 +10,15 @@ pub fn display(data: &Data, mode: &LineJumpMode, view: &View) {
 
     // Draw the status line as an input prompt.
     let input_prompt = format!("Go to line: {}", mode.input);
-    view.draw_status_line(&input_prompt, data.status_line.color);
+    let input_prompt_len = input_prompt.len();
+    view.draw_status_line(&StatusLine{
+        content: input_prompt,
+        color: data.status_line.color
+    });
 
     // Move the cursor to the end of the search query input.
     view.set_cursor(
-        (input_prompt.len()) as isize,
+        (input_prompt_len) as isize,
         (view.height() - 1) as isize
     );
 

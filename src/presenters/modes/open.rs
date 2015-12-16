@@ -15,7 +15,7 @@ pub fn display(data: &Data, mode: &OpenMode, view: &View) {
     view.draw_tokens(&data);
 
     // Draw the status line.
-    view.draw_status_line(&data.status_line.content, data.status_line.color);
+    view.draw_status_line(&data.status_line);
 
     // Draw the list of search results.
     for (line, result) in mode.results.iter().enumerate() {

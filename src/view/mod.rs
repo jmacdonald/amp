@@ -193,15 +193,15 @@ impl View {
         }
     }
 
-    pub fn draw_status_line(&self, content: &str, color: Option<Color>) {
+    pub fn draw_status_line(&self, status_line: &StatusLine) {
         let line = self.terminal.height()-1;
         self.terminal.print(
             0,
             line,
             rustbox::RB_BOLD,
             Color::Default,
-            color.unwrap_or(self.alt_background_color()),
-            &content.pad_to_width(self.terminal.width())
+            status_line.color.unwrap_or(self.alt_background_color()),
+            &status_line.content.pad_to_width(self.terminal.width())
         );
     }
 

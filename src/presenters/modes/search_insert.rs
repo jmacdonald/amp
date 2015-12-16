@@ -1,4 +1,4 @@
-use view::{Data, View};
+use view::{Data, StatusLine, View};
 use models::application::modes::search_insert::SearchInsertMode;
 
 pub fn display(data: &Data, mode: &SearchInsertMode, view: &View) {
@@ -10,11 +10,15 @@ pub fn display(data: &Data, mode: &SearchInsertMode, view: &View) {
 
     // Draw the status line as a search prompt.
     let search_prompt = format!("Search: {}", mode.input);
-    view.draw_status_line(&search_prompt, data.status_line.color);
+    let search_prompt_len = search_prompt.len();
+    view.draw_status_line(&StatusLine{
+        content: search_prompt,
+        color: data.status_line.color
+    });
 
     // Move the cursor to the end of the search query input.
     view.set_cursor(
-        (search_prompt.len()) as isize,
+        (search_prompt_len) as isize,
         (view.height() - 1) as isize
     );
 

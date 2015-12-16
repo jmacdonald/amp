@@ -14,7 +14,7 @@ pub fn display(data: &Data, view: &View) {
     view.draw_tokens(&data);
 
     // Draw the status line.
-    view.draw_status_line(&data.status_line.content, data.status_line.color);
+    view.draw_status_line(&data.status_line);
 
     // Render the changes to the screen.
     view.present();
