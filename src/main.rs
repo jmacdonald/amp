@@ -35,6 +35,7 @@ fn main() {
         match application.mode {
             Mode::Open(ref mode) => presenters::modes::open::display(&view_data, mode, &application.view),
             Mode::SearchInsert(ref mode) => presenters::modes::search_insert::display(&view_data, mode, &application.view),
+            Mode::Jump(ref mode) => presenters::modes::jump::display(&view_data, &application.view),
             Mode::LineJump(ref mode) => presenters::modes::line_jump::display(&view_data, mode, &application.view),
             _ => presenters::modes::default::display(&view_data, &application.view),
         }
