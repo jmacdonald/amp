@@ -12,10 +12,12 @@ pub use self::data::{Data, StatusLine};
 
 use self::terminal::Terminal;
 use view::buffer::BufferView;
-use scribe::buffer::Position;
+use scribe::buffer::{Buffer, Position};
 use pad::PadStr;
 use rustbox::Color;
 use std::ops::Deref;
+use std::collections::HashMap;
+use self::scrollable_region::ScrollableRegion;
 
 const LINE_LENGTH_GUIDE_OFFSET: usize = 80;
 
@@ -28,6 +30,7 @@ pub struct View {
     pub theme: Theme,
     terminal: Terminal,
     pub buffer_view: BufferView,
+    scrollable_regions: HashMap<usize, ScrollableRegion>,
 }
 
 impl Deref for View {
@@ -47,6 +50,7 @@ impl View {
             theme: Theme::Dark,
             terminal: terminal,
             buffer_view: BufferView::new(height),
+            scrollable_regions: HashMap::new()
         }
     }
 
@@ -269,4 +273,34 @@ impl View {
             Theme::Light => Color::White,
         }
     }
+
+    pub fn scroll_to_cursor(&mut self, buffer: &Buffer) {
+        self.get_region(buffer).scroll_into_view(buffer.cursor.line);
+    }
+
+    pub fn scroll_up(&mut self, buffer: &Buffer, amount: usize) {
+        self.get_region(buffer).scroll_up(amount);
+    }
+
+    pub fn scroll_down(&mut self, buffer: &Buffer, amount: usize) {
+        self.get_region(buffer).scroll_down(amount);
+    }
+
+    fn get_region(&mut self, buffer: &Buffer) -> &mut ScrollableRegion {
+        if self.scrollable_regions.contains_key(&buffer_key(buffer)) {
+            self.scrollable_regions.get_mut(&buffer_key(buffer)).unwrap()
+        } else {
+            self.scrollable_regions.insert(
+                buffer_key(buffer),
+                scrollable_region::new(self.terminal.height())
+            );
+            self.scrollable_regions.get_mut(&buffer_key(buffer)).unwrap()
+        }
+    }
+}
+
+// Converts the buffer's path into an owned String.
+// Used as a key for tracking scrollable region offsets.
+fn buffer_key(buffer: &Buffer) -> usize {
+    (buffer as *const Buffer) as usize
 }
