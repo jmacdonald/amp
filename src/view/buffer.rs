@@ -24,16 +24,6 @@ impl BufferView {
     pub fn data(&mut self, buffer: &mut Buffer, mode: &mut Mode) -> Data {
         let region = self.get_region(buffer);
 
-        // Build status line data.
-        let content = match buffer.path {
-            Some(ref path) => path.to_string_lossy().into_owned(),
-            None => String::new(),
-        };
-        let color = match mode {
-            &mut Mode::Insert(_) => Some(Color::Green),
-            _ => None,
-        };
-
         // Get the buffer's tokens and reduce them to the visible set.
         let visible_tokens = visible_tokens(
             &buffer.tokens(),
@@ -95,10 +85,6 @@ impl BufferView {
             highlight: highlight,
             line_count: buffer.data().lines().count(),
             scrolling_offset: region.line_offset(),
-            status_line: StatusLine{
-                content: content,
-                color: color
-            }
         }
     }
 

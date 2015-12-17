@@ -26,18 +26,14 @@ fn main() {
                 highlight: None,
                 line_count: 0,
                 scrolling_offset: 0,
-                status_line: StatusLine{
-                    content: "".to_string(),
-                    color: None,
-                }
             },
         };
         match application.mode {
-            Mode::Open(ref mode) => presenters::modes::open::display(&view_data, mode, &application.view),
+            Mode::Open(ref mode) => presenters::modes::open::display(application.workspace.current_buffer(), &view_data, mode, &application.view),
             Mode::SearchInsert(ref mode) => presenters::modes::search_insert::display(&view_data, mode, &application.view),
-            Mode::Jump(ref mode) => presenters::modes::jump::display(&view_data, &application.view),
+            Mode::Jump(ref mode) => presenters::modes::jump::display(application.workspace.current_buffer(), &view_data, &application.view),
             Mode::LineJump(ref mode) => presenters::modes::line_jump::display(&view_data, mode, &application.view),
-            _ => presenters::modes::default::display(&view_data, &application.view),
+            _ => presenters::modes::default::display(application.workspace.current_buffer(), &view_data, &application.view),
         }
 
         match application.view.listen() {

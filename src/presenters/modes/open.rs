@@ -5,9 +5,10 @@ extern crate scribe;
 use models::application::modes::open::OpenMode;
 use rustbox::Color;
 use pad::PadStr;
-use view::{Data, View};
+use view::{Data, StatusLine, View};
+use scribe::Buffer;
 
-pub fn display(data: &Data, mode: &OpenMode, view: &View) {
+pub fn display(buffer: Option<&mut Buffer>, data: &Data, mode: &OpenMode, view: &View) {
     // Wipe the slate clean.
     view.clear();
 
@@ -15,7 +16,19 @@ pub fn display(data: &Data, mode: &OpenMode, view: &View) {
     view.draw_tokens(&data);
 
     // Draw the status line.
-    view.draw_status_line(&data.status_line);
+    let content = match buffer {
+        Some(buf) => {
+            match buf.path {
+                Some(ref path) => path.to_string_lossy().into_owned(),
+                None => String::new(),
+            }
+        },
+        None => String::new(),
+    };
+    view.draw_status_line(&StatusLine{
+        content: content,
+        color: None,
+    });
 
     // Draw the list of search results.
     for (line, result) in mode.results.iter().enumerate() {

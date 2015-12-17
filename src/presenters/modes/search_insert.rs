@@ -13,7 +13,7 @@ pub fn display(data: &Data, mode: &SearchInsertMode, view: &View) {
     let search_prompt_len = search_prompt.len();
     view.draw_status_line(&StatusLine{
         content: search_prompt,
-        color: data.status_line.color
+        color: None,
     });
 
     // Move the cursor to the end of the search query input.

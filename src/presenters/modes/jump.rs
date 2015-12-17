@@ -1,6 +1,9 @@
-use view::{Data, View};
+extern crate scribe;
 
-pub fn display(data: &Data, view: &View) {
+use scribe::Buffer;
+use view::{Data, StatusLine, View};
+
+pub fn display(buffer: Option<&mut Buffer>, data: &Data, view: &View) {
     // Wipe the slate clean.
     view.clear();
 
@@ -14,7 +17,19 @@ pub fn display(data: &Data, view: &View) {
     view.draw_tokens(&data);
 
     // Draw the status line.
-    view.draw_status_line(&data.status_line);
+    let content = match buffer {
+        Some(buf) => {
+            match buf.path {
+                Some(ref path) => path.to_string_lossy().into_owned(),
+                None => String::new(),
+            }
+        },
+        None => String::new(),
+    };
+    view.draw_status_line(&StatusLine{
+        content: content,
+        color: None,
+    });
 
     // Render the changes to the screen.
     view.present();
