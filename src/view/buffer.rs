@@ -1,11 +1,10 @@
 extern crate scribe;
 extern crate rustbox;
 
-use view::{BufferData, StatusLine, scrollable_region};
+use view::{BufferData, scrollable_region};
 use view::scrollable_region::{ScrollableRegion, Visibility};
 use models::application::Mode;
 use scribe::buffer::{Buffer, Position, Range, Token, LineRange};
-use rustbox::Color;
 use std::collections::hash_map::HashMap;
 
 pub struct BufferView {

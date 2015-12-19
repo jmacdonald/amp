@@ -10,7 +10,7 @@ mod helpers;
 mod presenters;
 
 use models::application::Mode;
-use view::{BufferData, StatusLine};
+use view::BufferData;
 use view::terminal::Event;
 
 fn main() {
