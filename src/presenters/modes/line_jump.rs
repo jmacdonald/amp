@@ -1,7 +1,7 @@
-use view::{Data, StatusLine, View};
+use view::{BufferData, StatusLine, View};
 use models::application::modes::line_jump::LineJumpMode;
 
-pub fn display(data: &Data, mode: &LineJumpMode, view: &View) {
+pub fn display(data: &BufferData, mode: &LineJumpMode, view: &View) {
     // Wipe the slate clean.
     view.clear();
 

@@ -1,7 +1,7 @@
 extern crate scribe;
 extern crate rustbox;
 
-use view::{Data, StatusLine, scrollable_region};
+use view::{BufferData, StatusLine, scrollable_region};
 use view::scrollable_region::{ScrollableRegion, Visibility};
 use models::application::Mode;
 use scribe::buffer::{Buffer, Position, Range, Token, LineRange};
@@ -21,7 +21,7 @@ impl BufferView {
         }
     }
 
-    pub fn data(&mut self, buffer: &mut Buffer, mode: &mut Mode) -> Data {
+    pub fn data(&mut self, buffer: &mut Buffer, mode: &mut Mode) -> BufferData {
         let region = self.get_region(buffer);
 
         // Get the buffer's tokens and reduce them to the visible set.
@@ -79,7 +79,7 @@ impl BufferView {
         };
 
         // Bundle up the presentable data.
-        Data{
+        BufferData{
             tokens: Some(tokens),
             cursor: relative_cursor,
             highlight: highlight,

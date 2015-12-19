@@ -3,9 +3,9 @@ extern crate rustbox;
 
 use scribe::Buffer;
 use rustbox::Color;
-use view::{Data, StatusLine, View};
+use view::{BufferData, StatusLine, View};
 
-pub fn display(buffer: Option<&mut Buffer>, data: &Data, view: &View) {
+pub fn display(buffer: Option<&mut Buffer>, data: &BufferData, view: &View) {
     // Wipe the slate clean.
     view.clear();
 

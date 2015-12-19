@@ -8,7 +8,7 @@ mod data;
 mod color;
 
 // Published API
-pub use self::data::{Data, StatusLine};
+pub use self::data::{BufferData, StatusLine};
 
 use self::terminal::Terminal;
 use view::buffer::BufferView;
@@ -54,7 +54,7 @@ impl View {
         }
     }
 
-    pub fn draw_tokens(&self, data: &Data) {
+    pub fn draw_tokens(&self, data: &BufferData) {
         let mut line = 0;
 
         // Get the tokens, bailing out if there are none.
@@ -205,7 +205,7 @@ impl View {
         );
     }
 
-    fn draw_line_number(&self, line: usize, data: &Data, width: usize) -> usize {
+    fn draw_line_number(&self, line: usize, data: &BufferData, width: usize) -> usize {
         let mut offset = 0;
 
         // Line numbers are zero-based and relative;

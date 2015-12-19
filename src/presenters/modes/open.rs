@@ -5,10 +5,10 @@ extern crate scribe;
 use models::application::modes::open::OpenMode;
 use rustbox::Color;
 use pad::PadStr;
-use view::{Data, StatusLine, View};
+use view::{BufferData, StatusLine, View};
 use scribe::Buffer;
 
-pub fn display(buffer: Option<&mut Buffer>, data: &Data, mode: &OpenMode, view: &View) {
+pub fn display(buffer: Option<&mut Buffer>, data: &BufferData, mode: &OpenMode, view: &View) {
     // Wipe the slate clean.
     view.clear();
 

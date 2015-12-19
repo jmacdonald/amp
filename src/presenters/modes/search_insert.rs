@@ -1,7 +1,7 @@
-use view::{Data, StatusLine, View};
+use view::{BufferData, StatusLine, View};
 use models::application::modes::search_insert::SearchInsertMode;
 
-pub fn display(data: &Data, mode: &SearchInsertMode, view: &View) {
+pub fn display(data: &BufferData, mode: &SearchInsertMode, view: &View) {
     // Wipe the slate clean.
     view.clear();
 

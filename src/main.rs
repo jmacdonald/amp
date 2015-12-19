@@ -10,7 +10,7 @@ mod helpers;
 mod presenters;
 
 use models::application::Mode;
-use view::{Data, StatusLine};
+use view::{BufferData, StatusLine};
 use view::terminal::Event;
 
 fn main() {
@@ -20,7 +20,7 @@ fn main() {
         // Draw the current application state to the screen.
         let view_data = match application.workspace.current_buffer() {
             Some(ref mut buffer) => application.view.buffer_view.data(buffer, &mut application.mode),
-            None => Data{
+            None => BufferData{
                 tokens: None,
                 cursor: None,
                 highlight: None,
