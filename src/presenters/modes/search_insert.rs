@@ -1,15 +1,39 @@
 extern crate scribe;
 
-use scribe::buffer::Position;
+use scribe::buffer::{Buffer, Position};
+use presenters::visible_tokens;
 use view::{BufferData, StatusLine, View};
 use models::application::modes::search_insert::SearchInsertMode;
 
-pub fn display(data: &BufferData, mode: &SearchInsertMode, view: &View) {
+pub fn display(buffer: Option<&mut Buffer>, mode: &SearchInsertMode, view: &mut View) {
     // Wipe the slate clean.
     view.clear();
 
-    // Draw the visible set of tokens to the terminal.
-    view.draw_buffer(&data);
+    match buffer {
+        Some(buf) => {
+            let line_offset = view.visible_region(buf).line_offset();
+            let visible_range = view.visible_region(buf).visible_range();
+
+            // Get the buffer's tokens and reduce them to the visible set.
+            let visible_tokens = visible_tokens(
+                &buf.tokens(),
+                visible_range
+            );
+
+            // Bundle up the presentable data.
+            let data = BufferData{
+                tokens: Some(visible_tokens),
+                cursor: None,
+                highlight: None,
+                line_count: buf.data().lines().count(),
+                scrolling_offset: line_offset,
+            };
+
+            // Draw the visible set of tokens to the terminal.
+            view.draw_buffer(&data);
+        }
+        _ => (),
+    }
 
     // Draw the status line as a search prompt.
     let search_prompt = format!("Search: {}", mode.input);
