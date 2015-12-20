@@ -34,7 +34,7 @@ fn main() {
             Mode::SearchInsert(ref mode) => presenters::modes::search_insert::display(&view_data, mode, &application.view),
             Mode::Jump(ref mode) => presenters::modes::jump::display(application.workspace.current_buffer(), &view_data, &application.view),
             Mode::LineJump(ref mode) => presenters::modes::line_jump::display(&view_data, mode, &application.view),
-            _ => presenters::modes::default::display(application.workspace.current_buffer(), &view_data, &application.view),
+            _ => presenters::modes::default::display(application.workspace.current_buffer(), &mut application.view),
         }
 
         match application.view.listen() {

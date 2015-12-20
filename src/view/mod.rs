@@ -2,7 +2,7 @@ extern crate rustbox;
 extern crate scribe;
 
 pub mod buffer;
-mod scrollable_region;
+pub mod scrollable_region;
 pub mod terminal;
 mod data;
 mod color;
@@ -288,8 +288,8 @@ impl View {
         self.get_region(buffer).scroll_down(amount);
     }
 
-    pub fn visible_range(&mut self, buffer: &Buffer) -> LineRange {
-        self.get_region(buffer).visible_range()
+    pub fn visible_region(&mut self, buffer: &Buffer) -> &ScrollableRegion {
+        self.get_region(buffer)
     }
 
     fn get_region(&mut self, buffer: &Buffer) -> &mut ScrollableRegion {
