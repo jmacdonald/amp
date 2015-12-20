@@ -1,3 +1,6 @@
+extern crate scribe;
+
+use scribe::buffer::Position;
 use view::{BufferData, StatusLine, View};
 use models::application::modes::line_jump::LineJumpMode;
 
@@ -17,10 +20,12 @@ pub fn display(data: &BufferData, mode: &LineJumpMode, view: &View) {
     });
 
     // Move the cursor to the end of the search query input.
-    view.set_cursor(
-        (input_prompt_len) as isize,
-        (view.height() - 1) as isize
-    );
+    view.set_cursor(Some(
+        Position{
+            line: view.height() - 1,
+            offset: input_prompt_len,
+        }
+    ));
 
     // Render the changes to the screen.
     view.present();

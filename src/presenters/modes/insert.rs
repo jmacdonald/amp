@@ -10,10 +10,7 @@ pub fn display(buffer: Option<&mut Buffer>, data: &BufferData, view: &View) {
     view.clear();
 
     // Handle cursor updates.
-    match data.cursor {
-        Some(position) => view.set_cursor(position.offset as isize, position.line as isize),
-        None => view.set_cursor(-1, -1),
-    }
+    view.set_cursor(data.cursor);
 
     // Draw the visible set of tokens to the terminal.
     view.draw_buffer(&data);

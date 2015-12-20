@@ -12,7 +12,7 @@ pub use self::data::{BufferData, StatusLine};
 
 use self::terminal::Terminal;
 use view::buffer::BufferView;
-use scribe::buffer::{Buffer, Position};
+use scribe::buffer::{Buffer, LineRange, Position};
 use pad::PadStr;
 use rustbox::Color;
 use std::ops::Deref;
@@ -70,10 +70,12 @@ impl View {
         // Set the terminal cursor, considering leading line numbers.
         match data.cursor {
             Some(position) => {
-                self.terminal.set_cursor(
-                    (position.offset + gutter_width) as isize,
-                    position.line as isize
-                );
+                self.terminal.set_cursor(Some(
+                    Position{
+                        line: position.line,
+                        offset: position.offset + gutter_width,
+                    }
+                ));
             },
             None => (),
         }

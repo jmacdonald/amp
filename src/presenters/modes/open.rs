@@ -6,7 +6,7 @@ use models::application::modes::open::OpenMode;
 use rustbox::Color;
 use pad::PadStr;
 use view::{BufferData, StatusLine, View};
-use scribe::Buffer;
+use scribe::buffer::{Buffer, Position};
 
 pub fn display(buffer: Option<&mut Buffer>, data: &BufferData, mode: &OpenMode, view: &View) {
     // Wipe the slate clean.
@@ -43,7 +43,12 @@ pub fn display(buffer: Option<&mut Buffer>, data: &BufferData, mode: &OpenMode, 
     view.print(0, line, rustbox::RB_BOLD, Color::Black, Color::White, &padded_content);
 
     // Place the cursor on the search input line, right after its contents.
-    view.set_cursor(mode.input.len() as isize, 5);
+    view.set_cursor(Some(
+        Position{
+            line: 5,
+            offset: mode.input.len()
+        }
+    ));
 
     // Render the changes to the screen.
     view.present();

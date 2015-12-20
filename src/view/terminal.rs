@@ -1,7 +1,9 @@
 extern crate rustbox;
+extern crate scribe;
 
 use std::error::Error;
 use std::default::Default;
+use scribe::buffer::Position;
 use rustbox::{Color, InitOptions, RustBox, Style};
 
 pub use rustbox::Event;
@@ -67,9 +69,18 @@ impl Terminal {
         }
     }
 
-    pub fn set_cursor(&self, x: isize, y: isize) {
+    pub fn set_cursor(&self, position: Option<Position>) {
         match self.terminal {
-            Some(ref t) => t.set_cursor(x, y),
+            Some(ref t) => {
+                match position {
+                    Some(pos) => {
+                        t.set_cursor(pos.offset as isize, pos.line as isize)
+                    },
+                    None => {
+                        t.set_cursor(-1, -1)
+                    },
+                }
+            },
             None => (),
         }
     }
