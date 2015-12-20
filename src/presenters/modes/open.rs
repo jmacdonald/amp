@@ -13,7 +13,7 @@ pub fn display(buffer: Option<&mut Buffer>, data: &BufferData, mode: &OpenMode, 
     view.clear();
 
     // Draw the visible set of tokens to the terminal.
-    view.draw_tokens(&data);
+    view.draw_buffer(&data);
 
     // Draw the status line.
     let content = match buffer {

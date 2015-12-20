@@ -54,7 +54,7 @@ impl View {
         }
     }
 
-    pub fn draw_tokens(&self, data: &BufferData) {
+    pub fn draw_buffer(&self, data: &BufferData) {
         let mut line = 0;
 
         // Get the tokens, bailing out if there are none.

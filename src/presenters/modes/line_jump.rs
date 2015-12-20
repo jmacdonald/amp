@@ -6,7 +6,7 @@ pub fn display(data: &BufferData, mode: &LineJumpMode, view: &View) {
     view.clear();
 
     // Draw the visible set of tokens to the terminal.
-    view.draw_tokens(&data);
+    view.draw_buffer(&data);
 
     // Draw the status line as an input prompt.
     let input_prompt = format!("Go to line: {}", mode.input);
