@@ -286,6 +286,10 @@ impl View {
         self.get_region(buffer).scroll_down(amount);
     }
 
+    pub fn visible_range(&mut self, buffer: &Buffer) -> LineRange {
+        self.get_region(buffer).visible_range()
+    }
+
     fn get_region(&mut self, buffer: &Buffer) -> &mut ScrollableRegion {
         if self.scrollable_regions.contains_key(&buffer_key(buffer)) {
             self.scrollable_regions.get_mut(&buffer_key(buffer)).unwrap()
