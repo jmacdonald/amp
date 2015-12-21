@@ -60,7 +60,6 @@ pub fn new(path: PathBuf) -> OpenMode {
 
 #[cfg(test)]
 mod tests {
-    use super::new;
     use std::env;
     use std::path::PathBuf;
 

@@ -10,7 +10,7 @@ mod color;
 pub use self::data::{BufferData, StatusLine};
 
 use self::terminal::Terminal;
-use scribe::buffer::{Buffer, LineRange, Position};
+use scribe::buffer::{Buffer, Position};
 use pad::PadStr;
 use rustbox::Color;
 use std::ops::Deref;

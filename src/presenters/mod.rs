@@ -35,6 +35,7 @@ fn visible_tokens(tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
     visible_tokens
 }
 
+#[cfg(test)]
 mod tests {
     extern crate scribe;
 
