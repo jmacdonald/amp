@@ -1,7 +1,6 @@
 extern crate rustbox;
 extern crate scribe;
 
-pub mod buffer;
 pub mod scrollable_region;
 pub mod terminal;
 mod data;
@@ -11,7 +10,6 @@ mod color;
 pub use self::data::{BufferData, StatusLine};
 
 use self::terminal::Terminal;
-use view::buffer::BufferView;
 use scribe::buffer::{Buffer, LineRange, Position};
 use pad::PadStr;
 use rustbox::Color;
@@ -29,7 +27,6 @@ pub enum Theme {
 pub struct View {
     pub theme: Theme,
     terminal: Terminal,
-    pub buffer_view: BufferView,
     scrollable_regions: HashMap<usize, ScrollableRegion>,
 }
 
@@ -44,12 +41,10 @@ impl Deref for View {
 impl View {
     pub fn new() -> View {
         let terminal = Terminal::new();
-        let height = terminal.height()-1;
 
         View{
             theme: Theme::Dark,
             terminal: terminal,
-            buffer_view: BufferView::new(height),
             scrollable_regions: HashMap::new()
         }
     }

@@ -17,17 +17,7 @@ fn main() {
     let mut application = models::application::new();
 
     loop {
-        // Draw the current application state to the screen.
-        let view_data = match application.workspace.current_buffer() {
-            Some(ref mut buffer) => application.view.buffer_view.data(buffer, &mut application.mode),
-            None => BufferData{
-                tokens: None,
-                cursor: None,
-                highlight: None,
-                line_count: 0,
-                scrolling_offset: 0,
-            },
-        };
+        // Present the application state to the view.
         match application.mode {
             Mode::Insert(_) => presenters::modes::insert::display(application.workspace.current_buffer(), &mut application.view),
             Mode::Open(ref mode) => presenters::modes::open::display(application.workspace.current_buffer(), mode, &mut application.view),
@@ -37,6 +27,7 @@ fn main() {
             _ => presenters::modes::default::display(application.workspace.current_buffer(), &mut application.view),
         }
 
+        // Listen for and respond to user input.
         match application.view.listen() {
             Event::KeyEvent(Some(key)) => {
                 // Pass the input to the current mode.
@@ -64,9 +55,6 @@ fn main() {
                     Mode::Exit => break,
                     _ => {}
                 }
-            },
-            Event::ResizeEvent(_, height) => {
-                application.view.buffer_view.update_height((height-1) as usize);
             },
             _ => {},
         }
