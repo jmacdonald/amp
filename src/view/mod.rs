@@ -12,9 +12,10 @@ pub use self::data::{BufferData, StatusLine};
 use self::terminal::Terminal;
 use scribe::buffer::{Buffer, Position};
 use pad::PadStr;
-use rustbox::Color;
-use std::ops::Deref;
+use rustbox::{Color, Event, Style};
 use std::collections::HashMap;
+use std::rc::Rc;
+use std::cell::RefCell;
 use self::scrollable_region::ScrollableRegion;
 
 const LINE_LENGTH_GUIDE_OFFSET: usize = 80;
@@ -26,21 +27,13 @@ pub enum Theme {
 
 pub struct View {
     pub theme: Theme,
-    terminal: Terminal,
+    terminal: Rc<RefCell<Terminal>>,
     scrollable_regions: HashMap<usize, ScrollableRegion>,
-}
-
-impl Deref for View {
-    type Target = Terminal;
-
-    fn deref(&self) -> &Terminal {
-        &self.terminal
-    }
 }
 
 impl View {
     pub fn new() -> View {
-        let terminal = Terminal::new();
+        let terminal = Rc::new(RefCell::new(Terminal::new()));
 
         View{
             theme: Theme::Dark,
@@ -65,7 +58,7 @@ impl View {
         // Set the terminal cursor, considering leading line numbers.
         match data.cursor {
             Some(position) => {
-                self.terminal.set_cursor(Some(
+                self.set_cursor(Some(
                     Position{
                         line: position.line,
                         offset: position.offset + gutter_width,
@@ -119,8 +112,8 @@ impl View {
                     match data.cursor {
                         Some(cursor) => {
                             if line == cursor.line {
-                                for offset in offset..self.terminal.width() {
-                                    self.terminal.print_char(
+                                for offset in offset..self.width() {
+                                    self.print_char(
                                         offset,
                                         line,
                                         style,
@@ -136,7 +129,7 @@ impl View {
 
                     // Print the length guide for this line.
                     if offset <= LINE_LENGTH_GUIDE_OFFSET {
-                        self.terminal.print_char(
+                        self.print_char(
                             LINE_LENGTH_GUIDE_OFFSET,
                             line,
                             rustbox::RB_NORMAL,
@@ -156,7 +149,7 @@ impl View {
                         line_number_width
                     );
                 } else {
-                    self.terminal.print_char(
+                    self.print_char(
                         offset,
                         line,
                         style,
@@ -174,8 +167,8 @@ impl View {
         match data.cursor {
             Some(cursor) => {
                 if line == cursor.line {
-                    for offset in offset..self.terminal.width() {
-                        self.terminal.print_char(
+                    for offset in offset..self.width() {
+                        self.print_char(
                             offset,
                             line,
                             rustbox::RB_NORMAL,
@@ -191,14 +184,14 @@ impl View {
     }
 
     pub fn draw_status_line(&self, status_line: &StatusLine) {
-        let line = self.terminal.height()-1;
-        self.terminal.print(
+        let line = self.height()-1;
+        self.print(
             0,
             line,
             rustbox::RB_BOLD,
             Color::Default,
             status_line.color.unwrap_or(self.alt_background_color()),
-            &status_line.content.pad_to_width(self.terminal.width())
+            &status_line.content.pad_to_width(self.width())
         );
     }
 
@@ -249,7 +242,7 @@ impl View {
                 None => rustbox::RB_NORMAL
             };
 
-            self.terminal.print_char(
+            self.print_char(
                 offset,
                 line,
                 weight,
@@ -270,6 +263,10 @@ impl View {
             Theme::Light => Color::White,
         }
     }
+
+    ///
+    /// Scrollable region delegation methods.
+    ///
 
     pub fn scroll_to_cursor(&mut self, buffer: &Buffer) {
         self.get_region(buffer).scroll_into_view(buffer.cursor.line);
@@ -293,10 +290,46 @@ impl View {
         } else {
             self.scrollable_regions.insert(
                 buffer_key(buffer),
-                scrollable_region::new(self.terminal.height())
+                ScrollableRegion::new(self.terminal.clone())
             );
             self.scrollable_regions.get_mut(&buffer_key(buffer)).unwrap()
         }
+    }
+
+    ///
+    /// Terminal delegation methods.
+    ///
+
+    pub fn set_cursor(&self, position: Option<Position>) {
+        self.terminal.borrow().set_cursor(position);
+    }
+
+    pub fn width(&self) -> usize {
+        self.terminal.borrow().width()
+    }
+
+    pub fn height(&self) -> usize {
+        self.terminal.borrow().height()
+    }
+
+    pub fn listen(&self) -> Event {
+        self.terminal.borrow().listen()
+    }
+
+    pub fn clear(&self) {
+        self.terminal.borrow().clear()
+    }
+
+    pub fn present(&self) {
+        self.terminal.borrow().present()
+    }
+
+    pub fn print(&self, x: usize, y: usize, style: Style, fg: Color, bg: Color, s: &str) {
+        self.terminal.borrow().print(x, y, style, fg, bg, s);
+    }
+
+    pub fn print_char(&self, x: usize, y: usize, style: Style, fg: Color, bg: Color, c: char) {
+        self.terminal.borrow().print_char(x, y, style, fg, bg, c);
     }
 }
 

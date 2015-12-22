@@ -1,10 +1,13 @@
+use std::rc::Rc;
+use std::cell::RefCell;
 use scribe::buffer::LineRange;
+use view::terminal::Terminal;
 
 /// Abstract representation of a fixed-height section of the screen.
 /// Used to determine visible ranges of lines based on previous state,
 /// explicit line focus, and common scrolling implementation behaviours.
 pub struct ScrollableRegion {
-    pub height: usize,
+    terminal: Rc<RefCell<Terminal>>,
     line_offset: usize,
 }
 
@@ -16,9 +19,15 @@ pub enum Visibility {
 }
 
 impl ScrollableRegion {
+    pub fn new(terminal: Rc<RefCell<Terminal>>) -> ScrollableRegion {
+        ScrollableRegion{
+            terminal: terminal,
+            line_offset: 0,
+        }
+    }
     // Determines the visible lines based on the current line offset and height.
     pub fn visible_range(&self) -> LineRange {
-        LineRange::new(self.line_offset, self.height + self.line_offset)
+        LineRange::new(self.line_offset, self.height() + self.line_offset)
     }
 
     /// If necessary, moves the line offset such that the specified line is
@@ -29,7 +38,7 @@ impl ScrollableRegion {
         if line < range.start() {
             self.line_offset = line;
         } else if line >= range.end() {
-            self.line_offset = line - self.height + 1;
+            self.line_offset = line - self.height() + 1;
         }
     }
 
@@ -40,7 +49,7 @@ impl ScrollableRegion {
     pub fn relative_position(&self, line: usize) -> Visibility {
         match line.checked_sub(self.line_offset) {
             Some(line) => {
-                if line >= self.height {
+                if line >= self.height() {
                     Visibility::BelowRegion
                 } else {
                     Visibility::Visible(line)
@@ -66,10 +75,10 @@ impl ScrollableRegion {
     pub fn scroll_down(&mut self, amount: usize) {
         self.line_offset += amount;
     }
-}
 
-pub fn new(height: usize) -> ScrollableRegion {
-    ScrollableRegion{ height: height, line_offset: 0 }
+    fn height(&self) -> usize {
+        self.terminal.borrow().height()
+    }
 }
 
 #[cfg(test)]
