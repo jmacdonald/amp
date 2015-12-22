@@ -18,9 +18,9 @@ impl Clipboard {
             Err(_) => None,
         };
 
-        Clipboard{
+        Clipboard {
             content: ClipboardContent::None,
-            system_clipboard: system_clipboard
+            system_clipboard: system_clipboard,
         }
     }
 
@@ -47,15 +47,15 @@ impl Clipboard {
                                     } else {
                                         None
                                     }
-                                },
+                                }
                                 // We have no in-app clipboard content. Use the system's.
                                 _ => Some(ClipboardContent::Inline(content)),
                             }
                         }
-                    },
+                    }
                     _ => None,
                 }
-            },
+            }
             None => None,
         };
 
@@ -79,7 +79,7 @@ impl Clipboard {
                 match self.system_clipboard {
                     Some(ref mut clipboard) => {
                         clipboard.set_contents(app_content.clone());
-                    },
+                    }
                     None => (),
                 }
             }

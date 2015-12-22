@@ -17,7 +17,7 @@ impl OpenMode {
     pub fn selected_path(&self) -> Option<PathBuf> {
         match self.results.get(self.selected_result_index) {
             Some(ref result) => Some(result.path.clone()),
-            None => None
+            None => None,
         }
     }
 
@@ -26,10 +26,8 @@ impl OpenMode {
     }
 
     pub fn search(&mut self) {
-        self.results = self.index.find(
-            &self.input,         // The query string (needle).
-            MAX_RESULTS          // Limit the amount of returned results.
-        );
+        self.results = self.index.find(&self.input, // The query string (needle).
+                                       MAX_RESULTS /* Limit the amount of returned results. */);
     }
 
     pub fn select_next_path(&mut self) {
@@ -50,11 +48,11 @@ pub fn new(path: PathBuf) -> OpenMode {
     let mut index = Index::new(path);
     index.populate();
 
-    OpenMode{
+    OpenMode {
         input: String::new(),
         index: index,
         results: Vec::new(),
-        selected_result_index: 0
+        selected_result_index: 0,
     }
 }
 

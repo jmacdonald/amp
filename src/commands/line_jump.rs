@@ -19,9 +19,9 @@ pub fn accept_input(app: &mut Application) {
                                 let target_line = line_number - 1;
 
                                 // Build an ideal target position to which we'll try moving.
-                                let mut target_position = Position{
+                                let mut target_position = Position {
                                     line: target_line,
-                                    offset: buffer.cursor.offset
+                                    offset: buffer.cursor.offset,
                                 };
 
                                 if !buffer.cursor.move_to(target_position) {
@@ -32,18 +32,18 @@ pub fn accept_input(app: &mut Application) {
                                         Some(line_content) => {
                                             target_position.offset = line_content.len();
                                             buffer.cursor.move_to(target_position);
-                                        },
+                                        }
                                         None => (),
                                     }
                                 }
-                            },
+                            }
                             None => (),
                         }
                     }
-                },
+                }
                 Err(_) => (),
             }
-        },
+        }
         _ => (),
     }
 
@@ -79,18 +79,17 @@ mod tests {
         // Ensure that the cursor is in the right place.
         // NOTE: We look for a decremented version of the input line number
         //       because users won't be inputting zero-indexed line numbers.
-        assert_eq!(
-            *app.workspace.current_buffer().unwrap().cursor,
-            Position{ line: 2, offset: 0 }
-        );
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+                   Position {
+                       line: 2,
+                       offset: 0,
+                   });
 
         // Ensure that we're in normal mode.
-        assert!(
-            match app.mode {
-                ::models::application::Mode::Normal => true,
-                _ => false,
-            }
-        );
+        assert!(match app.mode {
+            ::models::application::Mode::Normal => true,
+            _ => false,
+        });
     }
 
     #[test]
@@ -98,7 +97,10 @@ mod tests {
         let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\namp");
-        buffer.cursor.move_to(Position{ line: 1, offset: 3 });
+        buffer.cursor.move_to(Position {
+            line: 1,
+            offset: 3,
+        });
 
         // Now that we've set up the buffer, add it to the application,
         // switch to line jump mode, set the line input, and run the command.
@@ -113,18 +115,17 @@ mod tests {
         // Ensure that the cursor is in the right place.
         // NOTE: We look for a decremented version of the input line number
         //       because users won't be inputting zero-indexed line numbers.
-        assert_eq!(
-            *app.workspace.current_buffer().unwrap().cursor,
-            Position{ line: 2, offset: 3 }
-        );
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+                   Position {
+                       line: 2,
+                       offset: 3,
+                   });
 
         // Ensure that we're in normal mode.
-        assert!(
-            match app.mode {
-                ::models::application::Mode::Normal => true,
-                _ => false,
-            }
-        );
+        assert!(match app.mode {
+            ::models::application::Mode::Normal => true,
+            _ => false,
+        });
     }
 
     #[test]
@@ -144,17 +145,16 @@ mod tests {
         commands::line_jump::accept_input(&mut app);
 
         // Ensure that the cursor is in the right place.
-        assert_eq!(
-            *app.workspace.current_buffer().unwrap().cursor,
-            Position{ line: 0, offset: 0 }
-        );
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+                   Position {
+                       line: 0,
+                       offset: 0,
+                   });
 
         // Ensure that we're in normal mode.
-        assert!(
-            match app.mode {
-                ::models::application::Mode::Normal => true,
-                _ => false,
-            }
-        );
+        assert!(match app.mode {
+            ::models::application::Mode::Normal => true,
+            _ => false,
+        });
     }
 }

@@ -35,10 +35,10 @@ impl View {
     pub fn new() -> View {
         let terminal = Rc::new(RefCell::new(Terminal::new()));
 
-        View{
+        View {
             theme: Theme::Dark,
             terminal: terminal,
-            scrollable_regions: HashMap::new()
+            scrollable_regions: HashMap::new(),
         }
     }
 
@@ -58,31 +58,25 @@ impl View {
         // Set the terminal cursor, considering leading line numbers.
         match data.cursor {
             Some(position) => {
-                self.set_cursor(Some(
-                    Position{
-                        line: position.line,
-                        offset: position.offset + gutter_width,
-                    }
-                ));
-            },
+                self.set_cursor(Some(Position {
+                    line: position.line,
+                    offset: position.offset + gutter_width,
+                }));
+            }
             None => (),
         }
 
         // Draw the first line number.
         // Others will be drawn following newline characters.
-        let mut offset = self.draw_line_number(
-            0,
-            data,
-            line_number_width
-        );
+        let mut offset = self.draw_line_number(0, data, line_number_width);
 
         for token in tokens.iter() {
             let token_color = color::map(&token.category);
 
             for character in token.lexeme.chars() {
-                let current_position = Position{
+                let current_position = Position {
                     line: line,
-                    offset: offset - gutter_width
+                    offset: offset - gutter_width,
                 };
 
                 let (style, color) = match data.highlight {
@@ -92,7 +86,7 @@ impl View {
                         } else {
                             (rustbox::RB_NORMAL, token_color)
                         }
-                    },
+                    }
                     None => (rustbox::RB_NORMAL, token_color),
                 };
 
@@ -103,7 +97,7 @@ impl View {
                         } else {
                             Color::Default
                         }
-                    },
+                    }
                     None => Color::Default,
                 };
 
@@ -113,14 +107,12 @@ impl View {
                         Some(cursor) => {
                             if line == cursor.line {
                                 for offset in offset..self.width() {
-                                    self.print_char(
-                                        offset,
-                                        line,
-                                        style,
-                                        Color::Default,
-                                        self.alt_background_color(),
-                                        ' '
-                                    );
+                                    self.print_char(offset,
+                                                    line,
+                                                    style,
+                                                    Color::Default,
+                                                    self.alt_background_color(),
+                                                    ' ');
                                 }
                             }
                         }
@@ -129,34 +121,21 @@ impl View {
 
                     // Print the length guide for this line.
                     if offset <= LINE_LENGTH_GUIDE_OFFSET {
-                        self.print_char(
-                            LINE_LENGTH_GUIDE_OFFSET,
-                            line,
-                            rustbox::RB_NORMAL,
-                            Color::Default,
-                            self.alt_background_color(),
-                            ' '
-                        );
+                        self.print_char(LINE_LENGTH_GUIDE_OFFSET,
+                                        line,
+                                        rustbox::RB_NORMAL,
+                                        Color::Default,
+                                        self.alt_background_color(),
+                                        ' ');
                     }
 
                     // Advance to the next line.
                     line += 1;
 
                     // Draw leading line number for the new line.
-                    offset = self.draw_line_number(
-                        line,
-                        data,
-                        line_number_width
-                    );
+                    offset = self.draw_line_number(line, data, line_number_width);
                 } else {
-                    self.print_char(
-                        offset,
-                        line,
-                        style,
-                        color,
-                        background_color,
-                        character
-                    );
+                    self.print_char(offset, line, style, color, background_color, character);
 
                     offset += 1;
                 }
@@ -168,31 +147,27 @@ impl View {
             Some(cursor) => {
                 if line == cursor.line {
                     for offset in offset..self.width() {
-                        self.print_char(
-                            offset,
-                            line,
-                            rustbox::RB_NORMAL,
-                            Color::Default,
-                            self.alt_background_color(),
-                            ' '
-                        );
+                        self.print_char(offset,
+                                        line,
+                                        rustbox::RB_NORMAL,
+                                        Color::Default,
+                                        self.alt_background_color(),
+                                        ' ');
                     }
                 }
-            },
+            }
             None => (),
         }
     }
 
     pub fn draw_status_line(&self, status_line: &StatusLine) {
-        let line = self.height()-1;
-        self.print(
-            0,
-            line,
-            rustbox::RB_BOLD,
-            Color::Default,
-            status_line.color.unwrap_or(self.alt_background_color()),
-            &status_line.content.pad_to_width(self.width())
-        );
+        let line = self.height() - 1;
+        self.print(0,
+                   line,
+                   rustbox::RB_BOLD,
+                   Color::Default,
+                   status_line.color.unwrap_or(self.alt_background_color()),
+                   &status_line.content.pad_to_width(self.width()));
     }
 
     fn draw_line_number(&self, line: usize, data: &BufferData, width: usize) -> usize {
@@ -203,11 +178,7 @@ impl View {
         let absolute_line = line + data.scrolling_offset + 1;
 
         // Get left-padded string-based line number.
-        let line_number = format!(
-            "{:>width$}  ",
-            absolute_line,
-            width=width
-        );
+        let line_number = format!("{:>width$}  ", absolute_line, width = width);
 
         // Print numbers.
         for number in line_number.chars() {
@@ -220,14 +191,14 @@ impl View {
                     } else {
                         self.alt_background_color()
                     }
-                },
+                }
                 None => {
                     if offset > width {
                         Color::Default
                     } else {
                         self.alt_background_color()
                     }
-                },
+                }
             };
 
             // Current line number is emboldened.
@@ -238,18 +209,16 @@ impl View {
                     } else {
                         rustbox::RB_NORMAL
                     }
-                },
-                None => rustbox::RB_NORMAL
+                }
+                None => rustbox::RB_NORMAL,
             };
 
-            self.print_char(
-                offset,
-                line,
-                weight,
-                Color::Default,
-                background_color,
-                number
-            );
+            self.print_char(offset,
+                            line,
+                            weight,
+                            Color::Default,
+                            background_color,
+                            number);
 
             offset += 1;
         }
@@ -259,7 +228,7 @@ impl View {
 
     pub fn alt_background_color(&self) -> Color {
         match self.theme {
-            Theme::Dark  => Color::Black,
+            Theme::Dark => Color::Black,
             Theme::Light => Color::White,
         }
     }
@@ -288,10 +257,8 @@ impl View {
         if self.scrollable_regions.contains_key(&buffer_key(buffer)) {
             self.scrollable_regions.get_mut(&buffer_key(buffer)).unwrap()
         } else {
-            self.scrollable_regions.insert(
-                buffer_key(buffer),
-                ScrollableRegion::new(self.terminal.clone())
-            );
+            self.scrollable_regions.insert(buffer_key(buffer),
+                                           ScrollableRegion::new(self.terminal.clone()));
             self.scrollable_regions.get_mut(&buffer_key(buffer)).unwrap()
         }
     }

@@ -3,5 +3,5 @@ pub struct InsertMode {
 }
 
 pub fn new() -> InsertMode {
-    InsertMode{ input: None }
+    InsertMode { input: None }
 }

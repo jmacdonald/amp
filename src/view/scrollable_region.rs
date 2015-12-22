@@ -20,7 +20,7 @@ pub enum Visibility {
 
 impl ScrollableRegion {
     pub fn new(terminal: Rc<RefCell<Terminal>>) -> ScrollableRegion {
-        ScrollableRegion{
+        ScrollableRegion {
             terminal: terminal,
             line_offset: 0,
         }
@@ -54,7 +54,7 @@ impl ScrollableRegion {
                 } else {
                     Visibility::Visible(line)
                 }
-            },
+            }
             None => Visibility::AboveRegion,
         }
     }
@@ -160,10 +160,7 @@ mod tests {
         let terminal = Rc::new(RefCell::new(Terminal::new()));
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_down(10);
-        assert_eq!(
-            region.visible_range(),
-            LineRange::new(10, 20)
-        );
+        assert_eq!(region.visible_range(), LineRange::new(10, 20));
     }
 
     #[test]
@@ -172,10 +169,7 @@ mod tests {
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_down(10);
         region.scroll_up(5);
-        assert_eq!(
-            region.visible_range(),
-            LineRange::new(5, 15)
-        );
+        assert_eq!(region.visible_range(), LineRange::new(5, 15));
     }
 
     #[test]
@@ -183,9 +177,6 @@ mod tests {
         let terminal = Rc::new(RefCell::new(Terminal::new()));
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_up(5);
-        assert_eq!(
-            region.visible_range(),
-            LineRange::new(0, 10)
-        );
+        assert_eq!(region.visible_range(), LineRange::new(0, 10));
     }
 }

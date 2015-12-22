@@ -19,13 +19,10 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
             let visible_range = view.visible_region(buf).visible_range();
 
             // Get the buffer's tokens and reduce them to the visible set.
-            let visible_tokens = visible_tokens(
-                &buf.tokens(),
-                visible_range
-            );
+            let visible_tokens = visible_tokens(&buf.tokens(), visible_range);
 
             // Bundle up the presentable data.
-            let data = BufferData{
+            let data = BufferData {
                 tokens: Some(visible_tokens),
                 cursor: None,
                 highlight: None,
@@ -41,7 +38,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
                 Some(ref path) => path.to_string_lossy().into_owned(),
                 None => String::new(),
             };
-            view.draw_status_line(&StatusLine{
+            view.draw_status_line(&StatusLine {
                 content: content,
                 color: None,
             });
@@ -51,23 +48,35 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
 
     // Draw the list of search results.
     for (line, result) in mode.results.iter().enumerate() {
-        let color = if line == mode.selected_index() { view.alt_background_color() } else { Color::Default };
+        let color = if line == mode.selected_index() {
+            view.alt_background_color()
+        } else {
+            Color::Default
+        };
         let padded_content = result.path.as_path().to_str().unwrap().pad_to_width(view.width());
-        view.print(0, line, rustbox::RB_NORMAL, Color::Default, color, &padded_content);
+        view.print(0,
+                   line,
+                   rustbox::RB_NORMAL,
+                   Color::Default,
+                   color,
+                   &padded_content);
     }
 
     // Draw the divider.
     let line = 5;
     let padded_content = mode.input.pad_to_width(view.width());
-    view.print(0, line, rustbox::RB_BOLD, Color::Black, Color::White, &padded_content);
+    view.print(0,
+               line,
+               rustbox::RB_BOLD,
+               Color::Black,
+               Color::White,
+               &padded_content);
 
     // Place the cursor on the search input line, right after its contents.
-    view.set_cursor(Some(
-        Position{
-            line: 5,
-            offset: mode.input.len()
-        }
-    ));
+    view.set_cursor(Some(Position {
+        line: 5,
+        offset: mode.input.len(),
+    }));
 
     // Render the changes to the screen.
     view.present();

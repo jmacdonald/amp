@@ -20,13 +20,13 @@ impl Terminal {
         let rustbox = if cfg!(test) {
             None
         } else {
-            match RustBox::init(InitOptions {..Default::default()}) {
+            match RustBox::init(InitOptions { ..Default::default() }) {
                 Ok(r) => Some(r),
                 Err(e) => panic!("{}", e.description()),
             }
         };
 
-        Terminal{ terminal: rustbox }
+        Terminal { terminal: rustbox }
     }
 
     pub fn listen(&self) -> Event {
@@ -36,7 +36,7 @@ impl Terminal {
                     Ok(event) => event,
                     Err(_) => Event::NoEvent,
                 }
-            },
+            }
             None => Event::NoEvent,
         }
     }
@@ -73,14 +73,10 @@ impl Terminal {
         match self.terminal {
             Some(ref t) => {
                 match position {
-                    Some(pos) => {
-                        t.set_cursor(pos.offset as isize, pos.line as isize)
-                    },
-                    None => {
-                        t.set_cursor(-1, -1)
-                    },
+                    Some(pos) => t.set_cursor(pos.offset as isize, pos.line as isize),
+                    None => t.set_cursor(-1, -1),
                 }
-            },
+            }
             None => (),
         }
     }

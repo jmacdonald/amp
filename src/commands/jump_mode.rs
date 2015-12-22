@@ -22,9 +22,9 @@ pub fn match_tag(app: &mut Application) {
 
                     // All done here.
                     true
-                },
+                }
             }
-        },
+        }
         _ => false,
     };
 
@@ -40,10 +40,10 @@ pub fn match_tag(app: &mut Application) {
                     jump::SelectModeOptions::None => (),
                     jump::SelectModeOptions::Select(select_mode) => {
                         app.mode = Mode::Select(select_mode);
-                    },
+                    }
                     jump::SelectModeOptions::SelectLine(select_mode) => {
                         app.mode = Mode::SelectLine(select_mode);
-                    },
+                    }
                 }
             }
             _ => (),

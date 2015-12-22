@@ -61,7 +61,7 @@ pub fn new() -> Application {
     let view = View::new();
     let clipboard = Clipboard::new();
 
-    Application{
+    Application {
         mode: Mode::Normal,
         workspace: workspace,
         search_query: None,

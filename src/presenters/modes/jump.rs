@@ -15,16 +15,13 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &mut JumpMode, view: &mut View
             let visible_range = view.visible_region(buf).visible_range();
 
             // Get the buffer's tokens and reduce them to the visible set.
-            let visible_tokens = visible_tokens(
-                &buf.tokens(),
-                visible_range
-            );
+            let visible_tokens = visible_tokens(&buf.tokens(), visible_range);
 
             // Add jump points to the visible tokens.
             let jump_tokens = mode.tokens(&visible_tokens, line_offset);
 
             // Bundle up the presentable data.
-            let data = BufferData{
+            let data = BufferData {
                 tokens: Some(jump_tokens),
                 cursor: None,
                 highlight: None,
@@ -40,7 +37,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &mut JumpMode, view: &mut View
                 Some(ref path) => path.to_string_lossy().into_owned(),
                 None => String::new(),
             };
-            view.draw_status_line(&StatusLine{
+            view.draw_status_line(&StatusLine {
                 content: content,
                 color: None,
             });

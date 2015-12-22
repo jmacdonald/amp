@@ -5,5 +5,5 @@ pub struct LineJumpMode {
 }
 
 pub fn new() -> LineJumpMode {
-    LineJumpMode{ input: String::new() }
+    LineJumpMode { input: String::new() }
 }

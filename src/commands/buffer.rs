@@ -49,16 +49,27 @@ pub fn merge_next_line(app: &mut Application) {
             let data = buffer.data();
 
             // Don't bother if there isn't a line below.
-            if data.lines().nth(current_line+1).is_none() { return }
+            if data.lines().nth(current_line + 1).is_none() {
+                return;
+            }
 
             // Join the two lines.
-            let mut merged_lines: String = buffer.data().lines().enumerate().skip(current_line).take(2).
-              map(|(index, line)| {
-                if index == current_line { format!("{} ", line) } else { line.trim_left().to_string() }
-              }).collect();
+            let mut merged_lines: String = buffer.data()
+                                                 .lines()
+                                                 .enumerate()
+                                                 .skip(current_line)
+                                                 .take(2)
+                                                 .map(|(index, line)| {
+                                                     if index == current_line {
+                                                         format!("{} ", line)
+                                                     } else {
+                                                         line.trim_left().to_string()
+                                                     }
+                                                 })
+                                                 .collect();
 
             // Append a newline if there is a line below the next.
-            if buffer.data().lines().nth(current_line+2).is_some() {
+            if buffer.data().lines().nth(current_line + 2).is_some() {
                 merged_lines.push('\n');
             }
 
@@ -66,19 +77,26 @@ pub fn merge_next_line(app: &mut Application) {
             // insert the merged lines, and position the cursor,
             // batched as a single operation.
             buffer.start_operation_group();
-            let target_position = Position{
-              line: current_line,
-              offset: data.lines().nth(current_line).unwrap().len(),
+            let target_position = Position {
+                line: current_line,
+                offset: data.lines().nth(current_line).unwrap().len(),
             };
-            buffer.delete_range(Range::new(
-                Position{ line: current_line, offset: 0 },
-                Position{ line: current_line+2, offset: 0 },
-            ));
-            buffer.cursor.move_to(Position{ line: current_line, offset: 0 });
+            buffer.delete_range(Range::new(Position {
+                                               line: current_line,
+                                               offset: 0,
+                                           },
+                                           Position {
+                                               line: current_line + 2,
+                                               offset: 0,
+                                           }));
+            buffer.cursor.move_to(Position {
+                line: current_line,
+                offset: 0,
+            });
             buffer.insert(&merged_lines);
             buffer.cursor.move_to(target_position);
             buffer.end_operation_group();
-        },
+        }
         None => (),
     }
 }
@@ -107,11 +125,11 @@ pub fn backspace(app: &mut Application) {
 
                             false
                         }
-                    },
+                    }
                     None => false,
                 }
             }
-        },
+        }
         None => false,
     };
 
@@ -131,13 +149,13 @@ pub fn insert_char(app: &mut Application) {
                         Some(input) => {
                             buffer.insert(&input.to_string());
                             buffer.cursor.move_right();
-                        },
+                        }
                         None => (),
                     }
-                },
+                }
                 _ => (),
             }
-        },
+        }
         None => (),
     }
     commands::view::scroll_to_cursor(app);
@@ -166,16 +184,16 @@ pub fn insert_newline(app: &mut Application) {
                     buffer.insert(&prefix);
 
                     // Move the cursor to the end of the inserted whitespace.
-                    let new_cursor_position = scribe::buffer::Position{
-                        line: position.line+1,
-                        offset: prefix.len()
+                    let new_cursor_position = scribe::buffer::Position {
+                        line: position.line + 1,
+                        offset: prefix.len(),
                     };
                     buffer.cursor.move_to(new_cursor_position);
-                },
-                None => ()
+                }
+                None => (),
             }
-        },
-        None => ()
+        }
+        None => (),
     }
     commands::view::scroll_to_cursor(app);
 }
@@ -188,11 +206,11 @@ pub fn indent_line(app: &mut Application) {
 
             let target_position = match app.mode {
                 Mode::Insert(_) => {
-                    Position{
+                    Position {
                         line: buffer.cursor.line,
-                        offset: buffer.cursor.offset + tab_content.len()
+                        offset: buffer.cursor.offset + tab_content.len(),
                     }
-                },
+                }
                 _ => *buffer.cursor.clone(),
             };
 
@@ -201,28 +219,29 @@ pub fn indent_line(app: &mut Application) {
             let lines = match app.mode {
                 Mode::SelectLine(ref mode) => {
                     if mode.anchor >= buffer.cursor.line {
-                      buffer.cursor.line..mode.anchor+1
+                        buffer.cursor.line..mode.anchor + 1
                     } else {
-                      mode.anchor..buffer.cursor.line+1
+                        mode.anchor..buffer.cursor.line + 1
                     }
-                },
-                _ => buffer.cursor.line..buffer.cursor.line+1,
+                }
+                _ => buffer.cursor.line..buffer.cursor.line + 1,
             };
 
             // Move to the start of the current line and
             // insert the content, as a single operation.
             buffer.start_operation_group();
             for line in lines {
-                buffer.cursor.move_to(
-                    Position{ line: line, offset: 0 }
-                );
+                buffer.cursor.move_to(Position {
+                    line: line,
+                    offset: 0,
+                });
                 buffer.insert(tab_content);
             }
             buffer.end_operation_group();
 
             // Move to the original position, shifted to compensate for the indent.
             buffer.cursor.move_to(target_position);
-        },
+        }
         None => (),
     }
 }
@@ -239,12 +258,12 @@ pub fn outdent_line(app: &mut Application) {
             let lines = match app.mode {
                 Mode::SelectLine(ref mode) => {
                     if mode.anchor >= buffer.cursor.line {
-                      buffer.cursor.line..mode.anchor+1
+                        buffer.cursor.line..mode.anchor + 1
                     } else {
-                      mode.anchor..buffer.cursor.line+1
+                        mode.anchor..buffer.cursor.line + 1
                     }
-                },
-                _ => buffer.cursor.line..buffer.cursor.line+1,
+                }
+                _ => buffer.cursor.line..buffer.cursor.line + 1,
             };
 
             // Group the individual outdent operations as one.
@@ -270,31 +289,37 @@ pub fn outdent_line(app: &mut Application) {
                         // Remove leading whitespace, up to indent size,
                         // if we found any, and adjust cursor accordingly.
                         if space_char_count > 0 {
-                            buffer.delete_range(Range::new(
-                                Position{ line: line, offset: 0 },
-                                Position{ line: line, offset: space_char_count }
-                            ));
+                            buffer.delete_range(Range::new(Position {
+                                                               line: line,
+                                                               offset: 0,
+                                                           },
+                                                           Position {
+                                                               line: line,
+                                                               offset: space_char_count,
+                                                           }));
 
                             // Figure out where the cursor should sit, guarding against underflow.
-                            let target_offset = match buffer.cursor.offset.checked_sub(space_char_count) {
+                            let target_offset = match buffer.cursor
+                                                            .offset
+                                                            .checked_sub(space_char_count) {
                                 Some(offset) => offset,
                                 None => 0,
                             };
                             let target_line = buffer.cursor.line;
 
-                            buffer.cursor.move_to(Position{
+                            buffer.cursor.move_to(Position {
                                 line: target_line,
-                                offset: target_offset
+                                offset: target_offset,
                             });
                         }
-                    },
+                    }
                     None => (),
                 }
             }
 
             // Finish grouping the individual outdent operations as one.
             buffer.end_operation_group();
-        },
+        }
         None => (),
     }
 }
@@ -311,18 +336,17 @@ pub fn change_rest_of_line(app: &mut Application) {
             // Create a range extending from the
             // cursor's current position to the next line.
             let starting_position = *buffer.cursor;
-            let target_line = buffer.cursor.line+1;
+            let target_line = buffer.cursor.line + 1;
             buffer.start_operation_group();
-            buffer.delete_range(
-                Range::new(
-                    starting_position,
-                    Position{ line: target_line, offset: 0 }
-                )
-            );
+            buffer.delete_range(Range::new(starting_position,
+                                           Position {
+                                               line: target_line,
+                                               offset: 0,
+                                           }));
 
             // Since we've removed a newline as part of the range, re-add it.
             buffer.insert("\n");
-        },
+        }
         None => (),
     }
     commands::application::switch_to_insert_mode(app);
@@ -363,7 +387,7 @@ pub fn paste(app: &mut Application) {
         Mode::Select(_) | Mode::SelectLine(_) => {
             commands::selection::delete(app);
             false
-        },
+        }
         _ => true,
     };
 
@@ -376,22 +400,23 @@ pub fn paste(app: &mut Application) {
                     let line = original_cursor_position.line;
 
                     if insert_below {
-                        buffer.cursor.move_to(
-                            Position{ line: line + 1, offset: 0 }
-                        );
+                        buffer.cursor.move_to(Position {
+                            line: line + 1,
+                            offset: 0,
+                        });
 
                         if *buffer.cursor == original_cursor_position {
                             // That didn't work because we're at the last line.
                             // Move to the end of the line to insert the data.
                             match buffer.data().lines().nth(line) {
                                 Some(line_content) => {
-                                    buffer.cursor.move_to(Position{
+                                    buffer.cursor.move_to(Position {
                                         line: line,
                                         offset: line_content.len(),
                                     });
                                     buffer.insert(&format!("\n{}", content));
                                     buffer.cursor.move_to(original_cursor_position);
-                                },
+                                }
                                 None => {
                                     // We're on a trailing newline, which doesn't
                                     // have any data; just insert the content here.
@@ -407,7 +432,7 @@ pub fn paste(app: &mut Application) {
                 }
                 &ClipboardContent::None => (),
             }
-        },
+        }
         None => (),
     }
     commands::view::scroll_to_cursor(app);
@@ -418,9 +443,9 @@ pub fn paste_above(app: &mut Application) {
         Some(buffer) => {
             match app.clipboard.get_content() {
                 &ClipboardContent::Block(ref content) => {
-                    let mut start_of_line = Position{
+                    let mut start_of_line = Position {
                         line: buffer.cursor.line,
-                        offset: 0
+                        offset: 0,
                     };
 
                     // Temporarily move the cursor to the start of the line
@@ -428,10 +453,10 @@ pub fn paste_above(app: &mut Application) {
                     mem::swap(&mut *buffer.cursor, &mut start_of_line);
                     buffer.insert(content);
                     mem::swap(&mut *buffer.cursor, &mut start_of_line);
-                },
+                }
                 _ => (),
             }
-        },
+        }
         None => (),
     }
 }
@@ -448,10 +473,14 @@ pub fn remove_trailing_whitespace(app: &mut Application) {
                 if character == '\n' {
                     if space_count > 0 {
                         // We've found some trailing whitespace; track it.
-                        ranges.push(Range::new(
-                            Position{ line: line, offset: offset - space_count },
-                            Position{ line: line, offset: offset }
-                        ));
+                        ranges.push(Range::new(Position {
+                                                   line: line,
+                                                   offset: offset - space_count,
+                                               },
+                                               Position {
+                                                   line: line,
+                                                   offset: offset,
+                                               }));
                     }
 
                     // We've hit a newline, so increase the line
@@ -475,10 +504,14 @@ pub fn remove_trailing_whitespace(app: &mut Application) {
             // The file may not have a trailing newline. If there is
             // any trailing whitespace on the last line, track it.
             if space_count > 0 {
-                ranges.push(Range::new(
-                    Position{ line: line, offset: offset - space_count },
-                    Position{ line: line, offset: offset }
-                ));
+                ranges.push(Range::new(Position {
+                                           line: line,
+                                           offset: offset - space_count,
+                                       },
+                                       Position {
+                                           line: line,
+                                           offset: offset,
+                                       }));
             }
 
             // Step through the whitespace ranges in reverse order
@@ -488,7 +521,7 @@ pub fn remove_trailing_whitespace(app: &mut Application) {
             for range in ranges.into_iter().rev() {
                 buffer.delete_range(range);
             }
-        },
+        }
         None => (),
     }
 }
@@ -502,20 +535,20 @@ pub fn ensure_trailing_newline(app: &mut Application) {
                 match buffer.data().lines().enumerate().last() {
                     Some((line_no, line)) => {
                         let original_position = *buffer.cursor;
-                        let target_position = Position{
+                        let target_position = Position {
                             line: line_no,
-                            offset: line.len()
+                            offset: line.len(),
                         };
 
                         if buffer.cursor.move_to(target_position) {
                             buffer.insert("\n");
                             buffer.cursor.move_to(original_position);
                         }
-                    },
+                    }
                     None => (),
                 }
             }
-        },
+        }
         None => (),
     }
 }
@@ -536,7 +569,10 @@ mod tests {
 
         // Insert data with indentation and move to the end of the line.
         buffer.insert("    amp");
-        let position = scribe::buffer::Position{ line: 0, offset: 7};
+        let position = scribe::buffer::Position {
+            line: 0,
+            offset: 7,
+        };
         buffer.cursor.move_to(position);
 
         // Now that we've set up the buffer, add it
@@ -545,12 +581,18 @@ mod tests {
         super::insert_newline(&mut app);
 
         // Ensure that the whitespace is inserted.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "    amp\n    ");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "    amp\n    ");
 
         // Also ensure that the cursor is moved to the end of the inserted whitespace.
-        let expected_position = scribe::buffer::Position{ line: 1, offset: 4};
-        assert_eq!(app.workspace.current_buffer().unwrap().cursor.line, expected_position.line);
-        assert_eq!(app.workspace.current_buffer().unwrap().cursor.offset, expected_position.offset);
+        let expected_position = scribe::buffer::Position {
+            line: 1,
+            offset: 4,
+        };
+        assert_eq!(app.workspace.current_buffer().unwrap().cursor.line,
+                   expected_position.line);
+        assert_eq!(app.workspace.current_buffer().unwrap().cursor.offset,
+                   expected_position.offset);
     }
 
     #[test]
@@ -560,7 +602,10 @@ mod tests {
 
         // Insert data with indentation and move to the end of the line.
         buffer.insert("    amp\neditor");
-        let position = scribe::buffer::Position{ line: 0, offset: 4};
+        let position = scribe::buffer::Position {
+            line: 0,
+            offset: 4,
+        };
         buffer.cursor.move_to(position);
 
         // Now that we've set up the buffer, add it
@@ -569,20 +614,20 @@ mod tests {
         super::change_rest_of_line(&mut app);
 
         // Ensure that the content is removed.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "    \neditor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "    \neditor");
 
         // Ensure that we're in insert mode.
-        assert!(
-            match app.mode {
-                ::models::application::Mode::Insert(_) => true,
-                _ => false,
-            }
-        );
+        assert!(match app.mode {
+            ::models::application::Mode::Insert(_) => true,
+            _ => false,
+        });
 
         // Ensure that sub-commands and subsequent inserts are run in batch.
         app.workspace.current_buffer().unwrap().insert(" ");
         app.workspace.current_buffer().unwrap().undo();
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "    amp\neditor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "    amp\neditor");
     }
 
     #[test]
@@ -607,7 +652,10 @@ mod tests {
 
         // Insert data with indentation and move to the end of the line.
         buffer.insert("    amp\neditor");
-        let position = scribe::buffer::Position{ line: 0, offset: 4};
+        let position = scribe::buffer::Position {
+            line: 0,
+            offset: 4,
+        };
         buffer.cursor.move_to(position);
 
         // Now that we've set up the buffer, add it
@@ -624,7 +672,10 @@ mod tests {
         let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
-        buffer.cursor.move_to(Position{ line: 1, offset: 2 });
+        buffer.cursor.move_to(Position {
+            line: 1,
+            offset: 2,
+        });
 
         // Now that we've set up the buffer, add it
         // to the application and call the command.
@@ -632,7 +683,8 @@ mod tests {
         super::indent_line(&mut app);
 
         // Ensure that the content is inserted correctly.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\n  editor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "amp\n  editor");
     }
 
     #[test]
@@ -649,7 +701,8 @@ mod tests {
         super::indent_line(&mut app);
 
         // Ensure that the content is inserted correctly.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "  amp\n    editor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "  amp\n    editor");
     }
 
     #[test]
@@ -657,7 +710,10 @@ mod tests {
         let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
-        buffer.cursor.move_to(Position{ line: 1, offset: 2 });
+        buffer.cursor.move_to(Position {
+            line: 1,
+            offset: 2,
+        });
         commands::application::switch_to_insert_mode(&mut app);
 
         // Now that we've set up the buffer, add it
@@ -666,7 +722,11 @@ mod tests {
         super::indent_line(&mut app);
 
         // Ensure that the cursor is updated.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor, Position{ line: 1, offset: 4 });
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+                   Position {
+                       line: 1,
+                       offset: 4,
+                   });
     }
 
     #[test]
@@ -674,7 +734,10 @@ mod tests {
         let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
-        buffer.cursor.move_to(Position{ line: 1, offset: 2 });
+        buffer.cursor.move_to(Position {
+            line: 1,
+            offset: 2,
+        });
 
         // Now that we've set up the buffer, add it
         // to the application and call the command.
@@ -682,7 +745,11 @@ mod tests {
         super::indent_line(&mut app);
 
         // Ensure that the cursor is not updated.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor, Position{ line: 1, offset: 2 });
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+                   Position {
+                       line: 1,
+                       offset: 2,
+                   });
     }
 
     #[test]
@@ -699,11 +766,13 @@ mod tests {
         super::indent_line(&mut app);
 
         // Ensure that the indentation is applied correctly.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "  amp\n    editor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "  amp\n    editor");
 
         // Undo the indent and check that it's treated as one operation.
         super::undo(&mut app);
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\n  editor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "amp\n  editor");
     }
 
     #[test]
@@ -721,7 +790,8 @@ mod tests {
         super::indent_line(&mut app);
 
         // Ensure that the indentation is applied correctly.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "  amp\n  editor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "  amp\n  editor");
     }
 
     #[test]
@@ -729,7 +799,10 @@ mod tests {
         let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\n  editor");
-        buffer.cursor.move_to(Position{ line: 1, offset: 6 });
+        buffer.cursor.move_to(Position {
+            line: 1,
+            offset: 6,
+        });
 
         // Now that we've set up the buffer, add it
         // to the application and call the command.
@@ -737,18 +810,27 @@ mod tests {
         super::outdent_line(&mut app);
 
         // Ensure that the content is removed.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "amp\neditor");
 
         // Ensure that the cursor is updated.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor, Position{ line: 1, offset: 4 });
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+                   Position {
+                       line: 1,
+                       offset: 4,
+                   });
     }
 
     #[test]
-    fn outdent_line_removes_as_much_space_as_it_can_from_start_of_line_if_less_than_full_indent() {
+    fn outdent_line_removes_as_much_space_as_it_can_from_start_of_line_if_less_than_full_indent
+        () {
         let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\n editor");
-        buffer.cursor.move_to(Position{ line: 1, offset: 2 });
+        buffer.cursor.move_to(Position {
+            line: 1,
+            offset: 2,
+        });
 
         // Now that we've set up the buffer, add it
         // to the application and call the command.
@@ -756,7 +838,8 @@ mod tests {
         super::outdent_line(&mut app);
 
         // Ensure that the content is inserted correctly.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "amp\neditor");
     }
 
     #[test]
@@ -773,7 +856,8 @@ mod tests {
         super::outdent_line(&mut app);
 
         // Ensure that the content is inserted correctly.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor   ");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "amp\neditor   ");
     }
 
     #[test]
@@ -790,7 +874,8 @@ mod tests {
         super::outdent_line(&mut app);
 
         // Ensure that the content is inserted correctly.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "amp\neditor");
     }
 
     #[test]
@@ -807,11 +892,13 @@ mod tests {
         super::outdent_line(&mut app);
 
         // Ensure that the indentation is applied correctly.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "amp\neditor");
 
         // Undo the outdent and check that it's treated as one operation.
         super::undo(&mut app);
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "  amp\n  editor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "  amp\n  editor");
     }
 
     #[test]
@@ -829,7 +916,8 @@ mod tests {
         super::outdent_line(&mut app);
 
         // Ensure that the indentation is applied correctly.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "amp\neditor");
     }
 
     #[test]
@@ -844,7 +932,8 @@ mod tests {
         super::remove_trailing_whitespace(&mut app);
 
         // Ensure that trailing whitespace is removed.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "  amp\n\neditor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "  amp\n\neditor");
     }
 
     #[test]
@@ -859,7 +948,8 @@ mod tests {
         super::save(&mut app);
 
         // Ensure that trailing whitespace is removed.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor\n");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "amp\neditor\n");
     }
 
     #[test]
@@ -878,7 +968,8 @@ mod tests {
         commands::buffer::paste(&mut app);
 
         // Ensure that the clipboard contents are pasted to the line below.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "aamp\neditor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "aamp\neditor");
     }
 
     #[test]
@@ -886,7 +977,10 @@ mod tests {
         let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
-        buffer.cursor.move_to(Position{ line: 0, offset: 2 });
+        buffer.cursor.move_to(Position {
+            line: 0,
+            offset: 2,
+        });
 
         // Now that we've set up the buffer, add it
         // to the application, copy the first line to
@@ -897,7 +991,8 @@ mod tests {
         commands::buffer::paste(&mut app);
 
         // Ensure that the clipboard contents are pasted to the line below.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\namp\neditor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "amp\namp\neditor");
     }
 
     #[test]
@@ -905,7 +1000,10 @@ mod tests {
         let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
-        buffer.cursor.move_to(Position{ line: 0, offset: 0 });
+        buffer.cursor.move_to(Position {
+            line: 0,
+            offset: 0,
+        });
 
         // Now that we've set up the buffer, add it
         // to the application, copy the first line to
@@ -917,7 +1015,8 @@ mod tests {
         commands::buffer::paste(&mut app);
 
         // Ensure that the clipboard contents are pasted to the line below.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor\namp\n");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "amp\neditor\namp\n");
     }
 
     #[test]
@@ -925,7 +1024,10 @@ mod tests {
         let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\n");
-        buffer.cursor.move_to(Position{ line: 0, offset: 0 });
+        buffer.cursor.move_to(Position {
+            line: 0,
+            offset: 0,
+        });
 
         // Now that we've set up the buffer, add it
         // to the application, copy the first line to
@@ -938,7 +1040,8 @@ mod tests {
         commands::buffer::paste(&mut app);
 
         // Ensure that the clipboard contents are pasted to the line below.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor\namp\n");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "amp\neditor\namp\n");
     }
 
     #[test]
@@ -946,7 +1049,10 @@ mod tests {
         let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\n        ");
-        buffer.cursor.move_to(Position{ line: 2, offset: 8 });
+        buffer.cursor.move_to(Position {
+            line: 2,
+            offset: 8,
+        });
 
         // Now that we've set up the buffer, add it
         // to the application and run the command.
@@ -954,7 +1060,8 @@ mod tests {
         commands::buffer::backspace(&mut app);
 
         // Ensure that the clipboard contents are pasted to the line below.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor\n      ");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "amp\neditor\n      ");
     }
 
     #[test]
@@ -972,10 +1079,11 @@ mod tests {
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp editor");
 
         // Ensure that the cursor is moved to the end of the current line.
-        assert_eq!(
-          *app.workspace.current_buffer().unwrap().cursor,
-          Position{ line: 0, offset: 3 }
-        );
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+                   Position {
+                       line: 0,
+                       offset: 3,
+                   });
     }
 
     #[test]
@@ -993,10 +1101,11 @@ mod tests {
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp editor");
 
         // Ensure that the cursor is moved to the end of the current line.
-        assert_eq!(
-          *app.workspace.current_buffer().unwrap().cursor,
-          Position{ line: 0, offset: 0 }
-        );
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+                   Position {
+                       line: 0,
+                       offset: 0,
+                   });
     }
 
     #[test]
@@ -1011,7 +1120,8 @@ mod tests {
         commands::buffer::merge_next_line(&mut app);
 
         // Ensure that the lines are merged correctly.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp editor\ntest");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "amp editor\ntest");
     }
 
     #[test]
@@ -1019,7 +1129,10 @@ mod tests {
         let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("\n amp\neditor");
-        buffer.cursor.move_to(Position{ line: 1, offset: 0 });
+        buffer.cursor.move_to(Position {
+            line: 1,
+            offset: 0,
+        });
 
         // Now that we've set up the buffer, add it
         // to the application and run the command.
@@ -1027,7 +1140,8 @@ mod tests {
         commands::buffer::merge_next_line(&mut app);
 
         // Ensure that the lines are merged correctly.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "\n amp editor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "\n amp editor");
     }
 
     #[test]
@@ -1057,7 +1171,8 @@ mod tests {
         commands::buffer::ensure_trailing_newline(&mut app);
 
         // Ensure that trailing newline is added.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor\n");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "amp\neditor\n");
     }
 
     #[test]
@@ -1072,7 +1187,8 @@ mod tests {
         commands::buffer::ensure_trailing_newline(&mut app);
 
         // Ensure that trailing newline is added.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor\n");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "amp\neditor\n");
     }
 
     #[test]
@@ -1111,7 +1227,8 @@ mod tests {
         commands::buffer::paste(&mut app);
 
         // Ensure that the content is replaced
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "paste amp\neditor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "paste amp\neditor");
 
         // TODO: Ensure that the operation is treated atomically.
         // commands::buffer::undo(&mut app);
@@ -1122,7 +1239,10 @@ mod tests {
     fn paste_above_inserts_clipboard_contents_on_a_new_line_above() {
         let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
-        let original_position = Position{ line: 0, offset: 3 };
+        let original_position = Position {
+            line: 0,
+            offset: 3,
+        };
         buffer.insert("editor");
         buffer.cursor.move_to(original_position.clone());
         app.clipboard.set_content(ClipboardContent::Block("amp\n".to_string()));
@@ -1132,7 +1252,9 @@ mod tests {
         app.workspace.add_buffer(buffer);
         commands::buffer::paste_above(&mut app);
 
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp\neditor");
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor, original_position);
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "amp\neditor");
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+                   original_position);
     }
 }

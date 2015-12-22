@@ -26,18 +26,20 @@ pub fn switch_to_jump_mode(app: &mut Application) {
     match old_mode {
         Mode::Select(select_mode) => {
             match app.mode {
-                Mode::Jump(ref mut mode) => mode.select_mode =
-                  jump::SelectModeOptions::Select(select_mode),
+                Mode::Jump(ref mut mode) => {
+                    mode.select_mode = jump::SelectModeOptions::Select(select_mode)
+                }
                 _ => (),
             }
-        },
+        }
         Mode::SelectLine(select_mode) => {
-          match app.mode {
-              Mode::Jump(ref mut mode) => mode.select_mode =
-                jump::SelectModeOptions::SelectLine(select_mode),
-              _ => (),
-          }
-        },
+            match app.mode {
+                Mode::Jump(ref mut mode) => {
+                    mode.select_mode = jump::SelectModeOptions::SelectLine(select_mode)
+                }
+                _ => (),
+            }
+        }
         _ => (),
     };
 }
@@ -55,7 +57,7 @@ pub fn switch_to_select_mode(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
             app.mode = Mode::Select(select::new(*buffer.cursor.clone()));
-        },
+        }
         None => (),
     }
     commands::view::scroll_to_cursor(app);
@@ -65,7 +67,7 @@ pub fn switch_to_select_line_mode(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
             app.mode = Mode::SelectLine(select_line::new(buffer.cursor.line));
-        },
+        }
         None => (),
     }
     commands::view::scroll_to_cursor(app);

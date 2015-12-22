@@ -21,7 +21,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('m') => Some(view::scroll_down),
         Key::Char('f') => Some(application::switch_to_jump_mode),
         Key::Char('p') => Some(buffer::paste),
-        Key::Esc       => Some(application::switch_to_normal_mode),
-        _              => None,
+        Key::Esc => Some(application::switch_to_normal_mode),
+        _ => None,
     }
 }

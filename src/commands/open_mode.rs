@@ -10,10 +10,10 @@ pub fn open(app: &mut Application) {
             match mode.selected_path() {
                 Some(path) => {
                     app.workspace.open_buffer(path);
-                },
+                }
                 None => (),
             }
-        },
+        }
         _ => (),
     }
 

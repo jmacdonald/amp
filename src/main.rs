@@ -18,12 +18,34 @@ fn main() {
     loop {
         // Present the application state to the view.
         match application.mode {
-            Mode::Insert(_) => presenters::modes::insert::display(application.workspace.current_buffer(), &mut application.view),
-            Mode::Open(ref mode) => presenters::modes::open::display(application.workspace.current_buffer(), mode, &mut application.view),
-            Mode::SearchInsert(ref mode) => presenters::modes::search_insert::display(application.workspace.current_buffer(), mode, &mut application.view),
-            Mode::Jump(ref mut mode) => presenters::modes::jump::display(application.workspace.current_buffer(), mode, &mut application.view),
-            Mode::LineJump(ref mode) => presenters::modes::line_jump::display(application.workspace.current_buffer(), mode, &mut application.view),
-            _ => presenters::modes::default::display(application.workspace.current_buffer(), &mut application.view),
+            Mode::Insert(_) => {
+                presenters::modes::insert::display(application.workspace.current_buffer(),
+                                                   &mut application.view)
+            }
+            Mode::Open(ref mode) => {
+                presenters::modes::open::display(application.workspace.current_buffer(),
+                                                 mode,
+                                                 &mut application.view)
+            }
+            Mode::SearchInsert(ref mode) => {
+                presenters::modes::search_insert::display(application.workspace.current_buffer(),
+                                                          mode,
+                                                          &mut application.view)
+            }
+            Mode::Jump(ref mut mode) => {
+                presenters::modes::jump::display(application.workspace.current_buffer(),
+                                                 mode,
+                                                 &mut application.view)
+            }
+            Mode::LineJump(ref mode) => {
+                presenters::modes::line_jump::display(application.workspace.current_buffer(),
+                                                      mode,
+                                                      &mut application.view)
+            }
+            _ => {
+                presenters::modes::default::display(application.workspace.current_buffer(),
+                                                    &mut application.view)
+            }
         }
 
         // Listen for and respond to user input.
@@ -54,8 +76,8 @@ fn main() {
                     Mode::Exit => break,
                     _ => {}
                 }
-            },
-            _ => {},
+            }
+            _ => {}
         }
     }
 }

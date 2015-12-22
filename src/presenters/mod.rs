@@ -25,9 +25,9 @@ fn visible_tokens(tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
 
         // Add visible lexemes to the token set.
         if !current_lexeme.is_empty() {
-            visible_tokens.push(Token{
+            visible_tokens.push(Token {
                 lexeme: current_lexeme,
-                category: token.category.clone()
+                category: token.category.clone(),
             })
         }
     }
@@ -47,15 +47,13 @@ mod tests {
         let mut buffer = Buffer::new();
         buffer.insert("first\nsecond\nthird\nfourth");
 
-        let tokens = visible_tokens(&buffer.tokens(), LineRange::new(1,3));
-        assert_eq!(
-            tokens,
-            vec![
+        let tokens = visible_tokens(&buffer.tokens(), LineRange::new(1, 3));
+        assert_eq!(tokens,
+                   vec![
                 Token{ lexeme: "second".to_string(), category: Category::Text },
                 Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
                 Token{ lexeme: "third".to_string(), category: Category::Text },
                 Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
-            ]
-        );
+            ]);
     }
 }

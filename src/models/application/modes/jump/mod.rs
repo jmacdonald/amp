@@ -66,9 +66,9 @@ impl JumpMode {
                 } else {
                     // Don't tag tokens that are too small.
                     if subtoken.lexeme.len() < 2 {
-                        jump_tokens.push(Token{
+                        jump_tokens.push(Token {
                             lexeme: subtoken.lexeme.to_string(),
-                            category: Category::Text
+                            category: Category::Text,
                         });
 
                         offset += subtoken.lexeme.len();
@@ -79,21 +79,22 @@ impl JumpMode {
                             Some(tag) => {
                                 // Split the token in two: a leading jump
                                 // token and the rest as regular text.
-                                jump_tokens.push(Token{
+                                jump_tokens.push(Token {
                                     lexeme: tag.clone(),
-                                    category: Category::Keyword
+                                    category: Category::Keyword,
                                 });
-                                jump_tokens.push(Token{
+                                jump_tokens.push(Token {
                                     lexeme: subtoken.lexeme.chars().skip(2).collect(),
-                                    category: Category::Text
+                                    category: Category::Text,
                                 });
 
                                 // Track the location of this tag.
-                                self.tag_positions.insert(tag, Position{
-                                    line: line+line_offset,
-                                    offset: offset
-                                });
-                            },
+                                self.tag_positions.insert(tag,
+                                                          Position {
+                                                              line: line + line_offset,
+                                                              offset: offset,
+                                                          });
+                            }
                             // We've run out of tags; just push the token.
                             None => {
                                 let mut cloned_token = token.clone();
@@ -117,11 +118,11 @@ impl JumpMode {
 }
 
 pub fn new() -> JumpMode {
-    JumpMode{
+    JumpMode {
         input: String::new(),
         select_mode: SelectModeOptions::None,
         tag_generator: tag_generator::new(),
-        tag_positions: HashMap::new()
+        tag_positions: HashMap::new(),
     }
 }
 
@@ -150,7 +151,7 @@ mod tests {
         let result = jump_mode.tokens(&source_tokens, 0);
         for (index, token) in expected_tokens.iter().enumerate() {
             assert_eq!(*token, result[index]);
-        };
+        }
     }
 
     #[test]
@@ -173,7 +174,7 @@ mod tests {
         let result = jump_mode.tokens(&source_tokens, 0);
         for (index, token) in expected_tokens.iter().enumerate() {
             assert_eq!(*token, result[index]);
-        };
+        }
     }
 
     #[test]
@@ -195,10 +196,26 @@ mod tests {
         ];
         jump_mode.tokens(&source_tokens, 0);
 
-        assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(), Position{ line: 0, offset: 2 });
-        assert_eq!(*jump_mode.tag_positions.get("ab").unwrap(), Position{ line: 0, offset: 7 });
-        assert_eq!(*jump_mode.tag_positions.get("ac").unwrap(), Position{ line: 1, offset: 0 });
-        assert_eq!(*jump_mode.tag_positions.get("ad").unwrap(), Position{ line: 1, offset: 6 });
+        assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(),
+                   Position {
+                       line: 0,
+                       offset: 2,
+                   });
+        assert_eq!(*jump_mode.tag_positions.get("ab").unwrap(),
+                   Position {
+                       line: 0,
+                       offset: 7,
+                   });
+        assert_eq!(*jump_mode.tag_positions.get("ac").unwrap(),
+                   Position {
+                       line: 1,
+                       offset: 0,
+                   });
+        assert_eq!(*jump_mode.tag_positions.get("ad").unwrap(),
+                   Position {
+                       line: 1,
+                       offset: 6,
+                   });
     }
 
     #[test]
@@ -234,8 +251,16 @@ mod tests {
             Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
         ];
         jump_mode.tokens(&source_tokens, 10);
-        assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(), Position{ line: 10, offset: 0 });
-        assert_eq!(*jump_mode.tag_positions.get("ab").unwrap(), Position{ line: 11, offset: 2 });
+        assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(),
+                   Position {
+                       line: 10,
+                       offset: 0,
+                   });
+        assert_eq!(*jump_mode.tag_positions.get("ab").unwrap(),
+                   Position {
+                       line: 11,
+                       offset: 2,
+                   });
     }
 
     #[test]
@@ -262,7 +287,11 @@ mod tests {
             Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
         ];
         jump_mode.tokens(&source_tokens, 0);
-        assert_eq!(jump_mode.map_tag("ab"), Some(&Position{ line: 1, offset: 2 }));
+        assert_eq!(jump_mode.map_tag("ab"),
+                   Some(&Position {
+                       line: 1,
+                       offset: 2,
+                   }));
         assert_eq!(jump_mode.map_tag("none"), None);
     }
 }

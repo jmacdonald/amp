@@ -9,11 +9,13 @@ impl TagGenerator {
     // Returns the next two-letter tag, or none
     // if we've passed the limit ("zz").
     pub fn next(&mut self) -> Option<String> {
-        if self.index > TAG_INDEX_LIMIT { return None }
+        if self.index > TAG_INDEX_LIMIT {
+            return None;
+        }
 
         // Calculate the tag characters based on the index value.
-        let first_letter = (self.index/26) + 97;
-        let second_letter = (self.index%26) + 97;
+        let first_letter = (self.index / 26) + 97;
+        let second_letter = (self.index % 26) + 97;
 
         // Increment the index.
         self.index += 1;
@@ -21,7 +23,7 @@ impl TagGenerator {
         // Stitch the two calculated letters together.
         match String::from_utf8(vec![first_letter as u8, second_letter as u8]) {
             Ok(tag) => Some(tag),
-            Err(_) => panic!("Couldn't generate a valid UTF-8 jump mode tag.")
+            Err(_) => panic!("Couldn't generate a valid UTF-8 jump mode tag."),
         }
     }
 
@@ -33,7 +35,7 @@ impl TagGenerator {
 
 // Builds a new zero-indexed tag generator.
 pub fn new() -> TagGenerator {
-    TagGenerator{ index: 0 }
+    TagGenerator { index: 0 }
 }
 
 #[cfg(test)]
@@ -51,7 +53,9 @@ mod tests {
     #[test]
     fn next_carries_overflows_to_the_next_letter() {
         let mut generator = new();
-        for _ in 0..26 { generator.next(); }
+        for _ in 0..26 {
+            generator.next();
+        }
         assert_eq!(generator.next().unwrap(), "ba");
         assert_eq!(generator.next().unwrap(), "bb");
         assert_eq!(generator.next().unwrap(), "bc");
@@ -60,7 +64,9 @@ mod tests {
     #[test]
     fn next_returns_none_when_limit_reached() {
         let mut generator = new();
-        for _ in 0..super::TAG_INDEX_LIMIT { generator.next(); }
+        for _ in 0..super::TAG_INDEX_LIMIT {
+            generator.next();
+        }
 
         // Ensure that values are still being produced up until the limit.
         assert_eq!(generator.next().unwrap(), "zz");

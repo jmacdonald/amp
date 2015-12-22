@@ -16,26 +16,24 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &LineJumpMode, view: &mut View
             let visible_range = view.visible_region(buf).visible_range();
 
             // Get the buffer's tokens and reduce them to the visible set.
-            let visible_tokens = visible_tokens(
-                &buf.tokens(),
-                visible_range
-            );
+            let visible_tokens = visible_tokens(&buf.tokens(), visible_range);
 
             // The buffer tracks its cursor absolutely, but the view must display it
             // relative to any scrolling. Given that, it may also be outside the
             // visible range, at which point we'll use a None value.
-            let relative_cursor = match view.visible_region(buf).relative_position(buf.cursor.line) {
+            let relative_cursor = match view.visible_region(buf)
+                                            .relative_position(buf.cursor.line) {
                 Visibility::Visible(line) => {
-                    Some(Position{
+                    Some(Position {
                         line: line,
-                        offset: buf.cursor.offset
+                        offset: buf.cursor.offset,
                     })
-                },
+                }
                 _ => None,
             };
 
             // Bundle up the presentable data.
-            let data = BufferData{
+            let data = BufferData {
                 tokens: Some(visible_tokens),
                 cursor: relative_cursor,
                 highlight: None,
@@ -52,18 +50,16 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &LineJumpMode, view: &mut View
             // Draw the status line as an input prompt.
             let input_prompt = format!("Go to line: {}", mode.input);
             let input_prompt_len = input_prompt.len();
-            view.draw_status_line(&StatusLine{
+            view.draw_status_line(&StatusLine {
                 content: input_prompt,
                 color: None,
             });
 
             // Move the cursor to the end of the search query input.
-            view.set_cursor(Some(
-                Position{
-                    line: view.height() - 1,
-                    offset: input_prompt_len,
-                }
-            ));
+            view.set_cursor(Some(Position {
+                line: view.height() - 1,
+                offset: input_prompt_len,
+            }));
         }
         _ => (),
     }

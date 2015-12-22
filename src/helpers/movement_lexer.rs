@@ -5,8 +5,8 @@ use self::luthor::token::{Token, Category};
 
 fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
     if lexer.has_prefix("::") {
-      lexer.tokenize(Category::Text);
-      lexer.tokenize_next(2, Category::Text);
+        lexer.tokenize(Category::Text);
+        lexer.tokenize_next(2, Category::Text);
     }
 
     match lexer.current_char() {
@@ -16,19 +16,36 @@ fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
                     lexer.tokenize(Category::Text);
                     lexer.advance();
                     return Some(StateFunction(whitespace));
-                },
-                '_' | '-' | '.' | '(' | ')' | '{' | '}' | ';' | '|' |
-                ',' | ':' | '<' | '>' | '\'' | '"' | '?' | '/' | '\\' |
-                '[' | ']' => {
+                }
+                '_' |
+                '-' |
+                '.' |
+                '(' |
+                ')' |
+                '{' |
+                '}' |
+                ';' |
+                '|' |
+                ',' |
+                ':' |
+                '<' |
+                '>' |
+                '\'' |
+                '"' |
+                '?' |
+                '/' |
+                '\\' |
+                '[' |
+                ']' => {
                     lexer.tokenize(Category::Text);
                     lexer.tokenize_next(1, Category::Text);
                     return Some(StateFunction(whitespace));
-                },
+                }
                 _ => {
                     if c.is_uppercase() {
                         lexer.tokenize(Category::Text);
                         lexer.advance();
-                        return Some(StateFunction(uppercase))
+                        return Some(StateFunction(uppercase));
                     }
 
                     lexer.advance()
@@ -52,7 +69,7 @@ fn whitespace(lexer: &mut Tokenizer) -> Option<StateFunction> {
                 ' ' | '\n' => {
                     lexer.advance();
                     Some(StateFunction(whitespace))
-                },
+                }
                 _ => {
                     lexer.tokenize(Category::Whitespace);
                     Some(StateFunction(initial_state))
@@ -77,7 +94,7 @@ fn uppercase(lexer: &mut Tokenizer) -> Option<StateFunction> {
                 lexer.tokenize(Category::Text);
                 Some(StateFunction(initial_state))
             }
-        },
+        }
         None => {
             lexer.tokenize(Category::Text);
             None

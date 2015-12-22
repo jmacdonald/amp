@@ -11,5 +11,5 @@ pub struct BufferData {
 
 pub struct StatusLine {
     pub content: String,
-    pub color: Option<Color>
+    pub color: Option<Color>,
 }

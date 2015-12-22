@@ -26,14 +26,14 @@ pub fn move_to_previous_result(app: &mut Application) {
                             Some(position) => {
                                 buffer.cursor.move_to(position.clone());
                                 moved = true;
-                            },
+                            }
                             None => (),
                         }
                     }
-                },
+                }
                 None => (),
             }
-        },
+        }
         None => (),
     }
 
@@ -69,14 +69,14 @@ pub fn move_to_next_result(app: &mut Application) {
                             Some(position) => {
                                 buffer.cursor.move_to(position.clone());
                                 moved = true;
-                            },
+                            }
                             None => (),
                         }
                     }
-                },
+                }
                 None => (),
             }
-        },
+        }
         None => (),
     }
 
@@ -120,18 +120,20 @@ mod tests {
         app.search_query = Some("ed".to_string());
 
         // Move beyond the second result.
-        app.workspace.current_buffer().unwrap().cursor.move_to(
-            Position{ line: 2, offset: 0}
-        );
+        app.workspace.current_buffer().unwrap().cursor.move_to(Position {
+            line: 2,
+            offset: 0,
+        });
 
         // Reverse to the second result.
         commands::search::move_to_previous_result(&mut app);
 
         // Ensure the buffer cursor is at the expected position.
-        assert_eq!(
-            *app.workspace.current_buffer().unwrap().cursor,
-            Position{ line: 1, offset: 0 }
-        );
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+                   Position {
+                       line: 1,
+                       offset: 0,
+                   });
     }
 
     #[test]
@@ -149,10 +151,11 @@ mod tests {
         commands::search::move_to_previous_result(&mut app);
 
         // Ensure the buffer cursor is at the expected position.
-        assert_eq!(
-            *app.workspace.current_buffer().unwrap().cursor,
-            Position{ line: 2, offset: 0 }
-        );
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+                   Position {
+                       line: 2,
+                       offset: 0,
+                   });
     }
 
     #[test]
@@ -170,10 +173,11 @@ mod tests {
         commands::search::move_to_next_result(&mut app);
 
         // Ensure the buffer cursor is at the expected position.
-        assert_eq!(
-            *app.workspace.current_buffer().unwrap().cursor,
-            Position{ line: 0, offset: 4 }
-        );
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+                   Position {
+                       line: 0,
+                       offset: 4,
+                   });
     }
 
     #[test]
@@ -188,22 +192,25 @@ mod tests {
         app.search_query = Some("ed".to_string());
 
         // Move to the end of the document.
-        app.workspace.current_buffer().unwrap().cursor.move_to(
-            Position{ line: 2, offset: 0}
-        );
+        app.workspace.current_buffer().unwrap().cursor.move_to(Position {
+            line: 2,
+            offset: 0,
+        });
 
         // Advance to the next result, forcing the wrap.
         commands::search::move_to_next_result(&mut app);
 
         // Ensure the buffer cursor is at the expected position.
-        assert_eq!(
-            *app.workspace.current_buffer().unwrap().cursor,
-            Position{ line: 0, offset: 4 }
-        );
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+                   Position {
+                       line: 0,
+                       offset: 4,
+                   });
     }
 
     #[test]
-    fn accept_query_sets_application_search_query_switches_to_normal_mode_and_moves_to_first_match() {
+    fn accept_query_sets_application_search_query_switches_to_normal_mode_and_moves_to_first_match
+        () {
         let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp editor\nedit\nedit");
@@ -213,25 +220,24 @@ mod tests {
         commands::application::switch_to_search_insert_mode(&mut app);
         match app.mode {
             Mode::SearchInsert(ref mut mode) => mode.input = "ed".to_string(),
-            _ => ()
+            _ => (),
         };
         commands::search::accept_query(&mut app);
 
         // Ensure that we're in normal mode.
-        assert!(
-            match app.mode {
-                ::models::application::Mode::Normal => true,
-                _ => false,
-            }
-        );
+        assert!(match app.mode {
+            ::models::application::Mode::Normal => true,
+            _ => false,
+        });
 
         // Ensure that the search query is properly set.
         assert_eq!(app.search_query, Some("ed".to_string()));
 
         // Ensure the buffer cursor is at the expected position.
-        assert_eq!(
-            *app.workspace.current_buffer().unwrap().cursor,
-            Position{ line: 0, offset: 4 }
-        );
+        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+                   Position {
+                       line: 0,
+                       offset: 4,
+                   });
     }
 }
