@@ -76,8 +76,10 @@ impl ScrollableRegion {
         self.line_offset += amount;
     }
 
+    /// Scrollable regions occupy one line short of the full
+    /// terminal height, which is reserved for the status line.
     fn height(&self) -> usize {
-        self.terminal.borrow().height()
+        self.terminal.borrow().height() - 1
     }
 }
 
@@ -97,7 +99,7 @@ mod tests {
         let region = ScrollableRegion::new(terminal);
         let range = region.visible_range();
         assert_eq!(range.start(), 0);
-        assert_eq!(range.end(), 10);
+        assert_eq!(range.end(), 9);
     }
 
     #[test]
@@ -107,7 +109,7 @@ mod tests {
         region.scroll_down(10);
         let range = region.visible_range();
         assert_eq!(range.start(), 10);
-        assert_eq!(range.end(), 20);
+        assert_eq!(range.end(), 19);
     }
 
     #[test]
@@ -117,7 +119,7 @@ mod tests {
         region.scroll_down(10);
         region.scroll_into_view(40);
         let range = region.visible_range();
-        assert_eq!(range.start(), 31);
+        assert_eq!(range.start(), 32);
         assert_eq!(range.end(), 41);
     }
 
@@ -129,7 +131,7 @@ mod tests {
         region.scroll_into_view(5);
         let range = region.visible_range();
         assert_eq!(range.start(), 5);
-        assert_eq!(range.end(), 15);
+        assert_eq!(range.end(), 14);
     }
 
     #[test]
@@ -137,7 +139,7 @@ mod tests {
         let terminal = Rc::new(RefCell::new(Terminal::new()));
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_into_view(30);
-        assert_eq!(region.relative_position(25), Visibility::Visible(4));
+        assert_eq!(region.relative_position(25), Visibility::Visible(3));
     }
 
     #[test]
@@ -160,7 +162,7 @@ mod tests {
         let terminal = Rc::new(RefCell::new(Terminal::new()));
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_down(10);
-        assert_eq!(region.visible_range(), LineRange::new(10, 20));
+        assert_eq!(region.visible_range(), LineRange::new(10, 19));
     }
 
     #[test]
@@ -169,7 +171,7 @@ mod tests {
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_down(10);
         region.scroll_up(5);
-        assert_eq!(region.visible_range(), LineRange::new(5, 15));
+        assert_eq!(region.visible_range(), LineRange::new(5, 14));
     }
 
     #[test]
@@ -177,6 +179,6 @@ mod tests {
         let terminal = Rc::new(RefCell::new(Terminal::new()));
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_up(5);
-        assert_eq!(region.visible_range(), LineRange::new(0, 10));
+        assert_eq!(region.visible_range(), LineRange::new(0, 9));
     }
 }
