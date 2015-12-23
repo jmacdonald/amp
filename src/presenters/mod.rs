@@ -2,7 +2,8 @@ extern crate scribe;
 
 pub mod modes;
 
-use scribe::buffer::{LineRange, Token};
+use scribe::buffer::{LineRange, Position, Range, Token};
+use view::scrollable_region::{ScrollableRegion, Visibility};
 
 fn visible_tokens(tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
     let mut visible_tokens = Vec::new();
@@ -33,6 +34,22 @@ fn visible_tokens(tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
     }
 
     visible_tokens
+}
+
+fn relative_range(region: &ScrollableRegion, range: &Range) -> Range {
+    let relative_start = match region.relative_position(range.start().line) {
+        Visibility::Visible(line) => Position{ line: line, offset: range.start().offset },
+        Visibility::AboveRegion => Position{ line: 0, offset: 0 },
+        Visibility::BelowRegion => Position{ line: region.height()+1, offset: 0 }
+    };
+
+    let relative_end = match region.relative_position(range.end().line) {
+        Visibility::Visible(line) => Position{ line: line, offset: range.end().offset },
+        Visibility::AboveRegion => Position{ line: 0, offset: 0 },
+        Visibility::BelowRegion => Position{ line: region.height()+1, offset: 0 }
+    };
+
+    Range::new(relative_start, relative_end)
 }
 
 #[cfg(test)]

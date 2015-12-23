@@ -42,10 +42,21 @@ fn main() {
                                                       mode,
                                                       &mut application.view)
             }
-            _ => {
-                presenters::modes::default::display(application.workspace.current_buffer(),
-                                                    &mut application.view)
+            Mode::Select(ref mode) => {
+                presenters::modes::select::display(application.workspace.current_buffer(),
+                                                   mode,
+                                                   &mut application.view)
             }
+            Mode::SelectLine(ref mode) => {
+                presenters::modes::select_line::display(application.workspace.current_buffer(),
+                                                        mode,
+                                                        &mut application.view)
+            }
+            Mode::Normal => {
+                presenters::modes::normal::display(application.workspace.current_buffer(),
+                                                   &mut application.view)
+            }
+            Mode::Exit => ()
         }
 
         // Listen for and respond to user input.

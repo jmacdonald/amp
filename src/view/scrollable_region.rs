@@ -78,7 +78,7 @@ impl ScrollableRegion {
 
     /// Scrollable regions occupy one line short of the full
     /// terminal height, which is reserved for the status line.
-    fn height(&self) -> usize {
+    pub fn height(&self) -> usize {
         self.terminal.borrow().height() - 1
     }
 }
