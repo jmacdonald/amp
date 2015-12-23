@@ -102,6 +102,11 @@ pub fn merge_next_line(app: &mut Application) {
 }
 
 pub fn close(app: &mut Application) {
+    // Clean up view-related data for the buffer.
+    if let Some(buf) = app.workspace.current_buffer() {
+        app.view.forget_buffer(&buf);
+    }
+
     app.workspace.close_current_buffer();
 }
 

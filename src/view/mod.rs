@@ -253,6 +253,14 @@ impl View {
         self.get_region(buffer)
     }
 
+    /// Cleans up buffer-related view data. Since buffers are tracked
+    /// using their pointers, these settings can be incorrectly applied
+    /// to new buffers that reuse a previous address. This method should
+    /// be called whenever a buffer is closed.
+    pub fn forget_buffer(&mut self, buffer: &Buffer) {
+        self.scrollable_regions.remove(&buffer_key(buffer));
+    }
+
     fn get_region(&mut self, buffer: &Buffer) -> &mut ScrollableRegion {
         if self.scrollable_regions.contains_key(&buffer_key(buffer)) {
             self.scrollable_regions.get_mut(&buffer_key(buffer)).unwrap()
