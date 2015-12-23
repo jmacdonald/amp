@@ -54,6 +54,9 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View) {
             content: content,
             color: None,
         });
+    } else {
+        // There's no buffer; clear the cursor.
+        view.set_cursor(None);
     }
 
     // Render the changes to the screen.
