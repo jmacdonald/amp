@@ -34,7 +34,8 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SearchInsertMode, view: &mut 
     let search_prompt_len = search_prompt.len();
     view.draw_status_line(&StatusLine {
         content: search_prompt,
-        color: None,
+        background_color: None,
+        foreground_color: None,
     });
 
     // Move the cursor to the end of the search query input.

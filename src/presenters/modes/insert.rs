@@ -51,7 +51,8 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View) {
         };
         view.draw_status_line(&StatusLine {
             content: content,
-            color: Some(Color::Green),
+            background_color: Some(Color::Green),
+            foreground_color: Some(Color::White),
         });
     }
 

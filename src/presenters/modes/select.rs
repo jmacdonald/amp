@@ -62,7 +62,8 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SelectMode, view: &mut View) 
         };
         view.draw_status_line(&StatusLine {
             content: content,
-            color: Some(Color::Blue),
+            background_color: Some(Color::Blue),
+            foreground_color: Some(Color::White),
         });
     } else {
         // There's no buffer; clear the cursor.

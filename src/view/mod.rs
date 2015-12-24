@@ -165,8 +165,8 @@ impl View {
         self.print(0,
                    line,
                    rustbox::RB_BOLD,
-                   Color::Default,
-                   status_line.color.unwrap_or(self.alt_background_color()),
+                   status_line.foreground_color.unwrap_or(Color::Default),
+                   status_line.background_color.unwrap_or(self.alt_background_color()),
                    &status_line.content.pad_to_width(self.width()));
     }
 
