@@ -1,3 +1,4 @@
+extern crate rustbox;
 extern crate scribe;
 
 use models::application::modes::select_line::SelectLineMode;
@@ -5,6 +6,7 @@ use scribe::buffer::{Buffer, Position};
 use presenters::{relative_range, visible_tokens};
 use view::{BufferData, StatusLine, View};
 use view::scrollable_region::Visibility;
+use rustbox::Color;
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &SelectLineMode, view: &mut View) {
     // Wipe the slate clean.
@@ -60,7 +62,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SelectLineMode, view: &mut Vi
         };
         view.draw_status_line(&StatusLine {
             content: content,
-            color: None,
+            color: Some(Color::Blue),
         });
     } else {
         // There's no buffer; clear the cursor.
