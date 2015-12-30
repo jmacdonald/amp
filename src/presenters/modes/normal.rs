@@ -1,9 +1,11 @@
 extern crate scribe;
+extern crate rustbox;
 
 use scribe::buffer::{Buffer, Position};
 use presenters::visible_tokens;
 use view::{BufferData, StatusLine, View};
 use view::scrollable_region::Visibility;
+use rustbox::Color;
 
 pub fn display(buffer: Option<&mut Buffer>, view: &mut View) {
     // Wipe the slate clean.
@@ -45,15 +47,24 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View) {
         // Draw the visible set of tokens to the terminal.
         view.draw_buffer(&data);
 
-        // Draw the status line.
+        // Build the status line content.
         let content = match buf.path {
             Some(ref path) => path.to_string_lossy().into_owned(),
             None => String::new(),
         };
+
+        // Determine status line color based on buffer modification status.
+        let (foreground_color, background_color) = if buf.modified() {
+            (Some(Color::White), Some(Color::Yellow))
+        } else {
+            (None, None)
+        };
+
+        // Draw the status line.
         view.draw_status_line(&StatusLine {
             content: content,
-            background_color: None,
-            foreground_color: None,
+            background_color: background_color,
+            foreground_color: foreground_color,
         });
     } else {
         // There's no buffer; clear the cursor.
