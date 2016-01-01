@@ -11,7 +11,7 @@ pub use self::data::{BufferData, StatusLine};
 
 use self::terminal::Terminal;
 use scribe::buffer::{Buffer, Position};
-use pad::PadStr;
+use pad::{Alignment, PadStr};
 use rustbox::{Color, Event, Style};
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -162,12 +162,30 @@ impl View {
 
     pub fn draw_status_line(&self, status_line: &StatusLine) {
         let line = self.height() - 1;
+
+        // Build a single string of content from left/right sides.
+        let content = if let Some(ref right_content) = status_line.right_content {
+          // Determine side widths.
+          let left_width = self.width() / 2;
+          let right_width = self.width() - left_width;
+
+          // Pad content to their respective widths.
+          let left_content = status_line.left_content.pad_to_width(left_width);
+          let right_content = right_content.pad_to_width_with_alignment(right_width, Alignment::Right);
+
+          // Stitch the two sides together.
+          left_content + &right_content
+        } else {
+          // No right side content.
+          status_line.left_content.pad_to_width(self.width())
+        };
+
         self.print(0,
                    line,
                    rustbox::RB_BOLD,
                    status_line.foreground_color.unwrap_or(Color::Default),
                    status_line.background_color.unwrap_or(self.alt_background_color()),
-                   &status_line.left_content.pad_to_width(self.width()));
+                   &content);
     }
 
     fn draw_line_number(&self, line: usize, data: &BufferData, width: usize) -> usize {
