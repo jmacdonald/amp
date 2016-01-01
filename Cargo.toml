@@ -10,6 +10,7 @@ pad = "0.1.4"
 rustbox = "0.7.2"
 bloodhound = "0.2.1"
 luthor = "0.1.7"
+git2 = "0.3.3"
 
 [dependencies.clipboard]
 git = "https://github.com/aweinstock314/rust-clipboard.git"
