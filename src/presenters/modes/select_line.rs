@@ -61,7 +61,8 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SelectLineMode, view: &mut Vi
             None => String::new(),
         };
         view.draw_status_line(&StatusLine {
-            content: content,
+            left_content: content,
+            right_content: None,
             background_color: Some(Color::Blue),
             foreground_color: Some(Color::White),
         });

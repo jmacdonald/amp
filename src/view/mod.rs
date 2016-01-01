@@ -167,7 +167,7 @@ impl View {
                    rustbox::RB_BOLD,
                    status_line.foreground_color.unwrap_or(Color::Default),
                    status_line.background_color.unwrap_or(self.alt_background_color()),
-                   &status_line.content.pad_to_width(self.width()));
+                   &status_line.left_content.pad_to_width(self.width()));
     }
 
     fn draw_line_number(&self, line: usize, data: &BufferData, width: usize) -> usize {

@@ -10,7 +10,8 @@ pub struct BufferData {
 }
 
 pub struct StatusLine {
-    pub content: String,
+    pub left_content: String,
+    pub right_content: Option<String>,
     pub background_color: Option<Color>,
     pub foreground_color: Option<Color>,
 }

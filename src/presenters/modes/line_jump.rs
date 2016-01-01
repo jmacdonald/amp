@@ -50,7 +50,8 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &LineJumpMode, view: &mut View
         let input_prompt = format!("Go to line: {}", mode.input);
         let input_prompt_len = input_prompt.len();
         view.draw_status_line(&StatusLine {
-            content: input_prompt,
+            left_content: input_prompt,
+            right_content: None,
             background_color: None,
             foreground_color: None,
         });

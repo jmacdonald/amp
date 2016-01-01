@@ -33,7 +33,8 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SearchInsertMode, view: &mut 
     let search_prompt = format!("Search: {}", mode.input);
     let search_prompt_len = search_prompt.len();
     view.draw_status_line(&StatusLine {
-        content: search_prompt,
+        left_content: search_prompt,
+        right_content: None,
         background_color: None,
         foreground_color: None,
     });

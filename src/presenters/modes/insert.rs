@@ -50,7 +50,8 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View) {
             None => String::new(),
         };
         view.draw_status_line(&StatusLine {
-            content: content,
+            left_content: content,
+            right_content: None,
             background_color: Some(Color::Green),
             foreground_color: Some(Color::White),
         });

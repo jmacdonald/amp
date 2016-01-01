@@ -62,7 +62,8 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View) {
 
         // Draw the status line.
         view.draw_status_line(&StatusLine {
-            content: content,
+            left_content: content,
+            right_content: None,
             background_color: background_color,
             foreground_color: foreground_color,
         });
