@@ -1,3 +1,4 @@
+extern crate git2;
 extern crate scribe;
 extern crate rustbox;
 
@@ -19,6 +20,7 @@ use self::modes::search_insert::SearchInsertMode;
 use scribe::{Buffer, Workspace};
 use view::View;
 use self::clipboard::Clipboard;
+use self::git2::Repository;
 
 pub enum Mode {
     Normal,
@@ -38,6 +40,7 @@ pub struct Application {
     pub search_query: Option<String>,
     pub view: View,
     pub clipboard: Clipboard,
+    pub repository: Option<Repository>,
 }
 
 pub fn new() -> Application {
@@ -61,11 +64,18 @@ pub fn new() -> Application {
     let view = View::new();
     let clipboard = Clipboard::new();
 
+    // Try to initialize a repository in the working directory.
+    let repo = match Repository::open(&workspace.path) {
+        Ok(repo) => Some(repo),
+        Err(_) => None,
+    };
+
     Application {
         mode: Mode::Normal,
         workspace: workspace,
         search_query: None,
         view: view,
         clipboard: clipboard,
+        repository: repo,
     }
 }
