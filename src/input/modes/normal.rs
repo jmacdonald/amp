@@ -1,4 +1,4 @@
-use commands::{Command, application, workspace, cursor, buffer, search, view};
+use commands::{Command, application, workspace, cursor, buffer, search, view, git};
 use rustbox::keyboard::Key;
 
 pub fn handle(input: Key) -> Option<Command> {
@@ -47,6 +47,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('y') => Some(buffer::copy_current_line),
         Key::Char('c') => Some(buffer::change_current_token),
         Key::Char('t') => Some(view::toggle_theme),
+        Key::Char('=') => Some(git::add),
         Key::Tab => Some(workspace::next_buffer),
         _ => None,
     }
