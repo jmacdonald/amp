@@ -37,7 +37,7 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View) {
             tokens: Some(visible_tokens),
             cursor: relative_cursor,
             highlight: None,
-            line_count: buf.data().lines().count(),
+            line_count: buf.data().chars().filter(|&c| c == '\n').count() + 1,
             scrolling_offset: line_offset,
         };
 

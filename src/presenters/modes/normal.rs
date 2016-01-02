@@ -39,7 +39,7 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View, repo: &Option<Repos
             tokens: Some(visible_tokens),
             cursor: relative_cursor,
             highlight: None,
-            line_count: buf.data().lines().count(),
+            line_count: buf.data().chars().filter(|&c| c == '\n').count() + 1,
             scrolling_offset: line_offset,
         };
 
@@ -157,12 +157,14 @@ mod tests {
     #[test]
     pub fn presentable_status_returns_partially_staged_when_modified_locally_and_in_index() {
         let status = git2::STATUS_WT_MODIFIED | git2::STATUS_INDEX_MODIFIED;
-        assert_eq!(presentable_status(&status), "[partially staged]".to_string());
+        assert_eq!(presentable_status(&status),
+                   "[partially staged]".to_string());
     }
 
     #[test]
     pub fn presentable_status_returns_partially_staged_when_new_locally_and_in_index() {
         let status = git2::STATUS_WT_NEW | git2::STATUS_INDEX_NEW;
-        assert_eq!(presentable_status(&status), "[partially staged]".to_string());
+        assert_eq!(presentable_status(&status),
+                   "[partially staged]".to_string());
     }
 }

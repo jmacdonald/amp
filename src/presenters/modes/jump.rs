@@ -24,7 +24,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &mut JumpMode, view: &mut View
             tokens: Some(jump_tokens),
             cursor: None,
             highlight: None,
-            line_count: buf.data().lines().count(),
+            line_count: buf.data().chars().filter(|&c| c == '\n').count() + 1,
             scrolling_offset: line_offset,
         };
 
