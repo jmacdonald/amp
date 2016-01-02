@@ -95,8 +95,16 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View, repo: &Option<Repos
 
 fn presentable_status(status: &Status) -> &str {
     if status.contains(git2::STATUS_WT_NEW) {
-        // The file has never been added to the repository.
-        "[untracked]"
+        if status.contains(git2::STATUS_INDEX_NEW) {
+            // Parts of the file are staged as new in the index.
+            "[partially staged]"
+        } else {
+            // The file has never been added to the repository.
+            "[untracked]"
+        }
+    } else if status.contains(git2::STATUS_INDEX_NEW) {
+        // The complete file is staged as new in the index.
+        "[staged]"
     } else {
         if status.contains(git2::STATUS_WT_MODIFIED) {
             if status.contains(git2::STATUS_INDEX_MODIFIED) {
@@ -111,7 +119,50 @@ fn presentable_status(status: &Status) -> &str {
             "[staged]"
         } else {
             // The file is tracked, but has no modifications.
-            "[current]"
+            "[ok]"
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    extern crate git2;
+
+    use super::presentable_status;
+
+    #[test]
+    pub fn presentable_status_returns_untracked_when_status_is_locally_new() {
+        let status = git2::STATUS_WT_NEW;
+        assert_eq!(presentable_status(&status), "[untracked]".to_string());
+    }
+
+    #[test]
+    pub fn presentable_status_returns_ok_when_status_unmodified() {
+        let status = git2::STATUS_CURRENT;
+        assert_eq!(presentable_status(&status), "[ok]".to_string());
+    }
+
+    #[test]
+    pub fn presentable_status_returns_staged_when_only_modified_in_index() {
+        let status = git2::STATUS_INDEX_MODIFIED;
+        assert_eq!(presentable_status(&status), "[staged]".to_string());
+    }
+
+    #[test]
+    pub fn presentable_status_returns_staged_when_new_in_index() {
+        let status = git2::STATUS_INDEX_NEW;
+        assert_eq!(presentable_status(&status), "[staged]".to_string());
+    }
+
+    #[test]
+    pub fn presentable_status_returns_partially_staged_when_modified_locally_and_in_index() {
+        let status = git2::STATUS_WT_MODIFIED | git2::STATUS_INDEX_MODIFIED;
+        assert_eq!(presentable_status(&status), "[partially staged]".to_string());
+    }
+
+    #[test]
+    pub fn presentable_status_returns_partially_staged_when_new_locally_and_in_index() {
+        let status = git2::STATUS_WT_NEW | git2::STATUS_INDEX_NEW;
+        assert_eq!(presentable_status(&status), "[partially staged]".to_string());
     }
 }
