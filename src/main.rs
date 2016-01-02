@@ -1,6 +1,7 @@
+extern crate git2;
+extern crate pad;
 extern crate scribe;
 extern crate rustbox;
-extern crate pad;
 
 pub mod models;
 pub mod view;
@@ -54,7 +55,8 @@ fn main() {
             }
             Mode::Normal => {
                 presenters::modes::normal::display(application.workspace.current_buffer(),
-                                                   &mut application.view)
+                                                   &mut application.view,
+                                                   &application.repository)
             }
             Mode::Exit => ()
         }
