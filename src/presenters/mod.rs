@@ -52,11 +52,15 @@ fn relative_range(region: &ScrollableRegion, range: &Range) -> Range {
     Range::new(relative_start, relative_end)
 }
 
+fn line_count(data: &str) -> usize {
+    data.chars().filter(|&c| c == '\n').count() + 1
+}
+
 #[cfg(test)]
 mod tests {
     extern crate scribe;
 
-    use super::visible_tokens;
+    use super::{line_count, visible_tokens};
     use scribe::buffer::{Buffer, LineRange, Token, Category};
 
     #[test]
@@ -72,5 +76,11 @@ mod tests {
                 Token{ lexeme: "third".to_string(), category: Category::Text },
                 Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
             ]);
+    }
+
+    #[test]
+    fn line_count_returns_correct_count_with_trailing_newline() {
+        let data = "amp\neditor\n";
+        assert_eq!(line_count(data), 3);
     }
 }

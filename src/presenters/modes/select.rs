@@ -3,7 +3,7 @@ extern crate scribe;
 
 use models::application::modes::select::SelectMode;
 use scribe::buffer::{Buffer, Position, Range};
-use presenters::{relative_range, visible_tokens};
+use presenters::{line_count, relative_range, visible_tokens};
 use view::{BufferData, StatusLine, View};
 use view::scrollable_region::Visibility;
 use rustbox::Color;
@@ -45,7 +45,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SelectMode, view: &mut View) 
             tokens: Some(visible_tokens),
             cursor: relative_cursor,
             highlight: Some(relative_highlight),
-            line_count: buf.data().chars().filter(|&c| c == '\n').count() + 1,
+            line_count: line_count(&buf.data()),
             scrolling_offset: line_offset,
         };
 

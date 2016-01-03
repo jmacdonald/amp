@@ -3,7 +3,7 @@ extern crate rustbox;
 extern crate git2;
 
 use scribe::buffer::{Buffer, Position};
-use presenters::visible_tokens;
+use presenters::{line_count, visible_tokens};
 use view::{BufferData, StatusLine, View};
 use view::scrollable_region::Visibility;
 use rustbox::Color;
@@ -39,7 +39,7 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View, repo: &Option<Repos
             tokens: Some(visible_tokens),
             cursor: relative_cursor,
             highlight: None,
-            line_count: buf.data().chars().filter(|&c| c == '\n').count() + 1,
+            line_count: line_count(&buf.data()),
             scrolling_offset: line_offset,
         };
 
