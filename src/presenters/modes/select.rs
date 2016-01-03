@@ -3,7 +3,7 @@ extern crate scribe;
 
 use models::application::modes::select::SelectMode;
 use scribe::buffer::{Buffer, Position, Range};
-use presenters::{line_count, relative_range, visible_tokens};
+use presenters::{line_count, path_as_title, relative_range, visible_tokens};
 use view::{BufferData, StatusLineData, View};
 use view::scrollable_region::Visibility;
 use rustbox::Color;
@@ -56,13 +56,9 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SelectMode, view: &mut View) 
         view.draw_buffer(&data);
 
         // Draw the status line.
-        let content = match buf.path {
-            Some(ref path) => path.to_string_lossy().into_owned(),
-            None => String::new(),
-        };
         view.draw_status_line(&vec![
             StatusLineData {
-                content: content,
+                content: path_as_title(buf.path.clone()),
                 background_color: Some(Color::Blue),
                 foreground_color: Some(Color::White),
             }

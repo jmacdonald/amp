@@ -1,6 +1,6 @@
 extern crate scribe;
 
-use presenters::{line_count, visible_tokens};
+use presenters::{line_count, path_as_title, visible_tokens};
 use scribe::Buffer;
 use view::{BufferData, StatusLineData, View};
 use models::application::modes::jump::JumpMode;
@@ -32,13 +32,9 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &mut JumpMode, view: &mut View
         view.draw_buffer(&data);
 
         // Draw the status line.
-        let content = match buf.path {
-            Some(ref path) => path.to_string_lossy().into_owned(),
-            None => String::new(),
-        };
         view.draw_status_line(&vec![
             StatusLineData {
-                content: content,
+                content: path_as_title(buf.path.clone()),
                 background_color: None,
                 foreground_color: None,
             }

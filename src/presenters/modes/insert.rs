@@ -1,7 +1,7 @@
 extern crate scribe;
 extern crate rustbox;
 
-use presenters::{line_count, visible_tokens};
+use presenters::{line_count, path_as_title, visible_tokens};
 use scribe::buffer::{Buffer, Position};
 use rustbox::Color;
 use view::{BufferData, StatusLineData, View};
@@ -45,13 +45,9 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View) {
         view.draw_buffer(&data);
 
         // Draw the status line.
-        let content = match buf.path {
-            Some(ref path) => path.to_string_lossy().into_owned(),
-            None => String::new(),
-        };
         view.draw_status_line(&vec![
             StatusLineData {
-                content: content,
+                content: path_as_title(buf.path.clone()),
                 background_color: Some(Color::White),
                 foreground_color: Some(Color::Black),
             }

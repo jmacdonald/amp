@@ -3,7 +3,7 @@ extern crate rustbox;
 extern crate git2;
 
 use scribe::buffer::{Buffer, Position};
-use presenters::{line_count, visible_tokens};
+use presenters::{line_count, path_as_title, visible_tokens};
 use view::{BufferData, StatusLineData, View};
 use view::scrollable_region::Visibility;
 use rustbox::Color;
@@ -49,12 +49,6 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View, repo: &Option<Repos
         // Draw the visible set of tokens to the terminal.
         view.draw_buffer(&data);
 
-        // Build the status line content.
-        let content = match buf.path {
-            Some(ref path) => path.to_string_lossy().into_owned(),
-            None => String::new(),
-        };
-
         // Determine status line color based on buffer modification status.
         let (foreground_color, background_color) = if buf.modified() {
             (Some(Color::White), Some(Color::Yellow))
@@ -64,7 +58,12 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View, repo: &Option<Repos
 
         let mut status_line_data = vec![
             StatusLineData {
-                content: content,
+                content: " NORMAL ".to_string(),
+                background_color: Some(Color::White),
+                foreground_color: Some(Color::Black)
+            },
+            StatusLineData {
+                content: path_as_title(buf.path.clone()),
                 background_color: None,
                 foreground_color: None,
             }

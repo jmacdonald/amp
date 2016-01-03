@@ -2,6 +2,7 @@ extern crate scribe;
 
 pub mod modes;
 
+use std::path::PathBuf;
 use scribe::buffer::{LineRange, Position, Range, Token};
 use view::scrollable_region::{ScrollableRegion, Visibility};
 
@@ -54,6 +55,10 @@ fn relative_range(region: &ScrollableRegion, range: &Range) -> Range {
 
 fn line_count(data: &str) -> usize {
     data.chars().filter(|&c| c == '\n').count() + 1
+}
+
+fn path_as_title(path: Option<PathBuf>) -> String {
+    format!(" {}", path.map(|path| path.to_string_lossy().into_owned()).unwrap_or("".to_string()))
 }
 
 #[cfg(test)]
