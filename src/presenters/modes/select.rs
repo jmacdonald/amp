@@ -58,9 +58,14 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SelectMode, view: &mut View) 
         // Draw the status line.
         view.draw_status_line(&vec![
             StatusLineData {
-                content: path_as_title(buf.path.clone()),
+                content: " SELECT ".to_string(),
                 background_color: Some(Color::Blue),
                 foreground_color: Some(Color::White),
+            },
+            StatusLineData {
+                content: path_as_title(buf.path.clone()),
+                background_color: None,
+                foreground_color: None,
             }
         ]);
     } else {

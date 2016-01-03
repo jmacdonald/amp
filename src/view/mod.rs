@@ -11,7 +11,7 @@ pub use self::data::{BufferData, StatusLineData};
 
 use self::terminal::Terminal;
 use scribe::buffer::{Buffer, Position};
-use pad::{Alignment, PadStr};
+use pad::PadStr;
 use rustbox::{Color, Event, Style};
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -164,16 +164,26 @@ impl View {
         let line = self.height() - 1;
 
         data.iter().enumerate().fold(0, |offset, (index, element)| {
-            let content = if data.len() == 1 {
-                // There's only one element; have it fill the line.
-                element.content.pad_to_width(self.width())
-            } else {
-                if index == data.len() - 2 {
-                    // Before-last element extends to fill unused space.
-                    element.content.pad_to_width(self.width() - offset - data[index+1].content.len())
-                } else {
-                    // This is the last element; use it as-is.
-                    element.content.clone()
+            let content = match data.len() {
+                1 => {
+                    // There's only one element; have it fill the line.
+                    element.content.pad_to_width(self.width())
+                },
+                2 => {
+                    if index == data.len() - 1 {
+                        // Expand the last element to fill the remaining width.
+                        element.content.pad_to_width(self.width() - offset)
+                    } else {
+                        element.content.clone()
+                    }
+                },
+                _ => {
+                    if index == data.len() - 2 {
+                        // Before-last element extends to fill unused space.
+                        element.content.pad_to_width(self.width() - offset - data[index+1].content.len())
+                    } else {
+                        element.content.clone()
+                    }
                 }
             };
 
