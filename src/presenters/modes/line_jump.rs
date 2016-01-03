@@ -3,7 +3,7 @@ extern crate scribe;
 use presenters::{line_count, visible_tokens};
 use scribe::buffer::{Buffer, Position};
 use view::scrollable_region::Visibility;
-use view::{BufferData, StatusLine, View};
+use view::{BufferData, StatusLineData, View};
 use models::application::modes::line_jump::LineJumpMode;
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &LineJumpMode, view: &mut View) {
@@ -49,12 +49,13 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &LineJumpMode, view: &mut View
         // Draw the status line as an input prompt.
         let input_prompt = format!("Go to line: {}", mode.input);
         let input_prompt_len = input_prompt.len();
-        view.draw_status_line(&StatusLine {
-            left_content: input_prompt,
-            right_content: None,
-            background_color: None,
-            foreground_color: None,
-        });
+        view.draw_status_line(&vec![
+            StatusLineData {
+                content: input_prompt,
+                background_color: None,
+                foreground_color: None,
+            }
+        ]);
 
         // Move the cursor to the end of the search query input.
         view.set_cursor(Some(Position {

@@ -2,7 +2,7 @@ extern crate scribe;
 
 use scribe::buffer::{Buffer, Position};
 use presenters::{line_count, visible_tokens};
-use view::{BufferData, StatusLine, View};
+use view::{BufferData, StatusLineData, View};
 use models::application::modes::search_insert::SearchInsertMode;
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &SearchInsertMode, view: &mut View) {
@@ -32,12 +32,13 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SearchInsertMode, view: &mut 
     // Draw the status line as a search prompt.
     let search_prompt = format!("Search: {}", mode.input);
     let search_prompt_len = search_prompt.len();
-    view.draw_status_line(&StatusLine {
-        left_content: search_prompt,
-        right_content: None,
-        background_color: None,
-        foreground_color: None,
-    });
+    view.draw_status_line(&vec![
+        StatusLineData {
+            content: search_prompt,
+            background_color: None,
+            foreground_color: None,
+        }
+    ]);
 
     // Move the cursor to the end of the search query input.
     view.set_cursor(Some(Position {

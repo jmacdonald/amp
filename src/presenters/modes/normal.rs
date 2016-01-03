@@ -4,7 +4,7 @@ extern crate git2;
 
 use scribe::buffer::{Buffer, Position};
 use presenters::{line_count, visible_tokens};
-use view::{BufferData, StatusLine, View};
+use view::{BufferData, StatusLineData, View};
 use view::scrollable_region::Visibility;
 use rustbox::Color;
 use git2::{Repository, Status};
@@ -62,28 +62,29 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View, repo: &Option<Repos
             (None, None)
         };
 
+        let mut status_line_data = vec![
+            StatusLineData {
+                content: content,
+                background_color: None,
+                foreground_color: None,
+            }
+        ];
+
         // Build a display value for the current buffer's git status.
-        let right_content = if let &Some(ref repo) = repo {
+        if let &Some(ref repo) = repo {
             if let Some(ref path) = buf.path {
                 if let Ok(status) = repo.status_file(path) {
-                    Some(presentable_status(&status).to_string())
-                } else {
-                    None
+                    status_line_data.push(StatusLineData {
+                        content: presentable_status(&status).to_string(),
+                        background_color: Some(Color::Black),
+                        foreground_color: None,
+                    });
                 }
-            } else {
-                None
             }
-        } else {
-            None
-        };
+        }
 
         // Draw the status line.
-        view.draw_status_line(&StatusLine {
-            left_content: content,
-            right_content: right_content,
-            background_color: background_color,
-            foreground_color: foreground_color,
-        });
+        view.draw_status_line(&status_line_data);
     } else {
         // There's no buffer; clear the cursor.
         view.set_cursor(None);

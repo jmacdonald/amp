@@ -6,7 +6,7 @@ use models::application::modes::open::OpenMode;
 use pad::PadStr;
 use presenters::{line_count, visible_tokens};
 use rustbox::Color;
-use view::{BufferData, StatusLine, View};
+use view::{BufferData, StatusLineData, View};
 use scribe::buffer::{Buffer, Position};
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
@@ -37,12 +37,13 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
             Some(ref path) => path.to_string_lossy().into_owned(),
             None => String::new(),
         };
-        view.draw_status_line(&StatusLine {
-            left_content: content,
-            right_content: None,
-            background_color: None,
-            foreground_color: None,
-        });
+        view.draw_status_line(&vec![
+            StatusLineData {
+                content: content,
+                background_color: None,
+                foreground_color: None,
+            }
+        ]);
     }
 
     // Draw the list of search results.

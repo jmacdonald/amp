@@ -2,7 +2,7 @@ extern crate scribe;
 
 use presenters::{line_count, visible_tokens};
 use scribe::Buffer;
-use view::{BufferData, StatusLine, View};
+use view::{BufferData, StatusLineData, View};
 use models::application::modes::jump::JumpMode;
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &mut JumpMode, view: &mut View) {
@@ -36,12 +36,13 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &mut JumpMode, view: &mut View
             Some(ref path) => path.to_string_lossy().into_owned(),
             None => String::new(),
         };
-        view.draw_status_line(&StatusLine {
-            left_content: content,
-            right_content: None,
-            background_color: None,
-            foreground_color: None,
-        });
+        view.draw_status_line(&vec![
+            StatusLineData {
+                content: content,
+                background_color: None,
+                foreground_color: None,
+            }
+        ]);
     }
 
     // Don't display a cursor.

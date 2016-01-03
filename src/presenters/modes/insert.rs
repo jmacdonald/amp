@@ -4,7 +4,7 @@ extern crate rustbox;
 use presenters::{line_count, visible_tokens};
 use scribe::buffer::{Buffer, Position};
 use rustbox::Color;
-use view::{BufferData, StatusLine, View};
+use view::{BufferData, StatusLineData, View};
 use view::scrollable_region::Visibility;
 
 pub fn display(buffer: Option<&mut Buffer>, view: &mut View) {
@@ -49,12 +49,13 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View) {
             Some(ref path) => path.to_string_lossy().into_owned(),
             None => String::new(),
         };
-        view.draw_status_line(&StatusLine {
-            left_content: content,
-            right_content: None,
-            background_color: Some(Color::White),
-            foreground_color: Some(Color::Black),
-        });
+        view.draw_status_line(&vec![
+            StatusLineData {
+                content: content,
+                background_color: Some(Color::White),
+                foreground_color: Some(Color::Black),
+            }
+        ]);
     }
 
     // Render the changes to the screen.

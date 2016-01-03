@@ -9,9 +9,8 @@ pub struct BufferData {
     pub scrolling_offset: usize,
 }
 
-pub struct StatusLine {
-    pub left_content: String,
-    pub right_content: Option<String>,
+pub struct StatusLineData {
+    pub content: String,
     pub background_color: Option<Color>,
     pub foreground_color: Option<Color>,
 }
