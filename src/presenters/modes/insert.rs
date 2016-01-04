@@ -48,11 +48,13 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View) {
         view.draw_status_line(&vec![
             StatusLineData {
                 content: " INSERT ".to_string(),
+                style: None,
                 background_color: Some(Color::Green),
                 foreground_color: Some(Color::White),
             },
             StatusLineData {
                 content: path_as_title(buf.path.clone()),
+                style: None,
                 background_color: None,
                 foreground_color: None,
             }

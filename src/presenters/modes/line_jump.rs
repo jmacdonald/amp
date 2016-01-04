@@ -52,6 +52,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &LineJumpMode, view: &mut View
         view.draw_status_line(&vec![
             StatusLineData {
                 content: input_prompt,
+                style: None,
                 background_color: None,
                 foreground_color: None,
             }

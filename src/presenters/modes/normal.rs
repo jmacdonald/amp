@@ -49,15 +49,28 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View, repo: &Option<Repos
         // Draw the visible set of tokens to the terminal.
         view.draw_buffer(&data);
 
+        // Determine buffer title styles based on its modification status.
+        let (buffer_title, buffer_title_style) = if buf.modified() {
+            // Use an emboldened path with an asterisk.
+            let mut title = path_as_title(buf.path.clone());
+            title.push('*');
+
+            (title, Some(rustbox::RB_BOLD))
+        } else {
+            (path_as_title(buf.path.clone()), None)
+        };
+
         // Build the status line mode and buffer title display.
         let status_line_data = vec![
             StatusLineData {
                 content: " NORMAL ".to_string(),
+                style: None,
                 background_color: Some(Color::White),
                 foreground_color: Some(Color::Black)
             },
             StatusLineData {
-                content: path_as_title(buf.path.clone()),
+                content: buffer_title,
+                style: buffer_title_style,
                 background_color: None,
                 foreground_color: None,
             },

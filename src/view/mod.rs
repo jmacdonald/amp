@@ -189,7 +189,7 @@ impl View {
 
             self.print(offset,
                        line,
-                       rustbox::RB_BOLD,
+                       element.style.unwrap_or(rustbox::RB_NORMAL),
                        element.foreground_color.unwrap_or(Color::Default),
                        element.background_color.unwrap_or(self.alt_background_color()),
                        &content);

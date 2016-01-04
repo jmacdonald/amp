@@ -1,4 +1,4 @@
-use rustbox::Color;
+use rustbox::{Color, Style};
 use scribe::buffer::{Position, Range, Token};
 
 pub struct BufferData {
@@ -11,6 +11,7 @@ pub struct BufferData {
 
 pub struct StatusLineData {
     pub content: String,
+    pub style: Option<Style>,
     pub background_color: Option<Color>,
     pub foreground_color: Option<Color>,
 }

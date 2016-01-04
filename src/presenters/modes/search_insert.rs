@@ -35,6 +35,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SearchInsertMode, view: &mut 
     view.draw_status_line(&vec![
         StatusLineData {
             content: search_prompt,
+            style: None,
             background_color: None,
             foreground_color: None,
         }

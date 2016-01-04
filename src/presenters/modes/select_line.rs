@@ -59,11 +59,13 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SelectLineMode, view: &mut Vi
         view.draw_status_line(&vec![
             StatusLineData {
                 content: " SELECT LINE ".to_string(),
+                style: None,
                 background_color: Some(Color::Blue),
                 foreground_color: Some(Color::White),
             },
             StatusLineData {
                 content: path_as_title(buf.path.clone()),
+                style: None,
                 background_color: None,
                 foreground_color: None,
             }

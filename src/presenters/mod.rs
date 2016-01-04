@@ -78,6 +78,7 @@ fn git_status_line_data(repo: &Option<Repository>, path: &Option<PathBuf>) -> St
 
     StatusLineData {
         content: content,
+        style: None,
         background_color: Some(Color::Black),
         foreground_color: None,
     }
