@@ -3,7 +3,7 @@ extern crate rustbox;
 extern crate git2;
 
 use scribe::buffer::{Buffer, Position};
-use presenters::{line_count, path_as_title, presentable_status, visible_tokens};
+use presenters::{git_status_line_data, line_count, path_as_title, visible_tokens};
 use view::{BufferData, StatusLineData, View};
 use view::scrollable_region::Visibility;
 use rustbox::Color;
@@ -50,7 +50,7 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View, repo: &Option<Repos
         view.draw_buffer(&data);
 
         // Build the status line mode and buffer title display.
-        let mut status_line_data = vec![
+        let status_line_data = vec![
             StatusLineData {
                 content: " NORMAL ".to_string(),
                 background_color: Some(Color::White),
@@ -60,21 +60,9 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View, repo: &Option<Repos
                 content: path_as_title(buf.path.clone()),
                 background_color: None,
                 foreground_color: None,
-            }
+            },
+            git_status_line_data(&repo, &buf.path)
         ];
-
-        // Build a display value for the current buffer's git status.
-        if let &Some(ref repo) = repo {
-            if let Some(ref path) = buf.path {
-                if let Ok(status) = repo.status_file(path) {
-                    status_line_data.push(StatusLineData {
-                        content: presentable_status(&status).to_string(),
-                        background_color: Some(Color::Black),
-                        foreground_color: None,
-                    });
-                }
-            }
-        }
 
         // Draw the status line.
         view.draw_status_line(&status_line_data);

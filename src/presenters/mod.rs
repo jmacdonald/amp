@@ -6,7 +6,9 @@ pub mod modes;
 use std::path::PathBuf;
 use scribe::buffer::{LineRange, Position, Range, Token};
 use view::scrollable_region::{ScrollableRegion, Visibility};
-use git2::Status;
+use view::StatusLineData;
+use git2::{Repository, Status};
+use rustbox::Color;
 
 fn visible_tokens(tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
     let mut visible_tokens = Vec::new();
@@ -63,6 +65,23 @@ fn path_as_title(path: Option<PathBuf>) -> String {
     format!(" {}", path.map(|path| path.to_string_lossy().into_owned()).unwrap_or("".to_string()))
 }
 
+fn git_status_line_data(repo: &Option<Repository>, path: &Option<PathBuf>) -> StatusLineData {
+    // Build a display value for the current buffer's git status.
+    let mut content = String::new();
+    if let &Some(ref repo) = repo {
+        if let &Some(ref path) = path {
+            if let Ok(status) = repo.status_file(path) {
+                content = presentable_status(&status).to_string();
+            }
+        }
+    }
+
+    StatusLineData {
+        content: content,
+        background_color: Some(Color::Black),
+        foreground_color: None,
+    }
+}
 fn presentable_status(status: &Status) -> &str {
     if status.contains(git2::STATUS_WT_NEW) {
         if status.contains(git2::STATUS_INDEX_NEW) {
