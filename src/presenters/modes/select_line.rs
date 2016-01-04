@@ -3,7 +3,7 @@ extern crate scribe;
 
 use models::application::modes::select_line::SelectLineMode;
 use scribe::buffer::{Buffer, Position};
-use presenters::{line_count, path_as_title, relative_range, visible_tokens};
+use presenters::{buffer_status_line_data, line_count, relative_range, visible_tokens};
 use view::{BufferData, StatusLineData, View};
 use view::scrollable_region::Visibility;
 use rustbox::Color;
@@ -63,12 +63,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SelectLineMode, view: &mut Vi
                 background_color: Some(Color::Blue),
                 foreground_color: Some(Color::White),
             },
-            StatusLineData {
-                content: path_as_title(buf.path.clone()),
-                style: None,
-                background_color: None,
-                foreground_color: None,
-            }
+            buffer_status_line_data(&buf)
         ]);
     } else {
         // There's no buffer; clear the cursor.

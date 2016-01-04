@@ -4,7 +4,7 @@ extern crate scribe;
 
 use models::application::modes::open::OpenMode;
 use pad::PadStr;
-use presenters::{line_count, path_as_title, visible_tokens};
+use presenters::{buffer_status_line_data, line_count, visible_tokens};
 use rustbox::Color;
 use view::{BufferData, StatusLineData, View};
 use scribe::buffer::{Buffer, Position};
@@ -40,12 +40,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
                 background_color: Some(Color::White),
                 foreground_color: Some(Color::Black)
             },
-            StatusLineData {
-                content: path_as_title(buf.path.clone()),
-                style: None,
-                background_color: None,
-                foreground_color: None,
-            }
+            buffer_status_line_data(&buf)
         ]);
     }
 

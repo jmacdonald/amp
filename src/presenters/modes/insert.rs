@@ -1,7 +1,7 @@
 extern crate scribe;
 extern crate rustbox;
 
-use presenters::{line_count, path_as_title, visible_tokens};
+use presenters::{buffer_status_line_data, line_count, visible_tokens};
 use scribe::buffer::{Buffer, Position};
 use rustbox::Color;
 use view::{BufferData, StatusLineData, View};
@@ -52,12 +52,7 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View) {
                 background_color: Some(Color::Green),
                 foreground_color: Some(Color::White),
             },
-            StatusLineData {
-                content: path_as_title(buf.path.clone()),
-                style: None,
-                background_color: None,
-                foreground_color: None,
-            }
+            buffer_status_line_data(&buf)
         ]);
     }
 

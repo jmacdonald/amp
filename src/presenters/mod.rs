@@ -1,10 +1,11 @@
 extern crate git2;
 extern crate scribe;
+extern crate rustbox;
 
 pub mod modes;
 
 use std::path::PathBuf;
-use scribe::buffer::{LineRange, Position, Range, Token};
+use scribe::buffer::{Buffer, LineRange, Position, Range, Token};
 use view::scrollable_region::{ScrollableRegion, Visibility};
 use view::StatusLineData;
 use git2::{Repository, Status};
@@ -63,6 +64,26 @@ fn line_count(data: &str) -> usize {
 
 fn path_as_title(path: Option<PathBuf>) -> String {
     format!(" {}", path.map(|path| path.to_string_lossy().into_owned()).unwrap_or("".to_string()))
+}
+
+fn buffer_status_line_data(buffer: &Buffer) -> StatusLineData {
+    // Determine buffer title styles based on its modification status.
+    let (buffer_title, buffer_title_style) = if buffer.modified() {
+        // Use an emboldened path with an asterisk.
+        let mut title = path_as_title(buffer.path.clone());
+        title.push('*');
+
+        (title, Some(rustbox::RB_BOLD))
+    } else {
+        (path_as_title(buffer.path.clone()), None)
+    };
+
+    StatusLineData {
+        content: buffer_title,
+        style: buffer_title_style,
+        background_color: None,
+        foreground_color: None,
+    }
 }
 
 fn git_status_line_data(repo: &Option<Repository>, path: &Option<PathBuf>) -> StatusLineData {
