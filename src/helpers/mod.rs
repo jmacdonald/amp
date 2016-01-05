@@ -1,6 +1,9 @@
 extern crate scribe;
 
+pub use self::selectable_set::SelectableSet;
+
 pub mod movement_lexer;
+mod selectable_set;
 
 use scribe::buffer::{Buffer, LineRange, Position, Range};
 
