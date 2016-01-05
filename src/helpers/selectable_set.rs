@@ -11,6 +11,10 @@ impl<T> SelectableSet<T> {
         }
     }
 
+    pub fn selected_index(&self) -> usize {
+        self.selected_index
+    }
+
     pub fn selection(&self) -> Option<&T> {
         self.set.get(self.selected_index)
     }
