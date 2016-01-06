@@ -1,7 +1,8 @@
 use commands;
 use std::mem;
 use models::application::{Application, Mode};
-use models::application::modes::{insert, jump, line_jump, open, select, select_line, search_insert};
+use models::application::modes::{insert, jump, line_jump, select, select_line, search_insert};
+use models::application::modes::OpenMode;
 
 pub fn switch_to_normal_mode(app: &mut Application) {
     commands::buffer::end_command_group(app);
@@ -49,7 +50,7 @@ pub fn switch_to_line_jump_mode(app: &mut Application) {
 }
 
 pub fn switch_to_open_mode(app: &mut Application) {
-    app.mode = Mode::Open(open::new(app.workspace.path.clone()));
+    app.mode = Mode::Open(OpenMode::new(app.workspace.path.clone()));
     commands::open_mode::search(app);
 }
 

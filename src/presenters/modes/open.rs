@@ -2,7 +2,7 @@ extern crate bloodhound;
 extern crate rustbox;
 extern crate scribe;
 
-use models::application::modes::open::OpenMode;
+use models::application::modes::OpenMode;
 use pad::PadStr;
 use presenters::{buffer_status_line_data, line_count, visible_tokens};
 use rustbox::Color;
@@ -46,7 +46,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
 
     // Draw the list of search results.
     for (line, result) in mode.results.iter().enumerate() {
-        let color = if line == mode.selected_index() {
+        let color = if line == mode.results.selected_index() {
             view.alt_background_color()
         } else {
             Color::Default

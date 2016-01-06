@@ -1,3 +1,5 @@
+pub use self::open::OpenMode;
+
 pub mod jump;
 pub mod insert;
 pub mod open;

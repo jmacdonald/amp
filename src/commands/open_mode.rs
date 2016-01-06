@@ -29,14 +29,14 @@ pub fn search(app: &mut Application) {
 
 pub fn select_next_path(app: &mut Application) {
     match app.mode {
-        Mode::Open(ref mut mode) => mode.select_next_path(),
+        Mode::Open(ref mut mode) => mode.results.select_next(),
         _ => (),
     }
 }
 
 pub fn select_previous_path(app: &mut Application) {
     match app.mode {
-        Mode::Open(ref mut mode) => mode.select_previous_path(),
+        Mode::Open(ref mut mode) => mode.results.select_previous(),
         _ => (),
     }
 }
