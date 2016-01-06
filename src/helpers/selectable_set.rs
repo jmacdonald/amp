@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 pub struct SelectableSet<T> {
     set: Vec<T>,
     selected_index: usize,
@@ -29,6 +31,14 @@ impl<T> SelectableSet<T> {
         if self.selected_index < self.set.len() - 1 {
             self.selected_index += 1;
         }
+    }
+}
+
+impl<T> Deref for SelectableSet<T> {
+    type Target = Vec<T>;
+
+    fn deref(&self) -> &Vec<T> {
+        &self.set
     }
 }
 
