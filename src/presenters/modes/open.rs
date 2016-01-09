@@ -51,7 +51,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
         } else {
             Color::Default
         };
-        let padded_content = result.path.as_path().to_str().unwrap().pad_to_width(view.width());
+        let padded_content = result.as_path().to_str().unwrap().pad_to_width(view.width());
         view.print(0,
                    line,
                    rustbox::RB_NORMAL,

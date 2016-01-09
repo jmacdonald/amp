@@ -3,14 +3,13 @@ extern crate bloodhound;
 use std::path::PathBuf;
 use helpers::SelectableSet;
 use self::bloodhound::Index;
-use self::bloodhound::matching::Result;
 
 const MAX_RESULTS: usize = 5;
 
 pub struct OpenMode {
     pub input: String,
     index: Index,
-    pub results: SelectableSet<Result>,
+    pub results: SelectableSet<PathBuf>,
 }
 
 impl OpenMode {
@@ -26,8 +25,8 @@ impl OpenMode {
         }
     }
 
-    pub fn selected_path(&self) -> Option<PathBuf> {
-        self.results.selection().map(|result| result.path.clone())
+    pub fn selected_path(&self) -> Option<&PathBuf> {
+        self.results.selection()
     }
 
     pub fn search(&mut self) {

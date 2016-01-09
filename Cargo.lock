@@ -2,7 +2,7 @@
 name = "amp"
 version = "0.0.1"
 dependencies = [
- "bloodhound 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bloodhound 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "clipboard 0.1.0 (git+https://github.com/aweinstock314/rust-clipboard.git)",
  "git2 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "luthor 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -37,9 +37,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "bloodhound"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
+ "fragment 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "walkdir 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -72,6 +73,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "gcc 0.3.21 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "fragment"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "gag"

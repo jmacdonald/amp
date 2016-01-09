@@ -9,7 +9,7 @@ pub fn open(app: &mut Application) {
         Mode::Open(ref mut mode) => {
             match mode.selected_path() {
                 Some(path) => {
-                    app.workspace.open_buffer(path);
+                    app.workspace.open_buffer(path.clone());
                 }
                 None => (),
             }
