@@ -49,13 +49,20 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View, repo: &Option<Repos
         // Draw the visible set of tokens to the terminal.
         view.draw_buffer(&data);
 
+        // Determine mode display color based on buffer modification status.
+        let (bg, fg) = if buf.modified() {
+            (Some(Color::Yellow), Some(Color::White))
+        } else {
+            (Some(Color::White), Some(Color::Black))
+        };
+
         // Build the status line mode and buffer title display.
         let status_line_data = vec![
             StatusLineData {
                 content: " NORMAL ".to_string(),
                 style: None,
-                background_color: Some(Color::White),
-                foreground_color: Some(Color::Black)
+                background_color: bg,
+                foreground_color: fg,
             },
             buffer_status_line_data(&buf),
             git_status_line_data(&repo, &buf.path)
