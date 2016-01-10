@@ -1,6 +1,7 @@
 extern crate rustbox;
 extern crate scribe;
 
+use std::cmp;
 use models::application::modes::SymbolJumpMode;
 use pad::PadStr;
 use presenters::{buffer_status_line_data, line_count, visible_tokens};
@@ -43,6 +44,16 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SymbolJumpMode, view: &mut Vi
         ]);
     }
 
+    // Display an empty result set message.
+    if mode.results.is_empty() {
+        view.print(0,
+                   0,
+                   rustbox::RB_NORMAL,
+                   Color::Default,
+                   Color::Default,
+                   &"No symbols found.".pad_to_width(view.width()));
+     }
+
     // Draw the list of search results.
     for (line, result) in mode.results.iter().enumerate() {
         let color = if line == mode.results.selected_index() {
@@ -57,6 +68,16 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SymbolJumpMode, view: &mut Vi
                    Color::Default,
                    color,
                    &padded_content);
+    }
+
+    // Clear any remaining lines in the result display area.
+    for line in cmp::max(mode.results.len(), 1)..5 {
+        view.print(0,
+                   line,
+                   rustbox::RB_NORMAL,
+                   Color::Default,
+                   Color::Default,
+                   &String::new().pad_to_width(view.width()));
     }
 
     // Draw the divider.
