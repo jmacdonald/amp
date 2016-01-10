@@ -35,7 +35,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SymbolJumpMode, view: &mut Vi
         // Draw the status line.
         view.draw_status_line(&vec![
             StatusLineData {
-                content: " OPEN ".to_string(),
+                content: " SYMBOL ".to_string(),
                 style: None,
                 background_color: Some(Color::White),
                 foreground_color: Some(Color::Black)
