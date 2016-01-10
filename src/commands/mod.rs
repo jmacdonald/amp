@@ -6,6 +6,7 @@ pub mod cursor;
 pub mod git;
 pub mod jump_mode;
 pub mod line_jump;
+pub mod symbol_jump;
 pub mod open_mode;
 pub mod search;
 pub mod selection;

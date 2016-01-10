@@ -43,6 +43,11 @@ fn main() {
                                                       mode,
                                                       &mut application.view)
             }
+            Mode::SymbolJump(ref mode) => {
+                presenters::modes::symbol_jump::display(application.workspace.current_buffer(),
+                                                        mode,
+                                                        &mut application.view)
+            }
             Mode::Select(ref mode) => {
                 presenters::modes::select::display(application.workspace.current_buffer(),
                                                    mode,
@@ -70,6 +75,7 @@ fn main() {
                     Mode::Insert(ref mut i) => input::modes::insert::handle(i, key),
                     Mode::Jump(ref mut j) => input::modes::jump::handle(j, key),
                     Mode::LineJump(ref mut j) => input::modes::line_jump::handle(j, key),
+                    Mode::SymbolJump(ref mut j) => input::modes::symbol_jump::handle(j, key),
                     Mode::Open(ref mut o) => input::modes::open::handle(o, key),
                     Mode::Select(_) => input::modes::select::handle(key),
                     Mode::SelectLine(_) => input::modes::select_line::handle(key),

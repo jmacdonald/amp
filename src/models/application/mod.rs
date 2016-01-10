@@ -12,6 +12,7 @@ use std::env;
 use std::path::PathBuf;
 use self::modes::jump::JumpMode;
 use self::modes::line_jump::LineJumpMode;
+use self::modes::symbol_jump::SymbolJumpMode;
 use self::modes::insert::InsertMode;
 use self::modes::open::OpenMode;
 use self::modes::select::SelectMode;
@@ -27,6 +28,7 @@ pub enum Mode {
     Insert(InsertMode),
     Jump(JumpMode),
     LineJump(LineJumpMode),
+    SymbolJump(SymbolJumpMode),
     Open(OpenMode),
     Select(SelectMode),
     SelectLine(SelectLineMode),

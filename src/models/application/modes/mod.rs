@@ -1,4 +1,5 @@
 pub use self::open::OpenMode;
+pub use self::symbol_jump::SymbolJumpMode;
 
 pub mod jump;
 pub mod insert;

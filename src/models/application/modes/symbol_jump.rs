@@ -83,10 +83,15 @@ fn symbols(tokens: Vec<Token>) -> Vec<Symbol> {
               // Move the tracked position beyond this lexeme.
               let lines: Vec<&str> = token.lexeme.split('\n').collect();
               position.line += lines.len() - 1;
-              position.offset += match lines.last() {
+              let last_token_length = match lines.last() {
                   Some(line) => line.len(),
                   None => 0,
               };
+              if lines.len() > 1 {
+                  position.offset = last_token_length;
+              } else {
+                  position.offset += last_token_length;
+              }
 
               symbol
           })
@@ -118,19 +123,19 @@ mod tests {
     #[test]
     fn symbols_have_correct_positions() {
         let tokens = vec![
-            Token{ lexeme: "amp\n ".to_string(), category: Category::Method },
-            Token{ lexeme: "editor".to_string(), category: Category::Function },
+            Token{ lexeme: "class".to_string(), category: Category::Keyword },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "Ruby".to_string(), category: Category::Identifier },
+            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "def".to_string(), category: Category::Keyword },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "method".to_string(), category: Category::Method },
         ];
 
-        assert_eq!(symbols(tokens.clone()).first().unwrap().position,
-                   Position {
-                       line: 0,
-                       offset: 0,
-                   });
         assert_eq!(symbols(tokens.clone()).last().unwrap().position,
                    Position {
                        line: 1,
-                       offset: 1,
+                       offset: 6,
                    });
     }
 }
