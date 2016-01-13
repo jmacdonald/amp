@@ -1,6 +1,7 @@
 extern crate git2;
 extern crate pad;
 extern crate scribe;
+extern crate regex;
 extern crate rustbox;
 
 pub mod models;

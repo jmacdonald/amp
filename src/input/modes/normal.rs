@@ -49,6 +49,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('c') => Some(buffer::change_current_token),
         Key::Char('t') => Some(view::toggle_theme),
         Key::Char('=') => Some(git::add),
+        Key::Char('R') => Some(git::copy_remote_url),
         Key::Tab => Some(workspace::next_buffer),
         _ => None,
     }
