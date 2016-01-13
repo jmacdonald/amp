@@ -1,4 +1,4 @@
-use commands::{Command, cursor, application, buffer, selection, view};
+use commands::{application, buffer, Command, cursor, git, selection, view};
 use rustbox::keyboard::Key;
 
 pub fn handle(input: Key) -> Option<Command> {
@@ -23,6 +23,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('<') => Some(buffer::outdent_line),
         Key::Char('f') => Some(application::switch_to_jump_mode),
         Key::Char('p') => Some(buffer::paste),
+        Key::Char('R') => Some(git::copy_remote_url),
         Key::Esc => Some(application::switch_to_normal_mode),
         _ => None,
     }

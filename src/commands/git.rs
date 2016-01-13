@@ -1,7 +1,7 @@
 use git2;
 use git2::{BranchType, Repository};
 use std::path::PathBuf;
-use models::application::{Application, ClipboardContent};
+use models::application::{Application, ClipboardContent, Mode};
 use regex::Regex;
 
 pub fn add(app: &mut Application) {
@@ -31,11 +31,28 @@ pub fn copy_remote_url(app: &mut Application) {
                                     for (branch, _) in branches {
                                         if branch.is_head() {
                                             if let Ok(Some(branch_name)) = branch.name() {
+                                                let line_range = match app.mode {
+                                                    Mode::SelectLine(ref s) => {
+                                                        // Avoid zero-based line numbers.
+                                                        let line_1 = buf.cursor.line + 1;
+                                                        let line_2 = s.anchor + 1;
+
+                                                        if line_1 < line_2 {
+                                                            format!("#L{}-L{}", line_1, line_2)
+                                                        } else if line_2 < line_1 {
+                                                            format!("#L{}-L{}", line_2, line_1)
+                                                        } else {
+                                                            format!("#L{}", line_1)
+                                                        }
+                                                    },
+                                                    _ => String::new(),
+                                                };
                                                 let gh_url = format!(
-                                                    "https://github.com/{}/tree/{}/{}",
+                                                    "https://github.com/{}/tree/{}/{}{}",
                                                     gh_path,
                                                     branch_name,
-                                                    path.to_string_lossy()
+                                                    path.to_string_lossy(),
+                                                    line_range
                                                 );
                                                 app.clipboard.set_content(
                                                     ClipboardContent::Inline(gh_url)
