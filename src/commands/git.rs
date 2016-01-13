@@ -1,3 +1,4 @@
+use commands;
 use git2;
 use git2::{BranchType, Repository};
 use std::path::PathBuf;
@@ -68,6 +69,7 @@ pub fn copy_remote_url(app: &mut Application) {
             };
         }
     }
+    commands::application::switch_to_normal_mode(app);
 }
 
 fn exists_in_repo(repo: &Repository, path: &PathBuf) -> bool {
