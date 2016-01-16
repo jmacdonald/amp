@@ -120,8 +120,10 @@ impl View {
                     }
 
                     // Print the length guide for this line.
-                    if offset <= LINE_LENGTH_GUIDE_OFFSET {
-                        self.print_char(LINE_LENGTH_GUIDE_OFFSET,
+                    let absolute_length_guide_offset =
+                      gutter_width + LINE_LENGTH_GUIDE_OFFSET;
+                    if offset <= absolute_length_guide_offset {
+                        self.print_char(absolute_length_guide_offset,
                                         line,
                                         rustbox::RB_NORMAL,
                                         Color::Default,
