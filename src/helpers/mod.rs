@@ -48,6 +48,54 @@ pub fn inclusive_range(line_range: &LineRange, buffer: &mut Buffer) -> Range {
                end_position)
 }
 
+/// Produce a nested chain of if-lets and ifs from the patterns:
+/// Pilfered from:
+/// https://github.com/Manishearth/rust-clippy/blob/master/src/utils.rs
+///
+///     if_let_chain! {
+///         [
+///             let Some(y) = x,
+///             y.len() == 2,
+///             let Some(z) = y,
+///         ],
+///         {
+///             block
+///         }
+///     }
+///
+/// becomes
+///
+///     if let Some(y) = x {
+///         if y.len() == 2 {
+///             if let Some(z) = y {
+///                 block
+///             }
+///         }
+///     }
+#[macro_export]
+macro_rules! if_let_chain {
+    ([let $pat:pat = $expr:expr, $($tt:tt)+], $block:block) => {
+        if let $pat = $expr {
+           if_let_chain!{ [$($tt)+], $block }
+        }
+    };
+    ([let $pat:pat = $expr:expr], $block:block) => {
+        if let $pat = $expr {
+           $block
+        }
+    };
+    ([$expr:expr, $($tt:tt)+], $block:block) => {
+        if $expr {
+           if_let_chain!{ [$($tt)+], $block }
+        }
+    };
+    ([$expr:expr], $block:block) => {
+        if $expr {
+           $block
+        }
+    };
+}
+
 #[cfg(test)]
 mod tests {
     extern crate scribe;

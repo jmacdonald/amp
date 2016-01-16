@@ -4,11 +4,13 @@ extern crate scribe;
 extern crate regex;
 extern crate rustbox;
 
+#[macro_use]
+mod helpers;
+
 pub mod models;
 pub mod view;
 mod input;
 mod commands;
-mod helpers;
 mod presenters;
 
 use models::application::Mode;
