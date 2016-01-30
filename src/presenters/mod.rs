@@ -9,7 +9,6 @@ use scribe::buffer::{Buffer, LineRange, Position, Range, Token};
 use view::scrollable_region::{ScrollableRegion, Visibility};
 use view::StatusLineData;
 use git2::{Repository, Status};
-use rustbox::Color;
 
 fn visible_tokens(tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
     let mut visible_tokens = Vec::new();
@@ -100,7 +99,7 @@ fn git_status_line_data(repo: &Option<Repository>, path: &Option<PathBuf>) -> St
     StatusLineData {
         content: content,
         style: None,
-        background_color: Some(Color::Black),
+        background_color: None,
         foreground_color: None,
     }
 }
