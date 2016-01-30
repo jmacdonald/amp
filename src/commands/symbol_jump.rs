@@ -12,7 +12,7 @@ pub fn jump_to_selected_symbol(app: &mut Application) {
             }
         }
     }
-    commands::view::scroll_to_cursor(app);
+    commands::view::scroll_cursor_to_center(app);
     commands::application::switch_to_normal_mode(app);
 }
 

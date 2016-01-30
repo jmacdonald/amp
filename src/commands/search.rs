@@ -38,7 +38,7 @@ pub fn move_to_previous_result(app: &mut Application) {
     }
 
     if moved {
-        commands::view::scroll_to_cursor(app);
+        commands::view::scroll_cursor_to_center(app);
     }
 }
 
@@ -81,7 +81,7 @@ pub fn move_to_next_result(app: &mut Application) {
     }
 
     if moved {
-        commands::view::scroll_to_cursor(app);
+        commands::view::scroll_cursor_to_center(app);
     }
 }
 
