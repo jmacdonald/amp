@@ -24,6 +24,13 @@ pub fn scroll_to_cursor(app: &mut Application) {
     }
 }
 
+pub fn scroll_cursor_to_center(app: &mut Application) {
+    match app.workspace.current_buffer() {
+        Some(ref buffer) => app.view.scroll_to_center(buffer),
+        None => (),
+    }
+}
+
 pub fn toggle_theme(app: &mut Application) {
     app.view.theme = match app.view.theme {
         Theme::Dark => Theme::Light,

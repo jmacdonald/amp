@@ -42,6 +42,11 @@ impl ScrollableRegion {
         }
     }
 
+    /// Moves the line offset such that the specified line is centered vertically.
+    pub fn scroll_to_center(&mut self, line: usize) {
+        self.line_offset = line - self.height() / 2;
+    }
+
     /// Converts an absolutely positioned line number into
     /// one relative to the scrollable regions visible range.
     /// The visibility type is based on whether or not the line
@@ -132,6 +137,16 @@ mod tests {
         let range = region.visible_range();
         assert_eq!(range.start(), 5);
         assert_eq!(range.end(), 14);
+    }
+
+    #[test]
+    fn scroll_to_center_sets_correct_line_offset() {
+        let terminal = Rc::new(RefCell::new(Terminal::new()));
+        let mut region = ScrollableRegion::new(terminal);
+        region.scroll_to_center(20);
+        let range = region.visible_range();
+        assert_eq!(range.start(), 16);
+        assert_eq!(range.end(), 25);
     }
 
     #[test]

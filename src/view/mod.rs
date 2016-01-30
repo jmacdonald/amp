@@ -272,6 +272,10 @@ impl View {
         self.get_region(buffer).scroll_into_view(buffer.cursor.line);
     }
 
+    pub fn scroll_to_center(&mut self, buffer: &Buffer) {
+        self.get_region(buffer).scroll_to_center(buffer.cursor.line);
+    }
+
     pub fn scroll_up(&mut self, buffer: &Buffer, amount: usize) {
         self.get_region(buffer).scroll_up(amount);
     }
