@@ -2,6 +2,7 @@ extern crate scribe;
 
 use commands;
 use std::mem;
+use helpers::token::{Direction, adjacent_token_position};
 use models::application::{Application, ClipboardContent, Mode};
 use scribe::buffer::{Position, Range};
 
@@ -23,9 +24,26 @@ pub fn delete(app: &mut Application) {
 }
 
 pub fn delete_token(app: &mut Application) {
-    commands::application::switch_to_select_mode(app);
-    commands::cursor::move_to_end_of_current_token(app);
-    commands::selection::copy_and_delete(app);
+    let mut subsequent_token_on_line = false;
+
+    if_let_chain! {
+        [
+            let Some(buf) = app.workspace.current_buffer(),
+            let Some(pos) = adjacent_token_position(buf, false, Direction::Forward),
+            pos.line == buf.cursor.line
+        ],
+        {
+            subsequent_token_on_line = true;
+        }
+    }
+
+    if subsequent_token_on_line {
+        commands::application::switch_to_select_mode(app);
+        commands::cursor::move_to_start_of_next_token(app);
+        commands::selection::copy_and_delete(app);
+    } else {
+        commands::buffer::delete_rest_of_line(app);
+    }
 }
 
 pub fn delete_current_line(app: &mut Application) {
@@ -640,7 +658,7 @@ mod tests {
     }
 
     #[test]
-    fn delete_token_deletes_current_token() {
+    fn delete_token_deletes_current_token_and_trailing_whitespace() {
         let mut app = ::models::application::new();
         let mut buffer = Buffer::new();
         buffer.insert("amp editor");
@@ -651,7 +669,22 @@ mod tests {
         super::delete_token(&mut app);
 
         // Ensure that the content is removed.
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), " editor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "editor");
+    }
+
+    #[test]
+    fn delete_token_does_not_delete_newline_characters() {
+        let mut app = ::models::application::new();
+        let mut buffer = Buffer::new();
+        buffer.insert("amp\neditor");
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        super::delete_token(&mut app);
+
+        // Ensure that the content is removed.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "\neditor");
     }
 
     #[test]
