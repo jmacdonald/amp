@@ -335,7 +335,7 @@ pub fn change_current_token(app: &mut Application) {
     commands::selection::change(app);
 }
 
-pub fn change_rest_of_line(app: &mut Application) {
+pub fn delete_rest_of_line(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
             // Create a range extending from the
@@ -354,6 +354,10 @@ pub fn change_rest_of_line(app: &mut Application) {
         }
         None => (),
     }
+}
+
+pub fn change_rest_of_line(app: &mut Application) {
+    commands::buffer::delete_rest_of_line(app);
     commands::application::switch_to_insert_mode(app);
 }
 
