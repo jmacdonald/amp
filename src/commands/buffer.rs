@@ -347,10 +347,9 @@ pub fn outdent_line(app: &mut Application) {
     }
 }
 
-pub fn change_current_token(app: &mut Application) {
-    commands::application::switch_to_select_mode(app);
-    commands::cursor::move_to_end_of_current_token(app);
-    commands::selection::change(app);
+pub fn change_token(app: &mut Application) {
+    commands::buffer::delete_token(app);
+    commands::application::switch_to_insert_mode(app);
 }
 
 pub fn delete_rest_of_line(app: &mut Application) {

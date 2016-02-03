@@ -46,7 +46,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('<') => Some(buffer::outdent_line),
         Key::Char('M') => Some(buffer::merge_next_line),
         Key::Char('y') => Some(buffer::copy_current_line),
-        Key::Char('c') => Some(buffer::change_current_token),
+        Key::Char('c') => Some(buffer::change_token),
         Key::Char('t') => Some(view::toggle_theme),
         Key::Char('=') => Some(git::add),
         Key::Char('R') => Some(git::copy_remote_url),
