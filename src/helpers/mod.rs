@@ -4,6 +4,7 @@ pub use self::selectable_set::SelectableSet;
 
 pub mod movement_lexer;
 mod selectable_set;
+pub mod token;
 
 use scribe::buffer::{Buffer, LineRange, Position, Range};
 

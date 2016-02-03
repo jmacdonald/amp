@@ -1,4 +1,5 @@
 extern crate git2;
+extern crate luthor;
 extern crate pad;
 extern crate scribe;
 extern crate regex;
