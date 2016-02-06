@@ -343,8 +343,6 @@ impl View {
     }
 }
 
-// Converts the buffer's path into an owned String.
-// Used as a key for tracking scrollable region offsets.
 fn buffer_key(buffer: &Buffer) -> usize {
-    (buffer as *const Buffer) as usize
+    buffer.id.unwrap_or(0)
 }
