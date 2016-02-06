@@ -3,6 +3,7 @@ extern crate rustbox;
 extern crate scribe;
 
 use models::application::modes::OpenMode;
+use models::application::modes::open::MAX_RESULTS;
 use pad::PadStr;
 use presenters::{buffer_status_line_data, line_count, visible_tokens};
 use rustbox::Color;
@@ -61,7 +62,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
     }
 
     // Draw the divider.
-    let line = 5;
+    let line = MAX_RESULTS;
     let padded_content = mode.input.pad_to_width(view.width());
     view.print(0,
                line,
@@ -72,7 +73,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
 
     // Place the cursor on the search input line, right after its contents.
     view.set_cursor(Some(Position {
-        line: 5,
+        line: MAX_RESULTS,
         offset: mode.input.len(),
     }));
 

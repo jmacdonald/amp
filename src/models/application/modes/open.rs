@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use helpers::SelectableSet;
 use self::bloodhound::Index;
 
-const MAX_RESULTS: usize = 5;
+pub const MAX_RESULTS: usize = 5;
 
 pub struct OpenMode {
     pub input: String,
