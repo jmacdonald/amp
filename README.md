@@ -30,7 +30,7 @@ Amp starts in normal mode, which is used to switch between and move within buffe
 
 ## <a id="open_mode">Open Mode</a>
 
-[Key Bindings](https://github.com/jmacdonald/amp/tree/master/src/input/modes/normal.rs)
+[Key Bindings](https://github.com/jmacdonald/amp/tree/master/src/input/modes/open.rs)
 
 Indexes the current path (and its subdirectories) to allow opening new buffers.
 
