@@ -71,14 +71,15 @@ impl ScrollableRegion {
     }
 
     pub fn scroll_up(&mut self, amount: usize) {
-        self.line_offset = match self.line_offset.checked_sub(amount) {
-            Some(amount) => amount,
-            None => 0,
-        };
+        self.line_offset = self.line_offset.checked_sub(amount).unwrap_or(0);
     }
 
-    pub fn scroll_down(&mut self, amount: usize) {
-        self.line_offset += amount;
+    pub fn scroll_down(&mut self, amount: usize, limit: usize) {
+        self.line_offset = self.line_offset.checked_add(amount)
+                                           .unwrap_or(limit);
+        if self.line_offset > limit {
+          self.line_offset = limit;
+        }
     }
 
     /// Scrollable regions occupy one line short of the full
