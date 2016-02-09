@@ -111,7 +111,7 @@ pub fn merge_next_line(app: &mut Application) {
                 line: current_line,
                 offset: 0,
             });
-            buffer.insert(&merged_lines);
+            buffer.insert(merged_lines);
             buffer.cursor.move_to(target_position);
             buffer.end_operation_group();
         }
@@ -164,23 +164,17 @@ pub fn backspace(app: &mut Application) {
 }
 
 pub fn insert_char(app: &mut Application) {
-    match app.workspace.current_buffer() {
-        Some(buffer) => {
-            match app.mode {
-                Mode::Insert(ref mut insert_mode) => {
-                    match insert_mode.input {
-                        Some(input) => {
-                            buffer.insert(&input.to_string());
-                            buffer.cursor.move_right();
-                        }
-                        None => (),
-                    }
-                }
-                _ => (),
-            }
+    if_let_chain! {
+        [
+            let Some(buffer) = app.workspace.current_buffer(),
+            let Mode::Insert(ref mut insert_mode) = app.mode,
+            let Some(input) = insert_mode.input
+        ],{
+            buffer.insert(input.to_string());
+            buffer.cursor.move_right();
         }
-        None => (),
     }
+
     commands::view::scroll_to_cursor(app);
 }
 
@@ -188,35 +182,30 @@ pub fn insert_char(app: &mut Application) {
 /// Also performs automatic indentation, basing the indent off
 /// of the previous line's leading whitespace.
 pub fn insert_newline(app: &mut Application) {
-    match app.workspace.current_buffer() {
-        Some(buffer) => {
-            // Insert the newline character.
-            buffer.insert("\n");
+    if let Some(buffer) = app.workspace.current_buffer() {
+        // Insert the newline character.
+        buffer.insert("\n");
 
-            // Get the cursor position before moving it to the start of the new line.
-            let position = buffer.cursor.clone();
-            buffer.cursor.move_down();
-            buffer.cursor.move_to_start_of_line();
+        // Get the cursor position before moving it to the start of the new line.
+        let position = buffer.cursor.clone();
+        buffer.cursor.move_down();
+        buffer.cursor.move_to_start_of_line();
 
-            // Get the previous line.
-            match buffer.data().lines().nth(position.line) {
-                Some(line) => {
-                    // Get the whitespace from the start of
-                    // the previous line and add it to the new line.
-                    let prefix: String = line.chars().take_while(|&c| c.is_whitespace()).collect();
-                    buffer.insert(&prefix);
+        // Get the previous line.
+        if let Some(line) = buffer.data().lines().nth(position.line) {
+            // Get the whitespace from the start of
+            // the previous line and add it to the new line.
+            let prefix: String = line.chars().take_while(|&c| c.is_whitespace()).collect();
+            let prefix_length = prefix.len();
+            buffer.insert(prefix);
 
-                    // Move the cursor to the end of the inserted whitespace.
-                    let new_cursor_position = scribe::buffer::Position {
-                        line: position.line + 1,
-                        offset: prefix.len(),
-                    };
-                    buffer.cursor.move_to(new_cursor_position);
-                }
-                None => (),
-            }
+            // Move the cursor to the end of the inserted whitespace.
+            let new_cursor_position = scribe::buffer::Position {
+                line: position.line + 1,
+                offset: prefix_length,
+            };
+            buffer.cursor.move_to(new_cursor_position);
         }
-        None => (),
     }
     commands::view::scroll_to_cursor(app);
 }
@@ -417,50 +406,48 @@ pub fn paste(app: &mut Application) {
         _ => true,
     };
 
-    match app.workspace.current_buffer() {
-        Some(buffer) => {
-            match app.clipboard.get_content() {
-                &ClipboardContent::Inline(ref content) => buffer.insert(content),
-                &ClipboardContent::Block(ref content) => {
-                    let original_cursor_position = *buffer.cursor.clone();
-                    let line = original_cursor_position.line;
+    if let Some(buffer) = app.workspace.current_buffer() {
+        match app.clipboard.get_content() {
+            &ClipboardContent::Inline(ref content) => buffer.insert(content.clone()),
+            &ClipboardContent::Block(ref content) => {
+                let original_cursor_position = *buffer.cursor.clone();
+                let line = original_cursor_position.line;
 
-                    if insert_below {
-                        buffer.cursor.move_to(Position {
-                            line: line + 1,
-                            offset: 0,
-                        });
+                if insert_below {
+                    buffer.cursor.move_to(Position {
+                        line: line + 1,
+                        offset: 0,
+                    });
 
-                        if *buffer.cursor == original_cursor_position {
-                            // That didn't work because we're at the last line.
-                            // Move to the end of the line to insert the data.
-                            match buffer.data().lines().nth(line) {
-                                Some(line_content) => {
-                                    buffer.cursor.move_to(Position {
-                                        line: line,
-                                        offset: line_content.len(),
-                                    });
-                                    buffer.insert(&format!("\n{}", content));
-                                    buffer.cursor.move_to(original_cursor_position);
-                                }
-                                None => {
-                                    // We're on a trailing newline, which doesn't
-                                    // have any data; just insert the content here.
-                                    buffer.insert(content);
-                                }
+                    if *buffer.cursor == original_cursor_position {
+                        // That didn't work because we're at the last line.
+                        // Move to the end of the line to insert the data.
+                        match buffer.data().lines().nth(line) {
+                            Some(line_content) => {
+                                buffer.cursor.move_to(Position {
+                                    line: line,
+                                    offset: line_content.len(),
+                                });
+                                buffer.insert(format!("\n{}", content));
+                                buffer.cursor.move_to(original_cursor_position);
                             }
-                        } else {
-                            buffer.insert(content);
+                            None => {
+                                // We're on a trailing newline, which doesn't
+                                // have any data; just insert the content here.
+                                buffer.insert(content.clone());
+                            }
                         }
                     } else {
-                        buffer.insert(content);
+                        buffer.insert(content.clone());
                     }
+                } else {
+                    buffer.insert(content.clone());
                 }
-                &ClipboardContent::None => (),
             }
+            &ClipboardContent::None => (),
         }
-        None => (),
     }
+
     commands::view::scroll_to_cursor(app);
 }
 
@@ -477,7 +464,7 @@ pub fn paste_above(app: &mut Application) {
                     // Temporarily move the cursor to the start of the line
                     // to insert the clipboard content (without allocating).
                     mem::swap(&mut *buffer.cursor, &mut start_of_line);
-                    buffer.insert(content);
+                    buffer.insert(content.clone());
                     mem::swap(&mut *buffer.cursor, &mut start_of_line);
                 }
                 _ => (),
