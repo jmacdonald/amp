@@ -1,6 +1,6 @@
 extern crate scribe;
 
-use presenters::{line_count, visible_tokens};
+use presenters::visible_tokens;
 use scribe::buffer::{Buffer, Position};
 use view::scrollable_region::Visibility;
 use view::{BufferData, StatusLineData, View};
@@ -36,7 +36,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &LineJumpMode, view: &mut View
             tokens: Some(visible_tokens),
             cursor: relative_cursor,
             highlight: None,
-            line_count: line_count(&buf.data()),
+            line_count: buf.line_count(),
             scrolling_offset: line_offset,
         };
 

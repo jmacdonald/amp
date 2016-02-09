@@ -1,7 +1,7 @@
 extern crate scribe;
 
 use scribe::buffer::{Buffer, Position};
-use presenters::{line_count, visible_tokens};
+use presenters::{visible_tokens};
 use view::{BufferData, StatusLineData, View};
 use models::application::modes::search_insert::SearchInsertMode;
 
@@ -21,7 +21,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SearchInsertMode, view: &mut 
             tokens: Some(visible_tokens),
             cursor: None,
             highlight: None,
-            line_count: line_count(&buf.data()),
+            line_count: buf.line_count(),
             scrolling_offset: line_offset,
         };
 

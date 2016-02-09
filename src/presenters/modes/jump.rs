@@ -1,6 +1,6 @@
 extern crate scribe;
 
-use presenters::{buffer_status_line_data, line_count, visible_tokens};
+use presenters::{buffer_status_line_data, visible_tokens};
 use scribe::Buffer;
 use view::{BufferData, StatusLineData, View};
 use models::application::modes::jump::JumpMode;
@@ -25,7 +25,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &mut JumpMode, view: &mut View
             tokens: Some(jump_tokens),
             cursor: None,
             highlight: None,
-            line_count: line_count(&buf.data()),
+            line_count: buf.line_count(),
             scrolling_offset: line_offset,
         };
 

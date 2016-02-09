@@ -13,7 +13,7 @@ use scribe::buffer::{Buffer, LineRange, Position, Range};
 pub fn inclusive_range(line_range: &LineRange, buffer: &mut Buffer) -> Range {
     let data = buffer.data();
     let next_line = line_range.end() + 1;
-    let line_count = data.chars().filter(|&c| c == '\n').count() + 1;
+    let line_count = buffer.line_count();
     let end_position = if line_count > next_line {
         // There's a line below the end of the range, so just use that
         // to capture the last line and its trailing newline character.

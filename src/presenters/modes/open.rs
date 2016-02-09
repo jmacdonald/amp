@@ -5,7 +5,7 @@ extern crate scribe;
 use models::application::modes::OpenMode;
 use models::application::modes::open::MAX_RESULTS;
 use pad::PadStr;
-use presenters::{buffer_status_line_data, line_count, visible_tokens};
+use presenters::{buffer_status_line_data, visible_tokens};
 use rustbox::Color;
 use view::{BufferData, StatusLineData, View};
 use scribe::buffer::{Buffer, Position};
@@ -26,7 +26,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
             tokens: Some(visible_tokens),
             cursor: None,
             highlight: None,
-            line_count: line_count(&buf.data()),
+            line_count: buf.line_count(),
             scrolling_offset: line_offset,
         };
 
