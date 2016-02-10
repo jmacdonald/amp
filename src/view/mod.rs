@@ -341,6 +341,14 @@ impl View {
     pub fn print_char(&self, x: usize, y: usize, style: Style, fg: Color, bg: Color, c: char) {
         self.terminal.borrow().print_char(x, y, style, fg, bg, c);
     }
+
+    pub fn stop(&mut self) {
+        self.terminal.borrow_mut().stop();
+    }
+
+    pub fn start(&mut self) {
+        self.terminal.borrow_mut().start();
+    }
 }
 
 fn buffer_key(buffer: &Buffer) -> usize {
