@@ -13,6 +13,7 @@ luthor = "0.1.7"
 git2 = "0.3.3"
 fragment = "0.1.1"
 regex = "0.1"
+libc = "0.2.4"
 
 [dependencies.clipboard]
 git = "https://github.com/aweinstock314/rust-clipboard.git"
