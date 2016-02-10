@@ -17,16 +17,7 @@ pub struct Terminal {
 
 impl Terminal {
     pub fn new() -> Terminal {
-        let rustbox = if cfg!(test) {
-            None
-        } else {
-            match RustBox::init(InitOptions { ..Default::default() }) {
-                Ok(r) => Some(r),
-                Err(e) => panic!("{}", e.description()),
-            }
-        };
-
-        Terminal { terminal: rustbox }
+        Terminal { terminal: create_rustbox_instance() }
     }
 
     pub fn listen(&self) -> Event {
@@ -92,6 +83,29 @@ impl Terminal {
         match self.terminal {
             Some(ref t) => t.print_char(x, y, style, fg, bg, c),
             None => (),
+        }
+    }
+
+    pub fn stop(&mut self) {
+        // RustBox destructor cleans up for us.
+        self.terminal = None;
+    }
+
+    pub fn start(&mut self) {
+        // We don't want to create two instance of RustBox.
+        if self.terminal.is_none() {
+            self.terminal = create_rustbox_instance();
+        }
+    }
+}
+
+fn create_rustbox_instance() -> Option<RustBox> {
+    if cfg!(test) {
+        None
+    } else {
+        match RustBox::init(InitOptions { ..Default::default() }) {
+            Ok(r) => Some(r),
+            Err(e) => panic!("{}", e.description()),
         }
     }
 }
