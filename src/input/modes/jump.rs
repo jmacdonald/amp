@@ -11,6 +11,7 @@ pub fn handle(mode: &mut JumpMode, input: Key) -> Option<Command> {
 
             Some(jump_mode::match_tag)
         }
+        Key::Ctrl('z') => Some(application::suspend),
         _ => None,
     }
 }

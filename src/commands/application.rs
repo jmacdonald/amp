@@ -1,3 +1,5 @@
+extern crate libc;
+
 use commands;
 use std::mem;
 use models::application::{Application, Mode};
@@ -85,6 +87,22 @@ pub fn switch_to_search_insert_mode(app: &mut Application) {
     if app.workspace.current_buffer().is_some() {
         app.mode = Mode::SearchInsert(search_insert::new());
     }
+}
+
+pub fn suspend(app: &mut Application) {
+    // The view can't be running when the process stops or we'll lock the screen.
+    // We need to clear the cursor or it won't render properly on resume.
+    app.view.set_cursor(None);
+    app.view.stop();
+
+    unsafe {
+        // Stop the amp process.
+        libc::raise(libc::SIGSTOP);
+    }
+
+    // When the shell sends SIGCONT to the amp process,
+    // we'll want to take over the screen again.
+    app.view.start();
 }
 
 pub fn exit(app: &mut Application) {

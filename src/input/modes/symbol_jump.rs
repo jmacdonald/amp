@@ -31,6 +31,7 @@ pub fn handle(mode: &mut SymbolJumpMode, input: Key) -> Option<Command> {
         Key::Up | Key::Ctrl('k') => Some(symbol_jump::select_previous_symbol),
         Key::Enter => Some(symbol_jump::jump_to_selected_symbol),
         Key::Esc => Some(application::switch_to_normal_mode),
+        Key::Ctrl('z') => Some(application::suspend),
         _ => None,
     }
 }

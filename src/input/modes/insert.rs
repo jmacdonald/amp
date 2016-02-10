@@ -20,6 +20,7 @@ pub fn handle(mode: &mut InsertMode, input: Key) -> Option<Command> {
             mode.input = Some(c);
             Some(buffer::insert_char)
         }
+        Key::Ctrl('z') => Some(application::suspend),
         _ => None,
     }
 }

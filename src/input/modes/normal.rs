@@ -51,6 +51,8 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('t') => Some(view::toggle_theme),
         Key::Char('=') => Some(git::add),
         Key::Char('R') => Some(git::copy_remote_url),
+        Key::Char('z') => Some(application::suspend),
+        Key::Ctrl('z') => Some(application::suspend),
         Key::Tab => Some(workspace::next_buffer),
         _ => None,
     }
