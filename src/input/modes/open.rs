@@ -32,6 +32,7 @@ pub fn handle(mode: &mut OpenMode, input: Key) -> Option<Command> {
         Key::Enter => Some(open_mode::open),
         Key::Esc => Some(application::switch_to_normal_mode),
         Key::Ctrl('z') => Some(application::suspend),
+        Key::Ctrl('c') => Some(application::exit),
         _ => None,
     }
 }

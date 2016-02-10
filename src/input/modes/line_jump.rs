@@ -19,6 +19,7 @@ pub fn handle(mode: &mut LineJumpMode, input: Key) -> Option<Command> {
             None
         }
         Key::Ctrl('z') => Some(application::suspend),
+        Key::Ctrl('c') => Some(application::exit),
         _ => None,
     }
 }

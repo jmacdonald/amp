@@ -21,6 +21,7 @@ pub fn handle(mode: &mut InsertMode, input: Key) -> Option<Command> {
             Some(buffer::insert_char)
         }
         Key::Ctrl('z') => Some(application::suspend),
+        Key::Ctrl('c') => Some(application::exit),
         _ => None,
     }
 }

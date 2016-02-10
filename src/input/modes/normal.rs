@@ -53,6 +53,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('R') => Some(git::copy_remote_url),
         Key::Char('z') => Some(application::suspend),
         Key::Ctrl('z') => Some(application::suspend),
+        Key::Ctrl('c') => Some(application::exit),
         Key::Tab => Some(workspace::next_buffer),
         _ => None,
     }

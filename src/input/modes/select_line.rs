@@ -25,6 +25,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('p') => Some(buffer::paste),
         Key::Char('R') => Some(git::copy_remote_url),
         Key::Ctrl('z') => Some(application::suspend),
+        Key::Ctrl('c') => Some(application::exit),
         Key::Esc => Some(application::switch_to_normal_mode),
         _ => None,
     }
