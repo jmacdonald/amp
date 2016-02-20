@@ -5,38 +5,29 @@ use commands;
 use models::application::{Application, Mode};
 
 pub fn open(app: &mut Application) {
-    match app.mode {
-        Mode::Open(ref mut mode) => {
-            match mode.selected_path() {
-                Some(path) => {
-                    app.workspace.open_buffer(path.clone());
-                }
-                None => (),
-            }
+    if let Mode::Open(ref mut mode) = app.mode {
+        if let Some(path) = mode.selected_path() {
+            app.workspace.open_buffer(path.clone());
         }
-        _ => (),
     }
 
     commands::application::switch_to_normal_mode(app);
 }
 
 pub fn search(app: &mut Application) {
-    match app.mode {
-        Mode::Open(ref mut mode) => mode.search(),
-        _ => (),
+    if let Mode::Open(ref mut mode) = app.mode {
+        mode.search();
     }
 }
 
 pub fn select_next_path(app: &mut Application) {
-    match app.mode {
-        Mode::Open(ref mut mode) => mode.results.select_next(),
-        _ => (),
+    if let Mode::Open(ref mut mode) = app.mode {
+        mode.results.select_next();
     }
 }
 
 pub fn select_previous_path(app: &mut Application) {
-    match app.mode {
-        Mode::Open(ref mut mode) => mode.results.select_previous(),
-        _ => (),
+    if let Mode::Open(ref mut mode) = app.mode {
+        mode.results.select_previous();
     }
 }
