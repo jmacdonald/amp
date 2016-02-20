@@ -34,6 +34,7 @@ fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
                 '\'' |
                 '"' |
                 '?' |
+                '@' |
                 '/' |
                 '\\' |
                 '[' |
