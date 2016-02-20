@@ -5,13 +5,19 @@ use commands;
 use models::application::{Application, Mode};
 
 pub fn open(app: &mut Application) {
+    let mut opened = false;
+
     if let Mode::Open(ref mut mode) = app.mode {
         if let Some(path) = mode.selected_path() {
             app.workspace.open_buffer(path.clone());
+
+            opened = true;
         }
     }
 
-    commands::application::switch_to_normal_mode(app);
+    if opened {
+        commands::application::switch_to_normal_mode(app);
+    }
 }
 
 pub fn search(app: &mut Application) {
