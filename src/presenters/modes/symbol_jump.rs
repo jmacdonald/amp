@@ -51,7 +51,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SymbolJumpMode, view: &mut Vi
                    rustbox::RB_NORMAL,
                    Color::Default,
                    Color::Default,
-                   &"No symbols found.".pad_to_width(view.width()));
+                   &"No matching symbols found.".pad_to_width(view.width()));
      }
 
     // Draw the list of search results.

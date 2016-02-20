@@ -13,6 +13,7 @@ use self::terminal::Terminal;
 use scribe::buffer::{Buffer, Position};
 use pad::PadStr;
 use rustbox::{Color, Event, Style};
+use std::cmp;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -281,7 +282,17 @@ impl View {
     }
 
     pub fn scroll_down(&mut self, buffer: &Buffer, amount: usize) {
-        self.get_region(buffer).scroll_down(amount);
+        let current_offset = self.get_region(&buffer).line_offset();
+
+        // Limit scrolling to 50% of the screen beyond the end of the buffer.
+        let max =
+          buffer.line_count() -
+          current_offset -
+          (self.terminal.borrow().height() / 2);
+
+        self.get_region(buffer).scroll_down(
+          cmp::min(amount, max)
+        );
     }
 
     pub fn visible_region(&mut self, buffer: &Buffer) -> &ScrollableRegion {
@@ -353,4 +364,32 @@ impl View {
 
 fn buffer_key(buffer: &Buffer) -> usize {
     buffer.id.unwrap_or(0)
+}
+
+#[cfg(test)]
+mod tests {
+    extern crate scribe;
+
+    use scribe::Buffer;
+
+    #[test]
+    fn scroll_down_prevents_scrolling_completely_beyond_buffer() {
+        let mut view = super::View::new();
+
+        // Build a 10-line buffer.
+        let mut buffer = Buffer::new();
+        buffer.insert("\n\n\n\n\n\n\n\n\n");
+
+        // Do an initial scroll to make sure it considers
+        // existing offset when determining maximum.
+        view.scroll_down(&buffer, 3);
+        assert_eq!(view.visible_region(&buffer).line_offset(), 3);
+
+        // Try to scroll completely beyond the buffer.
+        view.scroll_down(&buffer, 20);
+
+        // The view should limit the scroll to 50% of the screen height.
+        // The test environment uses a terminal height of 10.
+        assert_eq!(view.visible_region(&buffer).line_offset(), 5);
+    }
 }
