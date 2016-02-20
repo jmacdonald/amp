@@ -8,10 +8,10 @@ authors = ["Jordan MacDonald <jordan@wastedintelligence.com>"]
 scribe = "0.4.8"
 pad = "0.1.4"
 rustbox = "0.7.2"
-bloodhound = "0.2.3"
+bloodhound = "0.2.4"
 luthor = "0.1.7"
 git2 = "0.3.3"
-fragment = "0.1.1"
+fragment = "0.1.2"
 regex = "0.1"
 libc = "0.2.4"
 
