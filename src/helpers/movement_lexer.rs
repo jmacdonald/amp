@@ -91,7 +91,12 @@ fn uppercase(lexer: &mut Tokenizer) -> Option<StateFunction> {
         Some(c) => {
             if c.is_alphabetic() {
                 lexer.advance();
-                Some(StateFunction(uppercase))
+
+                if c.is_uppercase() {
+                    Some(StateFunction(uppercase))
+                } else {
+                    Some(StateFunction(initial_state))
+                }
             } else {
                 lexer.tokenize(Category::Text);
                 Some(StateFunction(initial_state))
@@ -123,7 +128,7 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let data = "local_variable = camelCase.method(param)\n  something-else CONSTANT val";
+        let data = "local_variable = camelCase.method(param)\n CamelCaseClass something-else CONSTANT val";
         let tokens = lex(data);
         let expected_tokens = vec![
             Token{ lexeme: "local".to_string(), category: Category::Text },
@@ -139,7 +144,11 @@ mod tests {
             Token{ lexeme: "(".to_string(), category: Category::Text },
             Token{ lexeme: "param".to_string(), category: Category::Text },
             Token{ lexeme: ")".to_string(), category: Category::Text },
-            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "\n ".to_string(), category: Category::Whitespace },
+            Token{ lexeme: "Camel".to_string(), category: Category::Text },
+            Token{ lexeme: "Case".to_string(), category: Category::Text },
+            Token{ lexeme: "Class".to_string(), category: Category::Text },
+            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
             Token{ lexeme: "something".to_string(), category: Category::Text },
             Token{ lexeme: "-".to_string(), category: Category::Text },
             Token{ lexeme: "else".to_string(), category: Category::Text },
