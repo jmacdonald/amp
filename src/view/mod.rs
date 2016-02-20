@@ -281,7 +281,8 @@ impl View {
     }
 
     pub fn scroll_down(&mut self, buffer: &Buffer, amount: usize) {
-        self.get_region(buffer).scroll_down(amount);
+        let limit = buffer.line_count().checked_sub(self.height() / 2).unwrap_or(0);
+        self.get_region(buffer).scroll_down(amount, limit);
     }
 
     pub fn visible_region(&mut self, buffer: &Buffer) -> &ScrollableRegion {
