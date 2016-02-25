@@ -7,6 +7,7 @@ use self::bloodhound::Index;
 pub const MAX_RESULTS: usize = 5;
 
 pub struct OpenMode {
+    pub insert: bool,
     pub input: String,
     index: Index,
     pub results: SelectableSet<PathBuf>,
@@ -19,6 +20,7 @@ impl OpenMode {
         index.populate();
 
         OpenMode {
+            insert: true,
             input: String::new(),
             index: index,
             results: SelectableSet::new(Vec::new()),

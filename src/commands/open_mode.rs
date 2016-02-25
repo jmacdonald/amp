@@ -37,3 +37,15 @@ pub fn select_previous_path(app: &mut Application) {
         mode.results.select_previous();
     }
 }
+
+pub fn enable_insert(app: &mut Application) {
+    if let Mode::Open(ref mut mode) = app.mode {
+        mode.insert = true;
+    }
+}
+
+pub fn disable_insert(app: &mut Application) {
+    if let Mode::Open(ref mut mode) = app.mode {
+        mode.insert = false;
+    }
+}

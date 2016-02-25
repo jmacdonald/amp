@@ -80,7 +80,13 @@ fn main() {
                     Mode::Jump(ref mut j) => input::modes::jump::handle(j, key),
                     Mode::LineJump(ref mut j) => input::modes::line_jump::handle(j, key),
                     Mode::SymbolJump(ref mut j) => input::modes::symbol_jump::handle(j, key),
-                    Mode::Open(ref mut o) => input::modes::open::handle(o, key),
+                    Mode::Open(ref mut open_mode) => {
+                        if open_mode.insert {
+                            input::modes::open_insert::handle(open_mode, key)
+                        } else {
+                            input::modes::open::handle(key)
+                        }
+                    },
                     Mode::Select(_) => input::modes::select::handle(key),
                     Mode::SelectLine(_) => input::modes::select_line::handle(key),
                     Mode::SearchInsert(ref mut s) => input::modes::search_insert::handle(s, key),
