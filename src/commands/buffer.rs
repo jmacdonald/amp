@@ -742,11 +742,11 @@ mod tests {
             line: 1,
             offset: 2,
         });
-        commands::application::switch_to_insert_mode(&mut app);
 
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
+        commands::application::switch_to_insert_mode(&mut app);
         super::indent_line(&mut app);
 
         // Ensure that the cursor is updated.
