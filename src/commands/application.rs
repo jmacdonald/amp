@@ -73,21 +73,15 @@ pub fn switch_to_symbol_jump_mode(app: &mut Application) {
 }
 
 pub fn switch_to_select_mode(app: &mut Application) {
-    match app.workspace.current_buffer() {
-        Some(buffer) => {
-            app.mode = Mode::Select(select::new(*buffer.cursor.clone()));
-        }
-        None => (),
+    if let Some(buffer) = app.workspace.current_buffer() {
+        app.mode = Mode::Select(select::new(*buffer.cursor.clone()));
     }
     commands::view::scroll_to_cursor(app);
 }
 
 pub fn switch_to_select_line_mode(app: &mut Application) {
-    match app.workspace.current_buffer() {
-        Some(buffer) => {
-            app.mode = Mode::SelectLine(select_line::new(buffer.cursor.line));
-        }
-        None => (),
+    if let Some(buffer) = app.workspace.current_buffer() {
+        app.mode = Mode::SelectLine(select_line::new(buffer.cursor.line));
     }
     commands::view::scroll_to_cursor(app);
 }
