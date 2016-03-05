@@ -84,16 +84,16 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
 
     // Draw the divider.
     let line = MAX_RESULTS;
-    let background_color = if mode.insert {
-        Color::Green
+    let (foreground_color, background_color) = if mode.insert {
+        (Color::White, Color::Green)
     } else {
-        Color::White
+        (Color::Black, Color::White)
     };
     let padded_content = mode.input.pad_to_width(view.width());
     view.print(0,
                line,
                rustbox::RB_BOLD,
-               Color::Black,
+               foreground_color,
                background_color,
                &padded_content);
 
