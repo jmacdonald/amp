@@ -283,15 +283,23 @@ impl View {
 
     pub fn scroll_down(&mut self, buffer: &Buffer, amount: usize) {
         let current_offset = self.get_region(&buffer).line_offset();
+        let line_count = buffer.line_count();
+        let half_screen_height = self.terminal.borrow().height() / 2;
 
         // Limit scrolling to 50% of the screen beyond the end of the buffer.
-        let max =
-          buffer.line_count() -
-          current_offset -
-          (self.terminal.borrow().height() / 2);
+        let max = if line_count > half_screen_height {
+            let visible_line_count =
+                line_count.checked_sub(current_offset).unwrap_or(0);
+
+            // Of the visible lines, allow scrolling down by however
+            // many lines are beyond the halfway point of the screen.
+            visible_line_count.checked_sub(half_screen_height).unwrap_or(0)
+        } else {
+            0
+        };
 
         self.get_region(buffer).scroll_down(
-          cmp::min(amount, max)
+            cmp::min(amount, max)
         );
     }
 
@@ -391,5 +399,18 @@ mod tests {
         // The view should limit the scroll to 50% of the screen height.
         // The test environment uses a terminal height of 10.
         assert_eq!(view.visible_region(&buffer).line_offset(), 5);
+    }
+
+    #[test]
+    fn scroll_down_prevents_scrolling_when_buffer_is_smaller_than_top_half() {
+        let mut view = super::View::new();
+
+        // Build a 2-line buffer and try to scroll it.
+        let mut buffer = Buffer::new();
+        buffer.insert("\n");
+        view.scroll_down(&buffer, 20);
+
+        // The view should not be scrolled.
+        assert_eq!(view.visible_region(&buffer).line_offset(), 0);
     }
 }
