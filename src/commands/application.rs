@@ -11,12 +11,19 @@ pub fn switch_to_normal_mode(app: &mut Application) {
     app.mode = Mode::Normal;
 }
 pub fn switch_to_insert_mode(app: &mut Application) {
-    commands::buffer::start_command_group(app);
-    app.mode = Mode::Insert(insert::new());
-    commands::view::scroll_to_cursor(app);
+    if app.workspace.current_buffer().is_some() {
+        commands::buffer::start_command_group(app);
+        app.mode = Mode::Insert(insert::new());
+        commands::view::scroll_to_cursor(app);
+    }
 }
 
 pub fn switch_to_jump_mode(app: &mut Application) {
+    // Don't change modes unless we have a buffer to work with.
+    if app.workspace.current_buffer().is_none() {
+        return
+    }
+
     // Initialize a new jump mode and swap
     // it with the current application mode.
     let jump_mode = Mode::Jump(jump::new());
@@ -48,7 +55,9 @@ pub fn switch_to_jump_mode(app: &mut Application) {
 }
 
 pub fn switch_to_line_jump_mode(app: &mut Application) {
-    app.mode = Mode::LineJump(line_jump::new());
+    if app.workspace.current_buffer().is_some() {
+        app.mode = Mode::LineJump(line_jump::new());
+    }
 }
 
 pub fn switch_to_open_mode(app: &mut Application) {
