@@ -6,9 +6,10 @@ use helpers::SelectableSet;
 use std::fmt;
 use std::clone::Clone;
 
-const MAX_RESULTS: usize = 5;
+pub const MAX_RESULTS: usize = 5;
 
 pub struct SymbolJumpMode {
+    pub insert: bool,
     pub input: String,
     pub symbols: Vec<Symbol>,
     pub results: SelectableSet<Symbol>,
@@ -41,6 +42,7 @@ impl SymbolJumpMode {
         let symbols = symbols(tokens);
 
         SymbolJumpMode {
+            insert: true,
             input: String::new(),
             symbols: symbols,
             results: SelectableSet::new(Vec::new()),

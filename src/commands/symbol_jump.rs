@@ -36,3 +36,15 @@ pub fn select_previous_symbol(app: &mut Application) {
         _ => (),
     }
 }
+
+pub fn enable_insert(app: &mut Application) {
+    if let Mode::SymbolJump(ref mut mode) = app.mode {
+        mode.insert = true;
+    }
+}
+
+pub fn disable_insert(app: &mut Application) {
+    if let Mode::SymbolJump(ref mut mode) = app.mode {
+        mode.insert = false;
+    }
+}

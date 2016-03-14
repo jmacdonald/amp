@@ -79,7 +79,13 @@ fn main() {
                     Mode::Insert(ref mut i) => input::modes::insert::handle(i, key),
                     Mode::Jump(ref mut j) => input::modes::jump::handle(j, key),
                     Mode::LineJump(ref mut j) => input::modes::line_jump::handle(j, key),
-                    Mode::SymbolJump(ref mut j) => input::modes::symbol_jump::handle(j, key),
+                    Mode::SymbolJump(ref mut mode) => {
+                        if mode.insert {
+                            input::modes::symbol_jump_insert::handle(mode, key)
+                        } else {
+                            input::modes::symbol_jump::handle(key)
+                        }
+                    },
                     Mode::Open(ref mut open_mode) => {
                         if open_mode.insert {
                             input::modes::open_insert::handle(open_mode, key)

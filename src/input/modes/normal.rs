@@ -55,6 +55,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Ctrl('z') => Some(application::suspend),
         Key::Ctrl('c') => Some(application::exit),
         Key::Tab => Some(workspace::next_buffer),
+        Key::Backspace => Some(buffer::backspace),
         _ => None,
     }
 }
