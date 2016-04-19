@@ -4,7 +4,7 @@ use rustbox::keyboard::Key;
 pub fn handle(input: Key) -> Option<Command> {
     match input {
         Key::Char('q') => Some(buffer::close),
-        Key::Char('Q') => Some(application::exit),
+        Key::Char('Q') => Some(buffer::close_others),
         Key::Char('j') | Key::Down  => Some(cursor::move_down),
         Key::Char('k') | Key::Up    => Some(cursor::move_up),
         Key::Char('h') | Key::Left  => Some(cursor::move_left),
@@ -54,6 +54,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('z') => Some(application::suspend),
         Key::Ctrl('z') => Some(application::suspend),
         Key::Ctrl('c') => Some(application::exit),
+        Key::Char('X') => Some(application::exit),
         Key::Tab => Some(workspace::next_buffer),
         Key::Backspace => Some(buffer::backspace),
         _ => None,

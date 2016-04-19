@@ -128,6 +128,40 @@ pub fn close(app: &mut Application) {
     app.workspace.close_current_buffer();
 }
 
+pub fn close_others(app: &mut Application) {
+    // Get the current buffer's ID so we know what *not* to close.
+    if let Some(id) = app.workspace.current_buffer().map(|b| b.id) {
+        loop {
+            // Try to advance to the next buffer. Handles two important states:
+            //
+            // 1. The initial state, where we haven't advanced beyond the
+            //    the original/desired buffer.
+            // 2. When a buffer that is being closed is positioned *after* the
+            //    original buffer. Closing a buffer in this scenario selects the
+            //    preceding buffer, which, without advancing, would be
+            //    incorrectly interpreted as the completion of this process.
+            if app.workspace.current_buffer().map(|b| b.id) == Some(id) {
+                app.workspace.next_buffer();
+            }
+
+            // If we haven't yet looped back to the original buffer,
+            // clean up view-related data and close the current buffer.
+            if let Some(buf) = app.workspace.current_buffer() {
+                if buf.id == id {
+                    // We've only got one buffer open; we're done.
+                    break;
+                } else {
+                    app.view.forget_buffer(&buf);
+                }
+            }
+
+            // We haven't broken from the loop, so we're not back
+            // at the original buffer; close the current buffer.
+            app.workspace.close_current_buffer();
+        }
+    }
+}
+
 pub fn backspace(app: &mut Application) {
     let outdent = match app.workspace.current_buffer() {
         Some(buffer) => {
@@ -1284,5 +1318,50 @@ mod tests {
                    "amp\neditor");
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
                    original_position);
+    }
+
+    #[test]
+    fn close_others_works_when_current_buffer_is_last() {
+        let mut app = ::models::application::new();
+        let mut buffer_1 = Buffer::new();
+        let mut buffer_2 = Buffer::new();
+        let mut buffer_3 = Buffer::new();
+        buffer_1.insert("one");
+        buffer_2.insert("two");
+        buffer_3.insert("three");
+
+        // Now that we've set up the buffers, add
+        // them to the application and run the command.
+        app.workspace.add_buffer(buffer_1);
+        app.workspace.add_buffer(buffer_2);
+        app.workspace.add_buffer(buffer_3);
+        commands::buffer::close_others(&mut app);
+
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "three");
+        app.workspace.next_buffer();
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "three");
+    }
+
+    #[test]
+    fn close_others_works_when_current_buffer_is_not_last() {
+        let mut app = ::models::application::new();
+        let mut buffer_1 = Buffer::new();
+        let mut buffer_2 = Buffer::new();
+        let mut buffer_3 = Buffer::new();
+        buffer_1.insert("one");
+        buffer_2.insert("two");
+        buffer_3.insert("three");
+
+        // Now that we've set up the buffers, add
+        // them to the application and run the command.
+        app.workspace.add_buffer(buffer_1);
+        app.workspace.add_buffer(buffer_2);
+        app.workspace.add_buffer(buffer_3);
+        app.workspace.previous_buffer();
+        commands::buffer::close_others(&mut app);
+
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "two");
+        app.workspace.next_buffer();
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "two");
     }
 }
