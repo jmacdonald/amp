@@ -15,6 +15,12 @@ pub fn save(app: &mut Application) {
     };
 }
 
+pub fn reload(app: &mut Application) {
+    if let Some(buf) = app.workspace.current_buffer() {
+        buf.reload();
+    }
+}
+
 pub fn delete(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => buffer.delete(),
