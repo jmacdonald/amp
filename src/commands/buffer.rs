@@ -605,6 +605,17 @@ pub fn ensure_trailing_newline(app: &mut Application) {
     }
 }
 
+pub fn insert_tab(app: &mut Application) {
+    if let Some(buf) = app.workspace.current_buffer() {
+        buf.insert(TAB_CONTENT);
+
+        // Move the cursor to the end of the inserted content.
+        for _ in 0..TAB_CONTENT.chars().count() {
+            buf.cursor.move_right();
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     extern crate scribe;

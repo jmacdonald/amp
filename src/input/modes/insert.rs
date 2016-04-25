@@ -7,7 +7,7 @@ pub fn handle(mode: &mut InsertMode, input: Key) -> Option<Command> {
         Key::Esc       => Some(application::switch_to_normal_mode),
         Key::Enter     => Some(buffer::insert_newline),
         Key::Backspace => Some(buffer::backspace),
-        Key::Tab       => Some(buffer::indent_line),
+        Key::Tab       => Some(buffer::insert_tab),
         Key::Down      => Some(cursor::move_down),
         Key::Up        => Some(cursor::move_up),
         Key::Left      => Some(cursor::move_left),
