@@ -6,6 +6,9 @@ use helpers::token::{Direction, adjacent_token_position};
 use models::application::{Application, ClipboardContent, Mode};
 use scribe::buffer::{Position, Range};
 
+// FIXME: Determine this based on file type and/or user config.
+const TAB_CONTENT: &'static str = "  ";
+
 pub fn save(app: &mut Application) {
     remove_trailing_whitespace(app);
     ensure_trailing_newline(app);
@@ -253,14 +256,11 @@ pub fn insert_newline(app: &mut Application) {
 pub fn indent_line(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
-            // FIXME: Determine this based on file type and/or user config.
-            let tab_content = "  ";
-
             let target_position = match app.mode {
                 Mode::Insert(_) => {
                     Position {
                         line: buffer.cursor.line,
-                        offset: buffer.cursor.offset + tab_content.len(),
+                        offset: buffer.cursor.offset + TAB_CONTENT.len(),
                     }
                 }
                 _ => *buffer.cursor.clone(),
@@ -287,7 +287,7 @@ pub fn indent_line(app: &mut Application) {
                     line: line,
                     offset: 0,
                 });
-                buffer.insert(tab_content);
+                buffer.insert(TAB_CONTENT);
             }
             buffer.end_operation_group();
 
@@ -302,7 +302,6 @@ pub fn outdent_line(app: &mut Application) {
     match app.workspace.current_buffer() {
         Some(buffer) => {
             // FIXME: Determine this based on file type and/or user config.
-            let tab_content = "  ";
             let data = buffer.data();
 
             // Get the range of lines we'll outdent based on
@@ -329,7 +328,7 @@ pub fn outdent_line(app: &mut Application) {
                         let mut space_char_count = 0;
 
                         // Check for leading whitespace.
-                        for character in content.chars().take(tab_content.len()) {
+                        for character in content.chars().take(TAB_CONTENT.len()) {
                             if character == ' ' {
                                 space_char_count += 1;
                             } else {
