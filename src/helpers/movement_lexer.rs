@@ -12,7 +12,7 @@ fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
     match lexer.current_char() {
         Some(c) => {
             match c {
-                ' ' | '\n' => {
+                ' ' | '\n' | '\t' => {
                     lexer.tokenize(Category::Text);
                     lexer.advance();
                     return Some(StateFunction(whitespace));
@@ -68,7 +68,7 @@ fn whitespace(lexer: &mut Tokenizer) -> Option<StateFunction> {
     match lexer.current_char() {
         Some(c) => {
             match c {
-                ' ' | '\n' => {
+                ' ' | '\n' | '\t' => {
                     lexer.advance();
                     Some(StateFunction(whitespace))
                 }

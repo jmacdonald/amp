@@ -10,7 +10,7 @@ mod color;
 pub use self::data::{BufferData, StatusLineData};
 
 use self::terminal::Terminal;
-use scribe::buffer::{Buffer, Position};
+use scribe::buffer::{Buffer, Position, Token};
 use pad::PadStr;
 use rustbox::{Color, Event, Style};
 use std::cmp;
@@ -20,6 +20,7 @@ use std::cell::RefCell;
 use self::scrollable_region::ScrollableRegion;
 
 const LINE_LENGTH_GUIDE_OFFSET: usize = 80;
+const TAB_WIDTH: usize = 4;
 
 pub enum Theme {
     Dark,
@@ -44,7 +45,8 @@ impl View {
     }
 
     pub fn draw_buffer(&self, data: &BufferData) {
-        let mut line = 0;
+        let mut screen_line = 0;
+        let mut buffer_offset = 0;
 
         // Get the tokens, bailing out if there are none.
         let tokens = match data.tokens {
@@ -56,12 +58,13 @@ impl View {
         let line_number_width = data.line_count.to_string().len() + 1;
         let gutter_width = line_number_width + 2;
 
-        // Set the terminal cursor, considering leading line numbers.
+        // Set the terminal cursor, considering
+        // leading line numbers and leading tabs.
         match data.cursor {
             Some(position) => {
                 self.set_cursor(Some(Position {
                     line: position.line,
-                    offset: position.offset + gutter_width,
+                    offset: printed_position(&position, &tokens).offset + gutter_width,
                 }));
             }
             None => (),
@@ -69,15 +72,15 @@ impl View {
 
         // Draw the first line number.
         // Others will be drawn following newline characters.
-        let mut offset = self.draw_line_number(0, data, line_number_width);
+        let mut screen_offset = self.draw_line_number(0, data, line_number_width);
 
         for token in tokens.iter() {
             let token_color = color::map(&token.category);
 
             for character in token.lexeme.chars() {
                 let current_position = Position {
-                    line: line,
-                    offset: offset - gutter_width,
+                    line: screen_line,
+                    offset: buffer_offset,
                 };
 
                 let (style, color) = match data.highlight {
@@ -93,7 +96,7 @@ impl View {
 
                 let background_color = match data.cursor {
                     Some(cursor) => {
-                        if line == cursor.line {
+                        if screen_line == cursor.line {
                             self.alt_background_color()
                         } else {
                             Color::Default
@@ -106,10 +109,10 @@ impl View {
                     // Print the rest of the line highlight.
                     match data.cursor {
                         Some(cursor) => {
-                            if line == cursor.line {
-                                for offset in offset..self.width() {
+                            if screen_line == cursor.line {
+                                for offset in screen_offset..self.width() {
                                     self.print_char(offset,
-                                                    line,
+                                                    screen_line,
                                                     style,
                                                     Color::Default,
                                                     self.alt_background_color(),
@@ -123,9 +126,9 @@ impl View {
                     // Print the length guide for this line.
                     let absolute_length_guide_offset =
                       gutter_width + LINE_LENGTH_GUIDE_OFFSET;
-                    if offset <= absolute_length_guide_offset {
+                    if screen_offset <= absolute_length_guide_offset {
                         self.print_char(absolute_length_guide_offset,
-                                        line,
+                                        screen_line,
                                         rustbox::RB_NORMAL,
                                         Color::Default,
                                         self.alt_background_color(),
@@ -133,14 +136,28 @@ impl View {
                     }
 
                     // Advance to the next line.
-                    line += 1;
+                    screen_line += 1;
+                    buffer_offset = 0;
 
                     // Draw leading line number for the new line.
-                    offset = self.draw_line_number(line, data, line_number_width);
-                } else {
-                    self.print_char(offset, line, style, color, background_color, character);
+                    screen_offset = self.draw_line_number(screen_line, data, line_number_width);
+                } else if character == '\t' {
+                    // Calculate the next tab stop using the tab-aware offset,
+                    // *without considering the line number gutter*, and then
+                    // re-add the gutter width to get the actual/screen offset.
+                    let buffer_tab_stop = next_tab_stop(screen_offset - gutter_width);
+                    let screen_tab_stop = buffer_tab_stop + gutter_width;
 
-                    offset += 1;
+                    // Print the sequence of spaces and move the offset accordingly.
+                    for _ in screen_offset..screen_tab_stop {
+                        self.print_char(screen_offset, screen_line, style, color, self.alt_background_color(), ' ');
+                        screen_offset += 1;
+                    }
+                    buffer_offset += 1;
+                } else {
+                    self.print_char(screen_offset, screen_line, style, color, background_color, character);
+                    screen_offset += 1;
+                    buffer_offset += 1;
                 }
             }
         }
@@ -148,10 +165,10 @@ impl View {
         // Print the rest of the line highlight.
         match data.cursor {
             Some(cursor) => {
-                if line == cursor.line {
-                    for offset in offset..self.width() {
+                if screen_line == cursor.line {
+                    for offset in screen_offset..self.width() {
                         self.print_char(offset,
-                                        line,
+                                        screen_line,
                                         rustbox::RB_NORMAL,
                                         Color::Default,
                                         self.alt_background_color(),
@@ -370,6 +387,46 @@ impl View {
     }
 }
 
+// Translates a buffer position to its printed position, which will depend
+// on the number of tabs preceding it on its line and the tab width.
+fn printed_position(position: &Position, tokens: &Vec<Token>) -> Position {
+    let mut line = 0;
+    let mut offset = 0;
+    let mut line_char_count = 0;
+
+    'tokens: for token in tokens {
+        for c in token.lexeme.chars() {
+            if c == '\n' {
+                line += 1;
+                line_char_count = 0;
+                continue
+            }
+
+            if line > position.line {
+                break 'tokens
+            } else if line == position.line {
+                if line_char_count >= position.offset {
+                    break 'tokens;
+                }
+
+                if c == '\t' {
+                    offset = next_tab_stop(offset);
+                } else {
+                    offset += 1;
+                }
+
+                line_char_count += 1;
+            }
+        }
+    }
+
+    Position{ line: position.line, offset: offset }
+}
+
+fn next_tab_stop(offset: usize) -> usize {
+    (offset / TAB_WIDTH + 1) * TAB_WIDTH
+}
+
 fn buffer_key(buffer: &Buffer) -> usize {
     buffer.id.unwrap_or(0)
 }
@@ -378,7 +435,8 @@ fn buffer_key(buffer: &Buffer) -> usize {
 mod tests {
     extern crate scribe;
 
-    use scribe::Buffer;
+    use super::{next_tab_stop, printed_position, TAB_WIDTH};
+    use scribe::buffer::{Buffer, Position};
 
     #[test]
     fn scroll_down_prevents_scrolling_completely_beyond_buffer() {
@@ -412,5 +470,41 @@ mod tests {
 
         // The view should not be scrolled.
         assert_eq!(view.visible_region(&buffer).line_offset(), 0);
+    }
+
+    #[test]
+    fn next_tab_goes_to_the_next_tab_stop_when_at_a_tab_stop() {
+        let offset = TAB_WIDTH * 2;
+
+        // It should go to the next tab stop.
+        assert_eq!(next_tab_stop(offset), TAB_WIDTH * 3);
+    }
+
+    #[test]
+    fn next_tab_goes_to_the_next_tab_stop_when_between_tab_stops() {
+        let offset = TAB_WIDTH + 1;
+
+        // It should go to the next tab stop.
+        assert_eq!(next_tab_stop(offset), TAB_WIDTH * 2);
+    }
+
+    #[test]
+    fn printed_position_considers_preceding_tabs_on_the_same_line() {
+        let mut buffer = Buffer::new();
+        buffer.insert("\n\ts\tamp");
+        let position = Position{ line: 1, offset: 1 };
+        let print_position = Position{ line: 1, offset: 4 };
+
+        assert_eq!(printed_position(&position, &buffer.tokens()), print_position);
+    }
+
+    #[test]
+    fn printed_position_considers_preceding_tabs_and_chars_on_the_same_line() {
+        let mut buffer = Buffer::new();
+        buffer.insert("\n\ts\tamp");
+        let position = Position{ line: 1, offset: 4 };
+        let print_position = Position{ line: 1, offset: 9 };
+
+        assert_eq!(printed_position(&position, &buffer.tokens()), print_position);
     }
 }
