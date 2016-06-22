@@ -195,7 +195,7 @@ impl View {
         // Others will be drawn following newline characters.
         screen_position.offset = self.draw_absolute_line_number(0, scroll_offset, buffer.cursor.line == scroll_offset, line_number_width);
 
-        for token in tokens.iter() {
+        'print: for token in tokens.iter() {
             let token_color = color::map(&token.category);
 
             for character in token.lexeme.chars() {
@@ -263,6 +263,11 @@ impl View {
                     screen_position.line += 1;
                     buffer_position.line += 1;
                     buffer_position.offset = 0;
+
+                    // Don't print content below the screen.
+                    if screen_position.line == self.height() - 1 {
+                        break 'print;
+                    }
 
                     // Draw leading line number for the new line.
                     screen_position.offset = self.draw_absolute_line_number(screen_position.line, buffer_position.line, buffer_position.line == buffer.cursor.line, line_number_width);
