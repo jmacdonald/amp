@@ -36,8 +36,8 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View, repo: &Option<Repos
 
         // Bundle up the presentable data.
         let data = BufferData {
-            tokens: Some(visible_tokens),
-            cursor: relative_cursor,
+            tokens: Some(buf.tokens()),
+            cursor: Some(*buf.cursor),
             highlight: None,
             line_count: buf.line_count(),
             scrolling_offset: line_offset,
@@ -47,7 +47,7 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View, repo: &Option<Repos
         view.set_cursor(data.cursor);
 
         // Draw the visible set of tokens to the terminal.
-        view.draw_buffer(&data);
+        view.draw_absolute_buffer(buf, None);
 
         // Determine mode display color based on buffer modification status.
         let (bg, fg) = if buf.modified() {
