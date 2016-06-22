@@ -5,8 +5,7 @@ extern crate rustbox;
 pub mod modes;
 
 use std::path::PathBuf;
-use scribe::buffer::{Buffer, LineRange, Position, Range, Token};
-use view::scrollable_region::{ScrollableRegion, Visibility};
+use scribe::buffer::{Buffer, LineRange, Token};
 use view::StatusLineData;
 use git2::{Repository, Status};
 
@@ -39,22 +38,6 @@ fn visible_tokens(tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
     }
 
     visible_tokens
-}
-
-fn relative_range(region: &ScrollableRegion, range: &Range) -> Range {
-    let relative_start = match region.relative_position(range.start().line) {
-        Visibility::Visible(line) => Position{ line: line, offset: range.start().offset },
-        Visibility::AboveRegion => Position{ line: 0, offset: 0 },
-        Visibility::BelowRegion => Position{ line: region.height()+1, offset: 0 }
-    };
-
-    let relative_end = match region.relative_position(range.end().line) {
-        Visibility::Visible(line) => Position{ line: line, offset: range.end().offset },
-        Visibility::AboveRegion => Position{ line: 0, offset: 0 },
-        Visibility::BelowRegion => Position{ line: region.height()+1, offset: 0 }
-    };
-
-    Range::new(relative_start, relative_end)
 }
 
 fn path_as_title(path: Option<PathBuf>) -> String {
