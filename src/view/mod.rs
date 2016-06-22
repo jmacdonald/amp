@@ -193,7 +193,7 @@ impl View {
 
         // Draw the first line number.
         // Others will be drawn following newline characters.
-        screen_position.offset = self.draw_absolute_line_number(0, scroll_offset, buffer.cursor.line == scroll_offset, line_number_width);
+        screen_position.offset = self.draw_absolute_line_number(0, scroll_offset + 1, buffer.cursor.line == scroll_offset, line_number_width);
 
         'print: for token in tokens.iter() {
             let token_color = color::map(&token.category);
@@ -270,7 +270,7 @@ impl View {
                     }
 
                     // Draw leading line number for the new line.
-                    screen_position.offset = self.draw_absolute_line_number(screen_position.line, buffer_position.line, buffer_position.line == buffer.cursor.line, line_number_width);
+                    screen_position.offset = self.draw_absolute_line_number(screen_position.line, buffer_position.line + 1, buffer_position.line == buffer.cursor.line, line_number_width);
                 } else if character == '\t' {
                     // Calculate the next tab stop using the tab-aware offset,
                     // *without considering the line number gutter*, and then
