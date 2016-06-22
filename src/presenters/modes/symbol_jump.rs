@@ -5,9 +5,9 @@ use std::cmp;
 use models::application::modes::SymbolJumpMode;
 use models::application::modes::symbol_jump::MAX_RESULTS;
 use pad::PadStr;
-use presenters::{buffer_status_line_data, visible_tokens};
+use presenters::{buffer_status_line_data};
 use rustbox::Color;
-use view::{BufferData, StatusLineData, View};
+use view::{StatusLineData, View};
 use scribe::buffer::{Buffer, Position};
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &SymbolJumpMode, view: &mut View) {
@@ -15,23 +15,8 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SymbolJumpMode, view: &mut Vi
     view.clear();
 
     if let Some(buf) = buffer {
-        let line_offset = view.visible_region(buf).line_offset();
-        let visible_range = view.visible_region(buf).visible_range();
-
-        // Get the buffer's tokens and reduce them to the visible set.
-        let visible_tokens = visible_tokens(&buf.tokens(), visible_range);
-
-        // Bundle up the presentable data.
-        let data = BufferData {
-            tokens: Some(visible_tokens),
-            cursor: None,
-            highlight: None,
-            line_count: buf.line_count(),
-            scrolling_offset: line_offset,
-        };
-
         // Draw the visible set of tokens to the terminal.
-        view.draw_buffer(&data);
+        view.draw_absolute_buffer(buf, None);
 
         // Draw the status line.
         view.draw_status_line(&vec![
