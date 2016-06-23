@@ -19,6 +19,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use self::scrollable_region::ScrollableRegion;
 
+const LINE_WRAPPING: bool = true;
 const LINE_LENGTH_GUIDE_OFFSET: usize = 80;
 const TAB_WIDTH: usize = 4;
 
@@ -142,6 +143,12 @@ impl View {
 
                     // Draw leading line number for the new line.
                     screen_position.offset = self.draw_line_number(screen_position.line, buffer_position.line + 1, buffer_position.line == buffer.cursor.line, line_number_width);
+                } else if LINE_WRAPPING && screen_position.offset == self.width() {
+                    screen_position.line += 1;
+                    screen_position.offset = gutter_width;
+                    self.print_char(screen_position.offset, screen_position.line, style, color, background_color, character);
+                    screen_position.offset += 1;
+                    buffer_position.offset += 1;
                 } else if character == '\t' {
                     // Calculate the next tab stop using the tab-aware offset,
                     // *without considering the line number gutter*, and then
