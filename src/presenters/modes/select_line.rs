@@ -16,7 +16,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SelectLineMode, view: &mut Vi
         let selected_range = mode.to_range(&*buf.cursor);
 
         // Draw the visible set of tokens to the terminal.
-        view.draw_absolute_buffer(buf, Some(&selected_range));
+        view.draw_absolute_buffer(buf, Some(&selected_range), None);
 
         // Draw the status line.
         view.draw_status_line(&vec![

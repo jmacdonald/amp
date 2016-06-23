@@ -180,12 +180,19 @@ impl View {
         }
     }
 
-    pub fn draw_absolute_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>) {
+    pub fn draw_absolute_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>, alt_tokens: Option<Vec<Token>>) {
         let mut buffer_position = Position{ line: 0, offset: 0 };
         let mut screen_position = Position{ line: 0, offset: 0 };
         let scroll_offset = self.visible_region(buffer).line_offset();
-        let tokens = buffer.tokens();
         let mut cursor_visible = false;
+
+        // Use alternative tokens if available,
+        // falling back to buffer tokens, otherwise.
+        let tokens = if let Some(alt) = alt_tokens {
+            alt
+        } else {
+            buffer.tokens()
+        };
 
         // Determine the gutter size based on the number of lines.
         let line_number_width = buffer.line_count().to_string().len() + 1;

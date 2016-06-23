@@ -10,7 +10,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SearchInsertMode, view: &mut 
 
     if let Some(buf) = buffer {
         // Draw the visible set of tokens to the terminal.
-        view.draw_absolute_buffer(buf, None);
+        view.draw_absolute_buffer(buf, None, None);
     }
 
     // Draw the status line as a search prompt.

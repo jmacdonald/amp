@@ -12,7 +12,7 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View) {
 
     if let Some(buf) = buffer {
         // Draw the visible set of tokens to the terminal.
-        view.draw_absolute_buffer(buf, None);
+        view.draw_absolute_buffer(buf, None, None);
 
         // Draw the status line.
         view.draw_status_line(&vec![
