@@ -381,8 +381,8 @@ fn buffer_key(buffer: &Buffer) -> usize {
 mod tests {
     extern crate scribe;
 
-    use super::{next_tab_stop, printed_position, TAB_WIDTH};
-    use scribe::buffer::{Buffer, Position};
+    use super::{next_tab_stop, TAB_WIDTH};
+    use scribe::Buffer;
 
     #[test]
     fn scroll_down_prevents_scrolling_completely_beyond_buffer() {
@@ -432,25 +432,5 @@ mod tests {
 
         // It should go to the next tab stop.
         assert_eq!(next_tab_stop(offset), TAB_WIDTH * 2);
-    }
-
-    #[test]
-    fn printed_position_considers_preceding_tabs_on_the_same_line() {
-        let mut buffer = Buffer::new();
-        buffer.insert("\n\ts\tamp");
-        let position = Position{ line: 1, offset: 1 };
-        let print_position = Position{ line: 1, offset: 4 };
-
-        assert_eq!(printed_position(&position, &buffer.tokens()), print_position);
-    }
-
-    #[test]
-    fn printed_position_considers_preceding_tabs_and_chars_on_the_same_line() {
-        let mut buffer = Buffer::new();
-        buffer.insert("\n\ts\tamp");
-        let position = Position{ line: 1, offset: 4 };
-        let print_position = Position{ line: 1, offset: 9 };
-
-        assert_eq!(printed_position(&position, &buffer.tokens()), print_position);
     }
 }

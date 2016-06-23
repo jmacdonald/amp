@@ -87,23 +87,7 @@ mod tests {
     extern crate git2;
     extern crate scribe;
 
-    use super::{presentable_status, visible_tokens};
-    use scribe::buffer::{Buffer, LineRange, Token, Category};
-
-    #[test]
-    fn visible_tokens_returns_tokens_in_the_specified_range() {
-        let mut buffer = Buffer::new();
-        buffer.insert("first\nsecond\nthird\nfourth");
-
-        let tokens = visible_tokens(&buffer.tokens(), LineRange::new(1, 3));
-        assert_eq!(tokens,
-                   vec![
-                Token{ lexeme: "second".to_string(), category: Category::Text },
-                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
-                Token{ lexeme: "third".to_string(), category: Category::Text },
-                Token{ lexeme: "\n".to_string(), category: Category::Whitespace },
-            ]);
-    }
+    use super::presentable_status;
 
     #[test]
     pub fn presentable_status_returns_untracked_when_status_is_locally_new() {

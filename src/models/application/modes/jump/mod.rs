@@ -124,7 +124,7 @@ pub fn new() -> JumpMode {
 #[cfg(test)]
 mod tests {
     use super::new;
-    use scribe::buffer::{Token, Category, Position};
+    use scribe::buffer::{Token, Category, Position, LineRange};
 
     #[test]
     fn tokens_returns_the_correct_tokens() {
@@ -143,7 +143,7 @@ mod tests {
             Token{ lexeme: "p".to_string(), category: Category::Text},
         ];
 
-        let result = jump_mode.tokens(&source_tokens, 0);
+        let result = jump_mode.tokens(&source_tokens, LineRange::new(0, 100));
         for (index, token) in expected_tokens.iter().enumerate() {
             assert_eq!(*token, result[index]);
         }
@@ -166,7 +166,7 @@ mod tests {
             Token{ lexeme: "ring".to_string(), category: Category::Text},
         ];
 
-        let result = jump_mode.tokens(&source_tokens, 0);
+        let result = jump_mode.tokens(&source_tokens, LineRange::new(0, 100));
         for (index, token) in expected_tokens.iter().enumerate() {
             assert_eq!(*token, result[index]);
         }
@@ -189,7 +189,7 @@ mod tests {
             Token{ lexeme: " ".to_string(), category: Category::Whitespace},
             Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
         ];
-        jump_mode.tokens(&source_tokens, 0);
+        jump_mode.tokens(&source_tokens, LineRange::new(0, 100));
 
         assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(),
                    Position {
@@ -219,8 +219,8 @@ mod tests {
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
         ];
-        jump_mode.tokens(&source_tokens, 0);
-        let results = jump_mode.tokens(&source_tokens, 0);
+        jump_mode.tokens(&source_tokens, LineRange::new(0, 100));
+        let results = jump_mode.tokens(&source_tokens, LineRange::new(0, 100));
         assert_eq!(results[0].lexeme, "aa");
     }
 
@@ -232,28 +232,25 @@ mod tests {
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
             Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
         ];
-        jump_mode.tokens(&source_tokens, 0);
-        jump_mode.tokens(&vec![], 0);
+        jump_mode.tokens(&source_tokens, LineRange::new(0, 100));
+        jump_mode.tokens(&vec![], LineRange::new(0, 100));
         assert!(jump_mode.tag_positions.is_empty());
     }
 
     #[test]
-    fn tokens_adds_specified_line_offset_to_tracked_positions() {
+    fn tokens_only_adds_tags_to_visible_range() {
         let mut jump_mode = new();
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
-            Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
+            Token{ lexeme: "Amp\n".to_string(), category: Category::Identifier},
+            Token{ lexeme: "data".to_string(), category: Category::Identifier},
         ];
-        jump_mode.tokens(&source_tokens, 10);
+        jump_mode.tokens(&source_tokens, LineRange::new(1, 2));
+        assert_eq!(jump_mode.tag_positions.len(), 1);
         assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(),
                    Position {
-                       line: 10,
-                       offset: 0,
-                   });
-        assert_eq!(*jump_mode.tag_positions.get("ab").unwrap(),
-                   Position {
-                       line: 11,
+                       line: 1,
                        offset: 2,
                    });
     }
@@ -270,7 +267,7 @@ mod tests {
         ];
 
         // This will panic and cause the test to fail.
-        jump_mode.tokens(&source_tokens, 0);
+        jump_mode.tokens(&source_tokens, LineRange::new(0, 100));
     }
 
     #[test]
@@ -281,7 +278,7 @@ mod tests {
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
             Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
         ];
-        jump_mode.tokens(&source_tokens, 0);
+        jump_mode.tokens(&source_tokens, LineRange::new(0, 100));
         assert_eq!(jump_mode.map_tag("ab"),
                    Some(&Position {
                        line: 1,
