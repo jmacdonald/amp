@@ -1,8 +1,8 @@
 extern crate scribe;
 
-use presenters::{buffer_status_line_data, visible_tokens};
+use presenters::{buffer_status_line_data};
 use scribe::Buffer;
-use view::{BufferData, StatusLineData, View};
+use view::{StatusLineData, View};
 use models::application::modes::jump::JumpMode;
 use rustbox::Color;
 
@@ -11,26 +11,13 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &mut JumpMode, view: &mut View
     view.clear();
 
     if let Some(buf) = buffer {
-        let line_offset = view.visible_region(buf).line_offset();
         let visible_range = view.visible_region(buf).visible_range();
 
-        // Get the buffer's tokens and reduce them to the visible set.
-        let visible_tokens = visible_tokens(&buf.tokens(), visible_range);
-
-        // Add jump points to the visible tokens.
-        let jump_tokens = mode.tokens(&visible_tokens, line_offset);
-
-        // Bundle up the presentable data.
-        let data = BufferData {
-            tokens: Some(jump_tokens),
-            cursor: None,
-            highlight: None,
-            line_count: buf.line_count(),
-            scrolling_offset: line_offset,
-        };
+        // Add jump points to the tokens.
+        let jump_tokens = mode.tokens(&buf.tokens(), visible_range);
 
         // Draw the visible set of tokens to the terminal.
-        view.draw_buffer(&data);
+        view.draw_absolute_buffer(buf, None, Some(jump_tokens));
 
         // Draw the status line.
         view.draw_status_line(&vec![

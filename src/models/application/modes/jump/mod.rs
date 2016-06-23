@@ -2,7 +2,7 @@ pub mod tag_generator;
 
 use std::collections::HashMap;
 use helpers::movement_lexer;
-use scribe::buffer::{Position, Token, Category};
+use scribe::buffer::{Position, Token, LineRange, Category};
 use models::application::modes::select::SelectMode;
 use models::application::modes::select_line::SelectLineMode;
 
@@ -30,10 +30,9 @@ impl JumpMode {
     //
     // We also track jump tag locations so that tags can be
     // resolved to positions for performing the actual jump later on.
-    pub fn tokens(&mut self, tokens: &Vec<Token>, line_offset: usize) -> Vec<Token> {
+    pub fn tokens(&mut self, tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
         let mut jump_tokens = Vec::new();
-        let mut line = 0;
-        let mut offset = 0;
+        let mut current_position = Position{ line: 0, offset: 0 };
 
         // Previous tag positions don't apply.
         self.tag_positions.clear();
@@ -51,13 +50,13 @@ impl JumpMode {
                     // Handle line breaks inside of whitespace tokens.
                     let subtoken_newlines = subtoken.lexeme.chars().filter(|&c| c == '\n').count();
                     if subtoken_newlines > 0 {
-                        line += subtoken_newlines;
-                        offset = match subtoken.lexeme.split('\n').last() {
+                        current_position.line += subtoken_newlines;
+                        current_position.offset = match subtoken.lexeme.split('\n').last() {
                             Some(l) => l.len(),
                             None => 0,
                         };
                     } else {
-                        offset += subtoken.lexeme.len();
+                        current_position.offset += subtoken.lexeme.len();
                     }
 
                     // We don't do anything to whitespace tokens.
@@ -65,13 +64,13 @@ impl JumpMode {
 
                 } else {
                     // Don't tag tokens that are too small.
-                    if subtoken.lexeme.len() < 2 {
+                    if subtoken.lexeme.len() < 2 || !visible_range.includes(current_position.line) {
                         jump_tokens.push(Token {
                             lexeme: subtoken.lexeme.to_string(),
                             category: Category::Text,
                         });
 
-                        offset += subtoken.lexeme.len();
+                        current_position.offset += subtoken.lexeme.len();
                     } else {
                         // Try to get a tag that we'll use to create
                         // a jump location for this token.
@@ -89,11 +88,7 @@ impl JumpMode {
                                 });
 
                                 // Track the location of this tag.
-                                self.tag_positions.insert(tag,
-                                                          Position {
-                                                              line: line + line_offset,
-                                                              offset: offset,
-                                                          });
+                                self.tag_positions.insert(tag, current_position);
                             }
                             // We've run out of tags; just push the token.
                             None => {
@@ -103,7 +98,7 @@ impl JumpMode {
                             }
                         }
 
-                        offset += subtoken.lexeme.len();
+                        current_position.offset += subtoken.lexeme.len();
                     }
                 }
             }
