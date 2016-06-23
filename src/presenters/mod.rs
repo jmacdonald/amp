@@ -5,40 +5,9 @@ extern crate rustbox;
 pub mod modes;
 
 use std::path::PathBuf;
-use scribe::buffer::{Buffer, LineRange, Token};
+use scribe::Buffer;
 use view::StatusLineData;
 use git2::{Repository, Status};
-
-fn visible_tokens(tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
-    let mut visible_tokens = Vec::new();
-    let mut line = 0;
-
-    for token in tokens {
-        let mut current_lexeme = String::new();
-
-        for character in token.lexeme.chars() {
-            // Use characters in the visible range.
-            if visible_range.includes(line) {
-                current_lexeme.push(character);
-            }
-
-            // Handle newline characters.
-            if character == '\n' {
-                line += 1;
-            }
-        }
-
-        // Add visible lexemes to the token set.
-        if !current_lexeme.is_empty() {
-            visible_tokens.push(Token {
-                lexeme: current_lexeme,
-                category: token.category.clone(),
-            })
-        }
-    }
-
-    visible_tokens
-}
 
 fn path_as_title(path: Option<PathBuf>) -> String {
     format!(" {}", path.map(|path| path.to_string_lossy().into_owned()).unwrap_or("".to_string()))
