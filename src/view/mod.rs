@@ -44,7 +44,7 @@ impl View {
         }
     }
 
-    pub fn draw_absolute_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>, alt_tokens: Option<Vec<Token>>) {
+    pub fn draw_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>, alt_tokens: Option<Vec<Token>>) {
         let mut buffer_position = Position{ line: 0, offset: 0 };
         let mut screen_position = Position{ line: 0, offset: 0 };
         let scroll_offset = self.visible_region(buffer).line_offset();
@@ -64,7 +64,7 @@ impl View {
 
         // Draw the first line number.
         // Others will be drawn following newline characters.
-        screen_position.offset = self.draw_absolute_line_number(0, scroll_offset + 1, buffer.cursor.line == scroll_offset, line_number_width);
+        screen_position.offset = self.draw_line_number(0, scroll_offset + 1, buffer.cursor.line == scroll_offset, line_number_width);
 
         'print: for token in tokens.iter() {
             let token_color = color::map(&token.category);
@@ -141,7 +141,7 @@ impl View {
                     }
 
                     // Draw leading line number for the new line.
-                    screen_position.offset = self.draw_absolute_line_number(screen_position.line, buffer_position.line + 1, buffer_position.line == buffer.cursor.line, line_number_width);
+                    screen_position.offset = self.draw_line_number(screen_position.line, buffer_position.line + 1, buffer_position.line == buffer.cursor.line, line_number_width);
                 } else if character == '\t' {
                     // Calculate the next tab stop using the tab-aware offset,
                     // *without considering the line number gutter*, and then
@@ -221,7 +221,7 @@ impl View {
         });
     }
 
-    fn draw_absolute_line_number(&self, line: usize, line_number: usize, cursor_line: bool, width: usize) -> usize {
+    fn draw_line_number(&self, line: usize, line_number: usize, cursor_line: bool, width: usize) -> usize {
         let mut offset = 0;
 
         // Get left-padded string-based line number.

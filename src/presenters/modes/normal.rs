@@ -14,7 +14,7 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View, repo: &Option<Repos
 
     if let Some(buf) = buffer {
         // Draw the visible set of tokens to the terminal.
-        view.draw_absolute_buffer(buf, None, None);
+        view.draw_buffer(buf, None, None);
 
         // Determine mode display color based on buffer modification status.
         let (bg, fg) = if buf.modified() {

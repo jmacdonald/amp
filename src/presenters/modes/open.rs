@@ -16,7 +16,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
     view.clear();
 
     if let Some(buf) = buffer {
-        view.draw_absolute_buffer(buf, None, None);
+        view.draw_buffer(buf, None, None);
 
         // Draw the status line.
         view.draw_status_line(&vec![

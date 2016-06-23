@@ -17,7 +17,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &mut JumpMode, view: &mut View
         let jump_tokens = mode.tokens(&buf.tokens(), visible_range);
 
         // Draw the visible set of tokens to the terminal.
-        view.draw_absolute_buffer(buf, None, Some(jump_tokens));
+        view.draw_buffer(buf, None, Some(jump_tokens));
 
         // Draw the status line.
         view.draw_status_line(&vec![

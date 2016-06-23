@@ -10,7 +10,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &LineJumpMode, view: &mut View
 
     if let Some(buf) = buffer {
         // Draw the visible set of tokens to the terminal.
-        view.draw_absolute_buffer(buf, None, None);
+        view.draw_buffer(buf, None, None);
 
         // Draw the status line as an input prompt.
         let input_prompt = format!("Go to line: {}", mode.input);
