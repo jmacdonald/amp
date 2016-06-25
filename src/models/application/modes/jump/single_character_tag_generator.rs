@@ -15,16 +15,16 @@ impl Iterator for SingleCharacterTagGenerator {
     type Item = String;
 
     fn next(&mut self) -> Option<String> {
-        self.index += 1;
-
-        // Skip f character (invalid token; used to leave line_mode).
-        if self.index == 102 {
-            self.index += 1;
-        }
-
-        if self.index > TAG_INDEX_LIMIT {
+        if self.index >= TAG_INDEX_LIMIT {
             None
         } else {
+            self.index += 1;
+
+            // Skip f character (invalid token; used to leave line_mode).
+            if self.index == 102 {
+                self.index += 1;
+            }
+
             Some((self.index as char).to_string())
         }
     }
@@ -50,5 +50,15 @@ mod tests {
         let result: String = generator.collect();
 
         assert_eq!(result, expected_result);
+    }
+
+    #[test]
+    fn it_prevents_overflow_recycling() {
+        let mut generator = SingleCharacterTagGenerator::new();
+        for _ in 0..256 {
+            generator.next();
+        }
+
+        assert_eq!(generator.next(), None);
     }
 }
