@@ -14,14 +14,14 @@ impl TagGenerator {
         }
 
         // Calculate the tag characters based on the index value.
-        let first_letter = (self.index / 26) + 97;
-        let second_letter = (self.index % 26) + 97;
+        let first_letter = ((self.index / 26) + 97) as u8;
+        let second_letter = ((self.index % 26) + 97) as u8;
 
         // Increment the index.
         self.index += 1;
 
         // Stitch the two calculated letters together.
-        match String::from_utf8(vec![first_letter as u8, second_letter as u8]) {
+        match String::from_utf8(vec![first_letter, second_letter]) {
             Ok(tag) => Some(tag),
             Err(_) => panic!("Couldn't generate a valid UTF-8 jump mode tag."),
         }
