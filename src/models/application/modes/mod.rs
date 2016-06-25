@@ -1,3 +1,4 @@
+pub use self::jump::JumpMode;
 pub use self::open::OpenMode;
 pub use self::symbol_jump::SymbolJumpMode;
 

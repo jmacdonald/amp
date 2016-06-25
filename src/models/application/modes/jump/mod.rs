@@ -22,6 +22,15 @@ pub struct JumpMode {
 }
 
 impl JumpMode {
+    pub fn new() -> JumpMode {
+        JumpMode {
+            input: String::new(),
+            select_mode: SelectModeOptions::None,
+            tag_generator: tag_generator::new(),
+            tag_positions: HashMap::new(),
+        }
+    }
+
     // Translates a regular set of tokens into one appropriate
     // appropriate for jump mode. Lexemes of a size greater than 2
     // have their leading characters replaced with a jump tag, and
@@ -112,23 +121,14 @@ impl JumpMode {
     }
 }
 
-pub fn new() -> JumpMode {
-    JumpMode {
-        input: String::new(),
-        select_mode: SelectModeOptions::None,
-        tag_generator: tag_generator::new(),
-        tag_positions: HashMap::new(),
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::new;
+    use super::JumpMode;
     use scribe::buffer::{Token, Category, Position, LineRange};
 
     #[test]
     fn tokens_returns_the_correct_tokens() {
-        let mut jump_mode = new();
+        let mut jump_mode = JumpMode::new();
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
             Token{ lexeme: " ".to_string(), category: Category::Whitespace},
@@ -151,7 +151,7 @@ mod tests {
 
     #[test]
     fn tokens_splits_passed_tokens_on_whitespace() {
-        let mut jump_mode = new();
+        let mut jump_mode = JumpMode::new();
         let source_tokens = vec![
             Token{ lexeme: "# comment string".to_string(), category: Category::Comment},
         ];
@@ -174,7 +174,7 @@ mod tests {
 
     #[test]
     fn tokens_tracks_the_positions_of_each_jump_token() {
-        let mut jump_mode = new();
+        let mut jump_mode = JumpMode::new();
         let source_tokens = vec![
             // Adding space to a token invokes subtoken handling, since we split
             // tokens on whitespace. It's important to ensure the tracked positions
@@ -215,7 +215,7 @@ mod tests {
 
     #[test]
     fn tokens_restarts_tags_on_each_invocation() {
-        let mut jump_mode = new();
+        let mut jump_mode = JumpMode::new();
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
         ];
@@ -226,7 +226,7 @@ mod tests {
 
     #[test]
     fn tokens_clears_tracked_positions_on_each_invocation() {
-        let mut jump_mode = new();
+        let mut jump_mode = JumpMode::new();
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
@@ -239,7 +239,7 @@ mod tests {
 
     #[test]
     fn tokens_only_adds_tags_to_visible_range() {
-        let mut jump_mode = new();
+        let mut jump_mode = JumpMode::new();
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
@@ -257,7 +257,7 @@ mod tests {
 
     #[test]
     fn tokens_can_handle_unicode_data() {
-        let mut jump_mode = new();
+        let mut jump_mode = JumpMode::new();
 
         // It's important to put the unicode character as the
         // second character to ensure splitting off the first
@@ -272,7 +272,7 @@ mod tests {
 
     #[test]
     fn map_tag_returns_position_when_available() {
-        let mut jump_mode = new();
+        let mut jump_mode = JumpMode::new();
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},

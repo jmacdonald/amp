@@ -4,7 +4,7 @@ use commands;
 use std::mem;
 use models::application::{Application, Mode};
 use models::application::modes::{insert, jump, line_jump, select, select_line, search_insert};
-use models::application::modes::{OpenMode, SymbolJumpMode};
+use models::application::modes::{JumpMode, OpenMode, SymbolJumpMode};
 
 pub fn switch_to_normal_mode(app: &mut Application) {
     commands::buffer::end_command_group(app);
@@ -26,7 +26,7 @@ pub fn switch_to_jump_mode(app: &mut Application) {
 
     // Initialize a new jump mode and swap
     // it with the current application mode.
-    let jump_mode = Mode::Jump(jump::new());
+    let jump_mode = Mode::Jump(JumpMode::new());
     let old_mode = mem::replace(&mut app.mode, jump_mode);
 
     // If we were previously in a select mode, store it
