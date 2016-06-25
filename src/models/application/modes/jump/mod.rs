@@ -1,4 +1,5 @@
 pub mod tag_generator;
+pub mod single_character_tag_generator;
 
 use std::collections::HashMap;
 use helpers::movement_lexer;
