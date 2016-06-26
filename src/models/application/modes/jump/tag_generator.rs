@@ -10,10 +10,14 @@ impl TagGenerator {
     pub fn new() -> TagGenerator {
         TagGenerator { index: 0 }
     }
+}
+
+impl Iterator for TagGenerator {
+    type Item = String;
 
     // Returns the next two-letter tag, or none
     // if we've passed the limit ("zz").
-    pub fn next(&mut self) -> Option<String> {
+    fn next(&mut self) -> Option<String> {
         if self.index > TAG_INDEX_LIMIT {
             return None;
         }
