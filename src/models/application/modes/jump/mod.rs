@@ -75,75 +75,47 @@ impl JumpMode {
                     jump_tokens.push(subtoken);
 
                 } else {
-                    // Don't tag tokens that are too small.
-                    if (!self.line_mode && subtoken.lexeme.len() < 2) || !visible_range.includes(current_position.line) {
-                        jump_tokens.push(Token {
-                            lexeme: subtoken.lexeme.to_string(),
-                            category: Category::Text,
-                        });
-
-                        current_position.offset += subtoken.lexeme.len();
-                    } else {
-                        // Try to get a tag that we'll use to create
-                        // a jump location for this token.
-                        if self.line_mode {
-                            if current_position.line >= buffer.cursor.line {
-                                match single_characters.next() {
-                                    Some(tag) => {
-                                        // Split the token in two: a leading jump
-                                        // token and the rest as regular text.
-                                        jump_tokens.push(Token {
-                                            lexeme: tag.clone(),
-                                            category: Category::Keyword,
-                                        });
-                                        jump_tokens.push(Token {
-                                            lexeme: subtoken.lexeme.chars().skip(1).collect(),
-                                            category: Category::Text,
-                                        });
-
-                                        // Track the location of this tag.
-                                        self.tag_positions.insert(tag, current_position);
-                                    }
-                                    // We've run out of tags; just push the token.
-                                    None => {
-                                        let mut cloned_token = token.clone();
-                                        cloned_token.lexeme = subtoken.lexeme.to_string();
-                                        jump_tokens.push(cloned_token);
-                                    }
-                                }
-                            } else {
-                                let mut cloned_token = token.clone();
-                                cloned_token.lexeme = subtoken.lexeme.to_string();
-                                jump_tokens.push(cloned_token);
-                            }
+                    let tag = if !visible_range.includes(current_position.line) {
+                        None // token is off-screen
+                    } else if self.line_mode {
+                        if current_position.line >= buffer.cursor.line {
+                            single_characters.next()
                         } else {
-                            match tag_generator.next() {
-                                Some(tag) => {
-                                    // Split the token in two: a leading jump
-                                    // token and the rest as regular text.
-                                    jump_tokens.push(Token {
-                                        lexeme: tag.clone(),
-                                        category: Category::Keyword,
-                                    });
-                                    jump_tokens.push(Token {
-                                        lexeme: subtoken.lexeme.chars().skip(2).collect(),
-                                        category: Category::Text,
-                                    });
-
-                                    // Track the location of this tag.
-                                    self.tag_positions.insert(tag, current_position);
-                                }
-                                // We've run out of tags; just push the token.
-                                None => {
-                                    let mut cloned_token = token.clone();
-                                    cloned_token.lexeme = subtoken.lexeme.to_string();
-                                    jump_tokens.push(cloned_token);
-                                }
-                            }
+                            None // We haven't reached the cursor yet.
                         }
+                    } else {
+                        if subtoken.lexeme.len() > 1 {
+                            tag_generator.next()
+                        } else {
+                            None
+                        }
+                    };
 
-                        current_position.offset += subtoken.lexeme.len();
+                    match tag {
+                        Some(tag) => {
+                            // Split the token in two: a leading jump
+                            // token and the rest as regular text.
+                            jump_tokens.push(Token {
+                                lexeme: tag.clone(),
+                                category: Category::Keyword,
+                            });
+                            jump_tokens.push(Token {
+                                lexeme: subtoken.lexeme.chars().skip(tag.len()).collect(),
+                                category: Category::Text,
+                            });
+
+                            // Track the location of this tag.
+                            self.tag_positions.insert(tag, current_position);
+                        }
+                        None => {
+                            // No tag; just push the token as-is.
+                            let mut cloned_token = token.clone();
+                            cloned_token.lexeme = subtoken.lexeme.to_string();
+                            jump_tokens.push(cloned_token);
+                        }
                     }
+
+                    current_position.offset += subtoken.lexeme.len();
                 }
             }
         }
