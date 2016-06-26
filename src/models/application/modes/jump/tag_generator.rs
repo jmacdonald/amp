@@ -6,6 +6,11 @@ pub struct TagGenerator {
 }
 
 impl TagGenerator {
+    // Builds a new zero-indexed tag generator.
+    pub fn new() -> TagGenerator {
+        TagGenerator { index: 0 }
+    }
+
     // Returns the next two-letter tag, or none
     // if we've passed the limit ("zz").
     pub fn next(&mut self) -> Option<String> {
@@ -33,18 +38,13 @@ impl TagGenerator {
     }
 }
 
-// Builds a new zero-indexed tag generator.
-pub fn new() -> TagGenerator {
-    TagGenerator { index: 0 }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::new;
+    use super::TagGenerator;
 
     #[test]
     fn next_returns_sequential_letters_of_the_alphabet() {
-        let mut generator = new();
+        let mut generator = TagGenerator::new();
         assert_eq!(generator.next().unwrap(), "aa");
         assert_eq!(generator.next().unwrap(), "ab");
         assert_eq!(generator.next().unwrap(), "ac");
@@ -52,7 +52,7 @@ mod tests {
 
     #[test]
     fn next_carries_overflows_to_the_next_letter() {
-        let mut generator = new();
+        let mut generator = TagGenerator::new();
         for _ in 0..26 {
             generator.next();
         }
@@ -63,7 +63,7 @@ mod tests {
 
     #[test]
     fn next_returns_none_when_limit_reached() {
-        let mut generator = new();
+        let mut generator = TagGenerator::new();
         for _ in 0..super::TAG_INDEX_LIMIT {
             generator.next();
         }
@@ -78,7 +78,7 @@ mod tests {
 
     #[test]
     fn reset_sets_the_index_to_zero() {
-        let mut generator = new();
+        let mut generator = TagGenerator::new();
         generator.next();
         generator.reset();
         assert_eq!(generator.index, 0);

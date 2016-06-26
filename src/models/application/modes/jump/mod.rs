@@ -1,4 +1,4 @@
-pub mod tag_generator;
+mod tag_generator;
 mod single_character_tag_generator;
 
 use std::collections::HashMap;
@@ -6,6 +6,7 @@ use helpers::movement_lexer;
 use scribe::buffer::{Buffer, Position, Token, LineRange, Category};
 use models::application::modes::select::SelectMode;
 use models::application::modes::select_line::SelectLineMode;
+use self::tag_generator::TagGenerator;
 use self::single_character_tag_generator::SingleCharacterTagGenerator;
 
 /// Used to compose select and jump modes, allowing jump mode
@@ -20,7 +21,7 @@ pub struct JumpMode {
     pub input: String,
     pub line_mode: bool,
     pub select_mode: SelectModeOptions,
-    tag_generator: tag_generator::TagGenerator,
+    tag_generator: TagGenerator,
     tag_positions: HashMap<String, Position>,
 }
 
@@ -30,7 +31,7 @@ impl JumpMode {
             input: String::new(),
             line_mode: true,
             select_mode: SelectModeOptions::None,
-            tag_generator: tag_generator::new(),
+            tag_generator: TagGenerator::new(),
             tag_positions: HashMap::new(),
         }
     }
