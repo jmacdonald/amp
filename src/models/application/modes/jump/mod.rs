@@ -21,7 +21,6 @@ pub struct JumpMode {
     pub input: String,
     pub line_mode: bool,
     pub select_mode: SelectModeOptions,
-    tag_generator: TagGenerator,
     tag_positions: HashMap<String, Position>,
 }
 
@@ -31,7 +30,6 @@ impl JumpMode {
             input: String::new(),
             line_mode: true,
             select_mode: SelectModeOptions::None,
-            tag_generator: TagGenerator::new(),
             tag_positions: HashMap::new(),
         }
     }
@@ -51,9 +49,7 @@ impl JumpMode {
         // Previous tag positions don't apply.
         self.tag_positions.clear();
 
-        // Restart tags from the beginning.
-        self.tag_generator.reset();
-
+        let mut tag_generator = TagGenerator::new();
         let mut single_characters = SingleCharacterTagGenerator::new();
 
         for token in buffer.tokens() {
@@ -121,7 +117,7 @@ impl JumpMode {
                                 jump_tokens.push(cloned_token);
                             }
                         } else {
-                            match self.tag_generator.next() {
+                            match tag_generator.next() {
                                 Some(tag) => {
                                     // Split the token in two: a leading jump
                                     // token and the rest as regular text.
