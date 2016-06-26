@@ -31,11 +31,6 @@ impl TagGenerator {
             Err(_) => panic!("Couldn't generate a valid UTF-8 jump mode tag."),
         }
     }
-
-    // Restarts the generator sequence at the beginning.
-    pub fn reset(&mut self) {
-        self.index = 0;
-    }
 }
 
 #[cfg(test)]
@@ -74,13 +69,5 @@ mod tests {
         // Ensure that values stop being returned at and after the limit.
         assert!(generator.next().is_none());
         assert!(generator.next().is_none());
-    }
-
-    #[test]
-    fn reset_sets_the_index_to_zero() {
-        let mut generator = TagGenerator::new();
-        generator.next();
-        generator.reset();
-        assert_eq!(generator.index, 0);
     }
 }
