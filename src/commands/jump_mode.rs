@@ -6,22 +6,27 @@ pub fn match_tag(app: &mut Application) {
     let done = match app.mode {
         Mode::Jump(ref mut jump_mode) => {
             match jump_mode.input.len() {
-                0 | 1 => false, // Not enough data to match to a position.
-                _ => {
-                    // Try to find a position, falling back
-                    // to normal mode whether or not we find one.
-                    match jump_mode.map_tag(&jump_mode.input) {
-                        Some(position) => {
-                            match app.workspace.current_buffer() {
-                                Some(buffer) => buffer.cursor.move_to(position.clone()),
-                                None => false,
-                            };
+                0 => false, // Not enough data to match to a position.
+                n => {
+                    // Wait for another character if we're not in line mode.
+                    if n == 1 && !jump_mode.line_mode {
+                        false
+                    } else {
+                        // Try to find a position, falling back
+                        // to normal mode whether or not we find one.
+                        match jump_mode.map_tag(&jump_mode.input) {
+                            Some(position) => {
+                                match app.workspace.current_buffer() {
+                                    Some(buffer) => buffer.cursor.move_to(position.clone()),
+                                    None => false,
+                                };
+                            }
+                            None => (),
                         }
-                        None => (),
-                    }
 
-                    // All done here.
-                    true
+                        // All done here.
+                        true
+                    }
                 }
             }
         }

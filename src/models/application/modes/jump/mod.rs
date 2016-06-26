@@ -1,11 +1,12 @@
 pub mod tag_generator;
-pub mod single_character_tag_generator;
+mod single_character_tag_generator;
 
 use std::collections::HashMap;
 use helpers::movement_lexer;
-use scribe::buffer::{Position, Token, LineRange, Category};
+use scribe::buffer::{Buffer, Position, Token, LineRange, Category};
 use models::application::modes::select::SelectMode;
 use models::application::modes::select_line::SelectLineMode;
+use self::single_character_tag_generator::SingleCharacterTagGenerator;
 
 /// Used to compose select and jump modes, allowing jump mode
 /// to be used for cursor navigation (to select a range of text).
@@ -17,6 +18,7 @@ pub enum SelectModeOptions {
 
 pub struct JumpMode {
     pub input: String,
+    pub line_mode: bool,
     pub select_mode: SelectModeOptions,
     tag_generator: tag_generator::TagGenerator,
     tag_positions: HashMap<String, Position>,
@@ -26,6 +28,7 @@ impl JumpMode {
     pub fn new() -> JumpMode {
         JumpMode {
             input: String::new(),
+            line_mode: true,
             select_mode: SelectModeOptions::None,
             tag_generator: tag_generator::new(),
             tag_positions: HashMap::new(),
@@ -40,7 +43,7 @@ impl JumpMode {
     //
     // We also track jump tag locations so that tags can be
     // resolved to positions for performing the actual jump later on.
-    pub fn tokens(&mut self, tokens: &Vec<Token>, visible_range: LineRange) -> Vec<Token> {
+    pub fn tokens(&mut self, buffer: &Buffer, visible_range: LineRange) -> Vec<Token> {
         let mut jump_tokens = Vec::new();
         let mut current_position = Position{ line: 0, offset: 0 };
 
@@ -50,7 +53,9 @@ impl JumpMode {
         // Restart tags from the beginning.
         self.tag_generator.reset();
 
-        for token in tokens {
+        let mut single_characters = SingleCharacterTagGenerator::new();
+
+        for token in buffer.tokens() {
             // Split the token's lexeme on whitespace. Comments and strings are the most
             // notable examples of tokens with whitespace; we want to be able to jump to
             // points within these.
@@ -74,7 +79,7 @@ impl JumpMode {
 
                 } else {
                     // Don't tag tokens that are too small.
-                    if subtoken.lexeme.len() < 2 || !visible_range.includes(current_position.line) {
+                    if (!self.line_mode && subtoken.lexeme.len() < 2) || !visible_range.includes(current_position.line) {
                         jump_tokens.push(Token {
                             lexeme: subtoken.lexeme.to_string(),
                             category: Category::Text,
@@ -84,27 +89,59 @@ impl JumpMode {
                     } else {
                         // Try to get a tag that we'll use to create
                         // a jump location for this token.
-                        match self.tag_generator.next() {
-                            Some(tag) => {
-                                // Split the token in two: a leading jump
-                                // token and the rest as regular text.
-                                jump_tokens.push(Token {
-                                    lexeme: tag.clone(),
-                                    category: Category::Keyword,
-                                });
-                                jump_tokens.push(Token {
-                                    lexeme: subtoken.lexeme.chars().skip(2).collect(),
-                                    category: Category::Text,
-                                });
+                        if self.line_mode {
+                            if current_position.line >= buffer.cursor.line {
+                                match single_characters.next() {
+                                    Some(tag) => {
+                                        // Split the token in two: a leading jump
+                                        // token and the rest as regular text.
+                                        jump_tokens.push(Token {
+                                            lexeme: tag.clone(),
+                                            category: Category::Keyword,
+                                        });
+                                        jump_tokens.push(Token {
+                                            lexeme: subtoken.lexeme.chars().skip(1).collect(),
+                                            category: Category::Text,
+                                        });
 
-                                // Track the location of this tag.
-                                self.tag_positions.insert(tag, current_position);
-                            }
-                            // We've run out of tags; just push the token.
-                            None => {
+                                        // Track the location of this tag.
+                                        self.tag_positions.insert(tag, current_position);
+                                    }
+                                    // We've run out of tags; just push the token.
+                                    None => {
+                                        let mut cloned_token = token.clone();
+                                        cloned_token.lexeme = subtoken.lexeme.to_string();
+                                        jump_tokens.push(cloned_token);
+                                    }
+                                }
+                            } else {
                                 let mut cloned_token = token.clone();
                                 cloned_token.lexeme = subtoken.lexeme.to_string();
                                 jump_tokens.push(cloned_token);
+                            }
+                        } else {
+                            match self.tag_generator.next() {
+                                Some(tag) => {
+                                    // Split the token in two: a leading jump
+                                    // token and the rest as regular text.
+                                    jump_tokens.push(Token {
+                                        lexeme: tag.clone(),
+                                        category: Category::Keyword,
+                                    });
+                                    jump_tokens.push(Token {
+                                        lexeme: subtoken.lexeme.chars().skip(2).collect(),
+                                        category: Category::Text,
+                                    });
+
+                                    // Track the location of this tag.
+                                    self.tag_positions.insert(tag, current_position);
+                                }
+                                // We've run out of tags; just push the token.
+                                None => {
+                                    let mut cloned_token = token.clone();
+                                    cloned_token.lexeme = subtoken.lexeme.to_string();
+                                    jump_tokens.push(cloned_token);
+                                }
                             }
                         }
 
