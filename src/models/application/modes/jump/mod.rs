@@ -84,16 +84,12 @@ impl JumpMode {
 
                     match tag {
                         Some(tag) => {
-                            // Split the token in two: a leading jump
-                            // token and the rest as regular text.
-                            jump_tokens.push(Token {
-                                lexeme: tag.clone(),
-                                category: Category::Keyword,
-                            });
-                            jump_tokens.push(Token {
-                                lexeme: subtoken.lexeme.chars().skip(tag.len()).collect(),
-                                category: Category::Text,
-                            });
+                            let (token1, token2) = split_token(
+                                tag.clone(),
+                                &subtoken.lexeme
+                            );
+                            jump_tokens.push(token1);
+                            jump_tokens.push(token2);
 
                             // Track the location of this tag.
                             self.tag_positions.insert(tag, current_position);
@@ -118,6 +114,21 @@ impl JumpMode {
     pub fn map_tag(&self, tag: &str) -> Option<&Position> {
         self.tag_positions.get(tag)
     }
+}
+
+// Split the token in two: a leading jump token and the rest as regular text.
+fn split_token(tag: String, lexeme: &str) -> (Token, Token) {
+    let tag_len = tag.len();
+    (
+        Token {
+            lexeme: tag,
+            category: Category::Keyword,
+        },
+        Token {
+            lexeme: lexeme.chars().skip(tag_len).collect(),
+            category: Category::Text,
+        }
+    )
 }
 
 #[cfg(test)]
