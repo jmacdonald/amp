@@ -99,10 +99,11 @@ impl JumpMode {
                             self.tag_positions.insert(tag, current_position);
                         }
                         None => {
-                            // No tag; just push the token as-is.
-                            let mut cloned_token = token.clone();
-                            cloned_token.lexeme = subtoken.lexeme.to_string();
-                            jump_tokens.push(cloned_token);
+                            // No tag; just push the subtoken plain text.
+                            jump_tokens.push(Token{
+                                lexeme: subtoken.lexeme.clone(),
+                                category: Category::Text
+                            });
                         }
                     }
 
