@@ -11,7 +11,7 @@ dependencies = [
  "pad 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.66 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustbox 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "scribe 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "scribe 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -376,7 +376,7 @@ dependencies = [
 
 [[package]]
 name = "scribe"
-version = "0.4.9"
+version = "0.4.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "luthor 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",

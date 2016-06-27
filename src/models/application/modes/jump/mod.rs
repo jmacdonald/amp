@@ -3,7 +3,7 @@ mod single_character_tag_generator;
 
 use std::collections::HashMap;
 use helpers::movement_lexer;
-use scribe::buffer::{Buffer, Position, Token, LineRange, Category};
+use scribe::buffer::{Buffer, Distance, Position, Token, LineRange, Category};
 use models::application::modes::select::SelectMode;
 use models::application::modes::select_line::SelectLineMode;
 use self::tag_generator::TagGenerator;
@@ -59,17 +59,8 @@ impl JumpMode {
             let subtokens = movement_lexer::lex(&token.lexeme);
             for subtoken in subtokens {
                 if subtoken.category == Category::Whitespace {
-                    // Handle line breaks inside of whitespace tokens.
-                    let subtoken_newlines = subtoken.lexeme.chars().filter(|&c| c == '\n').count();
-                    if subtoken_newlines > 0 {
-                        current_position.line += subtoken_newlines;
-                        current_position.offset = match subtoken.lexeme.split('\n').last() {
-                            Some(l) => l.len(),
-                            None => 0,
-                        };
-                    } else {
-                        current_position.offset += subtoken.lexeme.len();
-                    }
+                    // Advance beyond this subtoken.
+                    current_position.add(&Distance::from_str(&subtoken.lexeme));
 
                     // We don't do anything to whitespace tokens.
                     jump_tokens.push(subtoken);
