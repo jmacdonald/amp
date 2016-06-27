@@ -14,7 +14,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &mut JumpMode, view: &mut View
         let visible_range = view.visible_region(buf).visible_range();
 
         // Add jump points to the tokens.
-        let jump_tokens = mode.tokens(&buf, visible_range);
+        let jump_tokens = mode.tokens(&buf.tokens(), visible_range, buf.cursor.line);
 
         // Draw the visible set of tokens to the terminal.
         view.draw_buffer(buf, None, Some(jump_tokens));

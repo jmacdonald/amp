@@ -3,7 +3,7 @@ mod single_character_tag_generator;
 
 use std::collections::HashMap;
 use helpers::movement_lexer;
-use scribe::buffer::{Buffer, Distance, Position, Token, LineRange, Category};
+use scribe::buffer::{Distance, Position, Token, LineRange, Category};
 use models::application::modes::select::SelectMode;
 use models::application::modes::select_line::SelectLineMode;
 use self::tag_generator::TagGenerator;
@@ -42,7 +42,7 @@ impl JumpMode {
     //
     // We also track jump tag locations so that tags can be
     // resolved to positions for performing the actual jump later on.
-    pub fn tokens(&mut self, buffer: &Buffer, visible_range: LineRange) -> Vec<Token> {
+    pub fn tokens(&mut self, tokens: &Vec<Token>, visible_range: LineRange, cursor_line: usize) -> Vec<Token> {
         let mut jump_tokens = Vec::new();
         let mut current_position = Position{ line: 0, offset: 0 };
 
@@ -52,7 +52,7 @@ impl JumpMode {
         let mut tag_generator = TagGenerator::new();
         let mut single_characters = SingleCharacterTagGenerator::new();
 
-        for token in buffer.tokens() {
+        for token in tokens {
             // Split the token's lexeme on whitespace. Comments and strings are the most
             // notable examples of tokens with whitespace; we want to be able to jump to
             // points within these.
@@ -69,7 +69,7 @@ impl JumpMode {
                     let tag = if !visible_range.includes(current_position.line) {
                         None // token is off-screen
                     } else if self.line_mode {
-                        if current_position.line >= buffer.cursor.line {
+                        if current_position.line >= cursor_line {
                             single_characters.next()
                         } else {
                             None // We haven't reached the cursor yet.
@@ -139,6 +139,8 @@ mod tests {
     #[test]
     fn tokens_returns_the_correct_tokens() {
         let mut jump_mode = JumpMode::new();
+        jump_mode.line_mode = false;
+
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
             Token{ lexeme: " ".to_string(), category: Category::Whitespace},
@@ -153,7 +155,7 @@ mod tests {
             Token{ lexeme: "p".to_string(), category: Category::Text},
         ];
 
-        let result = jump_mode.tokens(&source_tokens, LineRange::new(0, 100));
+        let result = jump_mode.tokens(&source_tokens, LineRange::new(0, 100), 0);
         for (index, token) in expected_tokens.iter().enumerate() {
             assert_eq!(*token, result[index]);
         }
@@ -162,6 +164,8 @@ mod tests {
     #[test]
     fn tokens_splits_passed_tokens_on_whitespace() {
         let mut jump_mode = JumpMode::new();
+        jump_mode.line_mode = false;
+
         let source_tokens = vec![
             Token{ lexeme: "# comment string".to_string(), category: Category::Comment},
         ];
@@ -176,7 +180,7 @@ mod tests {
             Token{ lexeme: "ring".to_string(), category: Category::Text},
         ];
 
-        let result = jump_mode.tokens(&source_tokens, LineRange::new(0, 100));
+        let result = jump_mode.tokens(&source_tokens, LineRange::new(0, 100), 0);
         for (index, token) in expected_tokens.iter().enumerate() {
             assert_eq!(*token, result[index]);
         }
@@ -185,6 +189,8 @@ mod tests {
     #[test]
     fn tokens_tracks_the_positions_of_each_jump_token() {
         let mut jump_mode = JumpMode::new();
+        jump_mode.line_mode = false;
+
         let source_tokens = vec![
             // Adding space to a token invokes subtoken handling, since we split
             // tokens on whitespace. It's important to ensure the tracked positions
@@ -199,7 +205,7 @@ mod tests {
             Token{ lexeme: " ".to_string(), category: Category::Whitespace},
             Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
         ];
-        jump_mode.tokens(&source_tokens, LineRange::new(0, 100));
+        jump_mode.tokens(&source_tokens, LineRange::new(0, 100), 0);
 
         assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(),
                    Position {
@@ -226,37 +232,43 @@ mod tests {
     #[test]
     fn tokens_restarts_tags_on_each_invocation() {
         let mut jump_mode = JumpMode::new();
+        jump_mode.line_mode = false;
+
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
         ];
-        jump_mode.tokens(&source_tokens, LineRange::new(0, 100));
-        let results = jump_mode.tokens(&source_tokens, LineRange::new(0, 100));
+        jump_mode.tokens(&source_tokens, LineRange::new(0, 100), 0);
+        let results = jump_mode.tokens(&source_tokens, LineRange::new(0, 100), 0);
         assert_eq!(results[0].lexeme, "aa");
     }
 
     #[test]
     fn tokens_clears_tracked_positions_on_each_invocation() {
         let mut jump_mode = JumpMode::new();
+        jump_mode.line_mode = false;
+
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
             Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
         ];
-        jump_mode.tokens(&source_tokens, LineRange::new(0, 100));
-        jump_mode.tokens(&vec![], LineRange::new(0, 100));
+        jump_mode.tokens(&source_tokens, LineRange::new(0, 100), 0);
+        jump_mode.tokens(&vec![], LineRange::new(0, 100), 0);
         assert!(jump_mode.tag_positions.is_empty());
     }
 
     #[test]
     fn tokens_only_adds_tags_to_visible_range() {
         let mut jump_mode = JumpMode::new();
+        jump_mode.line_mode = false;
+
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
             Token{ lexeme: "Amp\n".to_string(), category: Category::Identifier},
             Token{ lexeme: "data".to_string(), category: Category::Identifier},
         ];
-        jump_mode.tokens(&source_tokens, LineRange::new(1, 2));
+        jump_mode.tokens(&source_tokens, LineRange::new(1, 2), 0);
         assert_eq!(jump_mode.tag_positions.len(), 1);
         assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(),
                    Position {
@@ -268,6 +280,7 @@ mod tests {
     #[test]
     fn tokens_can_handle_unicode_data() {
         let mut jump_mode = JumpMode::new();
+        jump_mode.line_mode = false;
 
         // It's important to put the unicode character as the
         // second character to ensure splitting off the first
@@ -277,18 +290,20 @@ mod tests {
         ];
 
         // This will panic and cause the test to fail.
-        jump_mode.tokens(&source_tokens, LineRange::new(0, 100));
+        jump_mode.tokens(&source_tokens, LineRange::new(0, 100), 0);
     }
 
     #[test]
     fn map_tag_returns_position_when_available() {
         let mut jump_mode = JumpMode::new();
+        jump_mode.line_mode = false;
+
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
             Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace},
             Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
         ];
-        jump_mode.tokens(&source_tokens, LineRange::new(0, 100));
+        jump_mode.tokens(&source_tokens, LineRange::new(0, 100), 0);
         assert_eq!(jump_mode.map_tag("ab"),
                    Some(&Position {
                        line: 1,
