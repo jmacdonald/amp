@@ -6,8 +6,8 @@ pub fn handle(mode: &mut JumpMode, input: Key) -> Option<Command> {
     match input {
         Key::Esc => Some(application::switch_to_normal_mode),
         Key::Char('f') => {
-          if mode.line_mode {
-              mode.line_mode = false;
+          if mode.first_phase {
+              mode.first_phase = false;
               None
           } else {
             // Add the input to whatever we've received in jump mode so far.

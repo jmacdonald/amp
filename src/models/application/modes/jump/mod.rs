@@ -19,7 +19,7 @@ pub enum SelectModeOptions {
 
 pub struct JumpMode {
     pub input: String,
-    pub line_mode: bool,
+    pub first_phase: bool,
     pub select_mode: SelectModeOptions,
     tag_positions: HashMap<String, Position>,
 }
@@ -28,7 +28,7 @@ impl JumpMode {
     pub fn new() -> JumpMode {
         JumpMode {
             input: String::new(),
-            line_mode: true,
+            first_phase: true,
             select_mode: SelectModeOptions::None,
             tag_positions: HashMap::new(),
         }
@@ -68,7 +68,7 @@ impl JumpMode {
                 } else {
                     let tag = if !visible_range.includes(current_position.line) {
                         None // token is off-screen
-                    } else if self.line_mode {
+                    } else if self.first_phase {
                         if current_position.line >= cursor_line {
                             single_characters.next()
                         } else {
@@ -139,7 +139,7 @@ mod tests {
     #[test]
     fn tokens_returns_the_correct_tokens() {
         let mut jump_mode = JumpMode::new();
-        jump_mode.line_mode = false;
+        jump_mode.first_phase = false;
 
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
@@ -164,7 +164,7 @@ mod tests {
     #[test]
     fn tokens_splits_passed_tokens_on_whitespace() {
         let mut jump_mode = JumpMode::new();
-        jump_mode.line_mode = false;
+        jump_mode.first_phase = false;
 
         let source_tokens = vec![
             Token{ lexeme: "# comment string".to_string(), category: Category::Comment},
@@ -189,7 +189,7 @@ mod tests {
     #[test]
     fn tokens_tracks_the_positions_of_each_jump_token() {
         let mut jump_mode = JumpMode::new();
-        jump_mode.line_mode = false;
+        jump_mode.first_phase = false;
 
         let source_tokens = vec![
             // Adding space to a token invokes subtoken handling, since we split
@@ -232,7 +232,7 @@ mod tests {
     #[test]
     fn tokens_restarts_tags_on_each_invocation() {
         let mut jump_mode = JumpMode::new();
-        jump_mode.line_mode = false;
+        jump_mode.first_phase = false;
 
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
@@ -245,7 +245,7 @@ mod tests {
     #[test]
     fn tokens_clears_tracked_positions_on_each_invocation() {
         let mut jump_mode = JumpMode::new();
-        jump_mode.line_mode = false;
+        jump_mode.first_phase = false;
 
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
@@ -260,7 +260,7 @@ mod tests {
     #[test]
     fn tokens_only_adds_tags_to_visible_range() {
         let mut jump_mode = JumpMode::new();
-        jump_mode.line_mode = false;
+        jump_mode.first_phase = false;
 
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},
@@ -280,7 +280,7 @@ mod tests {
     #[test]
     fn tokens_can_handle_unicode_data() {
         let mut jump_mode = JumpMode::new();
-        jump_mode.line_mode = false;
+        jump_mode.first_phase = false;
 
         // It's important to put the unicode character as the
         // second character to ensure splitting off the first
@@ -296,7 +296,7 @@ mod tests {
     #[test]
     fn map_tag_returns_position_when_available() {
         let mut jump_mode = JumpMode::new();
-        jump_mode.line_mode = false;
+        jump_mode.first_phase = false;
 
         let source_tokens = vec![
             Token{ lexeme: "class".to_string(), category: Category::Keyword},

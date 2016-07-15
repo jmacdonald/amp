@@ -20,7 +20,7 @@ impl Iterator for SingleCharacterTagGenerator {
         } else {
             self.index += 1;
 
-            // Skip f character (invalid token; used to leave line_mode).
+            // Skip f character (invalid token; used to leave first_phase).
             if self.index == 102 {
                 self.index += 1;
             }

@@ -9,7 +9,7 @@ pub fn match_tag(app: &mut Application) {
         match jump_mode.input.len() {
             0 => return, // Not enough data to match to a position.
             1 => {
-                if jump_mode.line_mode {
+                if jump_mode.first_phase {
                     jump_to_tag(jump_mode, &mut app.workspace);
                 } else {
                     return // Not enough data to match to a position.
