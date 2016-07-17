@@ -56,6 +56,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Ctrl('c') => Some(application::exit),
         Key::Char('Q') => Some(application::exit),
         Key::Ctrl('r') => Some(buffer::reload),
+        Key::Char('B') => Some(workspace::new_buffer),
         Key::Tab => Some(workspace::next_buffer),
         Key::Backspace => Some(buffer::backspace),
         _ => None,
