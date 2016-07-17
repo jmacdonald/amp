@@ -4,6 +4,8 @@ pub struct SearchInsertMode {
     pub input: String,
 }
 
-pub fn new() -> SearchInsertMode {
-    SearchInsertMode { input: String::new() }
+impl SearchInsertMode {
+    pub fn new() -> SearchInsertMode {
+        SearchInsertMode { input: String::new() }
+    }
 }

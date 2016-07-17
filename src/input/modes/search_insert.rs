@@ -1,4 +1,4 @@
-use models::application::modes::search_insert::SearchInsertMode;
+use models::application::modes::SearchInsertMode;
 use commands::{Command, application, search};
 use rustbox::keyboard::Key;
 

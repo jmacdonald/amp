@@ -10,14 +10,7 @@ pub use self::clipboard::ClipboardContent;
 
 use std::env;
 use std::path::PathBuf;
-use self::modes::jump::JumpMode;
-use self::modes::line_jump::LineJumpMode;
-use self::modes::symbol_jump::SymbolJumpMode;
-use self::modes::insert::InsertMode;
-use self::modes::open::OpenMode;
-use self::modes::select::SelectMode;
-use self::modes::select_line::SelectLineMode;
-use self::modes::search_insert::SearchInsertMode;
+use self::modes::{JumpMode, LineJumpMode, SymbolJumpMode, InsertMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode};
 use scribe::{Buffer, Workspace};
 use view::View;
 use self::clipboard::Clipboard;

@@ -2,7 +2,7 @@ extern crate scribe;
 
 use scribe::buffer::{Buffer, Position};
 use view::{StatusLineData, View};
-use models::application::modes::search_insert::SearchInsertMode;
+use models::application::modes::SearchInsertMode;
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &SearchInsertMode, view: &mut View) {
     // Wipe the slate clean.

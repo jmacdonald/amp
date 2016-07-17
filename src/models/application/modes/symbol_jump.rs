@@ -6,8 +6,6 @@ use helpers::SelectableSet;
 use std::fmt;
 use std::clone::Clone;
 
-pub const MAX_RESULTS: usize = 5;
-
 pub struct SymbolJumpMode {
     pub insert: bool,
     pub input: String,
@@ -38,6 +36,8 @@ impl Clone for Symbol {
 }
 
 impl SymbolJumpMode {
+    pub const MAX_RESULTS: usize = 5;
+
     pub fn new(tokens: Vec<Token>) -> SymbolJumpMode {
         let symbols = symbols(tokens);
 
@@ -55,7 +55,7 @@ impl SymbolJumpMode {
 
     pub fn search(&mut self) {
         // Find the symbols we're looking for using the query.
-        let results = fragment::matching::find(&self.input, &self.symbols, MAX_RESULTS);
+        let results = fragment::matching::find(&self.input, &self.symbols, SymbolJumpMode::MAX_RESULTS);
 
         // We don't care about the result objects; we just want
         // the underlying symbols. Map the collection to get these.

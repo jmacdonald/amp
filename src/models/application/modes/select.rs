@@ -6,6 +6,8 @@ pub struct SelectMode {
     pub anchor: Position,
 }
 
-pub fn new(anchor: Position) -> SelectMode {
-    SelectMode { anchor: anchor }
+impl SelectMode {
+    pub fn new(anchor: Position) -> SelectMode {
+        SelectMode { anchor: anchor }
+    }
 }

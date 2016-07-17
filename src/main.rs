@@ -1,3 +1,5 @@
+#![feature(associated_consts)]
+
 extern crate git2;
 extern crate luthor;
 extern crate pad;

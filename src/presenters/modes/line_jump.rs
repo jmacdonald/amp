@@ -2,7 +2,7 @@ extern crate scribe;
 
 use scribe::buffer::{Buffer, Position};
 use view::{StatusLineData, View};
-use models::application::modes::line_jump::LineJumpMode;
+use models::application::modes::LineJumpMode;
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &LineJumpMode, view: &mut View) {
     // Wipe the slate clean.

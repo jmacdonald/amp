@@ -7,11 +7,11 @@ pub struct SelectLineMode {
 }
 
 impl SelectLineMode {
+    pub fn new(anchor: usize) -> SelectLineMode {
+        SelectLineMode { anchor: anchor }
+    }
+
     pub fn to_range(&self, cursor: &Position) -> Range {
         LineRange::new(self.anchor, cursor.line).to_inclusive_range()
     }
-}
-
-pub fn new(anchor: usize) -> SelectLineMode {
-    SelectLineMode { anchor: anchor }
 }

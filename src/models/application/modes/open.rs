@@ -4,8 +4,6 @@ use std::path::PathBuf;
 use helpers::SelectableSet;
 use self::bloodhound::Index;
 
-pub const MAX_RESULTS: usize = 5;
-
 pub struct OpenMode {
     pub insert: bool,
     pub input: String,
@@ -14,6 +12,8 @@ pub struct OpenMode {
 }
 
 impl OpenMode {
+    pub const MAX_RESULTS: usize = 5;
+
     pub fn new(path: PathBuf) -> OpenMode {
         // Build and populate the index.
         let mut index = Index::new(path);
@@ -33,7 +33,7 @@ impl OpenMode {
 
     pub fn search(&mut self) {
         let results = self.index.find(&self.input, // The query string (needle).
-                                      MAX_RESULTS /* Limit the amount of returned results. */);
+                                      OpenMode::MAX_RESULTS /* Limit the amount of returned results. */);
         self.results = SelectableSet::new(results);
     }
 }

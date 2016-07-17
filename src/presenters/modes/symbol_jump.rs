@@ -3,7 +3,6 @@ extern crate scribe;
 
 use std::cmp;
 use models::application::modes::SymbolJumpMode;
-use models::application::modes::symbol_jump::MAX_RESULTS;
 use pad::PadStr;
 use presenters::{buffer_status_line_data};
 use rustbox::Color;
@@ -67,7 +66,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SymbolJumpMode, view: &mut Vi
     }
 
     // Draw the divider.
-    let line = MAX_RESULTS;
+    let line = SymbolJumpMode::MAX_RESULTS;
     let (foreground_color, background_color) = if mode.insert {
         (Color::White, Color::Green)
     } else {

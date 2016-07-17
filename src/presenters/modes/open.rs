@@ -4,7 +4,6 @@ extern crate scribe;
 
 use std::cmp;
 use models::application::modes::OpenMode;
-use models::application::modes::open::MAX_RESULTS;
 use pad::PadStr;
 use presenters::{buffer_status_line_data};
 use rustbox::Color;
@@ -67,7 +66,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
     }
 
     // Draw the divider.
-    let line = MAX_RESULTS;
+    let line = OpenMode::MAX_RESULTS;
     let (foreground_color, background_color) = if mode.insert {
         (Color::White, Color::Green)
     } else {
@@ -83,7 +82,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
 
     // Place the cursor on the search input line, right after its contents.
     view.set_cursor(Some(Position {
-        line: MAX_RESULTS,
+        line: OpenMode::MAX_RESULTS,
         offset: mode.input.len(),
     }));
 

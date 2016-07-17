@@ -3,7 +3,7 @@ extern crate scribe;
 use presenters::{buffer_status_line_data};
 use scribe::Buffer;
 use view::{StatusLineData, View};
-use models::application::modes::jump::JumpMode;
+use models::application::modes::JumpMode;
 use rustbox::Color;
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &mut JumpMode, view: &mut View) {

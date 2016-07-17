@@ -1,7 +1,7 @@
 extern crate rustbox;
 extern crate scribe;
 
-use models::application::modes::select::SelectMode;
+use models::application::modes::SelectMode;
 use scribe::buffer::{Buffer, Range};
 use presenters::{buffer_status_line_data};
 use view::{StatusLineData, View};

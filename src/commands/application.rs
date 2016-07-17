@@ -3,8 +3,7 @@ extern crate libc;
 use commands;
 use std::mem;
 use models::application::{Application, Mode};
-use models::application::modes::{insert, jump, line_jump, select, select_line, search_insert};
-use models::application::modes::{JumpMode, OpenMode, SymbolJumpMode};
+use models::application::modes::{jump, InsertMode, JumpMode, LineJumpMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode, SymbolJumpMode};
 
 pub fn switch_to_normal_mode(app: &mut Application) {
     commands::buffer::end_command_group(app);
@@ -13,7 +12,7 @@ pub fn switch_to_normal_mode(app: &mut Application) {
 pub fn switch_to_insert_mode(app: &mut Application) {
     if app.workspace.current_buffer().is_some() {
         commands::buffer::start_command_group(app);
-        app.mode = Mode::Insert(insert::new());
+        app.mode = Mode::Insert(InsertMode::new());
         commands::view::scroll_to_cursor(app);
     }
 }
@@ -56,7 +55,7 @@ pub fn switch_to_jump_mode(app: &mut Application) {
 
 pub fn switch_to_line_jump_mode(app: &mut Application) {
     if app.workspace.current_buffer().is_some() {
-        app.mode = Mode::LineJump(line_jump::new());
+        app.mode = Mode::LineJump(LineJumpMode::new());
     }
 }
 
@@ -74,21 +73,21 @@ pub fn switch_to_symbol_jump_mode(app: &mut Application) {
 
 pub fn switch_to_select_mode(app: &mut Application) {
     if let Some(buffer) = app.workspace.current_buffer() {
-        app.mode = Mode::Select(select::new(*buffer.cursor.clone()));
+        app.mode = Mode::Select(SelectMode::new(*buffer.cursor.clone()));
     }
     commands::view::scroll_to_cursor(app);
 }
 
 pub fn switch_to_select_line_mode(app: &mut Application) {
     if let Some(buffer) = app.workspace.current_buffer() {
-        app.mode = Mode::SelectLine(select_line::new(buffer.cursor.line));
+        app.mode = Mode::SelectLine(SelectLineMode::new(buffer.cursor.line));
     }
     commands::view::scroll_to_cursor(app);
 }
 
 pub fn switch_to_search_insert_mode(app: &mut Application) {
     if app.workspace.current_buffer().is_some() {
-        app.mode = Mode::SearchInsert(search_insert::new());
+        app.mode = Mode::SearchInsert(SearchInsertMode::new());
     }
 }
 

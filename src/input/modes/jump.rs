@@ -1,4 +1,4 @@
-use models::application::modes::jump::JumpMode;
+use models::application::modes::JumpMode;
 use commands::{Command, application, jump_mode};
 use rustbox::keyboard::Key;
 
