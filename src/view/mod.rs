@@ -182,6 +182,14 @@ impl View {
             }
         }
 
+        // Check if we've arrived at the buffer's cursor position,
+        // at which point we can set it relative to the screen,
+        // which will compensate for scrolling, tab expansion, etc.
+        if *buffer.cursor == buffer_position {
+          cursor_visible = true;
+          self.set_cursor(Some(screen_position));
+        }
+
         // If the cursor was never rendered along with the buffer, we
         // should clear it to prevent its previous value from persisting.
         if !cursor_visible {
