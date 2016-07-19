@@ -121,10 +121,26 @@ pub fn insert_with_newline(app: &mut Application) {
 }
 
 pub fn insert_with_newline_above(app: &mut Application) {
+    // Build the new line's indent based on the current line.
+    let mut content = String::new();
+    if let Some(buf) = app.workspace.current_buffer() {
+        if let Some(line) = buf.data().lines().nth(buf.cursor.line) {
+            for character in line.chars() {
+                if character.is_whitespace() {
+                    content.push(character);
+                } else {
+                    break;
+                }
+            }
+        }
+    };
+
     move_to_start_of_line(app);
     buffer::start_command_group(app);
     buffer::insert_newline(app);
     commands::cursor::move_up(app);
+    app.workspace.current_buffer().map(|b| b.insert(content));
+    move_to_end_of_line(app);
     application::switch_to_insert_mode(app);
     commands::view::scroll_to_cursor(app);
 }
