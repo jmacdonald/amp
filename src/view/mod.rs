@@ -7,7 +7,7 @@ mod data;
 mod color;
 
 // Published API
-pub use self::data::{BufferData, StatusLineData};
+pub use self::data::StatusLineData;
 
 use self::terminal::Terminal;
 use scribe::buffer::{Buffer, Position, Range, Token};

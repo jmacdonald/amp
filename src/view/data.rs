@@ -1,14 +1,6 @@
 use rustbox::{Color, Style};
 use scribe::buffer::{Position, Range, Token};
 
-pub struct BufferData {
-    pub tokens: Option<Vec<Token>>,
-    pub cursor: Option<Position>,
-    pub highlight: Option<Range>,
-    pub line_count: usize,
-    pub scrolling_offset: usize,
-}
-
 pub struct StatusLineData {
     pub content: String,
     pub style: Option<Style>,
