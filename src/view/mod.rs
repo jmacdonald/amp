@@ -45,6 +45,26 @@ impl View {
         }
     }
 
+    /// Renders the app name, version and copyright info to the screen.
+    pub fn draw_splash_screen(&mut self) {
+        let title = "Amp v0.1";
+        let copyright = "© 2015-2016 Jordan MacDonald";
+
+        self.print(self.width() / 2 - title.chars().count() / 2,
+                        self.height() / 2 - 1,
+                        rustbox::RB_NORMAL,
+                        Color::Default,
+                        Color::Default,
+                        &title);
+
+        self.print(self.width() / 2 - copyright.chars().count() / 2,
+                        self.height() / 2,
+                        rustbox::RB_NORMAL,
+                        Color::Default,
+                        Color::Default,
+                        &copyright);
+    }
+
     pub fn draw_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>, alt_tokens: Option<Vec<Token>>) {
         let mut buffer_position = Position{ line: 0, offset: 0 };
         let mut screen_position = Position{ line: 0, offset: 0 };

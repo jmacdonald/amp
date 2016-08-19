@@ -38,6 +38,8 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View, repo: &Option<Repos
         // Draw the status line.
         view.draw_status_line(&status_line_data);
     } else {
+        view.draw_splash_screen();
+
         // There's no buffer; clear the cursor.
         view.set_cursor(None);
     }
