@@ -1,7 +1,8 @@
 extern crate fragment;
 extern crate scribe;
 
-use scribe::buffer::{Category, Position, Token};
+use luthor::token::{Category, Token};
+use scribe::buffer::Position;
 use helpers::SelectableSet;
 use std::fmt;
 use std::clone::Clone;

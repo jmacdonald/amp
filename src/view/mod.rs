@@ -10,6 +10,7 @@ mod color;
 pub use self::data::StatusLineData;
 
 use self::terminal::Terminal;
+use luthor;
 use scribe::buffer::{Buffer, Position, Range, Token};
 use pad::PadStr;
 use rustbox::{Color, Event, Style};
@@ -45,19 +46,11 @@ impl View {
         }
     }
 
-    pub fn draw_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>, alt_tokens: Option<Vec<Token>>) {
+    pub fn draw_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>, alt_tokens: Option<Vec<luthor::token::Token>>) {
         let mut buffer_position = Position{ line: 0, offset: 0 };
         let mut screen_position = Position{ line: 0, offset: 0 };
         let scroll_offset = self.visible_region(buffer).line_offset();
         let mut cursor_visible = false;
-
-        // Use alternative tokens if available,
-        // falling back to buffer tokens, otherwise.
-        let tokens = if let Some(alt) = alt_tokens {
-            alt
-        } else {
-            buffer.tokens()
-        };
 
         // Determine the gutter size based on the number of lines.
         let line_number_width = buffer.line_count().to_string().len() + 1;
@@ -67,133 +60,135 @@ impl View {
         // Others will be drawn following newline characters.
         screen_position.offset = self.draw_line_number(0, scroll_offset + 1, buffer.cursor.line == scroll_offset, line_number_width);
 
-        'print: for token in tokens.iter() {
-            let token_color = color::map(&token.category);
+        if let Some(tokens) = buffer.tokens() {
+            'print: for token in tokens.iter() {
+                let token_color = color::map(&token.scope);
 
-            for character in token.lexeme.chars() {
-                // Skip past any buffer content the view has scrolled beyond.
-                if buffer_position.line < scroll_offset {
-                    if character == '\n' {
-                        buffer_position.line += 1;
-                    }
-
-                    continue;
-                }
-
-                // Check if we've arrived at the buffer's cursor position,
-                // at which point we can set it relative to the screen,
-                // which will compensate for scrolling, tab expansion, etc.
-                if *buffer.cursor == buffer_position {
-                  cursor_visible = true;
-                  self.set_cursor(Some(screen_position));
-                }
-
-                let (style, color) = match highlight {
-                    Some(ref highlight_range) => {
-                        if highlight_range.includes(&buffer_position) {
-                            (rustbox::RB_REVERSE, Color::Default)
-                        } else {
-                            (rustbox::RB_NORMAL, token_color)
+                for character in token.lexeme.chars() {
+                    // Skip past any buffer content the view has scrolled beyond.
+                    if buffer_position.line < scroll_offset {
+                        if character == '\n' {
+                            buffer_position.line += 1;
                         }
-                    }
-                    None => (rustbox::RB_NORMAL, token_color),
-                };
 
-                let background_color =
-                    if buffer_position.line == buffer.cursor.line {
-                        self.alt_background_color()
-                    } else {
-                        Color::Default
+                        continue;
+                    }
+
+                    // Check if we've arrived at the buffer's cursor position,
+                    // at which point we can set it relative to the screen,
+                    // which will compensate for scrolling, tab expansion, etc.
+                    if *buffer.cursor == buffer_position {
+                      cursor_visible = true;
+                      self.set_cursor(Some(screen_position));
+                    }
+
+                    let (style, color) = match highlight {
+                        Some(ref highlight_range) => {
+                            if highlight_range.includes(&buffer_position) {
+                                (rustbox::RB_REVERSE, Color::Default)
+                            } else {
+                                (rustbox::RB_NORMAL, token_color)
+                            }
+                        }
+                        None => (rustbox::RB_NORMAL, token_color),
                     };
 
-                if character == '\n' {
-                    // Print the rest of the line highlight.
-                    if buffer_position.line == buffer.cursor.line {
-                        for offset in screen_position.offset..self.width() {
-                            self.print_char(offset,
+                    let background_color =
+                        if buffer_position.line == buffer.cursor.line {
+                            self.alt_background_color()
+                        } else {
+                            Color::Default
+                        };
+
+                    if character == '\n' {
+                        // Print the rest of the line highlight.
+                        if buffer_position.line == buffer.cursor.line {
+                            for offset in screen_position.offset..self.width() {
+                                self.print_char(offset,
+                                                screen_position.line,
+                                                style,
+                                                Color::Default,
+                                                self.alt_background_color(),
+                                                ' ');
+                            }
+                        }
+
+                        // Print the length guide for this line.
+                        let absolute_length_guide_offset =
+                          gutter_width + LINE_LENGTH_GUIDE_OFFSET;
+                        if screen_position.offset <= absolute_length_guide_offset {
+                            self.print_char(absolute_length_guide_offset,
                                             screen_position.line,
-                                            style,
+                                            rustbox::RB_NORMAL,
                                             Color::Default,
                                             self.alt_background_color(),
                                             ' ');
                         }
-                    }
 
-                    // Print the length guide for this line.
-                    let absolute_length_guide_offset =
-                      gutter_width + LINE_LENGTH_GUIDE_OFFSET;
-                    if screen_position.offset <= absolute_length_guide_offset {
-                        self.print_char(absolute_length_guide_offset,
-                                        screen_position.line,
-                                        rustbox::RB_NORMAL,
-                                        Color::Default,
-                                        self.alt_background_color(),
-                                        ' ');
-                    }
+                        // Advance to the next line.
+                        screen_position.line += 1;
+                        buffer_position.line += 1;
+                        buffer_position.offset = 0;
 
-                    // Advance to the next line.
-                    screen_position.line += 1;
-                    buffer_position.line += 1;
-                    buffer_position.offset = 0;
+                        // Don't print content below the screen.
+                        if screen_position.line == self.height() - 1 {
+                            break 'print;
+                        }
 
-                    // Don't print content below the screen.
-                    if screen_position.line == self.height() - 1 {
-                        break 'print;
-                    }
-
-                    // Draw leading line number for the new line.
-                    screen_position.offset = self.draw_line_number(screen_position.line, buffer_position.line + 1, buffer_position.line == buffer.cursor.line, line_number_width);
-                } else if LINE_WRAPPING && screen_position.offset == self.width() {
-                    screen_position.line += 1;
-                    screen_position.offset = gutter_width;
-                    self.print_char(screen_position.offset, screen_position.line, style, color, background_color, character);
-                    screen_position.offset += 1;
-                    buffer_position.offset += 1;
-                } else if character == '\t' {
-                    // Calculate the next tab stop using the tab-aware offset,
-                    // *without considering the line number gutter*, and then
-                    // re-add the gutter width to get the actual/screen offset.
-                    let buffer_tab_stop = next_tab_stop(screen_position.offset - gutter_width);
-                    let screen_tab_stop = buffer_tab_stop + gutter_width;
-
-                    // Print the sequence of spaces and move the offset accordingly.
-                    for _ in screen_position.offset..screen_tab_stop {
-                        self.print_char(screen_position.offset, screen_position.line, style, color, self.alt_background_color(), ' ');
+                        // Draw leading line number for the new line.
+                        screen_position.offset = self.draw_line_number(screen_position.line, buffer_position.line + 1, buffer_position.line == buffer.cursor.line, line_number_width);
+                    } else if LINE_WRAPPING && screen_position.offset == self.width() {
+                        screen_position.line += 1;
+                        screen_position.offset = gutter_width;
+                        self.print_char(screen_position.offset, screen_position.line, style, color, background_color, character);
                         screen_position.offset += 1;
+                        buffer_position.offset += 1;
+                    } else if character == '\t' {
+                        // Calculate the next tab stop using the tab-aware offset,
+                        // *without considering the line number gutter*, and then
+                        // re-add the gutter width to get the actual/screen offset.
+                        let buffer_tab_stop = next_tab_stop(screen_position.offset - gutter_width);
+                        let screen_tab_stop = buffer_tab_stop + gutter_width;
+
+                        // Print the sequence of spaces and move the offset accordingly.
+                        for _ in screen_position.offset..screen_tab_stop {
+                            self.print_char(screen_position.offset, screen_position.line, style, color, self.alt_background_color(), ' ');
+                            screen_position.offset += 1;
+                        }
+                        buffer_position.offset += 1;
+                    } else {
+                        self.print_char(screen_position.offset, screen_position.line, style, color, background_color, character);
+                        screen_position.offset += 1;
+                        buffer_position.offset += 1;
                     }
-                    buffer_position.offset += 1;
-                } else {
-                    self.print_char(screen_position.offset, screen_position.line, style, color, background_color, character);
-                    screen_position.offset += 1;
-                    buffer_position.offset += 1;
                 }
             }
-        }
 
-        // Print the rest of the line highlight.
-        if buffer_position.line == buffer.cursor.line {
-            for offset in screen_position.offset..self.width() {
-                self.print_char(offset,
-                                screen_position.line,
-                                rustbox::RB_NORMAL,
-                                Color::Default,
-                                self.alt_background_color(),
-                                ' ');
+            // Print the rest of the line highlight.
+            if buffer_position.line == buffer.cursor.line {
+                for offset in screen_position.offset..self.width() {
+                    self.print_char(offset,
+                                    screen_position.line,
+                                    rustbox::RB_NORMAL,
+                                    Color::Default,
+                                    self.alt_background_color(),
+                                    ' ');
+                }
             }
-        }
 
-        // Check if we've arrived at the buffer's cursor position,
-        // at which point we can set it relative to the screen,
-        // which will compensate for scrolling, tab expansion, etc.
-        if *buffer.cursor == buffer_position {
-          cursor_visible = true;
-          self.set_cursor(Some(screen_position));
-        }
+            // Check if we've arrived at the buffer's cursor position,
+            // at which point we can set it relative to the screen,
+            // which will compensate for scrolling, tab expansion, etc.
+            if *buffer.cursor == buffer_position {
+              cursor_visible = true;
+              self.set_cursor(Some(screen_position));
+            }
 
-        // If the cursor was never rendered along with the buffer, we
-        // should clear it to prevent its previous value from persisting.
-        if !cursor_visible {
-            self.set_cursor(None);
+            // If the cursor was never rendered along with the buffer, we
+            // should clear it to prevent its previous value from persisting.
+            if !cursor_visible {
+                self.set_cursor(None);
+            }
         }
     }
 

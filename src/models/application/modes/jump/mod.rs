@@ -3,7 +3,8 @@ mod single_character_tag_generator;
 
 use std::collections::HashMap;
 use helpers::movement_lexer;
-use scribe::buffer::{Distance, Position, Token, LineRange, Category};
+use luthor::token::{Category, Token};
+use scribe::buffer::{Distance, Position, LineRange};
 use models::application::modes::select::SelectMode;
 use models::application::modes::select_line::SelectLineMode;
 use self::tag_generator::TagGenerator;
