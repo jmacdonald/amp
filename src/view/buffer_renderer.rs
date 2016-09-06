@@ -107,7 +107,7 @@ impl<'a> BufferRenderer<'a> {
         }
     }
 
-    pub fn print_lexeme(&mut self, lexeme: Lexeme) -> bool {
+    pub fn print_lexeme(&mut self, lexeme: Lexeme) {
         let token_color = if let Some(ref scope) = lexeme.scope {
             color::map(scope)
         } else {
@@ -115,13 +115,6 @@ impl<'a> BufferRenderer<'a> {
         };
 
         for character in lexeme.value.chars() {
-            // Skip past any buffer content the view has scrolled beyond.
-            if self.buffer_position.line < self.scroll_offset {
-                continue;
-            } else if self.screen_position.line >= self.terminal.height() - 1 {
-                return true;
-            }
-
             // We should never run into newline
             // characters, but if we do, ignore them.
             if character == '\n' { continue; }
@@ -173,8 +166,14 @@ impl<'a> BufferRenderer<'a> {
 
             self.set_cursor();
         }
+    }
 
-        false
+    fn before_visible_content(&self) -> bool {
+        self.buffer_position.line < self.scroll_offset
+    }
+
+    fn after_visible_content(&self) -> bool {
+        self.screen_position.line >= self.terminal.height() - 1
     }
 
     pub fn render(&mut self) {
@@ -187,10 +186,19 @@ impl<'a> BufferRenderer<'a> {
                 self.update_positions(&token);
                 self.set_cursor();
 
+                // Move along until we've hit visible content.
+                if self.before_visible_content() {
+                    continue;
+                }
+
+                // Stop the machine after we've printed all visible content.
+                if self.after_visible_content() {
+                    break 'print;
+                }
+
+                // We're in a visible area.
                 if let Token::Lexeme(lexeme) = token {
-                    if self.print_lexeme(lexeme) {
-                        break 'print;
-                    }
+                    self.print_lexeme(lexeme);
                 }
             }
 
