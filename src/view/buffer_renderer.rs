@@ -94,7 +94,7 @@ impl<'a> BufferRenderer<'a> {
         self.screen_position.line += 1;
 
         // Draw leading line number for the new line.
-        self.screen_position.offset = self.draw_line_number(self.screen_position.line, self.buffer_position.line + 1, self.buffer_position.line == self.buffer.cursor.line, self.line_number_width);
+        self.draw_line_number();
     }
 
     // Check if we've arrived at the buffer's cursor position,
@@ -184,7 +184,7 @@ impl<'a> BufferRenderer<'a> {
     pub fn render(&mut self) {
         // Draw the first line number.
         // Others will be drawn following newline characters.
-        self.screen_position.offset = self.draw_line_number(0, self.scroll_offset + 1, self.buffer.cursor.line == self.scroll_offset, self.line_number_width);
+        self.draw_line_number();
 
         if let Some(tokens) = self.buffer.tokens() {
             'print: for token in tokens.iter() {
@@ -221,31 +221,35 @@ impl<'a> BufferRenderer<'a> {
         self.print_length_guide();
     }
 
-    fn draw_line_number(&self, line: usize, line_number: usize, cursor_line: bool, width: usize) -> usize {
+    fn draw_line_number(&mut self) {
         let mut offset = 0;
 
         // Get left-padded string-based line number.
-        let formatted_line_number = format!("{:>width$}  ", line_number, width = width);
+        let formatted_line_number = format!(
+            "{:>width$}  ",
+            self.buffer_position.line + 1,
+            width = self.line_number_width
+        );
 
         // Print numbers.
         for number in formatted_line_number.chars() {
             // Numbers (and their leading spaces) have background
             // color, but the right-hand side gutter gap does not.
-            let background_color = if offset > width && !cursor_line {
+            let background_color = if offset > self.line_number_width && !self.on_cursor_line() {
                 Color::Default
             } else {
                 self.alt_background_color
             };
 
             // Cursor line number is emboldened.
-            let weight = if cursor_line {
+            let weight = if self.on_cursor_line() {
                 rustbox::RB_BOLD
             } else {
                 rustbox::RB_NORMAL
             };
 
             self.terminal.print_char(offset,
-                            line,
+                            self.screen_position.line,
                             weight,
                             Color::Default,
                             background_color,
@@ -253,7 +257,8 @@ impl<'a> BufferRenderer<'a> {
 
             offset += 1;
         }
-        offset
+
+        self.screen_position.offset = offset;
     }
 }
 
