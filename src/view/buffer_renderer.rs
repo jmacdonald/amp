@@ -85,7 +85,7 @@ impl<'a> BufferRenderer<'a> {
         self.gutter_width + LINE_LENGTH_GUIDE_OFFSET
     }
 
-    pub fn advance_to_next_line(&mut self) {
+    fn advance_to_next_line(&mut self) {
         self.print_line_highlight();
         self.print_length_guide();
 
