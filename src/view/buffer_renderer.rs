@@ -86,15 +86,20 @@ impl<'a> BufferRenderer<'a> {
     }
 
     fn advance_to_next_line(&mut self) {
-        self.print_line_highlight();
-        self.print_length_guide();
+        // Print these before advancing to the next line.
+        if self.inside_visible_content() {
+            self.print_line_highlight();
+            self.print_length_guide();
+        }
 
         self.buffer_position.line += 1;
         self.buffer_position.offset = 0;
         self.screen_position.line += 1;
 
-        // Draw leading line number for the new line.
-        self.draw_line_number();
+        // Print this on the brand new line.
+        if self.inside_visible_content() {
+            self.draw_line_number();
+        }
     }
 
     // Check if we've arrived at the buffer's cursor position,
@@ -179,6 +184,10 @@ impl<'a> BufferRenderer<'a> {
 
     fn after_visible_content(&self) -> bool {
         self.screen_position.line >= self.terminal.height() - 1
+    }
+
+    fn inside_visible_content(&self) -> bool {
+        !self.before_visible_content() && !self.after_visible_content()
     }
 
     pub fn render(&mut self) {
