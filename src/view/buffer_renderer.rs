@@ -47,8 +47,10 @@ impl<'a> BufferRenderer<'a> {
             &Token::Newline => self.advance_to_next_line(),
             &Token::Lexeme(ref lexeme) => {
                 self.buffer_position = lexeme.position;
-                self.screen_position = lexeme.position;
-                self.screen_position.offset += self.gutter_width;
+                self.screen_position = Position {
+                    line: lexeme.position.line.checked_sub(self.scroll_offset).unwrap_or(0),
+                    offset: lexeme.position.offset + self.gutter_width
+                };
             }
         }
     }
@@ -97,18 +99,18 @@ impl<'a> BufferRenderer<'a> {
         self.screen_position.line += 1;
 
         // Print this on the brand new line.
-        if self.inside_visible_content() {
-            self.draw_line_number();
-        }
+        self.draw_line_number();
     }
 
     // Check if we've arrived at the buffer's cursor position,
     // at which point we can set it relative to the screen,
     // which will compensate for scrolling, tab expansion, etc.
     fn set_cursor(&mut self) {
-        if *self.buffer.cursor == self.buffer_position {
-            self.cursor_visible = true;
-            self.terminal.set_cursor(Some(self.screen_position));
+        if self.inside_visible_content() {
+            if *self.buffer.cursor == self.buffer_position {
+                self.cursor_visible = true;
+                self.terminal.set_cursor(Some(self.screen_position));
+            }
         }
     }
 
@@ -191,12 +193,9 @@ impl<'a> BufferRenderer<'a> {
     }
 
     pub fn render(&mut self) {
-        // Draw the first line number.
-        // Others will be drawn following newline characters.
-        self.draw_line_number();
-
         if let Some(tokens) = self.buffer.tokens() {
             'print: for token in tokens.iter() {
+                self.draw_line_number();
                 self.update_positions(&token);
                 self.set_cursor();
 
@@ -231,6 +230,8 @@ impl<'a> BufferRenderer<'a> {
     }
 
     fn draw_line_number(&mut self) {
+        if !self.inside_visible_content() { return };
+
         let mut offset = 0;
 
         // Get left-padded string-based line number.
