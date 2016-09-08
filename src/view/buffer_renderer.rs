@@ -100,10 +100,31 @@ impl<'a> BufferRenderer<'a> {
     // Check if we've arrived at the buffer's cursor position,
     // at which point we can set it relative to the screen,
     // which will compensate for scrolling, tab expansion, etc.
-    pub fn set_cursor(&mut self) {
+    fn set_cursor(&mut self) {
         if *self.buffer.cursor == self.buffer_position {
             self.cursor_visible = true;
             self.terminal.set_cursor(Some(self.screen_position));
+        }
+    }
+
+    fn current_char_style(&self, token_color: Color) -> (Style, Color) {
+        match self.highlight {
+            Some(ref highlight_range) => {
+                if highlight_range.includes(&self.buffer_position) {
+                    (rustbox::RB_REVERSE, Color::Default)
+                } else {
+                    (rustbox::RB_NORMAL, token_color)
+                }
+            }
+            None => (rustbox::RB_NORMAL, token_color)
+        }
+    }
+
+    fn background_color(&self) -> Color {
+        if self.on_cursor_line() {
+            self.alt_background_color
+        } else {
+            Color::Default
         }
     }
 
@@ -121,28 +142,12 @@ impl<'a> BufferRenderer<'a> {
 
             self.set_cursor();
 
-            let (style, color) = match self.highlight {
-                Some(ref highlight_range) => {
-                    if highlight_range.includes(&self.buffer_position) {
-                        (rustbox::RB_REVERSE, Color::Default)
-                    } else {
-                        (rustbox::RB_NORMAL, token_color)
-                    }
-                }
-                None => (rustbox::RB_NORMAL, token_color),
-            };
-
-            let background_color =
-                if self.buffer_position.line == self.buffer.cursor.line {
-                    self.alt_background_color
-                } else {
-                    Color::Default
-                };
+            let (style, color) = self.current_char_style(token_color);
 
             if LINE_WRAPPING && self.screen_position.offset == self.terminal.width() {
                 self.screen_position.line += 1;
                 self.screen_position.offset = self.gutter_width;
-                self.terminal.print_char(self.screen_position.offset, self.screen_position.line, style, color, background_color, character);
+                self.terminal.print_char(self.screen_position.offset, self.screen_position.line, style, color, self.background_color(), character);
                 self.screen_position.offset += 1;
                 self.buffer_position.offset += 1;
             } else if character == '\t' {
@@ -159,7 +164,7 @@ impl<'a> BufferRenderer<'a> {
                 }
                 self.buffer_position.offset += 1;
             } else {
-                self.terminal.print_char(self.screen_position.offset, self.screen_position.line, style, color, background_color, character);
+                self.terminal.print_char(self.screen_position.offset, self.screen_position.line, style, color, self.background_color(), character);
                 self.screen_position.offset += 1;
                 self.buffer_position.offset += 1;
             }
