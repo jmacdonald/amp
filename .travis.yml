@@ -1,6 +1,10 @@
 language: rust
 rust: nightly
 
+branches:
+  only:
+  - master
+
 addons:
   apt:
     packages:
