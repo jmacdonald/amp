@@ -1,8 +1,7 @@
 extern crate fragment;
 extern crate scribe;
 
-use luthor::token::{Category, Token};
-use scribe::buffer::Position;
+use scribe::buffer::{Position, Scope, Token, TokenSet};
 use helpers::SelectableSet;
 use std::fmt;
 use std::clone::Clone;
@@ -15,13 +14,13 @@ pub struct SymbolJumpMode {
 }
 
 pub struct Symbol {
-    token: Token,
+    token: String,
     position: Position,
 }
 
 impl fmt::Display for Symbol {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", &self.token.lexeme)
+        write!(f, "{}", &self.token)
     }
 }
 
@@ -39,7 +38,7 @@ impl Clone for Symbol {
 impl SymbolJumpMode {
     pub const MAX_RESULTS: usize = 5;
 
-    pub fn new(tokens: Vec<Token>) -> SymbolJumpMode {
+    pub fn new(tokens: TokenSet) -> SymbolJumpMode {
         let symbols = symbols(tokens);
 
         SymbolJumpMode {
@@ -64,39 +63,22 @@ impl SymbolJumpMode {
     }
 }
 
-fn symbols(tokens: Vec<Token>) -> Vec<Symbol> {
-    let mut position = Position {
-        line: 0,
-        offset: 0,
-    };
-
-    tokens.into_iter()
+fn symbols(tokens: TokenSet) -> Vec<Symbol> {
+    tokens.iter()
           .filter_map(|token| {
-              // Build a symbol, provided it's of the right type.
-              let symbol = if token.category == Category::Method ||
-                              token.category == Category::Function {
-                  Some(Symbol {
-                      token: token.clone(),
-                      position: position.clone(),
-                  })
-              } else {
-                  None
-              };
-
-              // Move the tracked position beyond this lexeme.
-              let lines: Vec<&str> = token.lexeme.split('\n').collect();
-              position.line += lines.len() - 1;
-              let last_token_length = match lines.last() {
-                  Some(line) => line.len(),
-                  None => 0,
-              };
-              if lines.len() > 1 {
-                  position.offset = last_token_length;
-              } else {
-                  position.offset += last_token_length;
+              if let Token::Lexeme(lexeme) = token {
+                  if let Some(scope) = lexeme.scope {
+                      // Build a symbol, provided it's of the right type.
+                      if Scope::new("meta.function").unwrap().is_prefix_of(scope) {
+                          return Some(Symbol {
+                              token: lexeme.value.to_string(),
+                              position: lexeme.position.clone(),
+                          })
+                      }
+                  }
               }
 
-              symbol
+              None
           })
           .collect()
 }

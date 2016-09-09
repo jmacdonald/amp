@@ -65,6 +65,12 @@ pub fn switch_to_open_mode(app: &mut Application) {
 }
 
 pub fn switch_to_symbol_jump_mode(app: &mut Application) {
+    if let Some(buf) = app.workspace.current_buffer() {
+        if let Some(token_set) = buf.tokens() {
+            app.mode = Mode::SymbolJump(SymbolJumpMode::new(token_set));
+        }
+    }
+    commands::symbol_jump::search(app);
 }
 
 pub fn switch_to_select_mode(app: &mut Application) {
