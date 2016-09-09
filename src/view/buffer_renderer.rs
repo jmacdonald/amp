@@ -88,18 +88,23 @@ impl<'a> BufferRenderer<'a> {
     }
 
     fn advance_to_next_line(&mut self) {
-        // Print these before advancing to the next line.
         if self.inside_visible_content() {
+            // Print these before advancing to the next line.
             self.print_line_highlight();
             self.print_length_guide();
+
+            // It's important to only increase this once we've entered the
+            // visible area. Otherwise, we're moving the screen location even
+            // though we're not yet rendering to it.
+            self.screen_position.line += 1;
         }
 
+        // Move the buffer position to the next line.
         self.buffer_position.line += 1;
         self.buffer_position.offset = 0;
-        self.screen_position.line += 1;
 
         // Print this on the brand new line.
-        self.draw_line_number();
+        self.print_line_number();
     }
 
     // Check if we've arrived at the buffer's cursor position,
@@ -193,9 +198,12 @@ impl<'a> BufferRenderer<'a> {
     }
 
     pub fn render(&mut self) {
+        // Print the first line number. Others will
+        // be handled as newlines are encountered.
+        self.print_line_number();
+
         if let Some(tokens) = self.buffer.tokens() {
             'print: for token in tokens.iter() {
-                self.draw_line_number();
                 self.update_positions(&token);
                 self.set_cursor();
 
@@ -229,7 +237,7 @@ impl<'a> BufferRenderer<'a> {
         self.print_length_guide();
     }
 
-    fn draw_line_number(&mut self) {
+    fn print_line_number(&mut self) {
         if !self.inside_visible_content() { return };
 
         let mut offset = 0;
