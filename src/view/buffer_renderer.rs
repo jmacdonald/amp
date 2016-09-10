@@ -283,3 +283,24 @@ impl<'a> BufferRenderer<'a> {
 fn next_tab_stop(offset: usize) -> usize {
     (offset / TAB_WIDTH + 1) * TAB_WIDTH
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{next_tab_stop, TAB_WIDTH};
+
+    #[test]
+    fn next_tab_goes_to_the_next_tab_stop_when_at_a_tab_stop() {
+        let offset = TAB_WIDTH * 2;
+
+        // It should go to the next tab stop.
+        assert_eq!(next_tab_stop(offset), TAB_WIDTH * 3);
+    }
+
+    #[test]
+    fn next_tab_goes_to_the_next_tab_stop_when_between_tab_stops() {
+        let offset = TAB_WIDTH + 1;
+
+        // It should go to the next tab stop.
+        assert_eq!(next_tab_stop(offset), TAB_WIDTH * 2);
+    }
+}
