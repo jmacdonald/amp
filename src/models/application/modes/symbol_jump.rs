@@ -4,6 +4,7 @@ extern crate scribe;
 use scribe::buffer::{Position, Scope, Token, TokenSet};
 use helpers::SelectableSet;
 use std::fmt;
+use std::iter::Iterator;
 use std::clone::Clone;
 
 pub struct SymbolJumpMode {
@@ -13,6 +14,7 @@ pub struct SymbolJumpMode {
     pub results: SelectableSet<Symbol>,
 }
 
+#[derive(PartialEq, Debug)]
 pub struct Symbol {
     token: String,
     position: Position,
@@ -39,7 +41,7 @@ impl SymbolJumpMode {
     pub const MAX_RESULTS: usize = 5;
 
     pub fn new(tokens: TokenSet) -> SymbolJumpMode {
-        let symbols = symbols(tokens);
+        let symbols = symbols(tokens.iter());
 
         SymbolJumpMode {
             insert: true,
@@ -63,64 +65,68 @@ impl SymbolJumpMode {
     }
 }
 
-fn symbols(tokens: TokenSet) -> Vec<Symbol> {
-    tokens.iter()
-          .filter_map(|token| {
-              if let Token::Lexeme(lexeme) = token {
-                  if let Some(scope) = lexeme.scope {
-                      // Build a symbol, provided it's of the right type.
-                      if Scope::new("meta.function").unwrap().is_prefix_of(scope) {
-                          return Some(Symbol {
-                              token: lexeme.value.to_string(),
-                              position: lexeme.position.clone(),
-                          })
-                      }
+fn symbols<'a, T>(tokens: T) -> Vec<Symbol> where T: Iterator<Item=Token<'a>> {
+    tokens.filter_map(|token| {
+          if let Token::Lexeme(lexeme) = token {
+              if let Some(scope) = lexeme.scope {
+                  // Build a symbol, provided it's of the right type.
+                  if Scope::new("entity.name.function").unwrap().is_prefix_of(scope) {
+                      return Some(Symbol {
+                          token: lexeme.value.to_string(),
+                          position: lexeme.position.clone(),
+                      })
                   }
               }
+          }
 
-              None
-          })
-          .collect()
+          None
+    }).collect()
 }
 
 #[cfg(test)]
 mod tests {
     extern crate scribe;
 
-    use super::symbols;
-    use scribe::buffer::{Category, Position, Token};
+    use super::{Symbol, symbols};
+    use scribe::buffer::{Lexeme, Position, Scope, Token};
 
     #[test]
-    fn symbols_are_limited_to_functions_and_methods() {
+    fn symbols_are_limited_to_functions() {
         let tokens = vec![
-            Token{ lexeme: String::new(), category: Category::Keyword },
-            Token{ lexeme: String::new(), category: Category::Method },
-            Token{ lexeme: String::new(), category: Category::Function },
-            Token{ lexeme: String::new(), category: Category::Identifier },
+            Token::Lexeme(
+                Lexeme{
+                    value: "text",
+                    position: Position{
+                        line: 0,
+                        offset: 0
+                    },
+                    scope: Scope::new("meta.block.rust").ok()
+                }
+            ),
+            Token::Lexeme(
+                Lexeme{
+                    value: "function",
+                    position: Position{
+                        line: 1,
+                        offset: 0
+                    },
+                    scope: Scope::new("entity.name.function").ok()
+                }
+            ),
+            Token::Lexeme(
+                Lexeme{
+                    value: "non-function",
+                    position: Position{
+                        line: 2,
+                        offset: 0
+                    },
+                    scope: Scope::new("meta.entity.name.function").ok()
+                }
+            )
         ];
 
-        assert_eq!(symbols(tokens.clone()).first().unwrap().token.category,
-                   Category::Method);
-        assert_eq!(symbols(tokens.clone()).last().unwrap().token.category,
-                   Category::Function);
-    }
-
-    #[test]
-    fn symbols_have_correct_positions() {
-        let tokens = vec![
-            Token{ lexeme: "class".to_string(), category: Category::Keyword },
-            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
-            Token{ lexeme: "Ruby".to_string(), category: Category::Identifier },
-            Token{ lexeme: "\n  ".to_string(), category: Category::Whitespace },
-            Token{ lexeme: "def".to_string(), category: Category::Keyword },
-            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
-            Token{ lexeme: "method".to_string(), category: Category::Method },
-        ];
-
-        assert_eq!(symbols(tokens.clone()).last().unwrap().position,
-                   Position {
-                       line: 1,
-                       offset: 6,
-                   });
+        let results = symbols(tokens.into_iter());
+        assert_eq!(results.len(), 1);
+        assert_eq!(results.first().unwrap(), &Symbol{ token: "function".to_string(), position: Position{ line: 1, offset: 0 }});
     }
 }
