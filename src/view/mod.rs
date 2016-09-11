@@ -10,10 +10,10 @@ mod buffer_renderer;
 // Published API
 pub use self::data::StatusLineData;
 
-use self::terminal::Terminal;
+use self::terminal::{RustboxTerminal, Terminal};
 use self::buffer_renderer::BufferRenderer;
 use luthor;
-use scribe::buffer::{Buffer, Position, Range, Token};
+use scribe::buffer::{Buffer, Lexeme, Position, Range, Token};
 use pad::PadStr;
 use rustbox::{Color, Event, Style};
 use std::cmp;
@@ -35,7 +35,7 @@ pub struct View {
 
 impl View {
     pub fn new() -> View {
-        let terminal = Rc::new(RefCell::new(Terminal::new()));
+        let terminal = Rc::new(RefCell::new(RustboxTerminal::new()));
 
         View {
             theme: Theme::Dark,

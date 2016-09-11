@@ -8,104 +8,87 @@ use rustbox::{Color, InitOptions, RustBox, Style};
 
 pub use rustbox::Event;
 
+pub trait Terminal {
+    fn listen(&self) -> Event;
+    fn clear(&self);
+    fn present(&self);
+    fn width(&self) -> usize;
+    fn height(&self) -> usize;
+    fn set_cursor(&self, Option<Position>);
+    fn print(&self, usize, usize, Style, Color, Color, &str);
+    fn print_char(&self, usize, usize, Style, Color, Color, char);
+    fn start(&mut self);
+    fn stop(&mut self);
+}
+
 /// The terminal type acts as a shim layer on top of Rustbox.
 /// It also enables headless testing; initialization and render calls
 /// are discarded and dimension queries are stubbed with static values.
-pub struct Terminal {
-    terminal: Option<RustBox>,
+pub struct RustboxTerminal {
+    rustbox: Option<RustBox>,
 }
 
-impl Terminal {
-    pub fn new() -> Terminal {
-        Terminal { terminal: create_rustbox_instance() }
+impl RustboxTerminal {
+    pub fn new() -> RustboxTerminal {
+        RustboxTerminal { rustbox: Some(create_rustbox_instance()) }
+    }
+}
+
+
+impl Terminal for RustboxTerminal {
+    fn listen(&self) -> Event {
+        self.rustbox.as_ref().and_then(|r| r.poll_event(false).ok()).unwrap_or(Event::NoEvent)
     }
 
-    pub fn listen(&self) -> Event {
-        match self.terminal {
-            Some(ref t) => {
-                match t.poll_event(false) {
-                    Ok(event) => event,
-                    Err(_) => Event::NoEvent,
-                }
+    fn clear(&self) {
+        self.rustbox.as_ref().map(|r| r.clear());
+    }
+
+    fn present(&self) {
+        self.rustbox.as_ref().map(|r| r.present());
+    }
+
+    fn width(&self) -> usize {
+        self.rustbox.as_ref().map(|r| r.width()).unwrap_or(0)
+    }
+
+    fn height(&self) -> usize {
+        self.rustbox.as_ref().map(|r| r.height()).unwrap_or(0)
+    }
+
+    fn set_cursor(&self, position: Option<Position>) {
+        if let Some(ref r) = self.rustbox {
+            match position {
+                Some(pos) => r.set_cursor(pos.offset as isize, pos.line as isize),
+                None => r.set_cursor(-1, -1),
             }
-            None => Event::NoEvent,
         }
     }
 
-    pub fn clear(&self) {
-        match self.terminal {
-            Some(ref t) => t.clear(),
-            None => (),
-        }
+    fn print(&self, x: usize, y: usize, style: Style, fg: Color, bg: Color, s: &str) {
+        self.rustbox.as_ref().map(|r| r.print(x, y, style, fg, bg, s));
     }
 
-    pub fn present(&self) {
-        match self.terminal {
-            Some(ref t) => t.present(),
-            None => (),
-        }
+    fn print_char(&self, x: usize, y: usize, style: Style, fg: Color, bg: Color, c: char) {
+        self.rustbox.as_ref().map(|r| r.print_char(x, y, style, fg, bg, c));
     }
 
-    pub fn width(&self) -> usize {
-        match self.terminal {
-            Some(ref t) => t.width(),
-            None => 10,
-        }
-    }
-
-    pub fn height(&self) -> usize {
-        match self.terminal {
-            Some(ref t) => t.height(),
-            None => 10,
-        }
-    }
-
-    pub fn set_cursor(&self, position: Option<Position>) {
-        match self.terminal {
-            Some(ref t) => {
-                match position {
-                    Some(pos) => t.set_cursor(pos.offset as isize, pos.line as isize),
-                    None => t.set_cursor(-1, -1),
-                }
-            }
-            None => (),
-        }
-    }
-
-    pub fn print(&self, x: usize, y: usize, style: Style, fg: Color, bg: Color, s: &str) {
-        match self.terminal {
-            Some(ref t) => t.print(x, y, style, fg, bg, s),
-            None => (),
-        }
-    }
-
-    pub fn print_char(&self, x: usize, y: usize, style: Style, fg: Color, bg: Color, c: char) {
-        match self.terminal {
-            Some(ref t) => t.print_char(x, y, style, fg, bg, c),
-            None => (),
-        }
-    }
-
-    pub fn stop(&mut self) {
+    fn stop(&mut self) {
         // RustBox destructor cleans up for us.
-        self.terminal = None;
+        self.rustbox = None;
     }
 
-    pub fn start(&mut self) {
+    fn start(&mut self) {
         // We don't want to create two instance of RustBox.
-        if self.terminal.is_none() {
-            self.terminal = create_rustbox_instance();
+        if self.rustbox.is_none() {
+            self.rustbox = Some(create_rustbox_instance());
         }
     }
 }
 
-fn create_rustbox_instance() -> Option<RustBox> {
-    if cfg!(test) {
-        None
-    } else {
-        match RustBox::init(InitOptions { ..Default::default() }) {
-            Ok(r) => Some(r),
-            Err(e) => panic!("{}", e.description()),
-        }
+fn create_rustbox_instance() -> RustBox {
+    match RustBox::init(InitOptions { ..Default::default() }) {
+        Ok(r) => r,
+        Err(e) => panic!("{}", e.description()),
     }
 }
