@@ -1,25 +1,7 @@
-extern crate rustbox;
-extern crate scribe;
-
-use std::error::Error;
-use std::default::Default;
 use scribe::buffer::Position;
-use rustbox::{Color, InitOptions, RustBox, Style};
-
-pub use rustbox::Event;
-
-pub trait Terminal {
-    fn listen(&self) -> Event;
-    fn clear(&self);
-    fn present(&self);
-    fn width(&self) -> usize;
-    fn height(&self) -> usize;
-    fn set_cursor(&self, Option<Position>);
-    fn print(&self, usize, usize, Style, Color, Color, &str);
-    fn print_char(&self, usize, usize, Style, Color, Color, char);
-    fn start(&mut self);
-    fn stop(&mut self);
-}
+use std::error::Error;
+use super::Terminal;
+use rustbox::{Color, Event, InitOptions, RustBox, Style};
 
 /// The terminal type acts as a shim layer on top of Rustbox.
 /// It also enables headless testing; initialization and render calls
