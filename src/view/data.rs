@@ -1,5 +1,4 @@
 use rustbox::{Color, Style};
-use scribe::buffer::{Position, Range, Token};
 
 pub struct StatusLineData {
     pub content: String,

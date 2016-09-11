@@ -1,5 +1,5 @@
 use rustbox;
-use rustbox::{Color, Event, Style};
+use rustbox::{Color, Style};
 use scribe::buffer::{Buffer, Lexeme, Position, Range, Token};
 use view::color;
 use view::terminal::Terminal;

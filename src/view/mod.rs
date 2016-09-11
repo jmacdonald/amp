@@ -13,7 +13,7 @@ pub use self::data::StatusLineData;
 use self::terminal::{RustboxTerminal, Terminal};
 use self::buffer_renderer::BufferRenderer;
 use luthor;
-use scribe::buffer::{Buffer, Lexeme, Position, Range, Token};
+use scribe::buffer::{Buffer, Position, Range};
 use pad::PadStr;
 use rustbox::{Color, Event, Style};
 use std::cmp;
