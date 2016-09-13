@@ -35,7 +35,12 @@ pub struct View {
 
 impl View {
     pub fn new() -> View {
-        let terminal = Rc::new(RefCell::new(RustboxTerminal::new()));
+        // Use a headless terminal if we're in test mode.
+        let terminal: Rc<RefCell<Terminal>> = if cfg!(test) {
+            Rc::new(RefCell::new(terminal::test_terminal::TestTerminal::new()))
+        } else {
+            Rc::new(RefCell::new(RustboxTerminal::new()))
+        };
 
         View {
             theme: Theme::Dark,

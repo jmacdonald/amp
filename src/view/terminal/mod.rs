@@ -18,3 +18,6 @@ pub trait Terminal {
     fn start(&mut self);
     fn stop(&mut self);
 }
+
+#[cfg(test)]
+pub mod test_terminal;

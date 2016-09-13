@@ -96,11 +96,12 @@ mod tests {
     use std::cell::RefCell;
     use super::{ScrollableRegion, Visibility};
     use view::terminal::Terminal;
+    use view::terminal::test_terminal::TestTerminal;
     use scribe::buffer::LineRange;
 
     #[test]
     fn visible_range_works_for_zero_based_line_offsets() {
-        let terminal = Rc::new(RefCell::new(Terminal::new()));
+        let terminal = Rc::new(RefCell::new(TestTerminal::new()));
         let region = ScrollableRegion::new(terminal);
         let range = region.visible_range();
         assert_eq!(range.start(), 0);
@@ -109,7 +110,7 @@ mod tests {
 
     #[test]
     fn visible_range_works_for_non_zero_line_offsets() {
-        let terminal = Rc::new(RefCell::new(Terminal::new()));
+        let terminal = Rc::new(RefCell::new(TestTerminal::new()));
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_down(10);
         let range = region.visible_range();
@@ -119,7 +120,7 @@ mod tests {
 
     #[test]
     fn scroll_into_view_advances_region_if_line_after_current_range() {
-        let terminal = Rc::new(RefCell::new(Terminal::new()));
+        let terminal = Rc::new(RefCell::new(TestTerminal::new()));
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_down(10);
         region.scroll_into_view(40);
@@ -130,7 +131,7 @@ mod tests {
 
     #[test]
     fn scroll_into_view_recedes_region_if_line_before_current_range() {
-        let terminal = Rc::new(RefCell::new(Terminal::new()));
+        let terminal = Rc::new(RefCell::new(TestTerminal::new()));
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_down(10);
         region.scroll_into_view(5);
@@ -141,7 +142,7 @@ mod tests {
 
     #[test]
     fn scroll_to_center_sets_correct_line_offset() {
-        let terminal = Rc::new(RefCell::new(Terminal::new()));
+        let terminal = Rc::new(RefCell::new(TestTerminal::new()));
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_to_center(20);
         let range = region.visible_range();
@@ -151,7 +152,7 @@ mod tests {
 
     #[test]
     fn scroll_to_center_does_not_set_negative_offset() {
-        let terminal = Rc::new(RefCell::new(Terminal::new()));
+        let terminal = Rc::new(RefCell::new(TestTerminal::new()));
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_to_center(0);
         let range = region.visible_range();
@@ -161,7 +162,7 @@ mod tests {
 
     #[test]
     fn relative_position_returns_correct_value_when_positive() {
-        let terminal = Rc::new(RefCell::new(Terminal::new()));
+        let terminal = Rc::new(RefCell::new(TestTerminal::new()));
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_into_view(30);
         assert_eq!(region.relative_position(25), Visibility::Visible(3));
@@ -169,7 +170,7 @@ mod tests {
 
     #[test]
     fn relative_position_returns_above_region_when_negative() {
-        let terminal = Rc::new(RefCell::new(Terminal::new()));
+        let terminal = Rc::new(RefCell::new(TestTerminal::new()));
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_into_view(30);
         assert_eq!(region.relative_position(0), Visibility::AboveRegion);
@@ -177,14 +178,14 @@ mod tests {
 
     #[test]
     fn relative_position_returns_below_region_when_beyond_visible_range() {
-        let terminal = Rc::new(RefCell::new(Terminal::new()));
+        let terminal = Rc::new(RefCell::new(TestTerminal::new()));
         let region = ScrollableRegion::new(terminal);
         assert_eq!(region.relative_position(20), Visibility::BelowRegion);
     }
 
     #[test]
     fn scroll_down_increases_line_offset_by_amount() {
-        let terminal = Rc::new(RefCell::new(Terminal::new()));
+        let terminal = Rc::new(RefCell::new(TestTerminal::new()));
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_down(10);
         assert_eq!(region.visible_range(), LineRange::new(10, 19));
@@ -192,7 +193,7 @@ mod tests {
 
     #[test]
     fn scroll_up_decreases_line_offset_by_amount() {
-        let terminal = Rc::new(RefCell::new(Terminal::new()));
+        let terminal = Rc::new(RefCell::new(TestTerminal::new()));
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_down(10);
         region.scroll_up(5);
@@ -201,7 +202,7 @@ mod tests {
 
     #[test]
     fn scroll_up_does_not_scroll_beyond_top_of_region() {
-        let terminal = Rc::new(RefCell::new(Terminal::new()));
+        let terminal = Rc::new(RefCell::new(TestTerminal::new()));
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_up(5);
         assert_eq!(region.visible_range(), LineRange::new(0, 9));
