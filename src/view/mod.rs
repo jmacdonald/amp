@@ -35,12 +35,7 @@ pub struct View {
 
 impl View {
     pub fn new() -> View {
-        // Use a headless terminal if we're in test mode.
-        let terminal: Rc<RefCell<Terminal>> = if cfg!(test) {
-            Rc::new(RefCell::new(terminal::test_terminal::TestTerminal::new()))
-        } else {
-            Rc::new(RefCell::new(RustboxTerminal::new()))
-        };
+        let terminal = build_terminal();
 
         View {
             theme: Theme::Dark,
@@ -255,4 +250,15 @@ mod tests {
         // The view should not be scrolled.
         assert_eq!(view.visible_region(&buffer).line_offset(), 0);
     }
+}
+
+#[cfg(not(test))]
+fn build_terminal() -> Rc<RefCell<Terminal>> {
+    Rc::new(RefCell::new(RustboxTerminal::new()))
+}
+
+#[cfg(test)]
+fn build_terminal() -> Rc<RefCell<Terminal>> {
+    // Use a headless terminal if we're in test mode.
+    Rc::new(RefCell::new(terminal::test_terminal::TestTerminal::new()))
 }
