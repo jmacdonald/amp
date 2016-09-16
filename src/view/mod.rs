@@ -11,7 +11,7 @@ mod buffer_renderer;
 pub use self::data::StatusLineData;
 
 use self::terminal::{RustboxTerminal, Terminal};
-use self::buffer_renderer::BufferRenderer;
+use self::buffer_renderer::{BufferRenderer, LexemeMapper};
 use luthor;
 use scribe::buffer::{Buffer, Position, Range};
 use pad::PadStr;
@@ -44,7 +44,7 @@ impl View {
         }
     }
 
-    pub fn draw_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>, alt_tokens: Option<Vec<luthor::token::Token>>) {
+    pub fn draw_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>, lexeme_mapper: Option<&mut LexemeMapper>) {
         let scroll_offset = self.visible_region(buffer).line_offset();
 
         BufferRenderer::new(
@@ -53,6 +53,7 @@ impl View {
             &*self.terminal.borrow(),
             self.alt_background_color(),
             highlight,
+            lexeme_mapper
         ).render();
     }
 

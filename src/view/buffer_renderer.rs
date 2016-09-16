@@ -8,23 +8,28 @@ const LINE_LENGTH_GUIDE_OFFSET: usize = 80;
 const LINE_WRAPPING: bool = true;
 const TAB_WIDTH: usize = 4;
 
+pub trait LexemeMapper {
+    fn map(&mut self, lexeme: Lexeme) -> Box<Iterator<Item=Lexeme>>;
+}
+
 /// A one-time-use type that encapsulates all of the
 /// idiosyncracies involved in rendering a buffer to the screen.
-pub struct BufferRenderer<'a> {
+pub struct BufferRenderer<'a, 'b> {
     alt_background_color: Color,
     buffer: &'a Buffer,
     buffer_position: Position,
     cursor_visible: bool,
     gutter_width: usize,
     highlight: Option<&'a Range>,
+    lexeme_mapper: Option<&'b mut LexemeMapper>,
     line_number_width: usize,
     screen_position: Position,
     scroll_offset: usize,
     terminal: &'a Terminal,
 }
 
-impl<'a> BufferRenderer<'a> {
-    pub fn new(buffer: &'a Buffer, scroll_offset: usize, terminal: &'a Terminal, alt_background_color: Color, highlight: Option<&'a Range>) -> BufferRenderer<'a> {
+impl<'a, 'b> BufferRenderer<'a, 'b> {
+    pub fn new(buffer: &'a Buffer, scroll_offset: usize, terminal: &'a Terminal, alt_background_color: Color, highlight: Option<&'a Range>, lexeme_mapper: Option<&'b mut LexemeMapper>) -> BufferRenderer<'a, 'b> {
         // Determine the gutter size based on the number of lines.
         let line_number_width = buffer.line_count().to_string().len() + 1;
 
@@ -34,6 +39,7 @@ impl<'a> BufferRenderer<'a> {
             cursor_visible: false,
             gutter_width: line_number_width + 2,
             highlight: highlight,
+            lexeme_mapper: lexeme_mapper,
             line_number_width: line_number_width,
             buffer_position: Position{ line: 0, offset: 0 },
             screen_position: Position{ line: 0, offset: 0 },
@@ -202,6 +208,11 @@ impl<'a> BufferRenderer<'a> {
         // be handled as newlines are encountered.
         self.print_line_number();
 
+        // We only use the lexeme mapper in this method, and by moving it out of
+        // the buffer renderer type, we can use it while still allowing the
+        // renderer to be borrowed (which is required for printing methods).
+        let mut lexeme_mapper = self.lexeme_mapper.take();
+
         if let Some(tokens) = self.buffer.tokens() {
             'print: for token in tokens.iter() {
                 self.update_positions(&token);
@@ -219,7 +230,13 @@ impl<'a> BufferRenderer<'a> {
 
                 // We're in a visible area.
                 if let Token::Lexeme(lexeme) = token {
-                    self.print_lexeme(lexeme);
+                    if let Some(ref mut mapper) = lexeme_mapper {
+                        for mapped_lexeme in mapper.map(lexeme) {
+                            self.print_lexeme(mapped_lexeme);
+                        }
+                    } else {
+                        self.print_lexeme(lexeme);
+                    }
                 }
             }
 
