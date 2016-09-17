@@ -9,11 +9,11 @@ const LINE_WRAPPING: bool = true;
 const TAB_WIDTH: usize = 4;
 
 pub trait LexemeMapper {
-    fn map(&mut self, lexeme: Lexeme) -> Box<Iterator<Item=Lexeme>>;
+    fn map(&mut self, lexeme: Lexeme) -> Vec<Lexeme>;
 }
 
 /// A one-time-use type that encapsulates all of the
-/// idiosyncracies involved in rendering a buffer to the screen.
+/// details involved in rendering a buffer to the screen.
 pub struct BufferRenderer<'a, 'b> {
     alt_background_color: Color,
     buffer: &'a Buffer,
