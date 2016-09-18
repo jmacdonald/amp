@@ -9,7 +9,7 @@ const LINE_WRAPPING: bool = true;
 const TAB_WIDTH: usize = 4;
 
 pub trait LexemeMapper {
-    fn map(&mut self, lexeme: Lexeme) -> Vec<Lexeme>;
+    fn map<'x, 'y>(&'x mut self, lexeme: Lexeme<'y>) -> Vec<Lexeme<'y>>;
 }
 
 /// A one-time-use type that encapsulates all of the
@@ -303,7 +303,12 @@ fn next_tab_stop(offset: usize) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use super::{next_tab_stop, TAB_WIDTH};
+    use rustbox::Color;
+    use scribe::{Buffer, Workspace};
+    use scribe::buffer::Lexeme;
+    use std::path::PathBuf;
+    use super::{BufferRenderer, LexemeMapper, next_tab_stop, TAB_WIDTH};
+    use view::terminal::test_terminal::TestTerminal;
 
     #[test]
     fn next_tab_goes_to_the_next_tab_stop_when_at_a_tab_stop() {
@@ -319,5 +324,39 @@ mod tests {
 
         // It should go to the next tab stop.
         assert_eq!(next_tab_stop(offset), TAB_WIDTH * 2);
+    }
+
+    // Used to test lexeme mapper usage.
+    struct TestMapper {}
+    impl LexemeMapper for TestMapper {
+        fn map<'a, 'b>(&'a mut self, lexeme: Lexeme<'b>) -> Vec<Lexeme<'b>> {
+            vec![Lexeme{
+                value: "mapped",
+                position: lexeme.position,
+                scope: lexeme.scope
+            }]
+        }
+    }
+
+    #[test]
+    fn render_uses_lexeme_mapper() {
+        // Set up a bunch of boilerplate variables to initialize the renderer.
+        let mut workspace = Workspace::new(PathBuf::from("."));
+        let mut buffer = Buffer::new();
+        buffer.insert("original");
+        workspace.add_buffer(buffer);
+
+        let terminal = TestTerminal::new();
+
+        BufferRenderer::new(
+            workspace.current_buffer().unwrap(),
+            0, // scroll offset
+            &terminal,
+            Color::White,
+            None,
+            Some(&mut TestMapper{})
+        ).render();
+
+        assert_eq!(terminal.data(), " 1  mapped");
     }
 }
