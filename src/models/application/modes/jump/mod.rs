@@ -2,13 +2,12 @@ mod tag_generator;
 mod single_character_tag_generator;
 
 use std::collections::HashMap;
-use helpers::movement_lexer;
-use luthor::token::{Category, Token};
-use scribe::buffer::{Distance, Position, LineRange};
+use scribe::buffer::{Distance, Lexeme, LineRange, Position, Scope, Token};
 use models::application::modes::select::SelectMode;
 use models::application::modes::select_line::SelectLineMode;
 use self::tag_generator::TagGenerator;
 use self::single_character_tag_generator::SingleCharacterTagGenerator;
+use view::LexemeMapper;
 
 /// Used to compose select and jump modes, allowing jump mode
 /// to be used for cursor navigation (to select a range of text).
@@ -21,20 +20,68 @@ pub enum SelectModeOptions {
 pub struct JumpMode {
     pub input: String,
     pub first_phase: bool,
+    cursor_line: usize,
     pub select_mode: SelectModeOptions,
     tag_positions: HashMap<String, Position>,
+    tag_generator: TagGenerator,
+    single_characters: SingleCharacterTagGenerator,
+    current_tag: String,
+    current_tag_suffix: String,
 }
 
 impl JumpMode {
-    pub fn new() -> JumpMode {
+    pub fn new(cursor_line: usize) -> JumpMode {
         JumpMode {
             input: String::new(),
             first_phase: true,
+            cursor_line: cursor_line,
             select_mode: SelectModeOptions::None,
             tag_positions: HashMap::new(),
+            tag_generator: TagGenerator::new(),
+            single_characters: SingleCharacterTagGenerator::new(),
+            current_tag: String::new(),
+            current_tag_suffix: String::new(),
         }
     }
 
+    pub fn map_tag(&self, tag: &str) -> Option<&Position> {
+        self.tag_positions.get(tag)
+    }
+
+    // Split the token in two: a leading jump token and the rest as regular text.
+    fn split_lexeme<'a, 'b>(&'a mut self, lexeme: Lexeme<'b>) -> (Lexeme<'a>, Lexeme<'a>) {
+        let tag_len = self.current_tag.len();
+        let split_index =
+            lexeme
+            .value
+            .char_indices()
+            .nth(2)
+            .map(|(i, _)| i);
+        let tag_lexeme = Lexeme {
+            value: &self.current_tag,
+            scope: Scope::new("asdf").ok(),
+            position: lexeme.position
+        };
+
+        self.current_tag_suffix = if let Some(index) = split_index {
+            lexeme.value[index..].to_string()
+        } else {
+            String::new()
+        };
+        let trailing_lexeme = Lexeme {
+            value: &self.current_tag_suffix,
+            scope: Scope::new("asdf").ok(),
+            position: Position {
+                line: lexeme.position.line,
+                offset: lexeme.position.offset + tag_len
+            }
+        };
+
+        (tag_lexeme, trailing_lexeme)
+    }
+}
+
+impl LexemeMapper for JumpMode {
     // Translates a regular set of tokens into one appropriate
     // appropriate for jump mode. Lexemes of a size greater than 2
     // have their leading characters replaced with a jump tag, and
@@ -43,93 +90,51 @@ impl JumpMode {
     //
     // We also track jump tag locations so that tags can be
     // resolved to positions for performing the actual jump later on.
-    pub fn tokens(&mut self, tokens: &Vec<Token>, visible_range: LineRange, cursor_line: usize) -> Vec<Token> {
+    fn map<'a, 'b>(&'a mut self, lexeme: Lexeme<'b>) -> Vec<Lexeme<'a>> {
         let mut jump_tokens = Vec::new();
-        let mut current_position = Position{ line: 0, offset: 0 };
 
         // Previous tag positions don't apply.
         self.tag_positions.clear();
 
-        let mut tag_generator = TagGenerator::new();
-        let mut single_characters = SingleCharacterTagGenerator::new();
+        let tag = if self.first_phase {
+            if lexeme.position.line >= self.cursor_line {
+                self.single_characters.next()
+            } else {
+                None // We haven't reached the cursor yet.
+            }
+        } else {
+            if lexeme.value.len() > 1 {
+                self.tag_generator.next()
+            } else {
+                None
+            }
+        };
 
-        for token in tokens {
-            // Split the token's lexeme on whitespace. Comments and strings are the most
-            // notable examples of tokens with whitespace; we want to be able to jump to
-            // points within these.
-            let subtokens = movement_lexer::lex(&token.lexeme);
-            for subtoken in subtokens {
-                if subtoken.category == Category::Whitespace {
-                    // Advance beyond this subtoken.
-                    current_position.add(&Distance::from_str(&subtoken.lexeme));
+        match tag {
+            Some(tag) => {
+                // Keep a copy of the current tag
+                // that we'll use to loan out a lexeme.
+                self.current_tag = tag.clone();
 
-                    // We don't do anything to whitespace tokens.
-                    jump_tokens.push(subtoken);
+                // Track the location of this tag.
+                self.tag_positions.insert(tag, lexeme.position);
 
-                } else {
-                    let tag = if !visible_range.includes(current_position.line) {
-                        None // token is off-screen
-                    } else if self.first_phase {
-                        if current_position.line >= cursor_line {
-                            single_characters.next()
-                        } else {
-                            None // We haven't reached the cursor yet.
-                        }
-                    } else {
-                        if subtoken.lexeme.len() > 1 {
-                            tag_generator.next()
-                        } else {
-                            None
-                        }
-                    };
-
-                    match tag {
-                        Some(tag) => {
-                            let (token1, token2) = split_token(
-                                tag.clone(),
-                                &subtoken.lexeme
-                            );
-                            jump_tokens.push(token1);
-                            jump_tokens.push(token2);
-
-                            // Track the location of this tag.
-                            self.tag_positions.insert(tag, current_position);
-                        }
-                        None => {
-                            // No tag; just push the subtoken plain text.
-                            jump_tokens.push(Token{
-                                lexeme: subtoken.lexeme.clone(),
-                                category: Category::Text
-                            });
-                        }
-                    }
-
-                    current_position.offset += subtoken.lexeme.len();
-                }
+                let (token1, token2) = self.split_lexeme(lexeme);
+                jump_tokens.push(token1);
+                jump_tokens.push(token2);
+            }
+            None => {
+                self.current_tag_suffix = lexeme.value.to_string();
+                jump_tokens.push(Lexeme{
+                    value: &self.current_tag_suffix,
+                    scope: Scope::new("asdf").ok(),
+                    position: lexeme.position.clone()
+                });
             }
         }
 
         jump_tokens
     }
-
-    pub fn map_tag(&self, tag: &str) -> Option<&Position> {
-        self.tag_positions.get(tag)
-    }
-}
-
-// Split the token in two: a leading jump token and the rest as regular text.
-fn split_token(tag: String, lexeme: &str) -> (Token, Token) {
-    let tag_len = tag.len();
-    (
-        Token {
-            lexeme: tag,
-            category: Category::Keyword,
-        },
-        Token {
-            lexeme: lexeme.chars().skip(tag_len).collect(),
-            category: Category::Text,
-        }
-    )
 }
 
 #[cfg(test)]

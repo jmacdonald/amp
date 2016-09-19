@@ -9,7 +9,7 @@ const LINE_WRAPPING: bool = true;
 const TAB_WIDTH: usize = 4;
 
 pub trait LexemeMapper {
-    fn map<'x, 'y>(&'x mut self, lexeme: Lexeme<'y>) -> Vec<Lexeme<'y>>;
+    fn map<'x, 'y>(&'x mut self, lexeme: Lexeme<'y>) -> Vec<Lexeme<'x>>;
 }
 
 /// A one-time-use type that encapsulates all of the

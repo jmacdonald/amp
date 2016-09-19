@@ -13,6 +13,8 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &mut JumpMode, view: &mut View
     if let Some(buf) = buffer {
         let visible_range = view.visible_region(buf).visible_range();
 
+        // Draw the visible set of tokens to the terminal.
+        view.draw_buffer(buf, None, Some(mode));
 
         // Draw the status line.
         view.draw_status_line(&vec![

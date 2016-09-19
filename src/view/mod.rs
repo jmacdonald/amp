@@ -9,9 +9,10 @@ mod buffer_renderer;
 
 // Published API
 pub use self::data::StatusLineData;
+pub use self::buffer_renderer::LexemeMapper;
 
 use self::terminal::{RustboxTerminal, Terminal};
-use self::buffer_renderer::{BufferRenderer, LexemeMapper};
+use self::buffer_renderer::BufferRenderer;
 use luthor;
 use scribe::buffer::{Buffer, Position, Range};
 use pad::PadStr;
