@@ -6,9 +6,14 @@ pub struct TagGenerator {
 }
 
 impl TagGenerator {
-    // Builds a new zero-indexed tag generator.
+    /// Builds a new zero-indexed tag generator.
     pub fn new() -> TagGenerator {
         TagGenerator { index: 0 }
+    }
+
+    /// Restarts the tag generator sequence.
+    pub fn reset(&mut self) {
+        self.index = 0;
     }
 }
 
@@ -73,5 +78,16 @@ mod tests {
         // Ensure that values stop being returned at and after the limit.
         assert!(generator.next().is_none());
         assert!(generator.next().is_none());
+    }
+
+    #[test]
+    fn reset_returns_the_sequence_to_the_start() {
+        let mut generator = TagGenerator::new();
+
+        generator.next();
+        assert!(generator.next().unwrap() != "aa");
+
+        generator.reset();
+        assert_eq!(generator.next().unwrap(), "aa");
     }
 }

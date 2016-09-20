@@ -9,6 +9,11 @@ impl SingleCharacterTagGenerator {
     pub fn new() -> SingleCharacterTagGenerator {
         SingleCharacterTagGenerator{ index: 96 }
     }
+
+    /// Restarts the tag generator sequence.
+    pub fn reset(&mut self) {
+        self.index = 96;
+    }
 }
 
 impl Iterator for SingleCharacterTagGenerator {
@@ -60,5 +65,16 @@ mod tests {
         }
 
         assert_eq!(generator.next(), None);
+    }
+
+    #[test]
+    fn reset_returns_the_sequence_to_the_start() {
+        let mut generator = SingleCharacterTagGenerator::new();
+
+        generator.next();
+        assert!(generator.next().unwrap() != "a");
+
+        generator.reset();
+        assert_eq!(generator.next().unwrap(), "a");
     }
 }
