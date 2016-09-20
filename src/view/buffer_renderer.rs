@@ -329,7 +329,7 @@ mod tests {
     // Used to test lexeme mapper usage.
     struct TestMapper {}
     impl LexemeMapper for TestMapper {
-        fn map<'a, 'b>(&'a mut self, lexeme: Lexeme<'b>) -> Vec<Lexeme<'b>> {
+        fn map<'a, 'b>(&'a mut self, lexeme: Lexeme<'b>) -> Vec<Lexeme<'a>> {
             vec![Lexeme{
                 value: "mapped",
                 position: lexeme.position,
