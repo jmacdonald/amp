@@ -1,6 +1,8 @@
 mod tag_generator;
 mod single_character_tag_generator;
 
+use luthor::token::Category;
+use helpers::movement_lexer;
 use std::collections::HashMap;
 use scribe::buffer::{Distance, Lexeme, LineRange, Position, Scope, Token};
 use models::application::modes::select::SelectMode;
@@ -17,6 +19,11 @@ pub enum SelectModeOptions {
     SelectLine(SelectLineMode),
 }
 
+enum MappedLexemeValue {
+    Tag((String, Position)),
+    Text((String, Position)),
+}
+
 pub struct JumpMode {
     pub input: String,
     pub first_phase: bool,
@@ -25,8 +32,8 @@ pub struct JumpMode {
     tag_positions: HashMap<String, Position>,
     tag_generator: TagGenerator,
     single_characters: SingleCharacterTagGenerator,
-    current_tag: String,
-    current_tag_suffix: String,
+    current_position: Position,
+    mapped_lexeme_values: Vec<MappedLexemeValue>,
 }
 
 impl JumpMode {
@@ -39,45 +46,13 @@ impl JumpMode {
             tag_positions: HashMap::new(),
             tag_generator: TagGenerator::new(),
             single_characters: SingleCharacterTagGenerator::new(),
-            current_tag: String::new(),
-            current_tag_suffix: String::new(),
+            current_position: Position{ line: 0, offset: 0 },
+            mapped_lexeme_values: Vec::new(),
         }
     }
 
     pub fn map_tag(&self, tag: &str) -> Option<&Position> {
         self.tag_positions.get(tag)
-    }
-
-    // Split the token in two: a leading jump token and the rest as regular text.
-    fn split_lexeme<'a, 'b>(&'a mut self, lexeme: Lexeme<'b>) -> (Lexeme<'a>, Lexeme<'a>) {
-        let tag_len = self.current_tag.len();
-        let split_index =
-            lexeme
-            .value
-            .char_indices()
-            .nth(tag_len)
-            .map(|(i, _)| i);
-        let tag_lexeme = Lexeme {
-            value: &self.current_tag,
-            scope: Scope::new("keyword").ok(),
-            position: lexeme.position
-        };
-
-        self.current_tag_suffix = if let Some(index) = split_index {
-            lexeme.value[index..].to_string()
-        } else {
-            String::new()
-        };
-        let trailing_lexeme = Lexeme {
-            value: &self.current_tag_suffix,
-            scope: None,
-            position: Position {
-                line: lexeme.position.line,
-                offset: lexeme.position.offset + tag_len
-            }
-        };
-
-        (tag_lexeme, trailing_lexeme)
     }
 
     pub fn reset_display(&mut self) {
@@ -97,46 +72,111 @@ impl LexemeMapper for JumpMode {
     // We also track jump tag locations so that tags can be
     // resolved to positions for performing the actual jump later on.
     fn map<'a, 'b>(&'a mut self, lexeme: Lexeme<'b>) -> Vec<Lexeme<'a>> {
-        let mut jump_tokens = Vec::new();
+        self.mapped_lexeme_values = Vec::new();
+        self.current_position = lexeme.position;
 
-        let tag = if self.first_phase {
-            if lexeme.position.line >= self.cursor_line {
-                self.single_characters.next()
+        for subtoken in movement_lexer::lex(lexeme.value) {
+            if subtoken.category == Category::Whitespace {
+                let distance = Distance::from_str(&subtoken.lexeme);
+
+                // We don't do anything to whitespace tokens.
+                self.mapped_lexeme_values.push(
+                    MappedLexemeValue::Text((
+                        subtoken.lexeme,
+                        self.current_position.clone()
+                    ))
+                );
+
+                // Advance beyond this subtoken.
+                self.current_position.add(&distance);
             } else {
-                None // We haven't reached the cursor yet.
-            }
-        } else {
-            if lexeme.value.len() > 1 {
-                self.tag_generator.next()
-            } else {
-                None
-            }
-        };
+                let tag = if self.first_phase {
+                    if self.current_position.line >= self.cursor_line {
+                        self.single_characters.next()
+                    } else {
+                        None // We haven't reached the cursor yet.
+                    }
+                } else {
+                    if subtoken.lexeme.len() > 1 {
+                        self.tag_generator.next()
+                    } else {
+                        None
+                    }
+                };
 
-        match tag {
-            Some(tag) => {
-                // Keep a copy of the current tag
-                // that we'll use to loan out a lexeme.
-                self.current_tag = tag.clone();
+                match tag {
+                    Some(tag) => {
+                        let tag_len = tag.len();
 
-                // Track the location of this tag.
-                self.tag_positions.insert(tag, lexeme.position);
+                        // Keep a copy of the current tag
+                        // that we'll use to loan out a lexeme.
+                        self.mapped_lexeme_values.push(
+                            MappedLexemeValue::Tag((
+                                tag.clone(),
+                                self.current_position.clone()
+                            ))
+                        );
 
-                let (token1, token2) = self.split_lexeme(lexeme);
-                jump_tokens.push(token1);
-                jump_tokens.push(token2);
-            }
-            None => {
-                self.current_tag_suffix = lexeme.value.to_string();
-                jump_tokens.push(Lexeme{
-                    value: &self.current_tag_suffix,
-                    scope: Scope::new("asdf").ok(),
-                    position: lexeme.position.clone()
-                });
+                        // Track the location of this tag.
+                        self.tag_positions.insert(tag, lexeme.position);
+
+                        // Advance beyond this tag.
+                        self.current_position.add(&Distance{
+                            lines: 0,
+                            offset: tag_len
+                        });
+
+                        let split_index =
+                            lexeme
+                            .value
+                            .char_indices()
+                            .nth(tag_len)
+                            .map(|(i, _)| i);
+
+                        if let Some(index) = split_index {
+                            if index < subtoken.lexeme.len() {
+                                self.mapped_lexeme_values.push(
+                                    MappedLexemeValue::Text((
+                                        subtoken.lexeme[index..].to_string(),
+                                        self.current_position.clone()
+                                    ))
+                                );
+                            }
+                        }
+
+                    }
+                    None => {
+                        let distance = Distance::from_str(&subtoken.lexeme);
+
+                        // We couldn't tag this subtoken; move along.
+                        self.mapped_lexeme_values.push(
+                            MappedLexemeValue::Text((
+                                subtoken.lexeme,
+                                self.current_position.clone()
+                            ))
+                        );
+
+                        // Advance beyond this subtoken.
+                        self.current_position.add(&distance);
+                    }
+                }
             }
         }
 
-        jump_tokens
+        self.mapped_lexeme_values.iter().map(|mapped_lexeme| {
+            match mapped_lexeme {
+                &MappedLexemeValue::Tag((ref lexeme, ref position)) => Lexeme{
+                    value: lexeme.as_str(),
+                    scope: Scope::new("keyword").ok(),
+                    position: position.clone(),
+                },
+                &MappedLexemeValue::Text((ref lexeme, ref position)) => Lexeme{
+                    value: lexeme.as_str(),
+                    scope: None,
+                    position: position.clone(),
+                }
+            }
+        }).collect()
     }
 }
 
@@ -241,29 +281,47 @@ mod tests {
         );
     }
 
-    #[cfg(asdf)]
-    fn tokens_splits_passed_tokens_on_whitespace() {
-        let mut jump_mode = JumpMode::new();
+    #[test]
+    fn map_splits_passed_tokens_on_whitespace() {
+        let mut jump_mode = JumpMode::new(0);
         jump_mode.first_phase = false;
 
-        let source_tokens = vec![
-            Token{ lexeme: "# comment string".to_string(), category: Category::Comment},
-        ];
+        let lexeme = Lexeme{
+            value: "do a test",
+            scope: Scope::new("entity").ok(),
+            position: Position{ line: 0, offset: 0 }
+        };
 
-        let expected_tokens = vec![
-            Token{ lexeme: "#".to_string(), category: Category::Text},
-            Token{ lexeme: " ".to_string(), category: Category::Whitespace},
-            Token{ lexeme: "aa".to_string(), category: Category::Keyword},
-            Token{ lexeme: "mment".to_string(), category: Category::Text},
-            Token{ lexeme: " ".to_string(), category: Category::Whitespace},
-            Token{ lexeme: "ab".to_string(), category: Category::Keyword},
-            Token{ lexeme: "ring".to_string(), category: Category::Text},
-        ];
-
-        let result = jump_mode.tokens(&source_tokens, LineRange::new(0, 100), 0);
-        for (index, token) in expected_tokens.iter().enumerate() {
-            assert_eq!(*token, result[index]);
-        }
+        assert_eq!(
+            jump_mode.map(lexeme),
+            vec![
+                Lexeme{
+                    value: "aa",
+                    scope: Scope::new("keyword").ok(),
+                    position: Position{ line: 0, offset: 0 }
+                }, Lexeme{
+                    value: " ",
+                    scope: None,
+                    position: Position{ line: 0, offset: 2 }
+                }, Lexeme{
+                    value: "a",
+                    scope: None,
+                    position: Position{ line: 0, offset: 3 }
+                }, Lexeme{
+                    value: " ",
+                    scope: None,
+                    position: Position{ line: 0, offset: 4 }
+                }, Lexeme{
+                    value: "ab",
+                    scope: Scope::new("keyword").ok(),
+                    position: Position{ line: 0, offset: 5 }
+                }, Lexeme{
+                    value: "st",
+                    scope: None,
+                    position: Position{ line: 0, offset: 7 }
+                }
+            ]
+        )
     }
 
     #[cfg(asdf)]
