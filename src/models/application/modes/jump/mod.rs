@@ -118,7 +118,7 @@ impl LexemeMapper for JumpMode {
                         );
 
                         // Track the location of this tag.
-                        self.tag_positions.insert(tag, lexeme.position);
+                        self.tag_positions.insert(tag, self.current_position.clone());
 
                         // Advance beyond this tag.
                         self.current_position.add(&Distance{
@@ -324,26 +324,27 @@ mod tests {
         )
     }
 
-    #[cfg(asdf)]
-    fn tokens_tracks_the_positions_of_each_jump_token() {
-        let mut jump_mode = JumpMode::new();
+    #[test]
+    fn map_tracks_the_positions_of_each_jump_token() {
+        let mut jump_mode = JumpMode::new(0);
         jump_mode.first_phase = false;
 
-        let source_tokens = vec![
-            // Adding space to a token invokes subtoken handling, since we split
-            // tokens on whitespace. It's important to ensure the tracked positions
-            // take this into account, too, which is why there's leading whitespace.
-            Token{ lexeme: "  start".to_string(), category: Category::Keyword},
-            // Putting a trailing newline character at the end of a
-            // non-whitespace string and category achieves two things:
-            // it ensures that we don't ignore trailing newlines, and
-            // that we look for them in non-whitespace tokens.
-            Token{ lexeme: "another\n".to_string(), category: Category::Text},
-            Token{ lexeme: "class".to_string(), category: Category::Keyword},
-            Token{ lexeme: " ".to_string(), category: Category::Whitespace},
-            Token{ lexeme: "Amp".to_string(), category: Category::Identifier},
-        ];
-        jump_mode.tokens(&source_tokens, LineRange::new(0, 100), 0);
+        // Adding space to a lexeme invokes sublexeme handling, since we split
+        // based on whitespace. It's important to ensure the tracked positions
+        // take this into account, too, which is why there's leading whitespace.
+        let lexeme1 = Lexeme{
+            value: "  amp",
+            scope: Scope::new("entity").ok(),
+            position: Position{ line: 0, offset: 0 }
+        };
+
+        let lexeme2 = Lexeme{
+            value: "editor",
+            scope: Scope::new("entity").ok(),
+            position: Position{ line: 0, offset: 5 }
+        };
+        jump_mode.map(lexeme1);
+        jump_mode.map(lexeme2);
 
         assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(),
                    Position {
@@ -353,17 +354,7 @@ mod tests {
         assert_eq!(*jump_mode.tag_positions.get("ab").unwrap(),
                    Position {
                        line: 0,
-                       offset: 7,
-                   });
-        assert_eq!(*jump_mode.tag_positions.get("ac").unwrap(),
-                   Position {
-                       line: 1,
-                       offset: 0,
-                   });
-        assert_eq!(*jump_mode.tag_positions.get("ad").unwrap(),
-                   Position {
-                       line: 1,
-                       offset: 6,
+                       offset: 5,
                    });
     }
 
