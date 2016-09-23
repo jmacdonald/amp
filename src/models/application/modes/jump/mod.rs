@@ -4,7 +4,7 @@ mod single_character_tag_generator;
 use luthor::token::Category;
 use helpers::movement_lexer;
 use std::collections::HashMap;
-use scribe::buffer::{Distance, Lexeme, LineRange, Position, Scope, Token};
+use scribe::buffer::{Distance, Lexeme, Position, Scope};
 use models::application::modes::select::SelectMode;
 use models::application::modes::select_line::SelectLineMode;
 use self::tag_generator::TagGenerator;

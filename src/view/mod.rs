@@ -13,7 +13,6 @@ pub use self::buffer_renderer::LexemeMapper;
 
 use self::terminal::{RustboxTerminal, Terminal};
 use self::buffer_renderer::BufferRenderer;
-use luthor;
 use scribe::buffer::{Buffer, Position, Range};
 use pad::PadStr;
 use rustbox::{Color, Event, Style};
