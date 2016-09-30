@@ -1,12 +1,16 @@
-use rustbox::Color;
-use scribe::buffer::Scope;
+use termion::color::Rgb as RGBColor;
+pub use RGBColor;
 
-pub fn map(scope: &Scope) -> Color {
-    if scope.is_prefix_of(Scope::new("string.quoted").unwrap()) {
-        Color::Red
-    } else if scope.is_prefix_of(Scope::new("keyword").unwrap()) {
-        Color::Yellow
-    } else {
-        Color::Default
-    }
+/// A convenience type used to represent a foreground/background
+/// color combination. Provides generic/convenience variants to
+/// discourage color selection outside of the theme, whenever possible.
+pub enum Color {
+    Blank,    // blank/blank
+    Normal,   // default/background
+    Focused,  // default/alt background
+    Inverted, // background/default
+    Insert,   // white/green
+    Modified, // white/yellow
+    Visual,   // white/blue
+    Custom(RGBColor, RGBColor)
 }
