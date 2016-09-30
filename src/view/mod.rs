@@ -3,13 +3,15 @@ extern crate scribe;
 
 pub mod scrollable_region;
 pub mod terminal;
-mod data;
-mod color;
 mod buffer_renderer;
+mod color;
+mod data;
+mod style;
 
 // Published API
 pub use self::data::StatusLineData;
 pub use self::buffer_renderer::LexemeMapper;
+pub use style::Style;
 
 use self::terminal::{RustboxTerminal, Terminal};
 use self::buffer_renderer::BufferRenderer;
