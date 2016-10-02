@@ -11,6 +11,6 @@ pub enum Colors {
     Inverted, // background/default
     Insert,   // white/green
     Modified, // white/yellow
-    Visual,   // white/blue
+    Select,   // white/blue
     Custom(RGBColor, RGBColor)
 }
