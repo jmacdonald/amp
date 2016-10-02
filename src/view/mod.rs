@@ -12,7 +12,7 @@ mod style;
 pub use self::data::StatusLineData;
 pub use self::buffer_renderer::LexemeMapper;
 pub use style::Style;
-pub use color::Color;
+pub use color::Colors;
 
 use self::terminal::{RustboxTerminal, Terminal};
 use self::buffer_renderer::BufferRenderer;
