@@ -14,7 +14,7 @@ pub use self::buffer_renderer::LexemeMapper;
 pub use style::Style;
 pub use color::Colors;
 
-use self::terminal::{RustboxTerminal, Terminal};
+use self::terminal::{TermionTerminal, Terminal};
 use self::buffer_renderer::BufferRenderer;
 use scribe::buffer::{Buffer, Position, Range};
 use pad::PadStr;
@@ -258,7 +258,7 @@ mod tests {
 
 #[cfg(not(test))]
 fn build_terminal() -> Rc<RefCell<Terminal>> {
-    Rc::new(RefCell::new(RustboxTerminal::new()))
+    Rc::new(RefCell::new(TermionTerminal::new()))
 }
 
 #[cfg(test)]

@@ -1,11 +1,10 @@
-mod rustbox_terminal;
+mod termion_terminal;
 
-use rustbox::{Color, Style};
+use termion::event::Event;
 use scribe::buffer::Position;
 use view::{Colors, Style};
 
-pub use rustbox::Event;
-pub use self::rustbox_terminal::RustboxTerminal;
+pub use self::termion_terminal::TermionTerminal;
 
 pub trait Terminal {
     fn listen(&self) -> Event;
