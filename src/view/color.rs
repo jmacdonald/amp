@@ -6,7 +6,7 @@ pub use RGBColor;
 /// discourage color selection outside of the theme, whenever possible.
 pub enum Colors {
     Blank,    // blank/blank
-    Normal,   // default/background
+    Default,  // default/background
     Focused,  // default/alt background
     Inverted, // background/default
     Insert,   // white/green
