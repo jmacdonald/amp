@@ -1,8 +1,7 @@
-use rustbox::{Color, Style};
+use view::{ScreenColors, Style};
 
 pub struct StatusLineData {
     pub content: String,
-    pub style: Option<Style>,
-    pub background_color: Option<Color>,
-    pub foreground_color: Option<Color>,
+    pub style: Style,
+    pub colors: ScreenColors,
 }
