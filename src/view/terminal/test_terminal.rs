@@ -2,7 +2,8 @@ use scribe::buffer::Position;
 use std::error::Error;
 use std::cell::{Cell, RefCell};
 use super::Terminal;
-use rustbox::{Color, Event, InitOptions, RustBox, Style};
+use rustbox::Event;
+use view::{Colors, Style};
 
 const WIDTH: usize = 10;
 const HEIGHT: usize = 10;
@@ -70,7 +71,7 @@ impl Terminal for TestTerminal {
     fn set_cursor(&self, position: Option<Position>) { self.cursor.set(position); }
     fn stop(&mut self) { }
     fn start(&mut self) { }
-    fn print(&self, x: usize, y: usize, style: Style, fg: Color, bg: Color, s: &str) {
+    fn print(&self, x: usize, y: usize, style: Style, colors: Colors, s: &str) {
         let mut data = self.data.borrow_mut();
 
         for (i, c) in s.chars().enumerate() {
@@ -78,7 +79,7 @@ impl Terminal for TestTerminal {
         }
     }
 
-    fn print_char(&self, x: usize, y: usize, style: Style, fg: Color, bg: Color, c: char) {
+    fn print_char(&self, x: usize, y: usize, style: Style, colors: Colors, c: char) {
         self.data.borrow_mut()[y][x] = Some(c);
     }
 }
@@ -87,13 +88,12 @@ impl Terminal for TestTerminal {
 mod tests {
     use view::terminal::Terminal;
     use super::TestTerminal;
-    use rustbox;
-    use rustbox::Color;
+    use view::{Colors, Style};
 
     #[test]
     fn print_sets_terminal_data_correctly() {
         let terminal = TestTerminal::new();
-        terminal.print(0, 0, rustbox::RB_NORMAL, Color::Black, Color::White, "data");
+        terminal.print(0, 0, Style::Default, Colors::Default, "data");
 
         assert_eq!(terminal.data(), "data");
     }
@@ -101,10 +101,10 @@ mod tests {
     #[test]
     fn print_char_sets_terminal_data_correctly() {
         let terminal = TestTerminal::new();
-        terminal.print_char(0, 0, rustbox::RB_NORMAL, Color::Black, Color::White, 'd');
-        terminal.print_char(1, 0, rustbox::RB_NORMAL, Color::Black, Color::White, 'a');
-        terminal.print_char(2, 0, rustbox::RB_NORMAL, Color::Black, Color::White, 't');
-        terminal.print_char(3, 0, rustbox::RB_NORMAL, Color::Black, Color::White, 'a');
+        terminal.print_char(0, 0, Style::Default, Colors::Default, 'd');
+        terminal.print_char(1, 0, Style::Default, Colors::Default, 'a');
+        terminal.print_char(2, 0, Style::Default, Colors::Default, 't');
+        terminal.print_char(3, 0, Style::Default, Colors::Default, 'a');
 
         assert_eq!(terminal.data(), "data");
     }
@@ -114,8 +114,8 @@ mod tests {
         let terminal = TestTerminal::new();
 
         // Setting a non-zero x coordinate on a previous line exercises column resetting.
-        terminal.print(2, 0, rustbox::RB_NORMAL, Color::Black, Color::White, "some");
-        terminal.print(5, 2, rustbox::RB_NORMAL, Color::Black, Color::White, "data");
+        terminal.print(2, 0, Style::Default, Colors::Default, "some");
+        terminal.print(5, 2, Style::Default, Colors::Default, "data");
 
         assert_eq!(terminal.data(), "  some\n\n     data");
     }
