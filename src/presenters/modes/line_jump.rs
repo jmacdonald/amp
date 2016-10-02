@@ -1,8 +1,6 @@
-extern crate scribe;
-
 use scribe::buffer::{Buffer, Position};
-use view::{StatusLineData, View};
 use models::application::modes::LineJumpMode;
+use view::{Colors, StatusLineData, Style, View};
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &LineJumpMode, view: &mut View) {
     // Wipe the slate clean.
@@ -18,9 +16,8 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &LineJumpMode, view: &mut View
         view.draw_status_line(&vec![
             StatusLineData {
                 content: input_prompt,
-                style: None,
-                background_color: None,
-                foreground_color: None,
+                style: Style::Default,
+                colors:: Colors::Default,
             }
         ]);
 

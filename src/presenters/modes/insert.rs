@@ -1,10 +1,6 @@
-extern crate scribe;
-extern crate rustbox;
-
 use presenters::{buffer_status_line_data};
 use scribe::Buffer;
-use rustbox::Color;
-use view::{StatusLineData, View};
+use view::{Colors, StatusLineData, Style, View};
 
 pub fn display(buffer: Option<&mut Buffer>, view: &mut View) {
     // Wipe the slate clean.
@@ -18,9 +14,8 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View) {
         view.draw_status_line(&vec![
             StatusLineData {
                 content: " INSERT ".to_string(),
-                style: None,
-                background_color: Some(Color::Green),
-                foreground_color: Some(Color::White),
+                style: Style::Default,
+                colors: Colors::Insert,
             },
             buffer_status_line_data(&buf)
         ]);

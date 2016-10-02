@@ -1,12 +1,10 @@
 extern crate git2;
-extern crate scribe;
-extern crate rustbox;
 
 pub mod modes;
 
 use std::path::PathBuf;
 use scribe::Buffer;
-use view::StatusLineData;
+use view::{StatusLineData, Style};
 use git2::{Repository, Status};
 
 fn path_as_title(path: Option<PathBuf>) -> String {

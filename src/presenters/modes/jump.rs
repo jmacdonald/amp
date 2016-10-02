@@ -1,10 +1,7 @@
-extern crate scribe;
-
 use presenters::{buffer_status_line_data};
 use scribe::Buffer;
-use view::{StatusLineData, View};
 use models::application::modes::JumpMode;
-use rustbox::Color;
+use view::{Colors, StatusLineData, Style, View};
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &mut JumpMode, view: &mut View) {
     // Wipe the slate clean.
@@ -20,9 +17,8 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &mut JumpMode, view: &mut View
         view.draw_status_line(&vec![
             StatusLineData {
                 content: " JUMP ".to_string(),
-                style: None,
-                background_color: Some(Color::White),
-                foreground_color: Some(Color::Black)
+                style: Style::Default,
+                colors: Colors::Inverted,
             },
             buffer_status_line_data(&buf)
         ]);

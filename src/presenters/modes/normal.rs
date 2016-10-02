@@ -1,12 +1,9 @@
-extern crate scribe;
-extern crate rustbox;
 extern crate git2;
 
 use scribe::Buffer;
 use presenters::{buffer_status_line_data, git_status_line_data};
-use view::{StatusLineData, View};
-use rustbox::Color;
 use git2::Repository;
+use view::{Colors, StatusLineData, Style, View};
 
 pub fn display(buffer: Option<&mut Buffer>, view: &mut View, repo: &Option<Repository>) {
     // Wipe the slate clean.
@@ -17,19 +14,18 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View, repo: &Option<Repos
         view.draw_buffer(buf, None, None);
 
         // Determine mode display color based on buffer modification status.
-        let (bg, fg) = if buf.modified() {
-            (Some(Color::Yellow), Some(Color::White))
+        let colors = if buf.modified() {
+            Colors::Modified
         } else {
-            (Some(Color::White), Some(Color::Black))
+            Colors::Inverted
         };
 
         // Build the status line mode and buffer title display.
         let status_line_data = vec![
             StatusLineData {
                 content: " NORMAL ".to_string(),
-                style: None,
-                background_color: bg,
-                foreground_color: fg,
+                style: Style::Default,
+                colors: colors,
             },
             buffer_status_line_data(&buf),
             git_status_line_data(&repo, &buf.path)

@@ -1,11 +1,7 @@
-extern crate rustbox;
-extern crate scribe;
-
 use models::application::modes::SelectLineMode;
 use scribe::Buffer;
 use presenters::{buffer_status_line_data};
-use view::{StatusLineData, View};
-use rustbox::Color;
+use view::{Colors, StatusLineData, Style, View};
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &SelectLineMode, view: &mut View) {
     // Wipe the slate clean.
@@ -22,9 +18,8 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SelectLineMode, view: &mut Vi
         view.draw_status_line(&vec![
             StatusLineData {
                 content: " SELECT LINE ".to_string(),
-                style: None,
-                background_color: Some(Color::Blue),
-                foreground_color: Some(Color::White),
+                style: Style::Default,
+                colors: Colors::Select,
             },
             buffer_status_line_data(&buf)
         ]);

@@ -1,8 +1,6 @@
-extern crate scribe;
-
 use scribe::buffer::{Buffer, Position};
-use view::{StatusLineData, View};
 use models::application::modes::SearchInsertMode;
+use view::{Colors, StatusLineData, Style, View};
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &SearchInsertMode, view: &mut View) {
     // Wipe the slate clean.
@@ -19,9 +17,8 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SearchInsertMode, view: &mut 
     view.draw_status_line(&vec![
         StatusLineData {
             content: search_prompt,
-            style: None,
-            background_color: None,
-            foreground_color: None,
+            style: Style::Default,
+            colors: Colors::Focused,
         }
     ]);
 

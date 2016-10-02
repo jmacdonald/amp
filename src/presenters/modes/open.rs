@@ -1,14 +1,11 @@
 extern crate bloodhound;
-extern crate rustbox;
-extern crate scribe;
 
 use std::cmp;
 use models::application::modes::OpenMode;
 use pad::PadStr;
 use presenters::{buffer_status_line_data};
-use rustbox::Color;
-use view::{StatusLineData, View};
 use scribe::buffer::{Buffer, Position};
+use view::{Colors, StatusLineData, Style, View};
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
     // Wipe the slate clean.
@@ -21,9 +18,8 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
         view.draw_status_line(&vec![
             StatusLineData {
                 content: " OPEN ".to_string(),
-                style: None,
-                background_color: Some(Color::White),
-                foreground_color: Some(Color::Black)
+                style: Style::Default,
+                colors: Colors::Inverted,
             },
             buffer_status_line_data(&buf)
         ]);
@@ -33,25 +29,23 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
     if mode.results.is_empty() {
         view.print(0,
                    0,
-                   rustbox::RB_NORMAL,
-                   Color::Default,
-                   Color::Default,
+                   Style::default,
+                   Colors::Default,
                    &"No matching files found.".pad_to_width(view.width()));
      }
 
     // Draw the list of search results.
     for (line, result) in mode.results.iter().enumerate() {
-        let color = if line == mode.results.selected_index() {
-            view.alt_background_color()
+        let colors = if line == mode.results.selected_index() {
+            Colors::Focused
         } else {
-            Color::Default
+            Colors::Default
         };
         let padded_content = result.as_path().to_str().unwrap().pad_to_width(view.width());
         view.print(0,
                    line,
-                   rustbox::RB_NORMAL,
-                   Color::Default,
-                   color,
+                   Style::Default,
+                   colors,
                    &padded_content);
     }
 
@@ -59,25 +53,23 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
     for line in cmp::max(mode.results.len(), 1)..5 {
         view.print(0,
                    line,
-                   rustbox::RB_NORMAL,
-                   Color::Default,
-                   Color::Default,
+                   Style::default,
+                   Colors::Default,
                    &String::new().pad_to_width(view.width()));
     }
 
     // Draw the divider.
     let line = OpenMode::MAX_RESULTS;
-    let (foreground_color, background_color) = if mode.insert {
-        (Color::White, Color::Green)
+    let colors = if mode.insert {
+        Colors::Insert
     } else {
-        (Color::Black, Color::White)
+        Colors::Inverted
     };
     let padded_content = mode.input.pad_to_width(view.width());
     view.print(0,
                line,
-               rustbox::RB_BOLD,
-               foreground_color,
-               background_color,
+               Style::Bold,
+               colors,
                &padded_content);
 
     // Place the cursor on the search input line, right after its contents.
