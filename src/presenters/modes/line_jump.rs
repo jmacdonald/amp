@@ -17,7 +17,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &LineJumpMode, view: &mut View
             StatusLineData {
                 content: input_prompt,
                 style: Style::Default,
-                colors:: Colors::Default,
+                colors: Colors::Default,
             }
         ]);
 
