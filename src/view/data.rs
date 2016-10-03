@@ -1,7 +1,7 @@
-use view::{ScreenColors, Style};
+use view::{Colors, Style};
 
 pub struct StatusLineData {
     pub content: String,
     pub style: Style,
-    pub colors: ScreenColors,
+    pub colors: Colors,
 }

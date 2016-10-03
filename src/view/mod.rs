@@ -11,14 +11,13 @@ mod style;
 // Published API
 pub use self::data::StatusLineData;
 pub use self::buffer_renderer::LexemeMapper;
-pub use style::Style;
-pub use color::Colors;
+pub use self::style::Style;
+pub use self::color::Colors;
 
 use self::terminal::{TermionTerminal, Terminal};
 use self::buffer_renderer::BufferRenderer;
 use scribe::buffer::{Buffer, Position, Range};
 use pad::PadStr;
-use rustbox::{Color, Event, Style};
 use std::cmp;
 use std::collections::HashMap;
 use std::rc::Rc;

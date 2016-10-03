@@ -11,7 +11,7 @@ use termion::event::{Event, Key};
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::style;
 use std::io::{Write, stdout};
-use view::{Color, Style};
+use view::{Colors, Style};
 
 pub struct TermionTerminal {
     terminal: Option<RefCell<RawTerminal<Stdout>>>,

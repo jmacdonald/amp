@@ -1,5 +1,4 @@
-use termion::color::Rgb as RGBColor;
-pub use RGBColor;
+pub use termion::color::Rgb as RGBColor;
 
 /// A convenience type used to represent a foreground/background
 /// color combination. Provides generic/convenience variants to
