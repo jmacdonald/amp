@@ -13,7 +13,7 @@ dependencies = [
  "rustbox 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "scribe 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "syntect 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "termion 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "termion 1.0.5 (git+https://github.com/iamcodemaker/termion?branch=esc)",
 ]
 
 [[package]]
@@ -535,8 +535,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "termion"
-version = "1.0.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+version = "1.0.5"
+source = "git+https://github.com/iamcodemaker/termion?branch=esc#92a788ebc0c13b26d11893d812f15003c0a70771"
 dependencies = [
  "libc 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
