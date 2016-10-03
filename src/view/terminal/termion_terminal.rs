@@ -19,7 +19,13 @@ pub struct TermionTerminal {
 
 impl TermionTerminal {
     pub fn new() -> TermionTerminal {
-        TermionTerminal { terminal: RefCell::new(Some(create_terminal_instance())) }
+        TermionTerminal {
+            terminal: Some(
+                RefCell::new(
+                    create_terminal_instance()
+                )
+            )
+        }
     }
 }
 
