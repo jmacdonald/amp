@@ -29,7 +29,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
     if mode.results.is_empty() {
         view.print(0,
                    0,
-                   Style::default,
+                   Style::Default,
                    Colors::Default,
                    &"No matching files found.".pad_to_width(view.width()));
      }
@@ -53,7 +53,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
     for line in cmp::max(mode.results.len(), 1)..5 {
         view.print(0,
                    line,
-                   Style::default,
+                   Style::Default,
                    Colors::Default,
                    &String::new().pad_to_width(view.width()));
     }

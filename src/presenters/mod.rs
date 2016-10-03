@@ -4,7 +4,7 @@ pub mod modes;
 
 use std::path::PathBuf;
 use scribe::Buffer;
-use view::{StatusLineData, Style};
+use view::{Colors, StatusLineData, Style};
 use git2::{Repository, Status};
 
 fn path_as_title(path: Option<PathBuf>) -> String {
@@ -18,16 +18,15 @@ fn buffer_status_line_data(buffer: &Buffer) -> StatusLineData {
         let mut title = path_as_title(buffer.path.clone());
         title.push('*');
 
-        (title, Some(rustbox::RB_BOLD))
+        (title, Style::Bold)
     } else {
-        (path_as_title(buffer.path.clone()), None)
+        (path_as_title(buffer.path.clone()), Style::Default)
     };
 
     StatusLineData {
         content: buffer_title,
         style: buffer_title_style,
-        background_color: None,
-        foreground_color: None,
+        colors: Colors::Default,
     }
 }
 
@@ -44,9 +43,8 @@ fn git_status_line_data(repo: &Option<Repository>, path: &Option<PathBuf>) -> St
 
     StatusLineData {
         content: content,
-        style: None,
-        background_color: None,
-        foreground_color: None,
+        style: Style::Default,
+        colors: Colors::Default,
     }
 }
 fn presentable_status(status: &Status) -> &str {

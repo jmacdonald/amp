@@ -2,7 +2,7 @@ use std::cmp;
 use models::application::modes::SymbolJumpMode;
 use pad::PadStr;
 use presenters::{buffer_status_line_data};
-use view::{Colors, StatusLineData, View};
+use view::{Colors, StatusLineData, Style, View};
 use scribe::buffer::{Buffer, Position};
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &SymbolJumpMode, view: &mut View) {
@@ -38,7 +38,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SymbolJumpMode, view: &mut Vi
         let colors = if line == mode.results.selected_index() {
             Colors::Focused
         } else {
-            Color::Default
+            Colors::Default
         };
         let padded_content = result.to_string().pad_to_width(view.width());
         view.print(0,
