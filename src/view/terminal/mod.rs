@@ -8,7 +8,7 @@ use input::Key;
 pub use self::termion_terminal::TermionTerminal;
 
 pub trait Terminal {
-    fn listen(&self) -> Option<Key>;
+    fn listen(&mut self) -> Option<Key>;
     fn clear(&self);
     fn present(&self);
     fn width(&self) -> usize;

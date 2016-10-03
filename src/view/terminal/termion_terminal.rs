@@ -7,22 +7,22 @@ use scribe::buffer::Position;
 use termion;
 use termion::color::{Bg, Fg, Rgb};
 use termion::cursor;
-use termion::input::TermRead;
+use termion::input::{Keys, TermRead};
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::style;
-use std::io::{Stdin, stdin, stdout, Write};
+use std::io::{Error, Stdin, stdin, stdout, Write};
 use view::{Colors, Style};
 use input::Key;
 
 pub struct TermionTerminal {
-    input: Stdin,
+    input: Keys<Stdin>,
     output: Option<RefCell<RawTerminal<Stdout>>>,
 }
 
 impl TermionTerminal {
     pub fn new() -> TermionTerminal {
         TermionTerminal {
-            input: stdin(),
+            input: stdin().keys(),
             output: Some(
                 RefCell::new(
                     create_output_instance()
@@ -34,8 +34,8 @@ impl TermionTerminal {
 
 
 impl Terminal for TermionTerminal {
-    fn listen(&self) -> Option<Key> {
-        self.input.keys().next().and_then(|k| k.ok())
+    fn listen(&mut self) -> Option<Key> {
+        self.input.next().and_then(|k| k.ok())
     }
 
     fn clear(&self) {
