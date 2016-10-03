@@ -1,7 +1,5 @@
-use rustbox;
-use rustbox::{Color, Style};
 use scribe::buffer::{Buffer, Lexeme, Position, Range, Token};
-use view::color;
+use view::{Colors, Style};
 use view::terminal::Terminal;
 
 const LINE_LENGTH_GUIDE_OFFSET: usize = 80;
@@ -70,7 +68,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             for offset in self.screen_position.offset..self.terminal.width() {
                 self.terminal.print_char(offset,
                                 self.screen_position.line,
-                                rustbox::RB_NORMAL,
+                                Style::Default,
                                 Color::Default,
                                 self.alt_background_color,
                                 ' ');
@@ -82,7 +80,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         if !self.on_cursor_line() && self.screen_position.offset <= self.length_guide_offset() {
             self.terminal.print_char(self.length_guide_offset(),
                             self.screen_position.line,
-                            rustbox::RB_NORMAL,
+                            Style::Default,
                             Color::Default,
                             self.alt_background_color,
                             ' ');
@@ -129,12 +127,12 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         match self.highlight {
             Some(ref highlight_range) => {
                 if highlight_range.includes(&self.buffer_position) {
-                    (rustbox::RB_REVERSE, Color::Default)
+                    (Style::Reversed, Color::Default)
                 } else {
-                    (rustbox::RB_NORMAL, token_color)
+                    (Style::Default, token_color)
                 }
             }
-            None => (rustbox::RB_NORMAL, token_color)
+            None => (Style::Default, token_color)
         }
     }
 
@@ -147,11 +145,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     }
 
     pub fn print_lexeme(&mut self, lexeme: Lexeme) {
-        let token_color = if let Some(ref scope) = lexeme.scope {
-            color::map(scope)
-        } else {
-            Color::Default
-        };
+        let token_color = Color::Default;
 
         for character in lexeme.value.chars() {
             // We should never run into newline
@@ -278,9 +272,9 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
             // Cursor line number is emboldened.
             let weight = if self.on_cursor_line() {
-                rustbox::RB_BOLD
+                Style::Bold
             } else {
-                rustbox::RB_NORMAL
+                Style::Default
             };
 
             self.terminal.print_char(offset,
