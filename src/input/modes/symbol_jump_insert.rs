@@ -20,6 +20,7 @@ pub fn handle(mode: &mut SymbolJumpMode, input: Key) -> Option<Command> {
             // Re-run the search.
             Some(symbol_jump::search)
         }
+        Key::Char('\n') => Some(symbol_jump::jump_to_selected_symbol),
         Key::Char(c) => {
             // Add a character to the search term.
             mode.input.push(c);
@@ -29,7 +30,6 @@ pub fn handle(mode: &mut SymbolJumpMode, input: Key) -> Option<Command> {
         }
         Key::Down | Key::Ctrl('j') => Some(symbol_jump::select_next_symbol),
         Key::Up | Key::Ctrl('k') => Some(symbol_jump::select_previous_symbol),
-        Key::Char('\n') => Some(symbol_jump::jump_to_selected_symbol),
         Key::Esc => {
             if mode.results.is_empty() {
                 Some(application::switch_to_normal_mode)
