@@ -4,6 +4,7 @@ use std::cell::{Cell, RefCell};
 use super::Terminal;
 use rustbox::Event;
 use view::{Colors, Style};
+use input::Key;
 
 const WIDTH: usize = 10;
 const HEIGHT: usize = 10;
@@ -59,7 +60,7 @@ impl TestTerminal {
 }
 
 impl Terminal for TestTerminal {
-    fn listen(&self) -> Event { Event::NoEvent }
+    fn listen(&self) -> Option<Key> { None }
     fn clear(&self) {
         for row in self.data.borrow_mut().iter_mut() {
             *row = [None; WIDTH];

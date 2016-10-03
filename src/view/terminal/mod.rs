@@ -3,11 +3,12 @@ mod termion_terminal;
 use termion::event::Event;
 use scribe::buffer::Position;
 use view::{Colors, Style};
+use input::Key;
 
 pub use self::termion_terminal::TermionTerminal;
 
 pub trait Terminal {
-    fn listen(&self) -> Event;
+    fn listen(&self) -> Option<Key>;
     fn clear(&self);
     fn present(&self);
     fn width(&self) -> usize;

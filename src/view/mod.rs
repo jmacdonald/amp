@@ -14,6 +14,7 @@ pub use self::buffer_renderer::LexemeMapper;
 pub use self::style::Style;
 pub use self::color::Colors;
 
+use input::Key;
 use self::terminal::{TermionTerminal, Terminal};
 use self::buffer_renderer::BufferRenderer;
 use scribe::buffer::{Buffer, Position, Range};
@@ -180,7 +181,7 @@ impl View {
         self.terminal.borrow().height()
     }
 
-    pub fn listen(&self) -> Event {
+    pub fn listen(&self) -> Option<Key> {
         self.terminal.borrow().listen()
     }
 

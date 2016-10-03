@@ -7,22 +7,25 @@ use scribe::buffer::Position;
 use termion;
 use termion::color::{Bg, Fg, Rgb};
 use termion::cursor;
-use termion::event::{Event, Key};
+use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::style;
-use std::io::{Write, stdout};
+use std::io::{Stdin, stdin, stdout, Write};
 use view::{Colors, Style};
+use input::Key;
 
 pub struct TermionTerminal {
-    terminal: Option<RefCell<RawTerminal<Stdout>>>,
+    input: Stdin,
+    output: Option<RefCell<RawTerminal<Stdout>>>,
 }
 
 impl TermionTerminal {
     pub fn new() -> TermionTerminal {
         TermionTerminal {
-            terminal: Some(
+            input: stdin(),
+            output: Some(
                 RefCell::new(
-                    create_terminal_instance()
+                    create_output_instance()
                 )
             )
         }
@@ -31,16 +34,16 @@ impl TermionTerminal {
 
 
 impl Terminal for TermionTerminal {
-    fn listen(&self) -> Event {
-        self.terminal.as_ref().and_then(|r| r.poll_event(false).ok()).unwrap_or(Event::NoEvent)
+    fn listen(&self) -> Option<Key> {
+        self.input.keys().next().and_then(|k| k.ok())
     }
 
     fn clear(&self) {
-        self.terminal.as_ref().map(|t| write!(t.borrow_mut(), "{}", termion::clear::All));
+        self.output.as_ref().map(|t| write!(t.borrow_mut(), "{}", termion::clear::All));
     }
 
     fn present(&self) {
-        self.terminal.as_ref().map(|t| t.borrow_mut().flush());
+        self.output.as_ref().map(|t| t.borrow_mut().flush());
     }
 
     fn width(&self) -> usize {
@@ -56,7 +59,7 @@ impl Terminal for TermionTerminal {
     }
 
     fn set_cursor(&self, position: Option<Position>) {
-        self.terminal.as_ref().map(|t| {
+        self.output.as_ref().map(|t| {
             match position {
                 Some(ref pos) => write!(t.borrow_mut(), "{}", cursor_position(pos)),
                 None => write!(t.borrow_mut(), "{}", cursor::Hide),
@@ -66,7 +69,7 @@ impl Terminal for TermionTerminal {
 
     fn print(&self, x: usize, y: usize, style: Style, colors: Colors, s: &str) {
         if let Colors::Custom(fg, bg) = colors {
-            self.terminal.as_ref().map(|t| {
+            self.output.as_ref().map(|t| {
                 write!(
                     t.borrow_mut(),
                     "{}{}{}{}{}",
@@ -82,7 +85,7 @@ impl Terminal for TermionTerminal {
 
     fn print_char(&self, x:usize, y: usize, style: Style, colors: Colors, c: char) {
         if let Colors::Custom(fg, bg) = colors {
-            self.terminal.as_ref().map(|t| {
+            self.output.as_ref().map(|t| {
                 write!(
                     t.borrow_mut(),
                     "{}{}{}{}{}",
@@ -98,13 +101,13 @@ impl Terminal for TermionTerminal {
 
     fn stop(&mut self) {
         // Terminal destructor cleans up for us.
-        self.terminal = None;
+        self.output = None;
     }
 
     fn start(&mut self) {
         // We don't want to initialize the terminal twice.
-        if self.terminal.is_none() {
-            self.terminal = Some(RefCell::new(create_terminal_instance()));
+        if self.output.is_none() {
+            self.output = Some(RefCell::new(create_output_instance()));
         }
     }
 }
@@ -122,6 +125,6 @@ fn terminal_size() -> (usize, usize) {
         .unwrap_or((0, 0))
 }
 
-fn create_terminal_instance() -> RawTerminal<Stdout> {
+fn create_output_instance() -> RawTerminal<Stdout> {
     stdout().into_raw_mode().unwrap()
 }

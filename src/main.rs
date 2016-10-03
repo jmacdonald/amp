@@ -18,7 +18,7 @@ mod commands;
 mod presenters;
 
 use models::application::Mode;
-use view::terminal::Event;
+use input::Key;
 
 fn main() {
     let mut application = models::application::new();
@@ -74,48 +74,45 @@ fn main() {
         }
 
         // Listen for and respond to user input.
-        match application.view.listen() {
-            Event::KeyEvent(Some(key)) => {
-                // Pass the input to the current mode.
-                let command = match application.mode {
-                    Mode::Normal => input::modes::normal::handle(key),
-                    Mode::Insert(ref mut i) => input::modes::insert::handle(i, key),
-                    Mode::Jump(ref mut j) => input::modes::jump::handle(j, key),
-                    Mode::LineJump(ref mut j) => input::modes::line_jump::handle(j, key),
-                    Mode::SymbolJump(ref mut mode) => {
-                        if mode.insert {
-                            input::modes::symbol_jump_insert::handle(mode, key)
-                        } else {
-                            input::modes::symbol_jump::handle(key)
-                        }
-                    },
-                    Mode::Open(ref mut open_mode) => {
-                        if open_mode.insert {
-                            input::modes::open_insert::handle(open_mode, key)
-                        } else {
-                            input::modes::open::handle(key)
-                        }
-                    },
-                    Mode::Select(_) => input::modes::select::handle(key),
-                    Mode::SelectLine(_) => input::modes::select_line::handle(key),
-                    Mode::SearchInsert(ref mut s) => input::modes::search_insert::handle(s, key),
-                    Mode::Exit => break,
-                };
+        if let Some(key) = application.view.listen() {
+            // Pass the input to the current mode.
+            let command = match application.mode {
+                Mode::Normal => input::modes::normal::handle(key),
+                Mode::Insert(ref mut i) => input::modes::insert::handle(i, key),
+                Mode::Jump(ref mut j) => input::modes::jump::handle(j, key),
+                Mode::LineJump(ref mut j) => input::modes::line_jump::handle(j, key),
+                Mode::SymbolJump(ref mut mode) => {
+                    if mode.insert {
+                        input::modes::symbol_jump_insert::handle(mode, key)
+                    } else {
+                        input::modes::symbol_jump::handle(key)
+                    }
+                },
+                Mode::Open(ref mut open_mode) => {
+                    if open_mode.insert {
+                        input::modes::open_insert::handle(open_mode, key)
+                    } else {
+                        input::modes::open::handle(key)
+                    }
+                },
+                Mode::Select(_) => input::modes::select::handle(key),
+                Mode::SelectLine(_) => input::modes::select_line::handle(key),
+                Mode::SearchInsert(ref mut s) => input::modes::search_insert::handle(s, key),
+                Mode::Exit => break,
+            };
 
-                // If the current mode returned a command, run it.
-                match command {
-                    Some(c) => c(&mut application),
-                    None => (),
-                }
-
-                // Check if the command resulted in an exit, before
-                // looping again and asking for input we won't use.
-                match application.mode {
-                    Mode::Exit => break,
-                    _ => {}
-                }
+            // If the current mode returned a command, run it.
+            match command {
+                Some(c) => c(&mut application),
+                None => (),
             }
-            _ => {}
+
+            // Check if the command resulted in an exit, before
+            // looping again and asking for input we won't use.
+            match application.mode {
+                Mode::Exit => break,
+                _ => {}
+            }
         }
     }
 }
