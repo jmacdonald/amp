@@ -193,12 +193,14 @@ impl View {
         self.terminal.borrow().present()
     }
 
-    pub fn print(&self, x: usize, y: usize, style: Style, fg: Color, bg: Color, s: &str) {
-        self.terminal.borrow().print(x, y, style, fg, bg, s);
+    pub fn print(&self, x: usize, y: usize, style: Style, colors: Colors, s: &str) {
+        // TODO: Convert convenience colors into RGB values.
+        self.terminal.borrow().print(x, y, style, colors, s);
     }
 
-    pub fn print_char(&self, x: usize, y: usize, style: Style, fg: Color, bg: Color, c: char) {
-        self.terminal.borrow().print_char(x, y, style, fg, bg, c);
+    pub fn print_char(&self, x: usize, y: usize, style: Style, colors: Colors, c: char) {
+        // TODO: Convert convenience colors into RGB values.
+        self.terminal.borrow().print_char(x, y, style, colors, c);
     }
 
     pub fn stop(&mut self) {
