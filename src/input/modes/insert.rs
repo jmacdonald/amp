@@ -6,8 +6,8 @@ pub fn handle(mode: &mut InsertMode, input: Key) -> Option<Command> {
     match input {
         Key::Esc        => Some(application::switch_to_normal_mode),
         Key::Char('\n') => Some(buffer::insert_newline),
+        Key::Char('\t') => Some(buffer::insert_tab),
         Key::Backspace  => Some(buffer::backspace),
-        Key::Tab        => Some(buffer::insert_tab),
         Key::Down       => Some(cursor::move_down),
         Key::Up         => Some(cursor::move_up),
         Key::Left       => Some(cursor::move_left),
