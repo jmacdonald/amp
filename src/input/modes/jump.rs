@@ -1,6 +1,6 @@
 use models::application::modes::JumpMode;
 use commands::{Command, application, jump_mode};
-use rustbox::keyboard::Key;
+use input::Key;
 
 pub fn handle(mode: &mut JumpMode, input: Key) -> Option<Command> {
     match input {

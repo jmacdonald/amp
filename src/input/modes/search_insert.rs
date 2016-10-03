@@ -1,11 +1,11 @@
 use models::application::modes::SearchInsertMode;
 use commands::{Command, application, search};
-use rustbox::keyboard::Key;
+use input::Key;
 
 pub fn handle(mode: &mut SearchInsertMode, input: Key) -> Option<Command> {
     match input {
         Key::Esc => Some(application::switch_to_normal_mode),
-        Key::Enter => Some(search::accept_query),
+        Key::Char('\n') => Some(search::accept_query),
         Key::Backspace => {
             // Remove a character from the search term.
             mode.input.pop();

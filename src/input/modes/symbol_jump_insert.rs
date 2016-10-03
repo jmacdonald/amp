@@ -1,6 +1,6 @@
 use models::application::modes::SymbolJumpMode;
 use commands::{Command, application, symbol_jump};
-use rustbox::keyboard::Key;
+use input::Key;
 
 pub fn handle(mode: &mut SymbolJumpMode, input: Key) -> Option<Command> {
     match input {
@@ -29,7 +29,7 @@ pub fn handle(mode: &mut SymbolJumpMode, input: Key) -> Option<Command> {
         }
         Key::Down | Key::Ctrl('j') => Some(symbol_jump::select_next_symbol),
         Key::Up | Key::Ctrl('k') => Some(symbol_jump::select_previous_symbol),
-        Key::Enter => Some(symbol_jump::jump_to_selected_symbol),
+        Key::Char('\n') => Some(symbol_jump::jump_to_selected_symbol),
         Key::Esc => {
             if mode.results.is_empty() {
                 Some(application::switch_to_normal_mode)

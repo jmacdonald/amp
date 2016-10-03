@@ -1,5 +1,5 @@
 use commands::{Command, application, workspace, cursor, buffer, search, view, git};
-use rustbox::keyboard::Key;
+use input::Key;
 
 pub fn handle(input: Key) -> Option<Command> {
     match input {
@@ -34,7 +34,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('V') => Some(application::switch_to_select_line_mode),
         Key::Char('/') => Some(application::switch_to_search_insert_mode),
         Key::Char('g') => Some(application::switch_to_line_jump_mode),
-        Key::Enter => Some(application::switch_to_symbol_jump_mode),
+        Key::Char('\n') => Some(application::switch_to_symbol_jump_mode),
         Key::Char('u') => Some(buffer::undo),
         Key::Char('r') => Some(buffer::redo),
         Key::Char('p') => Some(buffer::paste),

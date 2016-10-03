@@ -1,5 +1,5 @@
 use commands::{application, buffer, Command, cursor, git, selection, view};
-use rustbox::keyboard::Key;
+use input::Key;
 
 pub fn handle(input: Key) -> Option<Command> {
     match input {
