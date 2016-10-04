@@ -12,7 +12,7 @@ mod style;
 pub use self::data::StatusLineData;
 pub use self::buffer_renderer::LexemeMapper;
 pub use self::style::Style;
-pub use self::color::Colors;
+pub use self::color::{Colors, RGBColor};
 
 use input::Key;
 use self::terminal::{TermionTerminal, Terminal};
@@ -48,13 +48,9 @@ impl View {
     }
 
     pub fn draw_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>, lexeme_mapper: Option<&mut LexemeMapper>) {
-        let scroll_offset = self.visible_region(buffer).line_offset();
-
         BufferRenderer::new(
+            self,
             buffer,
-            scroll_offset,
-            &*self.terminal.borrow(),
-            self.alt_background_color(),
             highlight,
             lexeme_mapper
         ).render();
@@ -90,19 +86,12 @@ impl View {
             self.print(offset,
                        line,
                        element.style,
-                       element.colors,
+                       element.colors.clone(),
                        &content);
 
             // Update the tracked offset.
             offset + content.len()
         });
-    }
-
-    pub fn alt_background_color(&self) -> Color {
-        match self.theme {
-            Theme::Dark => Color::Black,
-            Theme::Light => Color::White,
-        }
     }
 
     ///
@@ -182,7 +171,7 @@ impl View {
     }
 
     pub fn listen(&self) -> Option<Key> {
-        self.terminal.borrow().listen()
+        self.terminal.borrow_mut().listen()
     }
 
     pub fn clear(&self) {

@@ -1,5 +1,5 @@
 use scribe::buffer::{Buffer, Lexeme, Position, Range, Token};
-use view::{Colors, Style};
+use view::{Colors, RGBColor, Style, View};
 use view::terminal::Terminal;
 
 const LINE_LENGTH_GUIDE_OFFSET: usize = 80;
@@ -13,7 +13,6 @@ pub trait LexemeMapper {
 /// A one-time-use type that encapsulates all of the
 /// details involved in rendering a buffer to the screen.
 pub struct BufferRenderer<'a, 'b> {
-    alt_background_color: Color,
     buffer: &'a Buffer,
     buffer_position: Position,
     cursor_visible: bool,
@@ -22,17 +21,15 @@ pub struct BufferRenderer<'a, 'b> {
     lexeme_mapper: Option<&'b mut LexemeMapper>,
     line_number_width: usize,
     screen_position: Position,
-    scroll_offset: usize,
-    terminal: &'a Terminal,
+    view: &'a mut View,
 }
 
 impl<'a, 'b> BufferRenderer<'a, 'b> {
-    pub fn new(buffer: &'a Buffer, scroll_offset: usize, terminal: &'a Terminal, alt_background_color: Color, highlight: Option<&'a Range>, lexeme_mapper: Option<&'b mut LexemeMapper>) -> BufferRenderer<'a, 'b> {
+    pub fn new(view: &'a mut View, buffer: &'a Buffer, highlight: Option<&'a Range>, lexeme_mapper: Option<&'b mut LexemeMapper>) -> BufferRenderer<'a, 'b> {
         // Determine the gutter size based on the number of lines.
         let line_number_width = buffer.line_count().to_string().len() + 1;
 
         BufferRenderer{
-            alt_background_color: alt_background_color,
             buffer: buffer,
             cursor_visible: false,
             gutter_width: line_number_width + 2,
@@ -41,9 +38,12 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             line_number_width: line_number_width,
             buffer_position: Position{ line: 0, offset: 0 },
             screen_position: Position{ line: 0, offset: 0 },
-            scroll_offset: scroll_offset,
-            terminal: terminal,
+            view: view,
         }
+    }
+
+    fn scroll_offset(&mut self) -> usize {
+        self.view.visible_region(self.buffer).line_offset()
     }
 
     fn update_positions(&mut self, token: &Token) {
@@ -52,7 +52,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             &Token::Lexeme(ref lexeme) => {
                 self.buffer_position = lexeme.position;
                 self.screen_position = Position {
-                    line: lexeme.position.line.checked_sub(self.scroll_offset).unwrap_or(0),
+                    line: lexeme.position.line.checked_sub(self.scroll_offset()).unwrap_or(0),
                     offset: lexeme.position.offset + self.gutter_width
                 };
             }
@@ -65,12 +65,11 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
     fn print_line_highlight(&mut self) {
         if self.on_cursor_line() {
-            for offset in self.screen_position.offset..self.terminal.width() {
-                self.terminal.print_char(offset,
+            for offset in self.screen_position.offset..self.view.width() {
+                self.view.print_char(offset,
                                 self.screen_position.line,
                                 Style::Default,
-                                Color::Default,
-                                self.alt_background_color,
+                                Colors::Focused,
                                 ' ');
             }
         }
@@ -78,11 +77,10 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
     fn print_length_guide(&mut self) {
         if !self.on_cursor_line() && self.screen_position.offset <= self.length_guide_offset() {
-            self.terminal.print_char(self.length_guide_offset(),
+            self.view.print_char(self.length_guide_offset(),
                             self.screen_position.line,
                             Style::Default,
-                            Color::Default,
-                            self.alt_background_color,
+                            Colors::Focused,
                             ' ');
         }
     }
@@ -118,35 +116,25 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         if self.inside_visible_content() {
             if *self.buffer.cursor == self.buffer_position {
                 self.cursor_visible = true;
-                self.terminal.set_cursor(Some(self.screen_position));
+                self.view.set_cursor(Some(self.screen_position));
             }
         }
     }
 
-    fn current_char_style(&self, token_color: Color) -> (Style, Color) {
+    fn current_char_style(&self, token_color: RGBColor) -> (Style, Colors) {
         match self.highlight {
             Some(ref highlight_range) => {
                 if highlight_range.includes(&self.buffer_position) {
-                    (Style::Reversed, Color::Default)
+                    (Style::Inverted, Colors::Default)
                 } else {
-                    (Style::Default, token_color)
+                    (Style::Default, Colors::Custom(token_color, RGBColor(0, 0, 0)))
                 }
             }
-            None => (Style::Default, token_color)
-        }
-    }
-
-    fn background_color(&self) -> Color {
-        if self.on_cursor_line() {
-            self.alt_background_color
-        } else {
-            Color::Default
+            None => (Style::Default, Colors::Custom(token_color, RGBColor(0, 0, 0)))
         }
     }
 
     pub fn print_lexeme(&mut self, lexeme: Lexeme) {
-        let token_color = Color::Default;
-
         for character in lexeme.value.chars() {
             // We should never run into newline
             // characters, but if we do, ignore them.
@@ -154,12 +142,12 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
             self.set_cursor();
 
-            let (style, color) = self.current_char_style(token_color);
+            let (style, color) = self.current_char_style(RGBColor(255, 255, 255));
 
-            if LINE_WRAPPING && self.screen_position.offset == self.terminal.width() {
+            if LINE_WRAPPING && self.screen_position.offset == self.view.width() {
                 self.screen_position.line += 1;
                 self.screen_position.offset = self.gutter_width;
-                self.terminal.print_char(self.screen_position.offset, self.screen_position.line, style, color, self.background_color(), character);
+                self.view.print_char(self.screen_position.offset, self.screen_position.line, style, color, character);
                 self.screen_position.offset += 1;
                 self.buffer_position.offset += 1;
             } else if character == '\t' {
@@ -171,12 +159,12 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
                 // Print the sequence of spaces and move the offset accordingly.
                 for _ in self.screen_position.offset..screen_tab_stop {
-                    self.terminal.print_char(self.screen_position.offset, self.screen_position.line, style, color, self.alt_background_color, ' ');
+                    self.view.print_char(self.screen_position.offset, self.screen_position.line, style, color.clone(), ' ');
                     self.screen_position.offset += 1;
                 }
                 self.buffer_position.offset += 1;
             } else {
-                self.terminal.print_char(self.screen_position.offset, self.screen_position.line, style, color, self.background_color(), character);
+                self.view.print_char(self.screen_position.offset, self.screen_position.line, style, color, character);
                 self.screen_position.offset += 1;
                 self.buffer_position.offset += 1;
             }
@@ -185,15 +173,15 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         }
     }
 
-    fn before_visible_content(&self) -> bool {
-        self.buffer_position.line < self.scroll_offset
+    fn before_visible_content(&mut self) -> bool {
+        self.buffer_position.line < self.scroll_offset()
     }
 
     fn after_visible_content(&self) -> bool {
-        self.screen_position.line >= self.terminal.height() - 1
+        self.screen_position.line >= self.view.height() - 1
     }
 
-    fn inside_visible_content(&self) -> bool {
+    fn inside_visible_content(&mut self) -> bool {
         !self.before_visible_content() && !self.after_visible_content()
     }
 
@@ -240,7 +228,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         // If the cursor was never rendered along with the buffer, we
         // should clear it to prevent its previous value from persisting.
         if !self.cursor_visible {
-            self.terminal.set_cursor(None);
+            self.view.set_cursor(None);
         }
 
         // One last call to these for the last line.
@@ -264,10 +252,10 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         for number in formatted_line_number.chars() {
             // Numbers (and their leading spaces) have background
             // color, but the right-hand side gutter gap does not.
-            let background_color = if offset > self.line_number_width && !self.on_cursor_line() {
-                Color::Default
+            let color = if offset > self.line_number_width && !self.on_cursor_line() {
+                Colors::Default
             } else {
-                self.alt_background_color
+                Colors::Focused
             };
 
             // Cursor line number is emboldened.
@@ -277,11 +265,10 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
                 Style::Default
             };
 
-            self.terminal.print_char(offset,
+            self.view.print_char(offset,
                             self.screen_position.line,
                             weight,
-                            Color::Default,
-                            background_color,
+                            color,
                             number);
 
             offset += 1;
