@@ -183,13 +183,11 @@ impl View {
     }
 
     pub fn print(&self, x: usize, y: usize, style: Style, colors: Colors, s: &str) {
-        // TODO: Convert convenience colors into RGB values.
-        self.terminal.borrow().print(x, y, style, colors, s);
+        self.terminal.borrow().print(x, y, style, self.mapped_colors(colors), s);
     }
 
     pub fn print_char(&self, x: usize, y: usize, style: Style, colors: Colors, c: char) {
-        // TODO: Convert convenience colors into RGB values.
-        self.terminal.borrow().print_char(x, y, style, colors, c);
+        self.terminal.borrow().print_char(x, y, style, self.mapped_colors(colors), c);
     }
 
     pub fn stop(&mut self) {
@@ -198,6 +196,32 @@ impl View {
 
     pub fn start(&mut self) {
         self.terminal.borrow_mut().start();
+    }
+
+    fn mapped_colors(&self, colors: Colors) -> Colors {
+        let (fg, bg, alt_bg) = match self.theme {
+            Theme::Light => (
+                RGBColor(0, 0, 0),
+                RGBColor(255, 255, 255),
+                RGBColor(200, 200, 200)
+            ),
+            Theme::Dark => (
+                RGBColor(255, 255, 255),
+                RGBColor(0, 0, 0),
+                RGBColor(55, 55, 55)
+            ),
+        };
+
+        match colors {
+            Colors::Blank => Colors::Custom(bg.clone(), bg),
+            Colors::Default => Colors::Custom(fg, bg),
+            Colors::Focused => Colors::Custom(fg, alt_bg),
+            Colors::Inverted => Colors::Custom(bg, fg),
+            Colors::Insert => Colors::Custom(RGBColor(255, 255, 255), RGBColor(0, 255, 0)),
+            Colors::Modified => Colors::Custom(RGBColor(255, 255, 255), RGBColor(255, 255, 0)),
+            Colors::Select => Colors::Custom(RGBColor(255, 255, 255), RGBColor(0, 0, 255)),
+            Colors::Custom(custom_fg, custom_bg) => Colors::Custom(custom_fg, custom_bg)
+        }
     }
 }
 
