@@ -1,16 +1,14 @@
 use super::Terminal;
 use std::cell::RefCell;
-use std::convert::From;
-use std::fmt::Display;
 use std::io::Stdout;
 use scribe::buffer::Position;
 use termion;
-use termion::color::{Bg, Fg, Rgb};
+use termion::color::{Bg, Fg};
 use termion::cursor;
 use termion::input::{Keys, TermRead};
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::style;
-use std::io::{Error, Stdin, stdin, stdout, Write};
+use std::io::{Stdin, stdin, stdout, Write};
 use view::{Colors, Style};
 use input::Key;
 

@@ -18,7 +18,6 @@ mod commands;
 mod presenters;
 
 use models::application::Mode;
-use input::Key;
 
 fn main() {
     let mut application = models::application::new();

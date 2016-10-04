@@ -1,4 +1,3 @@
-use std::clone::Clone;
 pub use termion::color::Rgb as RGBColor;
 
 /// A convenience type used to represent a foreground/background

@@ -1,6 +1,5 @@
 mod termion_terminal;
 
-use termion::event::Event;
 use scribe::buffer::Position;
 use view::{Colors, Style};
 use input::Key;

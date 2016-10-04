@@ -1,6 +1,5 @@
 use scribe::buffer::{Buffer, Lexeme, Position, Range, Token};
 use view::{Colors, RGBColor, Style, View};
-use view::terminal::Terminal;
 
 const LINE_LENGTH_GUIDE_OFFSET: usize = 80;
 const LINE_WRAPPING: bool = true;
