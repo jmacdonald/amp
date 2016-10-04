@@ -1,5 +1,6 @@
 use super::Terminal;
 use std::cell::RefCell;
+use std::fmt::Display;
 use std::io::Stdout;
 use scribe::buffer::Position;
 use termion;
@@ -26,6 +27,12 @@ impl TermionTerminal {
                     create_output_instance()
                 )
             )
+        }
+    }
+
+    fn reset_style(&self) {
+        if let Some(ref output) = self.output {
+            write!(output.borrow_mut(), "{}", style::Reset);
         }
     }
 }
@@ -67,33 +74,39 @@ impl Terminal for TermionTerminal {
 
     fn print(&self, x: usize, y: usize, style: Style, colors: Colors, s: &str) {
         if let Colors::Custom(fg, bg) = colors {
-            self.output.as_ref().map(|t| {
+            self.reset_style();
+
+            if let Some(ref output) = self.output {
                 write!(
-                    t.borrow_mut(),
-                    "{}{}{}{}{}",
+                    output.borrow_mut(),
+                    "{}{}{}{}{}{}",
                     cursor_position(&Position{ line: y, offset: x }),
                     style::Reset,
+                    map_style(style).unwrap_or(Box::new(style::Reset)),
                     Fg(fg),
                     Bg(bg),
                     s
-                )
-            });
+                );
+            }
         }
     }
 
     fn print_char(&self, x:usize, y: usize, style: Style, colors: Colors, c: char) {
         if let Colors::Custom(fg, bg) = colors {
-            self.output.as_ref().map(|t| {
+            self.reset_style();
+
+            if let Some(ref output) = self.output {
                 write!(
-                    t.borrow_mut(),
-                    "{}{}{}{}{}",
+                    output.borrow_mut(),
+                    "{}{}{}{}{}{}",
                     cursor_position(&Position{ line: y, offset: x }),
                     style::Reset,
+                    map_style(style).unwrap_or(Box::new(style::Reset)),
                     Fg(fg),
                     Bg(bg),
                     c
-                )
-            });
+                );
+            }
         }
     }
 
@@ -125,4 +138,13 @@ fn terminal_size() -> (usize, usize) {
 
 fn create_output_instance() -> RawTerminal<Stdout> {
     stdout().into_raw_mode().unwrap()
+}
+
+fn map_style(style: Style) -> Option<Box<Display>> {
+    match style {
+        Style::Default => None,
+        Style::Bold => Some(Box::new(style::Bold)),
+        Style::Inverted => Some(Box::new(style::Invert)),
+        Style::Italic => Some(Box::new(style::Italic)),
+    }
 }
