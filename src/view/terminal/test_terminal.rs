@@ -1,6 +1,7 @@
 use scribe::buffer::Position;
 use std::error::Error;
 use std::cell::{Cell, RefCell};
+use std::fmt::Display;
 use super::Terminal;
 use rustbox::Event;
 use view::{Colors, Style};
@@ -72,16 +73,13 @@ impl Terminal for TestTerminal {
     fn set_cursor(&self, position: Option<Position>) { self.cursor.set(position); }
     fn stop(&mut self) { }
     fn start(&mut self) { }
-    fn print(&self, x: usize, y: usize, style: Style, colors: Colors, s: &str) {
+    fn print(&self, x: usize, y: usize, style: Style, colors: Colors, content: &Display) {
         let mut data = self.data.borrow_mut();
+        let string_content = format!("{}", content);
 
-        for (i, c) in s.chars().enumerate() {
+        for (i, c) in content.chars().enumerate() {
             data[y][i+x] = Some(c);
         }
-    }
-
-    fn print_char(&self, x: usize, y: usize, style: Style, colors: Colors, c: char) {
-        self.data.borrow_mut()[y][x] = Some(c);
     }
 }
 

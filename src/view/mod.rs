@@ -23,6 +23,7 @@ use std::cmp;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::fmt::Display;
 use self::scrollable_region::ScrollableRegion;
 
 pub enum Theme {
@@ -182,12 +183,8 @@ impl View {
         self.terminal.borrow().present()
     }
 
-    pub fn print(&self, x: usize, y: usize, style: Style, colors: Colors, s: &str) {
-        self.terminal.borrow().print(x, y, style, self.mapped_colors(colors), s);
-    }
-
-    pub fn print_char(&self, x: usize, y: usize, style: Style, colors: Colors, c: char) {
-        self.terminal.borrow().print_char(x, y, style, self.mapped_colors(colors), c);
+    pub fn print(&self, x: usize, y: usize, style: Style, colors: Colors, content: &Display) {
+        self.terminal.borrow().print(x, y, style, self.mapped_colors(colors), content);
     }
 
     pub fn stop(&mut self) {

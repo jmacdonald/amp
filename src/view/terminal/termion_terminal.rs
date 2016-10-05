@@ -72,7 +72,7 @@ impl Terminal for TermionTerminal {
         });
     }
 
-    fn print(&self, x: usize, y: usize, style: Style, colors: Colors, s: &str) {
+    fn print(&self, x: usize, y: usize, style: Style, colors: Colors, content: &Display) {
         if let Colors::Custom(fg, bg) = colors {
             self.reset_style();
 
@@ -85,26 +85,7 @@ impl Terminal for TermionTerminal {
                     map_style(style).unwrap_or(Box::new(style::Reset)),
                     Fg(fg),
                     Bg(bg),
-                    s
-                );
-            }
-        }
-    }
-
-    fn print_char(&self, x:usize, y: usize, style: Style, colors: Colors, c: char) {
-        if let Colors::Custom(fg, bg) = colors {
-            self.reset_style();
-
-            if let Some(ref output) = self.output {
-                write!(
-                    output.borrow_mut(),
-                    "{}{}{}{}{}{}",
-                    cursor_position(&Position{ line: y, offset: x }),
-                    style::Reset,
-                    map_style(style).unwrap_or(Box::new(style::Reset)),
-                    Fg(fg),
-                    Bg(bg),
-                    c
+                    content
                 );
             }
         }
