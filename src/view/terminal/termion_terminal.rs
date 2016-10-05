@@ -37,7 +37,6 @@ impl TermionTerminal {
     }
 }
 
-
 impl Terminal for TermionTerminal {
     fn listen(&mut self) -> Option<Key> {
         self.input.next().and_then(|k| k.ok())
@@ -73,21 +72,39 @@ impl Terminal for TermionTerminal {
     }
 
     fn print(&self, x: usize, y: usize, style: Style, colors: Colors, content: &Display) {
-        if let Colors::Custom(fg, bg) = colors {
-            self.reset_style();
+        match colors {
+            Colors::Custom(fg, bg) => {
+                self.reset_style();
 
-            if let Some(ref output) = self.output {
-                write!(
-                    output.borrow_mut(),
-                    "{}{}{}{}{}{}",
-                    cursor_position(&Position{ line: y, offset: x }),
-                    style::Reset,
-                    map_style(style).unwrap_or(Box::new(style::Reset)),
-                    Fg(fg),
-                    Bg(bg),
-                    content
-                );
-            }
+                if let Some(ref output) = self.output {
+                    write!(
+                        output.borrow_mut(),
+                        "{}{}{}{}{}{}",
+                        style::Reset,
+                        cursor_position(&Position{ line: y, offset: x }),
+                        map_style(style).unwrap_or(Box::new(style::Reset)),
+                        Fg(fg),
+                        Bg(bg),
+                        content
+                    );
+                }
+            },
+            Colors::CustomForeground(fg) => {
+                self.reset_style();
+
+                if let Some(ref output) = self.output {
+                    write!(
+                        output.borrow_mut(),
+                        "{}{}{}{}{}",
+                        style::Reset,
+                        cursor_position(&Position{ line: y, offset: x }),
+                        map_style(style).unwrap_or(Box::new(style::Reset)),
+                        Fg(fg),
+                        content
+                    );
+                }
+            },
+            _ => (),
         }
     }
 
