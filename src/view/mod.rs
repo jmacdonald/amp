@@ -210,14 +210,16 @@ impl View {
         };
 
         match colors {
-            Colors::Blank => Colors::Custom(bg.clone(), bg),
-            Colors::Default => Colors::Custom(fg, bg),
+            Colors::Blank => Colors::Blank,
+            Colors::Default => Colors::CustomForeground(fg),
             Colors::Focused => Colors::Custom(fg, alt_bg),
             Colors::Inverted => Colors::Custom(bg, fg),
             Colors::Insert => Colors::Custom(RGBColor(255, 255, 255), RGBColor(0, 255, 0)),
             Colors::Modified => Colors::Custom(RGBColor(255, 255, 255), RGBColor(255, 255, 0)),
             Colors::Select => Colors::Custom(RGBColor(255, 255, 255), RGBColor(0, 0, 255)),
-            Colors::Custom(custom_fg, custom_bg) => Colors::Custom(custom_fg, custom_bg)
+            Colors::CustomForeground(f) => Colors::CustomForeground(f),
+            Colors::CustomFocusedForeground(f) => Colors::Custom(f, alt_bg),
+            Colors::Custom(custom_fg, custom_bg) => Colors::Custom(custom_fg, custom_bg),
         }
     }
 }

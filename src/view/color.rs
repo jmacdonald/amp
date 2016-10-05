@@ -12,5 +12,7 @@ pub enum Colors {
     Insert,   // white/green
     Modified, // white/yellow
     Select,   // white/blue
-    Custom(RGBColor, RGBColor)
+    CustomForeground(RGBColor),
+    CustomFocusedForeground(RGBColor),
+    Custom(RGBColor, RGBColor),
 }
