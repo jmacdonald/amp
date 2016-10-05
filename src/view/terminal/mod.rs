@@ -14,7 +14,7 @@ pub trait Terminal {
     fn width(&self) -> usize;
     fn height(&self) -> usize;
     fn set_cursor(&self, Option<Position>);
-    fn print(&self, usize, usize, Style, Colors, &Display);
+    fn print(&mut self, usize, usize, Style, Colors, &Display);
     fn start(&mut self);
     fn stop(&mut self);
 }

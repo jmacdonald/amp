@@ -73,7 +73,7 @@ impl Terminal for TestTerminal {
     fn set_cursor(&self, position: Option<Position>) { self.cursor.set(position); }
     fn stop(&mut self) { }
     fn start(&mut self) { }
-    fn print(&self, x: usize, y: usize, style: Style, colors: Colors, content: &Display) {
+    fn print(&mut self, x: usize, y: usize, style: Style, colors: Colors, content: &Display) {
         let mut data = self.data.borrow_mut();
         let string_content = format!("{}", content);
 

@@ -187,7 +187,7 @@ impl View {
     }
 
     pub fn print(&self, x: usize, y: usize, style: Style, colors: Colors, content: &Display) {
-        self.terminal.borrow().print(x, y, style, self.mapped_colors(colors), content);
+        self.terminal.borrow_mut().print(x, y, style, self.mapped_colors(colors), content);
     }
 
     pub fn stop(&mut self) {

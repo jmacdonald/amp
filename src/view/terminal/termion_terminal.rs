@@ -71,7 +71,7 @@ impl Terminal for TermionTerminal {
         });
     }
 
-    fn print(&self, x: usize, y: usize, style: Style, colors: Colors, content: &Display) {
+    fn print(&mut self, x: usize, y: usize, style: Style, colors: Colors, content: &Display) {
         match colors {
             Colors::Custom(fg, bg) => {
                 self.reset_style();
