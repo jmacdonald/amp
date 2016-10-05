@@ -34,6 +34,7 @@ pub enum Theme {
 pub struct View {
     pub theme: Theme,
     terminal: Rc<RefCell<Terminal>>,
+    cursor_position: Option<Position>,
     scrollable_regions: HashMap<usize, ScrollableRegion>,
 }
 
@@ -44,6 +45,7 @@ impl View {
         View {
             theme: Theme::Dark,
             terminal: terminal,
+            cursor_position: None,
             scrollable_regions: HashMap::new(),
         }
     }
@@ -159,8 +161,8 @@ impl View {
     /// Terminal delegation methods.
     ///
 
-    pub fn set_cursor(&self, position: Option<Position>) {
-        self.terminal.borrow().set_cursor(position);
+    pub fn set_cursor(&mut self, position: Option<Position>) {
+        self.cursor_position = position;
     }
 
     pub fn width(&self) -> usize {
@@ -180,7 +182,8 @@ impl View {
     }
 
     pub fn present(&self) {
-        self.terminal.borrow().present()
+        self.terminal.borrow().set_cursor(self.cursor_position);
+        self.terminal.borrow().present();
     }
 
     pub fn print(&self, x: usize, y: usize, style: Style, colors: Colors, content: &Display) {

@@ -22,8 +22,9 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &LineJumpMode, view: &mut View
         ]);
 
         // Move the cursor to the end of the search query input.
+        let cursor_line = view.height() - 1;
         view.set_cursor(Some(Position {
-            line: view.height() - 1,
+            line: cursor_line,
             offset: input_prompt_len,
         }));
     }

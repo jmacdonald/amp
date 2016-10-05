@@ -14,7 +14,7 @@ pub trait LexemeMapper {
 pub struct BufferRenderer<'a, 'b> {
     buffer: &'a Buffer,
     buffer_position: Position,
-    cursor_visible: bool,
+    cursor_position: Option<Position>,
     gutter_width: usize,
     highlight: Option<&'a Range>,
     lexeme_mapper: Option<&'b mut LexemeMapper>,
@@ -30,7 +30,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
         BufferRenderer{
             buffer: buffer,
-            cursor_visible: false,
+            cursor_position: None,
             gutter_width: line_number_width + 2,
             highlight: highlight,
             lexeme_mapper: lexeme_mapper,
@@ -114,8 +114,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     fn set_cursor(&mut self) {
         if self.inside_visible_content() {
             if *self.buffer.cursor == self.buffer_position {
-                self.cursor_visible = true;
-                self.view.set_cursor(Some(self.screen_position));
+                self.cursor_position = Some(self.screen_position);
             }
         }
     }
@@ -230,15 +229,14 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             self.set_cursor();
         }
 
-        // If the cursor was never rendered along with the buffer, we
-        // should clear it to prevent its previous value from persisting.
-        if !self.cursor_visible {
-            self.view.set_cursor(None);
-        }
-
         // One last call to these for the last line.
         self.print_line_highlight();
         self.print_length_guide();
+
+        // Set the cursor location. If it occurred somewhere in the buffer, it
+        // will be shown at the right location. If not, it will be None and will
+        // be hidden.
+        self.view.set_cursor(self.cursor_position);
     }
 
     fn print_line_number(&mut self) {
