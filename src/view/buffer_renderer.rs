@@ -126,10 +126,16 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
                 if highlight_range.includes(&self.buffer_position) {
                     (Style::Inverted, Colors::Default)
                 } else {
-                    (Style::Default, Colors::Custom(token_color, RGBColor(0, 0, 0)))
+                    (Style::Default, Colors::CustomForeground(token_color))
                 }
             }
-            None => (Style::Default, Colors::Custom(token_color, RGBColor(0, 0, 0)))
+            None => {
+                if self.on_cursor_line() {
+                    (Style::Default, Colors::CustomFocusedForeground(token_color))
+                } else {
+                    (Style::Default, Colors::CustomForeground(token_color))
+                }
+            },
         }
     }
 
