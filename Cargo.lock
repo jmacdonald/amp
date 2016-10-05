@@ -536,7 +536,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "termion"
 version = "1.0.5"
-source = "git+https://github.com/jmacdonald/termion?branch=esc#d5fd1fc62c5094f926cfc1f6c402fc0cd846e7b8"
+source = "git+https://github.com/jmacdonald/termion?branch=esc#5a5395f46a6dce4b434c5d9aa7c9ac32e1859d1f"
 dependencies = [
  "libc 0.2.10 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
