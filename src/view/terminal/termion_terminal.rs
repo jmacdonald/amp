@@ -5,7 +5,7 @@ use std::io::Stdout;
 use scribe::buffer::Position;
 use termion;
 use termion::color::{Bg, Fg};
-use termion::cursor;
+use termion::{color, cursor};
 use termion::input::{Keys, TermRead};
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::style;
@@ -16,6 +16,8 @@ use input::Key;
 pub struct TermionTerminal {
     input: Keys<Stdin>,
     output: Option<RefCell<RawTerminal<Stdout>>>,
+    current_style: Option<Style>,
+    current_colors: Option<Colors>,
 }
 
 impl TermionTerminal {
@@ -26,13 +28,37 @@ impl TermionTerminal {
                 RefCell::new(
                     create_output_instance()
                 )
-            )
+            ),
+            current_style: None,
+            current_colors: None,
         }
     }
 
+    // Clears any pre-existing styles.
     fn reset_style(&self) {
         if let Some(ref output) = self.output {
-            write!(output.borrow_mut(), "{}", style::Reset);
+            write!(
+                output.borrow_mut(),
+                "{}",
+                style::Reset
+            );
+        }
+
+        // Resetting styles unfortunately clears active colors, too.
+        self.print_colors();
+    }
+
+    // Applies the current colors (as established via print) to the terminal.
+    fn print_colors(&self) {
+        if let Some(ref output) = self.output {
+            if let Some(ref colors) = self.current_colors {
+                match colors.clone() {
+                    Colors::Blank => { write!(output.borrow_mut(), "{}{}", Fg(color::Reset), Bg(color::Reset)); }
+                    Colors::Custom(fg, bg) => { write!(output.borrow_mut(), "{}{}", Fg(fg), Bg(bg)); }
+                    Colors::CustomForeground(fg) => { write!(output.borrow_mut(), "{}{}", Fg(fg), Bg(color::Reset)); }
+                    _ => (),
+                };
+            }
         }
     }
 }
@@ -72,39 +98,31 @@ impl Terminal for TermionTerminal {
     }
 
     fn print(&mut self, x: usize, y: usize, style: Style, colors: Colors, content: &Display) {
-        match colors {
-            Colors::Custom(fg, bg) => {
-                self.reset_style();
-
-                if let Some(ref output) = self.output {
-                    write!(
-                        output.borrow_mut(),
-                        "{}{}{}{}{}{}",
-                        style::Reset,
-                        cursor_position(&Position{ line: y, offset: x }),
-                        map_style(style).unwrap_or(Box::new(style::Reset)),
-                        Fg(fg),
-                        Bg(bg),
-                        content
-                    );
+        if let Some(ref output) = self.output {
+            // Check if style has changed.
+            if Some(style) != self.current_style {
+                if let Some(mapped_style) = map_style(style) {
+                    write!(output.borrow_mut(), "{}", mapped_style);
+                } else {
+                    self.reset_style();
                 }
-            },
-            Colors::CustomForeground(fg) => {
-                self.reset_style();
 
-                if let Some(ref output) = self.output {
-                    write!(
-                        output.borrow_mut(),
-                        "{}{}{}{}{}",
-                        style::Reset,
-                        cursor_position(&Position{ line: y, offset: x }),
-                        map_style(style).unwrap_or(Box::new(style::Reset)),
-                        Fg(fg),
-                        content
-                    );
-                }
-            },
-            _ => (),
+                self.current_style = Some(style);
+            };
+
+            // Check if colors have changed.
+            if Some(colors.clone()) != self.current_colors {
+                self.current_colors = Some(colors);
+                self.print_colors();
+            };
+
+            // Now that style and color have been address, print the content.
+            write!(
+                output.borrow_mut(),
+                "{}{}",
+                cursor_position(&Position{ line: y, offset: x }),
+                content
+            );
         }
     }
 
