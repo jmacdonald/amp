@@ -14,7 +14,7 @@ use view::{Colors, Style};
 use input::Key;
 
 pub struct TermionTerminal {
-    input: Keys<Stdin>,
+    input: Option<Keys<Stdin>>,
     output: Option<RefCell<RawTerminal<Stdout>>>,
     current_style: Option<Style>,
     current_colors: Option<Colors>,
@@ -23,7 +23,7 @@ pub struct TermionTerminal {
 impl TermionTerminal {
     pub fn new() -> TermionTerminal {
         TermionTerminal {
-            input: stdin().keys(),
+            input: Some(stdin().keys()),
             output: Some(
                 RefCell::new(
                     create_output_instance()
@@ -65,7 +65,7 @@ impl TermionTerminal {
 
 impl Terminal for TermionTerminal {
     fn listen(&mut self) -> Option<Key> {
-        self.input.next().and_then(|k| k.ok())
+        self.input.as_mut().and_then(|i| i.next().and_then(|k| k.ok()))
     }
 
     fn clear(&self) {
@@ -127,14 +127,29 @@ impl Terminal for TermionTerminal {
     }
 
     fn stop(&mut self) {
+        if let Some(ref output) = self.output {
+            write!(
+                output.borrow_mut(),
+                "{}{}{}",
+                termion::cursor::Show,
+                style::Reset,
+                termion::clear::All,
+            );
+        }
+        self.present();
+
         // Terminal destructor cleans up for us.
         self.output = None;
+        self.input = None;
     }
 
     fn start(&mut self) {
         // We don't want to initialize the terminal twice.
         if self.output.is_none() {
             self.output = Some(RefCell::new(create_output_instance()));
+        }
+        if self.input.is_none() {
+            self.input = Some(stdin().keys());
         }
     }
 }
