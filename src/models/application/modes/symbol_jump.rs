@@ -1,11 +1,12 @@
 extern crate fragment;
 extern crate scribe;
 
-use scribe::buffer::{Position, Scope, Token, TokenSet};
+use scribe::buffer::{Position, Scope, ScopeStack, Token, TokenSet};
 use helpers::SelectableSet;
 use std::fmt;
 use std::iter::Iterator;
 use std::clone::Clone;
+use std::str::FromStr;
 
 pub struct SymbolJumpMode {
     pub insert: bool,
@@ -68,14 +69,12 @@ impl SymbolJumpMode {
 fn symbols<'a, T>(tokens: T) -> Vec<Symbol> where T: Iterator<Item=Token<'a>> {
     tokens.filter_map(|token| {
           if let Token::Lexeme(lexeme) = token {
-              if let Some(scope) = lexeme.scope {
-                  // Build a symbol, provided it's of the right type.
-                  if Scope::new("entity.name.function").unwrap().is_prefix_of(scope) {
-                      return Some(Symbol {
-                          token: lexeme.value.to_string(),
-                          position: lexeme.position.clone(),
-                      })
-                  }
+              // Build a symbol, provided it's of the right type.
+              if ScopeStack::from_str("entity.name.function").unwrap().does_match(lexeme.scope.as_slice()).is_some() {
+                  return Some(Symbol {
+                      token: lexeme.value.to_string(),
+                      position: lexeme.position.clone(),
+                  })
               }
           }
 

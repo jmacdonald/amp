@@ -4,7 +4,8 @@ mod single_character_tag_generator;
 use luthor::token::Category;
 use helpers::movement_lexer;
 use std::collections::HashMap;
-use scribe::buffer::{Distance, Lexeme, Position, Scope};
+use std::str::FromStr;
+use scribe::buffer::{Distance, Lexeme, Position, Scope, ScopeStack};
 use models::application::modes::select::SelectMode;
 use models::application::modes::select_line::SelectLineMode;
 use self::tag_generator::TagGenerator;
@@ -167,12 +168,12 @@ impl LexemeMapper for JumpMode {
             match mapped_lexeme {
                 &MappedLexemeValue::Tag((ref lexeme, ref position)) => Lexeme{
                     value: lexeme.as_str(),
-                    scope: Scope::new("keyword").ok(),
+                    scope: ScopeStack::from_str("keyword").unwrap(),
                     position: position.clone(),
                 },
                 &MappedLexemeValue::Text((ref lexeme, ref position)) => Lexeme{
                     value: lexeme.as_str(),
-                    scope: None,
+                    scope: ScopeStack::new(),
                     position: position.clone(),
                 }
             }
