@@ -1,5 +1,7 @@
 use scribe::buffer::{Buffer, Lexeme, Position, Range, Token};
 use view::{Colors, RGBColor, Style, View};
+use syntect::highlighting::Highlighter;
+use syntect::highlighting::Style as ThemeStyle;
 
 const LINE_LENGTH_GUIDE_OFFSET: usize = 80;
 const LINE_WRAPPING: bool = true;
@@ -17,6 +19,8 @@ pub struct BufferRenderer<'a, 'b> {
     cursor_position: Option<Position>,
     gutter_width: usize,
     highlight: Option<&'a Range>,
+    stylist: Highlighter<'a>,
+    current_style: ThemeStyle,
     lexeme_mapper: Option<&'b mut LexemeMapper>,
     line_number_width: usize,
     screen_position: Position,
@@ -24,15 +28,21 @@ pub struct BufferRenderer<'a, 'b> {
 }
 
 impl<'a, 'b> BufferRenderer<'a, 'b> {
-    pub fn new(view: &'a mut View, buffer: &'a Buffer, highlight: Option<&'a Range>, lexeme_mapper: Option<&'b mut LexemeMapper>) -> BufferRenderer<'a, 'b> {
+    pub fn new(view: &'a mut View, buffer: &'a Buffer, highlight: Option<&'a Range>, lexeme_mapper: Option<&'b mut LexemeMapper>, highlighter: Highlighter<'a>) -> BufferRenderer<'a, 'b> {
         // Determine the gutter size based on the number of lines.
         let line_number_width = buffer.line_count().to_string().len() + 1;
+
+        // Build an initial style to start with,
+        // which we'll modify as we highlight tokens.
+        let current_style = highlighter.get_default();
 
         BufferRenderer{
             buffer: buffer,
             cursor_position: None,
             gutter_width: line_number_width + 2,
             highlight: highlight,
+            stylist: highlighter,
+            current_style: current_style,
             lexeme_mapper: lexeme_mapper,
             line_number_width: line_number_width,
             buffer_position: Position{ line: 0, offset: 0 },

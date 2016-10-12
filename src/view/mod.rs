@@ -25,7 +25,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::fmt::Display;
 use self::scrollable_region::ScrollableRegion;
-use syntect::highlighting::ThemeSet;
+use syntect::highlighting::{Highlighter, ThemeSet};
 use syntect::highlighting::Theme as BufferTheme;
 
 pub enum Theme {
@@ -54,16 +54,20 @@ impl View {
         }
     }
 
-    pub fn current_theme(&self) -> &BufferTheme {
-        self.theme_set.themes.get("Solarized (Dark)").unwrap()
+    pub fn current_theme(&self) -> BufferTheme {
+        self.theme_set.themes.get("Solarized (Dark)").unwrap().clone()
     }
 
     pub fn draw_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>, lexeme_mapper: Option<&mut LexemeMapper>) {
+        let theme = self.current_theme();
+        let highlighter = Highlighter::new(&theme);
+
         BufferRenderer::new(
             self,
             buffer,
             highlight,
-            lexeme_mapper
+            lexeme_mapper,
+            highlighter
         ).render();
     }
 
