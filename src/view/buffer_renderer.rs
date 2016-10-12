@@ -1,6 +1,7 @@
 use scribe::buffer::{Buffer, Lexeme, Position, Range, Token};
 use view::{Colors, RGBColor, Style, View};
 use syntect::highlighting::Highlighter;
+use syntect::highlighting::Color as RGBAColor;
 use syntect::highlighting::Style as ThemeStyle;
 
 const LINE_LENGTH_GUIDE_OFFSET: usize = 80;
@@ -148,7 +149,20 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         }
     }
 
+    // Uses the lexeme's scopes to update the current
+    // style, so that print calls will use the right color.
+    fn update_current_style(&mut self, lexeme: &Lexeme) {
+        self.current_style.apply(
+            self.stylist.get_style(
+                lexeme.scope.as_slice()
+            )
+        );
+    }
+
     pub fn print_lexeme(&mut self, lexeme: Lexeme) {
+        // Use the lexeme to determine the current style/color.
+        self.update_current_style(&lexeme);
+
         for character in lexeme.value.chars() {
             // We should never run into newline
             // characters, but if we do, ignore them.
@@ -156,7 +170,9 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
             self.set_cursor();
 
-            let (style, color) = self.current_char_style(RGBColor(255, 255, 255));
+            // Determine the style we'll use to print.
+            let token_color = convert_color(&self.current_style.foreground);
+            let (style, color) = self.current_char_style(token_color);
 
             if LINE_WRAPPING && self.screen_position.offset == self.view.width() {
                 self.screen_position.line += 1;
@@ -293,6 +309,10 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
 fn next_tab_stop(offset: usize) -> usize {
     (offset / TAB_WIDTH + 1) * TAB_WIDTH
+}
+
+fn convert_color(color: &RGBAColor) -> RGBColor {
+    RGBColor(color.r, color.g, color.b)
 }
 
 #[cfg(test)]
