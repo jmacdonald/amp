@@ -55,7 +55,12 @@ impl View {
     }
 
     pub fn current_theme(&self) -> BufferTheme {
-        self.theme_set.themes.get("Solarized (Dark)").unwrap().clone()
+        let name = match self.theme {
+            Theme::Dark => "Solarized (dark)",
+            Theme::Light => "Solarized (light)",
+        };
+
+        self.theme_set.themes.get(name).unwrap().clone()
     }
 
     pub fn draw_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>, lexeme_mapper: Option<&mut LexemeMapper>) {
