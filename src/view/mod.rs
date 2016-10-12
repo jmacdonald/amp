@@ -25,6 +25,8 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::fmt::Display;
 use self::scrollable_region::ScrollableRegion;
+use syntect::highlighting::ThemeSet;
+use syntect::highlighting::Theme as BufferTheme;
 
 pub enum Theme {
     Dark,
@@ -36,6 +38,7 @@ pub struct View {
     terminal: Rc<RefCell<Terminal>>,
     cursor_position: Option<Position>,
     scrollable_regions: HashMap<usize, ScrollableRegion>,
+    theme_set: ThemeSet,
 }
 
 impl View {
@@ -47,7 +50,12 @@ impl View {
             terminal: terminal,
             cursor_position: None,
             scrollable_regions: HashMap::new(),
+            theme_set: ThemeSet::load_defaults(),
         }
+    }
+
+    pub fn current_theme(&self) -> &BufferTheme {
+        self.theme_set.themes.get("Solarized (Dark)").unwrap()
     }
 
     pub fn draw_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>, lexeme_mapper: Option<&mut LexemeMapper>) {
