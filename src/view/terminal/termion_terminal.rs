@@ -9,13 +9,13 @@ use termion::{color, cursor};
 use termion::input::{Keys, TermRead};
 use termion::raw::{IntoRawMode, RawTerminal};
 use termion::style;
-use std::io::{Stdin, stdin, stdout, Write};
+use std::io::{BufWriter, Stdin, stdin, stdout, Write};
 use view::{Colors, Style};
 use input::Key;
 
 pub struct TermionTerminal {
     input: Option<Keys<Stdin>>,
-    output: Option<RefCell<RawTerminal<Stdout>>>,
+    output: Option<RefCell<BufWriter<RawTerminal<Stdout>>>>,
     current_style: Option<Style>,
     current_colors: Option<Colors>,
 }
@@ -181,8 +181,9 @@ fn terminal_size() -> (usize, usize) {
         .unwrap_or((0, 0))
 }
 
-fn create_output_instance() -> RawTerminal<Stdout> {
-    stdout().into_raw_mode().unwrap()
+fn create_output_instance() -> BufWriter<RawTerminal<Stdout>> {
+    // Use a 1MB buffered writer for stdout.
+    BufWriter::with_capacity(1_048_576, stdout().into_raw_mode().unwrap())
 }
 
 fn map_style(style: Style) -> Option<Box<Display>> {
