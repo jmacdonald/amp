@@ -173,7 +173,7 @@ impl LexemeMapper for JumpMode {
                 },
                 &MappedLexemeValue::Text((ref lexeme, ref position)) => Lexeme{
                     value: lexeme.as_str(),
-                    scope: ScopeStack::new(),
+                    scope: ScopeStack::from_str("comment").unwrap(),
                     position: position.clone(),
                 }
             }
