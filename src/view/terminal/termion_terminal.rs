@@ -69,7 +69,11 @@ impl Terminal for TermionTerminal {
     }
 
     fn clear(&self) {
-        self.output.as_ref().map(|t| write!(t.borrow_mut(), "{}", termion::clear::All));
+        // It's important to reset the terminal styles prior to clearing the
+        // screen, otherwise the current background color will be used.
+        self.output.as_ref().map(|t| {
+            write!(t.borrow_mut(), "{}{}", style::Reset, termion::clear::All)
+        });
     }
 
     fn present(&self) {
