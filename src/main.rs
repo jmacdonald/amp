@@ -109,7 +109,10 @@ fn main() {
             // Check if the command resulted in an exit, before
             // looping again and asking for input we won't use.
             match application.mode {
-                Mode::Exit => break,
+                Mode::Exit => {
+                    application.view.clear();
+                    break
+                },
                 _ => {}
             }
         }
