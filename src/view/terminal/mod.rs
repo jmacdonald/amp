@@ -9,7 +9,7 @@ pub use self::termion_terminal::TermionTerminal;
 
 pub trait Terminal {
     fn listen(&mut self) -> Option<Key>;
-    fn clear(&self);
+    fn clear(&mut self);
     fn present(&self);
     fn width(&self) -> usize;
     fn height(&self) -> usize;

@@ -68,7 +68,12 @@ impl Terminal for TermionTerminal {
         self.input.as_mut().and_then(|i| i.next().and_then(|k| k.ok()))
     }
 
-    fn clear(&self) {
+    fn clear(&mut self) {
+        // Because we're clearing styles below, we'll
+        // also need to bust the style/color cache.
+        self.current_style = None;
+        self.current_colors = None;
+
         // It's important to reset the terminal styles prior to clearing the
         // screen, otherwise the current background color will be used.
         self.output.as_ref().map(|t| {

@@ -181,8 +181,8 @@ impl View {
         self.terminal.borrow_mut().listen()
     }
 
-    pub fn clear(&self) {
-        self.terminal.borrow().clear()
+    pub fn clear(&mut self) {
+        self.terminal.borrow_mut().clear()
     }
 
     pub fn present(&self) {
