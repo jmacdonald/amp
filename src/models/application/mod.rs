@@ -1,6 +1,5 @@
 extern crate git2;
 extern crate scribe;
-extern crate rustbox;
 
 pub mod modes;
 mod clipboard;

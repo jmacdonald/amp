@@ -3,7 +3,6 @@ use std::error::Error;
 use std::cell::{Cell, RefCell};
 use std::fmt::Display;
 use super::Terminal;
-use rustbox::Event;
 use view::{Colors, Style};
 use input::Key;
 

@@ -8,7 +8,6 @@ authors = ["Jordan MacDonald <jordan@wastedintelligence.com>"]
 scribe = "0.4.10"
 pad = "0.1.4"
 termion = { git = "https://github.com/jmacdonald/termion", branch = "esc" }
-rustbox = "0.7.2"
 bloodhound = "0.2.4"
 luthor = "0.1.7"
 git2 = "0.3.3"

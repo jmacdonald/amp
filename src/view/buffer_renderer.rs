@@ -314,7 +314,6 @@ fn next_tab_stop(offset: usize) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use rustbox::Color;
     use scribe::{Buffer, Workspace};
     use scribe::buffer::Lexeme;
     use std::path::PathBuf;

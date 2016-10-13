@@ -1,4 +1,3 @@
-extern crate rustbox;
 extern crate scribe;
 
 pub mod scrollable_region;
