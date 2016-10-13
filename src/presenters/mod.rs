@@ -26,7 +26,7 @@ fn buffer_status_line_data(buffer: &Buffer) -> StatusLineData {
     StatusLineData {
         content: buffer_title,
         style: buffer_title_style,
-        colors: Colors::Default,
+        colors: Colors::Focused,
     }
 }
 
@@ -44,7 +44,7 @@ fn git_status_line_data(repo: &Option<Repository>, path: &Option<PathBuf>) -> St
     StatusLineData {
         content: content,
         style: Style::Default,
-        colors: Colors::Default,
+        colors: Colors::Focused,
     }
 }
 fn presentable_status(status: &Status) -> &str {
