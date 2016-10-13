@@ -91,7 +91,12 @@ impl Terminal for TermionTerminal {
     fn set_cursor(&self, position: Option<Position>) {
         self.output.as_ref().map(|t| {
             match position {
-                Some(ref pos) => write!(t.borrow_mut(), "{}", cursor_position(pos)),
+                Some(ref pos) => write!(
+                    t.borrow_mut(),
+                    "{}{}",
+                    cursor::Show,
+                    cursor_position(pos)
+                ),
                 None => write!(t.borrow_mut(), "{}", cursor::Hide),
             }
         });
