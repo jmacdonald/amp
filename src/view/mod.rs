@@ -25,46 +25,32 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::fmt::Display;
 use self::scrollable_region::ScrollableRegion;
-use syntect::highlighting::{Highlighter, ThemeSet};
-use syntect::highlighting::Theme as BufferTheme;
-
-pub enum Theme {
-    Dark,
-    Light,
-}
+use syntect::highlighting::{Highlighter, Theme, ThemeSet};
 
 pub struct View {
-    pub theme: Theme,
     terminal: Rc<RefCell<Terminal>>,
     cursor_position: Option<Position>,
     scrollable_regions: HashMap<usize, ScrollableRegion>,
+    theme: Theme,
     theme_set: ThemeSet,
 }
 
 impl View {
     pub fn new() -> View {
         let terminal = build_terminal();
+        let theme_set = ThemeSet::load_defaults();
 
         View {
-            theme: Theme::Dark,
             terminal: terminal,
             cursor_position: None,
             scrollable_regions: HashMap::new(),
+            theme: theme_set.themes.get("Solarized (dark)").unwrap().clone(),
             theme_set: ThemeSet::load_defaults(),
         }
     }
 
-    pub fn current_theme(&self) -> BufferTheme {
-        let name = match self.theme {
-            Theme::Dark => "Solarized (dark)",
-            Theme::Light => "Solarized (light)",
-        };
-
-        self.theme_set.themes.get(name).unwrap().clone()
-    }
-
     pub fn draw_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>, lexeme_mapper: Option<&mut LexemeMapper>) {
-        let theme = self.current_theme();
+        let theme = self.theme.clone();
         let highlighter = Highlighter::new(&theme);
 
         BufferRenderer::new(
@@ -216,18 +202,11 @@ impl View {
     }
 
     fn mapped_colors(&self, colors: Colors) -> Colors {
-        let (fg, bg, alt_bg) = match self.theme {
-            Theme::Light => (
-                RGBColor(0, 0, 0),
-                RGBColor(255, 255, 255),
-                RGBColor(200, 200, 200)
-            ),
-            Theme::Dark => (
-                RGBColor(255, 255, 255),
-                RGBColor(0, 0, 0),
-                RGBColor(55, 55, 55)
-            ),
-        };
+        let (fg, bg, alt_bg) = (
+            RGBColor(255, 255, 255),
+            RGBColor(0, 0, 0),
+            RGBColor(55, 55, 55)
+        );
 
         match colors {
             Colors::Blank => Colors::Blank,

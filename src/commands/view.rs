@@ -1,6 +1,5 @@
 extern crate scribe;
 
-use view::Theme;
 use models::application::Application;
 
 pub fn scroll_up(app: &mut Application) {
@@ -29,11 +28,4 @@ pub fn scroll_cursor_to_center(app: &mut Application) {
         Some(ref buffer) => app.view.scroll_to_center(buffer),
         None => (),
     }
-}
-
-pub fn toggle_theme(app: &mut Application) {
-    app.view.theme = match app.view.theme {
-        Theme::Dark => Theme::Light,
-        Theme::Light => Theme::Dark,
-    };
 }
