@@ -15,6 +15,7 @@ pub use self::style::Style;
 pub use self::color::{Colors, RGBColor};
 
 use input::Key;
+use self::color::to_rgb_color;
 use self::terminal::{TermionTerminal, Terminal};
 use self::buffer_renderer::BufferRenderer;
 use scribe::buffer::{Buffer, Position, Range};
@@ -202,11 +203,17 @@ impl View {
     }
 
     fn mapped_colors(&self, colors: Colors) -> Colors {
-        let (fg, bg, alt_bg) = (
+        let (fg, bg) = (
             RGBColor(255, 255, 255),
             RGBColor(0, 0, 0),
-            RGBColor(55, 55, 55)
         );
+
+        let alt_bg = self.
+            theme.
+            settings.
+            line_highlight.
+            map(|color| to_rgb_color(&color)).
+            unwrap_or(RGBColor(55, 55, 55));
 
         match colors {
             Colors::Blank => Colors::Blank,
