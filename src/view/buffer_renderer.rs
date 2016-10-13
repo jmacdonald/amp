@@ -1,5 +1,6 @@
 use scribe::buffer::{Buffer, Lexeme, Position, Range, Token};
 use view::{Colors, RGBColor, Style, View};
+use view::color::to_rgb_color;
 use syntect::highlighting::Highlighter;
 use syntect::highlighting::Color as RGBAColor;
 use syntect::highlighting::Style as ThemeStyle;
@@ -171,7 +172,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             self.set_cursor();
 
             // Determine the style we'll use to print.
-            let token_color = convert_color(&self.current_style.foreground);
+            let token_color = to_rgb_color(&self.current_style.foreground);
             let (style, color) = self.current_char_style(token_color);
 
             if LINE_WRAPPING && self.screen_position.offset == self.view.width() {
@@ -309,10 +310,6 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
 fn next_tab_stop(offset: usize) -> usize {
     (offset / TAB_WIDTH + 1) * TAB_WIDTH
-}
-
-fn convert_color(color: &RGBAColor) -> RGBColor {
-    RGBColor(color.r, color.g, color.b)
 }
 
 #[cfg(test)]

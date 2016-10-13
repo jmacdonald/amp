@@ -3,8 +3,8 @@ extern crate scribe;
 
 pub mod scrollable_region;
 pub mod terminal;
+pub mod color;
 mod buffer_renderer;
-mod color;
 mod data;
 mod style;
 

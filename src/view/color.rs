@@ -1,3 +1,4 @@
+use syntect::highlighting::Color as RGBAColor;
 pub use termion::color::Rgb as RGBColor;
 
 /// A convenience type used to represent a foreground/background
@@ -15,4 +16,8 @@ pub enum Colors {
     CustomForeground(RGBColor),
     CustomFocusedForeground(RGBColor),
     Custom(RGBColor, RGBColor),
+}
+
+pub fn to_rgb_color(color: &RGBAColor) -> RGBColor {
+    RGBColor(color.r, color.g, color.b)
 }
