@@ -1,16 +1,19 @@
+extern crate termion;
+
 use super::Terminal;
 use std::cell::RefCell;
 use std::fmt::Display;
 use std::io::Stdout;
 use scribe::buffer::Position;
-use termion;
-use termion::color::{Bg, Fg};
-use termion::{color, cursor};
-use termion::input::{Keys, TermRead};
-use termion::raw::{IntoRawMode, RawTerminal};
-use termion::style;
+use self::termion::color::{Bg, Fg};
+use self::termion::{color, cursor};
+use self::termion::input::{Keys, TermRead};
+use self::termion::raw::{IntoRawMode, RawTerminal};
+use self::termion::style;
 use std::io::{BufWriter, Stdin, stdin, stdout, Write};
 use view::{Colors, Style};
+
+use self::termion::event::Key as TermionKey;
 use input::Key;
 
 pub struct TermionTerminal {
@@ -65,7 +68,29 @@ impl TermionTerminal {
 
 impl Terminal for TermionTerminal {
     fn listen(&mut self) -> Option<Key> {
-        self.input.as_mut().and_then(|i| i.next().and_then(|k| k.ok()))
+        self.input.as_mut().and_then(|i| {
+            i.next().and_then(|k| {
+                k.ok().and_then(|k| {
+                    match k {
+                        TermionKey::Backspace => Some(Key::Backspace),
+                        TermionKey::Left => Some(Key::Left),
+                        TermionKey::Right => Some(Key::Right),
+                        TermionKey::Up => Some(Key::Up),
+                        TermionKey::Down => Some(Key::Down),
+                        TermionKey::Home => Some(Key::Home),
+                        TermionKey::End => Some(Key::End),
+                        TermionKey::PageUp => Some(Key::PageUp),
+                        TermionKey::PageDown => Some(Key::PageDown),
+                        TermionKey::Delete => Some(Key::Delete),
+                        TermionKey::Insert => Some(Key::Insert),
+                        TermionKey::Esc => Some(Key::Esc),
+                        TermionKey::Char(c) => Some(Key::Char(c)),
+                        TermionKey::Ctrl(c) => Some(Key::Ctrl(c)),
+                        _ => None,
+                    }
+                })
+            })
+        })
     }
 
     fn clear(&mut self) {
