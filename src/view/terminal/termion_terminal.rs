@@ -177,7 +177,7 @@ impl Terminal for TermionTerminal {
         });
     }
 
-    fn print(&mut self, x: usize, y: usize, style: Style, colors: Colors, content: &Display) {
+    fn print(&mut self, position: &Position, style: Style, colors: Colors, content: &Display) {
         //self.update_style(style);
         self.update_colors(colors);
 
@@ -186,7 +186,7 @@ impl Terminal for TermionTerminal {
             write!(
                 output,
                 "{}{}",
-                cursor_position(&Position{ line: y, offset: x }),
+                cursor_position(position),
                 content
             );
         }

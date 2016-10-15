@@ -82,12 +82,12 @@ impl Terminal for TestTerminal {
     fn set_cursor(&self, position: Option<Position>) { self.cursor.set(position); }
     fn stop(&mut self) { }
     fn start(&mut self) { }
-    fn print(&mut self, x: usize, y: usize, style: Style, colors: Colors, content: &Display) {
+    fn print(&mut self, position: &Position, style: Style, colors: Colors, content: &Display) {
         let mut data = self.data.borrow_mut();
         let string_content = format!("{}", content);
 
         for (i, c) in content.chars().enumerate() {
-            data[y][i+x] = Some(c);
+            data[position.line][i+position.offset] = Some(c);
         }
     }
 }

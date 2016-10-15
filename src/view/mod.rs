@@ -67,17 +67,17 @@ impl View {
         let title = "Amp v0.1";
         let copyright = "© 2015-2016 Jordan MacDonald";
 
-        self.print(self.width() / 2 - title.chars().count() / 2,
-                        self.height() / 2 - 1,
-                        Style::Default,
-                        Colors::Default,
-                        &title);
+        let mut position = Position{
+            line: self.height() / 2 - 1,
+            offset: self.width() / 2 - title.chars().count() / 2
+        };
+        self.print(&position, Style::Default, Colors::Default, &title);
 
-        self.print(self.width() / 2 - copyright.chars().count() / 2,
-                        self.height() / 2,
-                        Style::Default,
-                        Colors::Default,
-                        &copyright);
+        position = Position{
+            line: self.height() / 2,
+            offset: self.width() / 2 - copyright.chars().count() / 2,
+        };
+        self.print(&position, Style::Default, Colors::Default, &copyright);
     }
 
     pub fn draw_status_line(&self, data: &Vec<StatusLineData>) {
@@ -107,8 +107,7 @@ impl View {
                 }
             };
 
-            self.print(offset,
-                       line,
+            self.print(&Position{ line: line, offset: offset},
                        element.style,
                        element.colors.clone(),
                        &content);
@@ -215,8 +214,8 @@ impl View {
         self.terminal.borrow_mut().present();
     }
 
-    pub fn print(&self, x: usize, y: usize, style: Style, colors: Colors, content: &Display) {
-        self.terminal.borrow_mut().print(x, y, style, self.mapped_colors(colors), content);
+    pub fn print(&self, position: &Position, style: Style, colors: Colors, content: &Display) {
+        self.terminal.borrow_mut().print(position, style, self.mapped_colors(colors), content);
     }
 
     pub fn stop(&mut self) {

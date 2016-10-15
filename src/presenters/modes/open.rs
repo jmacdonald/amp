@@ -30,8 +30,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
 
     // Display an empty result set message.
     if mode.results.is_empty() {
-        view.print(0,
-                   0,
+        view.print(&Position{ line: 0, offset: 0 },
                    Style::Default,
                    Colors::Default,
                    &"No matching files found.".pad_to_width(view.width()));
@@ -45,8 +44,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
             Colors::Default
         };
         let padded_content = result.as_path().to_str().unwrap().pad_to_width(view.width());
-        view.print(0,
-                   line,
+        view.print(&Position{ line: line, offset: 0 },
                    Style::Default,
                    colors,
                    &padded_content);
@@ -54,8 +52,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
 
     // Clear any remaining lines in the result display area.
     for line in cmp::max(mode.results.len(), 1)..5 {
-        view.print(0,
-                   line,
+        view.print(&Position{ line: line, offset: 0 },
                    Style::Default,
                    Colors::Default,
                    &String::new().pad_to_width(view.width()));
@@ -69,8 +66,7 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
         Colors::Inverted
     };
     let padded_content = mode.input.pad_to_width(view.width());
-    view.print(0,
-               line,
+    view.print(&Position{ line: line, offset: 0 },
                Style::Bold,
                colors,
                &padded_content);

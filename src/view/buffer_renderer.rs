@@ -77,11 +77,11 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     fn print_rest_of_line(&mut self) {
         if self.on_cursor_line() {
             for offset in self.screen_position.offset..self.view.width() {
-                self.view.print(offset,
-                                self.screen_position.line,
-                                Style::Default,
-                                Colors::Focused,
-                                &' ');
+                let position = Position{
+                    line: self.screen_position.line,
+                    offset: offset
+                };
+                self.view.print(&position, Style::Default, Colors::Focused, &' ');
             }
         } else {
             self.view.clear_line_from(&self.screen_position);
@@ -172,7 +172,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             if LINE_WRAPPING && self.screen_position.offset == self.view.width() {
                 self.screen_position.line += 1;
                 self.screen_position.offset = self.gutter_width;
-                self.view.print(self.screen_position.offset, self.screen_position.line, style, color, &character);
+                self.view.print(&self.screen_position, style, color, &character);
                 self.screen_position.offset += 1;
                 self.buffer_position.offset += 1;
             } else if character == '\t' {
@@ -184,12 +184,12 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
                 // Print the sequence of spaces and move the offset accordingly.
                 for _ in self.screen_position.offset..screen_tab_stop {
-                    self.view.print(self.screen_position.offset, self.screen_position.line, style, color.clone(), &' ');
+                    self.view.print(&self.screen_position, style, color.clone(), &' ');
                     self.screen_position.offset += 1;
                 }
                 self.buffer_position.offset += 1;
             } else {
-                self.view.print(self.screen_position.offset, self.screen_position.line, style, color, &character);
+                self.view.print(&self.screen_position, style, color, &character);
                 self.screen_position.offset += 1;
                 self.buffer_position.offset += 1;
             }
@@ -288,11 +288,11 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
                 Style::Default
             };
 
-            self.view.print(offset,
-                            self.screen_position.line,
-                            weight,
-                            color,
-                            &number);
+            let position = Position{
+                line: self.screen_position.line,
+                offset: offset
+            };
+            self.view.print(&position, weight, color, &number);
 
             offset += 1;
         }
