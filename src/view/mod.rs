@@ -62,6 +62,24 @@ impl View {
         ).render();
     }
 
+    /// Renders the app name, version and copyright info to the screen.
+    pub fn draw_splash_screen(&mut self) {
+        let title = "Amp v0.1";
+        let copyright = "© 2015-2016 Jordan MacDonald";
+
+        self.print(self.width() / 2 - title.chars().count() / 2,
+                        self.height() / 2 - 1,
+                        Style::Default,
+                        Colors::Default,
+                        &title);
+
+        self.print(self.width() / 2 - copyright.chars().count() / 2,
+                        self.height() / 2,
+                        Style::Default,
+                        Colors::Default,
+                        &copyright);
+    }
+
     pub fn draw_status_line(&self, data: &Vec<StatusLineData>) {
         let line = self.height() - 1;
 
