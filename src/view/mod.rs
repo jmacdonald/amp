@@ -184,6 +184,14 @@ impl View {
         self.terminal.borrow_mut().clear()
     }
 
+    pub fn clear_from(&mut self, position: &Position) {
+        self.terminal.borrow_mut().clear_from(position)
+    }
+
+    pub fn clear_line_from(&mut self, position: &Position) {
+        self.terminal.borrow_mut().clear_line_from(position)
+    }
+
     pub fn present(&self) {
         self.terminal.borrow().set_cursor(self.cursor_position);
         self.terminal.borrow().present();
