@@ -74,24 +74,21 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         self.buffer_position.line == self.buffer.cursor.line
     }
 
-    fn print_line_highlight(&mut self) {
-        if self.on_cursor_line() {
-            for offset in self.screen_position.offset..self.view.width() {
-                self.view.print(offset,
-                                self.screen_position.line,
-                                Style::Default,
-                                Colors::Focused,
-                                &' ');
-            }
-        }
-    }
+    fn print_rest_of_line(&mut self) {
+        let on_cursor_line = self.on_cursor_line();
+        let guide_offset = self.length_guide_offset();
 
-    fn print_length_guide(&mut self) {
-        if !self.on_cursor_line() && self.screen_position.offset <= self.length_guide_offset() {
-            self.view.print(self.length_guide_offset(),
+        for offset in self.screen_position.offset..self.view.width() {
+            let colors = if on_cursor_line || offset == guide_offset {
+                Colors::Focused
+            } else {
+                Colors::Blank
+            };
+
+            self.view.print(offset,
                             self.screen_position.line,
                             Style::Default,
-                            Colors::Focused,
+                            colors,
                             &' ');
         }
     }
@@ -102,9 +99,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
     fn advance_to_next_line(&mut self) {
         if self.inside_visible_content() {
-            // Print these before advancing to the next line.
-            self.print_line_highlight();
-            self.print_length_guide();
+            self.print_rest_of_line();
 
             // It's important to only increase this once we've entered the
             // visible area. Otherwise, we're moving the screen location even
@@ -256,9 +251,8 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             self.set_cursor();
         }
 
-        // One last call to these for the last line.
-        self.print_line_highlight();
-        self.print_length_guide();
+        // One last call to this for the last line.
+        self.print_rest_of_line();
 
         // Set the cursor location. If it occurred somewhere in the buffer, it
         // will be shown at the right location. If not, it will be None and will
