@@ -4,9 +4,6 @@ use presenters::{buffer_status_line_data};
 use view::{Colors, StatusLineData, Style, View};
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &SelectLineMode, view: &mut View) {
-    // Wipe the slate clean.
-    view.clear();
-
     if let Some(buf) = buffer {
         // Get the selected range, relative to the scrolled buffer.
         let selected_range = mode.to_range(&*buf.cursor);
@@ -24,7 +21,8 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SelectLineMode, view: &mut Vi
             buffer_status_line_data(&buf)
         ]);
     } else {
-        // There's no buffer; clear the cursor.
+        // Wipe the slate clean.
+        view.clear();
         view.set_cursor(None);
     }
 

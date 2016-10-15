@@ -4,9 +4,6 @@ use models::application::modes::JumpMode;
 use view::{Colors, StatusLineData, Style, View};
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &mut JumpMode, view: &mut View) {
-    // Wipe the slate clean.
-    view.clear();
-
     if let Some(buf) = buffer {
         mode.reset_display();
 
@@ -22,6 +19,9 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &mut JumpMode, view: &mut View
             },
             buffer_status_line_data(&buf)
         ]);
+    } else {
+        // Wipe the slate clean.
+        view.clear();
     }
 
     // Don't display a cursor.

@@ -3,9 +3,6 @@ use scribe::Buffer;
 use view::{Colors, StatusLineData, Style, View};
 
 pub fn display(buffer: Option<&mut Buffer>, view: &mut View) {
-    // Wipe the slate clean.
-    view.clear();
-
     if let Some(buf) = buffer {
         // Draw the visible set of tokens to the terminal.
         view.draw_buffer(buf, None, None);
@@ -19,7 +16,11 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View) {
             },
             buffer_status_line_data(&buf)
         ]);
+    } else {
+        // Wipe the slate clean.
+        view.clear();
     }
+
 
     // Render the changes to the screen.
     view.present();

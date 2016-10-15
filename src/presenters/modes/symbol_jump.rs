@@ -6,9 +6,6 @@ use view::{Colors, StatusLineData, Style, View};
 use scribe::buffer::{Buffer, Position};
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &SymbolJumpMode, view: &mut View) {
-    // Wipe the slate clean.
-    view.clear();
-
     if let Some(buf) = buffer {
         // Draw the visible set of tokens to the terminal.
         view.draw_buffer(buf, None, None);
@@ -22,6 +19,12 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &SymbolJumpMode, view: &mut Vi
             },
             buffer_status_line_data(&buf)
         ]);
+    } else {
+        // Clear the buffer area.
+        view.clear_from(&Position{
+            line: SymbolJumpMode::MAX_RESULTS + 1,
+            offset: 0
+        });
     }
 
     // Display an empty result set message.

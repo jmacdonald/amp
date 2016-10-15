@@ -8,9 +8,6 @@ use scribe::buffer::{Buffer, Position};
 use view::{Colors, StatusLineData, Style, View};
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
-    // Wipe the slate clean.
-    view.clear();
-
     if let Some(buf) = buffer {
         view.draw_buffer(buf, None, None);
 
@@ -23,6 +20,12 @@ pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
             },
             buffer_status_line_data(&buf)
         ]);
+    } else {
+        // Clear the buffer area.
+        view.clear_from(&Position{
+            line: OpenMode::MAX_RESULTS + 1,
+            offset: 0
+        });
     }
 
     // Display an empty result set message.

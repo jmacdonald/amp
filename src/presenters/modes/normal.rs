@@ -31,6 +31,7 @@ pub fn display(buffer: Option<&mut Buffer>, view: &mut View, repo: &Option<Repos
         // Draw the status line.
         view.draw_status_line(&status_line_data);
     } else {
+        // Clear the screen and display only the splash message.
         view.clear();
         view.draw_splash_screen();
         view.set_cursor(None);

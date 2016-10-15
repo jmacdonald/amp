@@ -3,12 +3,11 @@ use models::application::modes::SearchInsertMode;
 use view::{Colors, StatusLineData, Style, View};
 
 pub fn display(buffer: Option<&mut Buffer>, mode: &SearchInsertMode, view: &mut View) {
-    // Wipe the slate clean.
-    view.clear();
-
     if let Some(buf) = buffer {
         // Draw the visible set of tokens to the terminal.
         view.draw_buffer(buf, None, None);
+    } else {
+        view.clear()
     }
 
     // Draw the status line as a search prompt.
