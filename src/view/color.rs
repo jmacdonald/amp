@@ -1,5 +1,7 @@
+extern crate termion;
+
+pub use self::termion::color::Rgb as RGBColor;
 use syntect::highlighting::Color as RGBAColor;
-pub use termion::color::Rgb as RGBColor;
 
 /// A convenience type used to represent a foreground/background
 /// color combination. Provides generic/convenience variants to

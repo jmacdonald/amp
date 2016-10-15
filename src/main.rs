@@ -6,7 +6,6 @@ extern crate pad;
 extern crate scribe;
 extern crate regex;
 extern crate syntect;
-extern crate termion;
 
 #[macro_use]
 mod helpers;
