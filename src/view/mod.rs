@@ -210,9 +210,9 @@ impl View {
         self.terminal.borrow_mut().clear_line_from(position)
     }
 
-    pub fn present(&self) {
-        self.terminal.borrow().set_cursor(self.cursor_position);
-        self.terminal.borrow().present();
+    pub fn present(&mut self) {
+        self.terminal.borrow_mut().set_cursor(self.cursor_position);
+        self.terminal.borrow_mut().present();
     }
 
     pub fn print(&self, x: usize, y: usize, style: Style, colors: Colors, content: &Display) {

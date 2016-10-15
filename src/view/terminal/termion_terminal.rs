@@ -18,7 +18,7 @@ use input::Key;
 
 pub struct TermionTerminal {
     input: Option<Keys<Stdin>>,
-    output: Option<RefCell<BufWriter<RawTerminal<Stdout>>>>,
+    output: Option<BufWriter<RawTerminal<Stdout>>>,
     current_style: Option<Style>,
     current_colors: Option<Colors>,
 }
@@ -27,41 +27,56 @@ impl TermionTerminal {
     pub fn new() -> TermionTerminal {
         TermionTerminal {
             input: Some(stdin().keys()),
-            output: Some(
-                RefCell::new(
-                    create_output_instance()
-                )
-            ),
+            output: Some(create_output_instance()),
             current_style: None,
             current_colors: None,
         }
     }
 
     // Clears any pre-existing styles.
-    fn reset_style(&self) {
-        if let Some(ref output) = self.output {
-            write!(
-                output.borrow_mut(),
-                "{}",
-                style::Reset
-            );
-        }
+    fn update_style(&mut self, style: Style) {
+        if let Some(ref mut output) = self.output {
+            // Check if style has changed.
+            if Some(style) != self.current_style {
+                if let Some(mapped_style) = map_style(style) {
+                    write!(output, "{}", mapped_style);
+                } else {
+                    write!(
+                        output,
+                        "{}",
+                        style::Reset
+                    );
 
-        // Resetting styles unfortunately clears active colors, too.
-        self.print_colors();
+                    // Resetting styles unfortunately clears active colors, too.
+                    if let Some(ref current_colors) = self.current_colors {
+                        match current_colors {
+                            &Colors::Blank => { write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
+                            &Colors::Custom(fg, bg) => { write!(output, "{}{}", Fg(fg), Bg(bg)); }
+                            &Colors::CustomForeground(fg) => { write!(output, "{}{}", Fg(fg), Bg(color::Reset)); }
+                            _ => (),
+                        };
+                    }
+                }
+
+                self.current_style = Some(style);
+            };
+        }
     }
 
     // Applies the current colors (as established via print) to the terminal.
-    fn print_colors(&self) {
-        if let Some(ref output) = self.output {
-            if let Some(ref colors) = self.current_colors {
-                match colors.clone() {
-                    Colors::Blank => { write!(output.borrow_mut(), "{}{}", Fg(color::Reset), Bg(color::Reset)); }
-                    Colors::Custom(fg, bg) => { write!(output.borrow_mut(), "{}{}", Fg(fg), Bg(bg)); }
-                    Colors::CustomForeground(fg) => { write!(output.borrow_mut(), "{}{}", Fg(fg), Bg(color::Reset)); }
+    fn update_colors(&mut self, colors: Colors) {
+        if let Some(ref mut output) = self.output {
+            // Check if colors have changed.
+            if Some(colors.clone()) != self.current_colors {
+                match colors {
+                    Colors::Blank => { write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
+                    Colors::Custom(fg, bg) => { write!(output, "{}{}", Fg(fg), Bg(bg)); }
+                    Colors::CustomForeground(fg) => { write!(output, "{}{}", Fg(fg), Bg(color::Reset)); }
                     _ => (),
                 };
             }
+
+            self.current_colors = Some(colors);
         }
     }
 }
@@ -101,8 +116,8 @@ impl Terminal for TermionTerminal {
 
         // It's important to reset the terminal styles prior to clearing the
         // screen, otherwise the current background color will be used.
-        self.output.as_ref().map(|t| {
-            write!(t.borrow_mut(), "{}{}", style::Reset, termion::clear::All)
+        self.output.as_mut().map(|t| {
+            write!(t, "{}{}", style::Reset, termion::clear::All)
         });
     }
 
@@ -114,8 +129,8 @@ impl Terminal for TermionTerminal {
 
         // It's important to reset the terminal styles prior to clearing the
         // screen, otherwise the current background color will be used.
-        self.output.as_ref().map(|t| {
-            write!(t.borrow_mut(), "{}{}{}", style::Reset, cursor_position(position), termion::clear::AfterCursor)
+        self.output.as_mut().map(|t| {
+            write!(t, "{}{}{}", style::Reset, cursor_position(position), termion::clear::AfterCursor)
         });
     }
 
@@ -127,13 +142,13 @@ impl Terminal for TermionTerminal {
 
         // It's important to reset the terminal styles prior to clearing the
         // screen, otherwise the current background color will be used.
-        self.output.as_ref().map(|t| {
-            write!(t.borrow_mut(), "{}{}{}", style::Reset, cursor_position(position), termion::clear::UntilNewline)
+        self.output.as_mut().map(|t| {
+            write!(t, "{}{}{}", style::Reset, cursor_position(position), termion::clear::UntilNewline)
         });
     }
 
-    fn present(&self) {
-        self.output.as_ref().map(|t| t.borrow_mut().flush());
+    fn present(&mut self) {
+        self.output.as_mut().map(|t| t.flush());
     }
 
     fn width(&self) -> usize {
@@ -148,42 +163,28 @@ impl Terminal for TermionTerminal {
         height
     }
 
-    fn set_cursor(&self, position: Option<Position>) {
-        self.output.as_ref().map(|t| {
+    fn set_cursor(&mut self, position: Option<Position>) {
+        self.output.as_mut().map(|t| {
             match position {
                 Some(ref pos) => write!(
-                    t.borrow_mut(),
+                    t,
                     "{}{}",
                     cursor::Show,
                     cursor_position(pos)
                 ),
-                None => write!(t.borrow_mut(), "{}", cursor::Hide),
+                None => write!(t, "{}", cursor::Hide),
             }
         });
     }
 
     fn print(&mut self, x: usize, y: usize, style: Style, colors: Colors, content: &Display) {
-        if let Some(ref output) = self.output {
-            // Check if style has changed.
-            if Some(style) != self.current_style {
-                if let Some(mapped_style) = map_style(style) {
-                    write!(output.borrow_mut(), "{}", mapped_style);
-                } else {
-                    self.reset_style();
-                }
+        //self.update_style(style);
+        self.update_colors(colors);
 
-                self.current_style = Some(style);
-            };
-
-            // Check if colors have changed.
-            if Some(colors.clone()) != self.current_colors {
-                self.current_colors = Some(colors);
-                self.print_colors();
-            };
-
-            // Now that style and color have been address, print the content.
+        if let Some(ref mut output) = self.output {
+            // Now that style and color have been addressed, print the content.
             write!(
-                output.borrow_mut(),
+                output,
                 "{}{}",
                 cursor_position(&Position{ line: y, offset: x }),
                 content
@@ -192,9 +193,9 @@ impl Terminal for TermionTerminal {
     }
 
     fn stop(&mut self) {
-        if let Some(ref output) = self.output {
+        if let Some(ref mut output) = self.output {
             write!(
-                output.borrow_mut(),
+                output,
                 "{}{}{}",
                 termion::cursor::Show,
                 style::Reset,
@@ -211,7 +212,7 @@ impl Terminal for TermionTerminal {
     fn start(&mut self) {
         // We don't want to initialize the terminal twice.
         if self.output.is_none() {
-            self.output = Some(RefCell::new(create_output_instance()));
+            self.output = Some(create_output_instance());
         }
         if self.input.is_none() {
             self.input = Some(stdin().keys());

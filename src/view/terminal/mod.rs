@@ -12,10 +12,10 @@ pub trait Terminal {
     fn clear(&mut self);
     fn clear_from(&mut self, &Position);
     fn clear_line_from(&mut self, &Position);
-    fn present(&self);
+    fn present(&mut self);
     fn width(&self) -> usize;
     fn height(&self) -> usize;
-    fn set_cursor(&self, Option<Position>);
+    fn set_cursor(&mut self, Option<Position>);
     fn print(&mut self, usize, usize, Style, Colors, &Display);
     fn start(&mut self);
     fn stop(&mut self);
