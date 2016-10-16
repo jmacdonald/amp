@@ -178,7 +178,7 @@ impl Terminal for TermionTerminal {
     }
 
     fn print(&mut self, position: &Position, style: Style, colors: Colors, content: &Display) {
-        //self.update_style(style);
+        self.update_style(style);
         self.update_colors(colors);
 
         if let Some(ref mut output) = self.output {
