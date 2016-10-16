@@ -1,7 +1,6 @@
 extern crate termion;
 
 use super::Terminal;
-use std::cell::RefCell;
 use std::fmt::Display;
 use std::io::Stdout;
 use scribe::buffer::Position;

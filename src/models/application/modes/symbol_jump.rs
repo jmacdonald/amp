@@ -1,7 +1,7 @@
 extern crate fragment;
 extern crate scribe;
 
-use scribe::buffer::{Position, Scope, ScopeStack, Token, TokenSet};
+use scribe::buffer::{Position, ScopeStack, Token, TokenSet};
 use helpers::SelectableSet;
 use std::fmt;
 use std::iter::Iterator;

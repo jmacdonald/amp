@@ -5,7 +5,7 @@ use luthor::token::Category;
 use helpers::movement_lexer;
 use std::collections::HashMap;
 use std::str::FromStr;
-use scribe::buffer::{Distance, Lexeme, Position, Scope, ScopeStack};
+use scribe::buffer::{Distance, Lexeme, Position, ScopeStack};
 use models::application::modes::select::SelectMode;
 use models::application::modes::select_line::SelectLineMode;
 use self::tag_generator::TagGenerator;

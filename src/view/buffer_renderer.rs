@@ -2,7 +2,6 @@ use scribe::buffer::{Buffer, Lexeme, Position, Range, Token};
 use view::{Colors, RGBColor, Style, View};
 use view::color::to_rgb_color;
 use syntect::highlighting::Highlighter;
-use syntect::highlighting::Color as RGBAColor;
 use syntect::highlighting::Style as ThemeStyle;
 
 const LINE_LENGTH_GUIDE_OFFSET: usize = 80;
