@@ -129,7 +129,7 @@ fn ansi_256_color(rgb: RGBColor) -> RustboxColor {
         return RustboxColor::Byte(greyscale_ansi(r))
     } else {
         // Color!
-        let segments: Vec<u8> = vec![0x5f, 0x87, 0xaf, 0xd7, 0xff];
+        let segments: Vec<u8> = vec![89, 125, 161, 197, 232];
 
         r = segments.iter().position(|&s| r < s).unwrap_or(4) as u8;
         g = segments.iter().position(|&s| g < s).unwrap_or(4) as u8;
