@@ -15,7 +15,7 @@ pub use self::color::{Colors, RGBColor};
 
 use input::Key;
 use self::color::to_rgb_color;
-use self::terminal::{TermionTerminal, Terminal};
+use self::terminal::{RustboxTerminal, Terminal};
 use self::buffer_renderer::BufferRenderer;
 use scribe::buffer::{Buffer, Position, Range};
 use pad::PadStr;
@@ -301,7 +301,7 @@ mod tests {
 
 #[cfg(not(test))]
 fn build_terminal() -> Rc<RefCell<Terminal>> {
-    Rc::new(RefCell::new(TermionTerminal::new()))
+    Rc::new(RefCell::new(RustboxTerminal::new()))
 }
 
 #[cfg(test)]

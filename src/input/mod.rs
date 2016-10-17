@@ -13,6 +13,8 @@ pub enum Key {
     Delete,
     Insert,
     Esc,
+    Tab,
+    Enter,
     Char(char),
     Ctrl(char),
 }
