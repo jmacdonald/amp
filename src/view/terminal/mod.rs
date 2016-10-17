@@ -12,8 +12,6 @@ pub use self::rustbox_terminal::RustboxTerminal;
 pub trait Terminal {
     fn listen(&mut self) -> Option<Key>;
     fn clear(&mut self);
-    fn clear_from(&mut self, &Position);
-    fn clear_line_from(&mut self, &Position);
     fn present(&mut self);
     fn width(&self) -> usize;
     fn height(&self) -> usize;

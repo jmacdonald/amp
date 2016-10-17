@@ -120,32 +120,6 @@ impl Terminal for TermionTerminal {
         });
     }
 
-    fn clear_from(&mut self, position: &Position) {
-        // Because we're clearing styles below, we'll
-        // also need to bust the style/color cache.
-        self.current_style = None;
-        self.current_colors = None;
-
-        // It's important to reset the terminal styles prior to clearing the
-        // screen, otherwise the current background color will be used.
-        self.output.as_mut().map(|t| {
-            write!(t, "{}{}{}", style::Reset, cursor_position(position), termion::clear::AfterCursor)
-        });
-    }
-
-    fn clear_line_from(&mut self, position: &Position) {
-        // Because we're clearing styles below, we'll
-        // also need to bust the style/color cache.
-        self.current_style = None;
-        self.current_colors = None;
-
-        // It's important to reset the terminal styles prior to clearing the
-        // screen, otherwise the current background color will be used.
-        self.output.as_mut().map(|t| {
-            write!(t, "{}{}{}", style::Reset, cursor_position(position), termion::clear::UntilNewline)
-        });
-    }
-
     fn present(&mut self) {
         self.output.as_mut().map(|t| t.flush());
     }

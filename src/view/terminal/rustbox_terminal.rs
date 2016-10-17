@@ -58,12 +58,6 @@ impl Terminal for RustboxTerminal {
         self.rustbox.as_ref().map(|r| r.clear());
     }
 
-    fn clear_from(&mut self, position: &Position) {
-    }
-
-    fn clear_line_from(&mut self, position: &Position) {
-    }
-
     fn present(&mut self) {
         self.rustbox.as_ref().map(|r| r.present());
     }

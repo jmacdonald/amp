@@ -66,16 +66,6 @@ impl Terminal for TestTerminal {
             *row = [None; WIDTH];
         }
     }
-    fn clear_from(&mut self, position: &Position) {
-        for row in self.data.borrow_mut().iter_mut() {
-            *row = [None; WIDTH];
-        }
-    }
-    fn clear_line_from(&mut self, position: &Position) {
-        for row in self.data.borrow_mut().iter_mut() {
-            *row = [None; WIDTH];
-        }
-    }
     fn present(&self) { }
     fn width(&self) -> usize { 10 }
     fn height(&self) -> usize { 10 }

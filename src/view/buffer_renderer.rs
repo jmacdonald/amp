@@ -74,21 +74,21 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     }
 
     fn print_rest_of_line(&mut self) {
-        if self.on_cursor_line() {
-            for offset in self.screen_position.offset..self.view.width() {
-                let position = Position{
-                    line: self.screen_position.line,
-                    offset: offset
-                };
-                self.view.print(&position, Style::Default, Colors::Focused, &' ');
-            }
-        } else {
-            self.view.clear_line_from(&self.screen_position);
-        }
-    }
+        let on_cursor_line = self.on_cursor_line();
+        let guide_offset = self.length_guide_offset();
 
-    fn clear_rest_of_screen(&mut self) {
-        self.view.clear_from(&self.screen_position);
+        for offset in self.screen_position.offset..self.view.width() {
+            let colors = if on_cursor_line || offset == guide_offset {
+                Colors::Focused
+            } else {
+                Colors::Blank
+            };
+
+            self.view.print(&Position{ line: self.screen_position.line, offset: offset },
+                            Style::Default,
+                            colors,
+                            &' ');
+        }
     }
 
     fn length_guide_offset(&self) -> usize {
@@ -250,7 +250,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         }
 
         // One last call to this for the last line.
-        self.clear_rest_of_screen();
+        self.print_rest_of_line();
 
         // Set the cursor location. If it occurred somewhere in the buffer, it
         // will be shown at the right location. If not, it will be None and will
