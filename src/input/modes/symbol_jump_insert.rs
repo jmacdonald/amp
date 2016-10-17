@@ -20,7 +20,7 @@ pub fn handle(mode: &mut SymbolJumpMode, input: Key) -> Option<Command> {
             // Re-run the search.
             Some(symbol_jump::search)
         }
-        Key::Char('\n') => Some(symbol_jump::jump_to_selected_symbol),
+        Key::Enter => Some(symbol_jump::jump_to_selected_symbol),
         Key::Char(c) => {
             // Add a character to the search term.
             mode.input.push(c);

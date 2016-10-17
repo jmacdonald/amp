@@ -34,7 +34,6 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('V') => Some(application::switch_to_select_line_mode),
         Key::Char('/') => Some(application::switch_to_search_insert_mode),
         Key::Char('g') => Some(application::switch_to_line_jump_mode),
-        Key::Char('\n') => Some(application::switch_to_symbol_jump_mode),
         Key::Char('u') => Some(buffer::undo),
         Key::Char('r') => Some(buffer::redo),
         Key::Char('p') => Some(buffer::paste),
@@ -56,7 +55,8 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('Q') => Some(application::exit),
         Key::Ctrl('r') => Some(buffer::reload),
         Key::Char('B') => Some(workspace::new_buffer),
-        Key::Char('\t') => Some(workspace::next_buffer),
+        Key::Tab       => Some(workspace::next_buffer),
+        Key::Enter     => Some(application::switch_to_symbol_jump_mode),
         Key::Backspace => Some(buffer::backspace),
         _ => None,
     }

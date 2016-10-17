@@ -20,7 +20,7 @@ pub fn handle(mode: &mut OpenMode, input: Key) -> Option<Command> {
             // Re-run the search.
             Some(open_mode::search)
         }
-        Key::Char('\n') => Some(open_mode::open),
+        Key::Enter => Some(open_mode::open),
         Key::Char(c) => {
             // Add a character to the search term.
             mode.input.push(c);

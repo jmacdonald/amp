@@ -98,6 +98,8 @@ impl Terminal for TermionTerminal {
                         TermionKey::Delete => Some(Key::Delete),
                         TermionKey::Insert => Some(Key::Insert),
                         TermionKey::Esc => Some(Key::Esc),
+                        TermionKey::Char('\n') => Some(Key::Enter),
+                        TermionKey::Char('\t') => Some(Key::Tab),
                         TermionKey::Char(c) => Some(Key::Char(c)),
                         TermionKey::Ctrl(c) => Some(Key::Ctrl(c)),
                         _ => None,
