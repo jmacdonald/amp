@@ -219,10 +219,19 @@ impl View {
     }
 
     fn mapped_colors(&self, colors: Colors) -> Colors {
-        let (fg, bg) = (
-            RGBColor(255, 255, 255),
-            RGBColor(0, 0, 0),
-        );
+        let fg = self.
+            theme.
+            settings.
+            foreground.
+            map(|color| to_rgb_color(&color)).
+            unwrap_or(RGBColor(255, 255, 255));
+
+        let bg = self.
+            theme.
+            settings.
+            background.
+            map(|color| to_rgb_color(&color)).
+            unwrap_or(RGBColor(0, 0, 0));
 
         let alt_bg = self.
             theme.
