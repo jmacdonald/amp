@@ -20,7 +20,8 @@ use self::buffer_renderer::BufferRenderer;
 use scribe::buffer::{Buffer, Position, Range};
 use pad::PadStr;
 use std::cmp;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
+use std::io::{BufReader, Cursor};
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::fmt::Display;
@@ -38,14 +39,14 @@ pub struct View {
 impl View {
     pub fn new() -> View {
         let terminal = build_terminal();
-        let theme_set = ThemeSet::load_defaults();
+        let theme_set = build_theme_set();
 
         View {
             terminal: terminal,
             cursor_position: None,
             scrollable_regions: HashMap::new(),
-            theme: theme_set.themes.get("Solarized (dark)").unwrap().clone(),
-            theme_set: ThemeSet::load_defaults(),
+            theme: theme_set.themes.get("solarized_dark").unwrap().clone(),
+            theme_set: theme_set,
         }
     }
 
@@ -298,6 +299,24 @@ mod tests {
         // The view should not be scrolled.
         assert_eq!(view.visible_region(&buffer).line_offset(), 0);
     }
+}
+
+fn build_theme_set() -> ThemeSet {
+    let mut themes: BTreeMap<String, Theme> = BTreeMap::new();
+    let built_in_themes = vec![
+        ("solarized_dark", include_str!("../themes/solarized_dark.tmTheme")),
+        ("solarized_light", include_str!("../themes/solarized_light.tmTheme")),
+    ];
+
+    for (key, data) in built_in_themes {
+        let mut reader = BufReader::new(Cursor::new(data));
+        themes.insert(
+            String::from(key),
+            ThemeSet::load_from_reader(&mut reader).unwrap()
+        );
+    }
+
+    ThemeSet{ themes: themes }
 }
 
 #[cfg(not(test))]
