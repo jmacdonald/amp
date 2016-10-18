@@ -66,17 +66,17 @@ impl Terminal for TestTerminal {
             *row = [None; WIDTH];
         }
     }
-    fn present(&self) { }
+    fn present(&mut self) { }
     fn width(&self) -> usize { 10 }
     fn height(&self) -> usize { 10 }
-    fn set_cursor(&self, position: Option<Position>) { self.cursor.set(position); }
+    fn set_cursor(&mut self, position: Option<Position>) { self.cursor.set(position); }
     fn stop(&mut self) { }
     fn start(&mut self) { }
     fn print(&mut self, position: &Position, style: Style, colors: Colors, content: &Display) {
         let mut data = self.data.borrow_mut();
         let string_content = format!("{}", content);
 
-        for (i, c) in content.chars().enumerate() {
+        for (i, c) in string_content.chars().enumerate() {
             data[position.line][i+position.offset] = Some(c);
         }
     }
@@ -87,33 +87,23 @@ mod tests {
     use view::terminal::Terminal;
     use super::TestTerminal;
     use view::{Colors, Style};
+    use scribe::buffer::Position;
 
     #[test]
     fn print_sets_terminal_data_correctly() {
-        let terminal = TestTerminal::new();
-        terminal.print(0, 0, Style::Default, Colors::Default, "data");
-
-        assert_eq!(terminal.data(), "data");
-    }
-
-    #[test]
-    fn print_char_sets_terminal_data_correctly() {
-        let terminal = TestTerminal::new();
-        terminal.print_char(0, 0, Style::Default, Colors::Default, 'd');
-        terminal.print_char(1, 0, Style::Default, Colors::Default, 'a');
-        terminal.print_char(2, 0, Style::Default, Colors::Default, 't');
-        terminal.print_char(3, 0, Style::Default, Colors::Default, 'a');
+        let mut terminal = TestTerminal::new();
+        terminal.print(&Position{ line: 0, offset: 0 }, Style::Default, Colors::Default, &"data");
 
         assert_eq!(terminal.data(), "data");
     }
 
     #[test]
     fn data_uses_newlines_and_spaces_to_represent_structure() {
-        let terminal = TestTerminal::new();
+        let mut terminal = TestTerminal::new();
 
         // Setting a non-zero x coordinate on a previous line exercises column resetting.
-        terminal.print(2, 0, Style::Default, Colors::Default, "some");
-        terminal.print(5, 2, Style::Default, Colors::Default, "data");
+        terminal.print(&Position{ line: 0, offset: 2 }, Style::Default, Colors::Default, &"some");
+        terminal.print(&Position{ line: 2, offset: 5 }, Style::Default, Colors::Default, &"data");
 
         assert_eq!(terminal.data(), "  some\n\n     data");
     }

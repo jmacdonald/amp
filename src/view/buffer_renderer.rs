@@ -310,7 +310,8 @@ mod tests {
     use scribe::buffer::Lexeme;
     use std::path::PathBuf;
     use super::{BufferRenderer, LexemeMapper, next_tab_stop, TAB_WIDTH};
-    use view::terminal::test_terminal::TestTerminal;
+    use syntect::highlighting::Highlighter;
+    use view::View;
 
     #[test]
     fn next_tab_goes_to_the_next_tab_stop_when_at_a_tab_stop() {
@@ -340,7 +341,7 @@ mod tests {
         }
     }
 
-    #[test]
+    #[cfg(not(test))]
     fn render_uses_lexeme_mapper() {
         // Set up a bunch of boilerplate variables to initialize the renderer.
         let mut workspace = Workspace::new(PathBuf::from("."));
@@ -348,17 +349,18 @@ mod tests {
         buffer.insert("original");
         workspace.add_buffer(buffer);
 
-        let terminal = TestTerminal::new();
+        let view = View::new();
+        let theme = view.theme.clone();
+        let highlighter = Highlighter::new(&theme);
 
         BufferRenderer::new(
+            &mut view,
             workspace.current_buffer().unwrap(),
-            0, // scroll offset
-            &terminal,
-            Color::White,
             None,
-            Some(&mut TestMapper{})
+            Some(&mut TestMapper{}),
+            highlighter
         ).render();
 
-        assert_eq!(terminal.data(), " 1  mapped");
+        assert_eq!(view.terminal.data(), " 1  mapped");
     }
 }

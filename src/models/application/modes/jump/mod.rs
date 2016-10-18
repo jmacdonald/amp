@@ -183,9 +183,10 @@ impl LexemeMapper for JumpMode {
 
 #[cfg(test)]
 mod tests {
-    use super::JumpMode;
     use view::LexemeMapper;
-    use scribe::buffer::{Buffer, Lexeme, Position, Scope, Token};
+    use scribe::buffer::{Buffer, Lexeme, Position, ScopeStack, Token};
+    use std::str::FromStr;
+    use super::JumpMode;
 
     #[test]
     fn map_returns_the_correct_lexemes_in_first_phase() {
@@ -193,13 +194,13 @@ mod tests {
 
         let lexeme1 = Lexeme{
             value: "amp",
-            scope: Scope::new("entity").ok(),
+            scope: ScopeStack::from_str("entity").unwrap(),
             position: Position{ line: 0, offset: 0 }
         };
 
         let lexeme2 = Lexeme{
             value: "editor",
-            scope: Scope::new("entity").ok(),
+            scope: ScopeStack::from_str("entity").unwrap(),
             position: Position{ line: 0, offset: 3 }
         };
 
@@ -208,11 +209,11 @@ mod tests {
             vec![
                 Lexeme{
                     value: "a",
-                    scope: Scope::new("keyword").ok(),
+                    scope: ScopeStack::from_str("keyword").unwrap(),
                     position: Position{ line: 0, offset: 0 }
                 }, Lexeme{
                     value: "mp",
-                    scope: None,
+                    scope: ScopeStack::from_str("comment").unwrap(),
                     position: Position{ line: 0, offset: 1 }
                 }
             ]
@@ -223,11 +224,11 @@ mod tests {
             vec![
                 Lexeme{
                     value: "b",
-                    scope: Scope::new("keyword").ok(),
+                    scope: ScopeStack::from_str("keyword").unwrap(),
                     position: Position{ line: 0, offset: 3 }
                 }, Lexeme{
                     value: "ditor",
-                    scope: None,
+                    scope: ScopeStack::from_str("comment").unwrap(),
                     position: Position{ line: 0, offset: 4 }
                 }
             ]
@@ -241,13 +242,13 @@ mod tests {
 
         let lexeme1 = Lexeme{
             value: "amp",
-            scope: Scope::new("entity").ok(),
+            scope: ScopeStack::from_str("entity").unwrap(),
             position: Position{ line: 0, offset: 0 }
         };
 
         let lexeme2 = Lexeme{
             value: "editor",
-            scope: Scope::new("entity").ok(),
+            scope: ScopeStack::from_str("entity").unwrap(),
             position: Position{ line: 0, offset: 3 }
         };
 
@@ -256,11 +257,11 @@ mod tests {
             vec![
                 Lexeme{
                     value: "aa",
-                    scope: Scope::new("keyword").ok(),
+                    scope: ScopeStack::from_str("keyword").unwrap(),
                     position: Position{ line: 0, offset: 0 }
                 }, Lexeme{
                     value: "p",
-                    scope: None,
+                    scope: ScopeStack::from_str("comment").unwrap(),
                     position: Position{ line: 0, offset: 2 }
                 }
             ]
@@ -271,11 +272,11 @@ mod tests {
             vec![
                 Lexeme{
                     value: "ab",
-                    scope: Scope::new("keyword").ok(),
+                    scope: ScopeStack::from_str("keyword").unwrap(),
                     position: Position{ line: 0, offset: 3 }
                 }, Lexeme{
                     value: "itor",
-                    scope: None,
+                    scope: ScopeStack::from_str("comment").unwrap(),
                     position: Position{ line: 0, offset: 5 }
                 }
             ]
@@ -289,7 +290,7 @@ mod tests {
 
         let lexeme = Lexeme{
             value: "do a test",
-            scope: Scope::new("entity").ok(),
+            scope: ScopeStack::from_str("entity").unwrap(),
             position: Position{ line: 0, offset: 0 }
         };
 
@@ -298,27 +299,27 @@ mod tests {
             vec![
                 Lexeme{
                     value: "aa",
-                    scope: Scope::new("keyword").ok(),
+                    scope: ScopeStack::from_str("keyword").unwrap(),
                     position: Position{ line: 0, offset: 0 }
                 }, Lexeme{
                     value: " ",
-                    scope: None,
+                    scope: ScopeStack::from_str("comment").unwrap(),
                     position: Position{ line: 0, offset: 2 }
                 }, Lexeme{
                     value: "a",
-                    scope: None,
+                    scope: ScopeStack::from_str("comment").unwrap(),
                     position: Position{ line: 0, offset: 3 }
                 }, Lexeme{
                     value: " ",
-                    scope: None,
+                    scope: ScopeStack::from_str("comment").unwrap(),
                     position: Position{ line: 0, offset: 4 }
                 }, Lexeme{
                     value: "ab",
-                    scope: Scope::new("keyword").ok(),
+                    scope: ScopeStack::from_str("keyword").unwrap(),
                     position: Position{ line: 0, offset: 5 }
                 }, Lexeme{
                     value: "st",
-                    scope: None,
+                    scope: ScopeStack::from_str("comment").unwrap(),
                     position: Position{ line: 0, offset: 7 }
                 }
             ]
@@ -335,13 +336,13 @@ mod tests {
         // take this into account, too, which is why there's leading whitespace.
         let lexeme1 = Lexeme{
             value: "  amp",
-            scope: Scope::new("entity").ok(),
+            scope: ScopeStack::from_str("entity").unwrap(),
             position: Position{ line: 0, offset: 0 }
         };
 
         let lexeme2 = Lexeme{
             value: "editor",
-            scope: Scope::new("entity").ok(),
+            scope: ScopeStack::from_str("entity").unwrap(),
             position: Position{ line: 0, offset: 5 }
         };
         jump_mode.map(lexeme1);
@@ -365,13 +366,13 @@ mod tests {
 
         let lexeme1 = Lexeme{
             value: "amp",
-            scope: Scope::new("entity").ok(),
+            scope: ScopeStack::from_str("entity").unwrap(),
             position: Position{ line: 0, offset: 0 }
         };
 
         let lexeme2 = Lexeme{
             value: "editor",
-            scope: Scope::new("entity").ok(),
+            scope: ScopeStack::from_str("entity").unwrap(),
             position: Position{ line: 0, offset: 3 }
         };
 
@@ -380,11 +381,11 @@ mod tests {
             vec![
                 Lexeme{
                     value: "a",
-                    scope: Scope::new("keyword").ok(),
+                    scope: ScopeStack::from_str("keyword").unwrap(),
                     position: Position{ line: 0, offset: 0 }
                 }, Lexeme{
                     value: "mp",
-                    scope: None,
+                    scope: ScopeStack::from_str("comment").unwrap(),
                     position: Position{ line: 0, offset: 1 }
                 }
             ]
@@ -396,11 +397,11 @@ mod tests {
             vec![
                 Lexeme{
                     value: "a",
-                    scope: Scope::new("keyword").ok(),
+                    scope: ScopeStack::from_str("keyword").unwrap(),
                     position: Position{ line: 0, offset: 3 }
                 }, Lexeme{
                     value: "ditor",
-                    scope: None,
+                    scope: ScopeStack::from_str("comment").unwrap(),
                     position: Position{ line: 0, offset: 4 }
                 }
             ]
@@ -414,13 +415,13 @@ mod tests {
 
         let lexeme1 = Lexeme{
             value: "amp",
-            scope: Scope::new("entity").ok(),
+            scope: ScopeStack::from_str("entity").unwrap(),
             position: Position{ line: 0, offset: 0 }
         };
 
         let lexeme2 = Lexeme{
             value: "editor",
-            scope: Scope::new("entity").ok(),
+            scope: ScopeStack::from_str("entity").unwrap(),
             position: Position{ line: 0, offset: 3 }
         };
 
@@ -429,11 +430,11 @@ mod tests {
             vec![
                 Lexeme{
                     value: "aa",
-                    scope: Scope::new("keyword").ok(),
+                    scope: ScopeStack::from_str("keyword").unwrap(),
                     position: Position{ line: 0, offset: 0 }
                 }, Lexeme{
                     value: "p",
-                    scope: None,
+                    scope: ScopeStack::from_str("comment").unwrap(),
                     position: Position{ line: 0, offset: 2 }
                 }
             ]
@@ -445,11 +446,11 @@ mod tests {
             vec![
                 Lexeme{
                     value: "aa",
-                    scope: Scope::new("keyword").ok(),
+                    scope: ScopeStack::from_str("keyword").unwrap(),
                     position: Position{ line: 0, offset: 3 }
                 }, Lexeme{
                     value: "itor",
-                    scope: None,
+                    scope: ScopeStack::from_str("comment").unwrap(),
                     position: Position{ line: 0, offset: 5 }
                 }
             ]
@@ -466,7 +467,7 @@ mod tests {
         // two characters would cause a panic.
         let lexeme = Lexeme{
             value: "eéditor",
-            scope: Scope::new("entity").ok(),
+            scope: ScopeStack::from_str("entity").unwrap(),
             position: Position{ line: 0, offset: 0 }
         };
 
@@ -476,11 +477,11 @@ mod tests {
             vec![
                 Lexeme{
                     value: "aa",
-                    scope: Scope::new("keyword").ok(),
+                    scope: ScopeStack::from_str("keyword").unwrap(),
                     position: Position{ line: 0, offset: 0 }
                 }, Lexeme{
                     value: "ditor",
-                    scope: None,
+                    scope: ScopeStack::from_str("comment").unwrap(),
                     position: Position{ line: 0, offset: 2 }
                 }
             ]
@@ -494,13 +495,13 @@ mod tests {
 
         let lexeme1 = Lexeme{
             value: "amp",
-            scope: Scope::new("entity").ok(),
+            scope: ScopeStack::from_str("entity").unwrap(),
             position: Position{ line: 0, offset: 0 }
         };
 
         let lexeme2 = Lexeme{
             value: "editor",
-            scope: Scope::new("entity").ok(),
+            scope: ScopeStack::from_str("entity").unwrap(),
             position: Position{ line: 1, offset: 3 }
         };
         jump_mode.map(lexeme1);

@@ -86,8 +86,9 @@ fn symbols<'a, T>(tokens: T) -> Vec<Symbol> where T: Iterator<Item=Token<'a>> {
 mod tests {
     extern crate scribe;
 
+    use scribe::buffer::{Lexeme, Position, ScopeStack, Token};
+    use std::str::FromStr;
     use super::{Symbol, symbols};
-    use scribe::buffer::{Lexeme, Position, Scope, Token};
 
     #[test]
     fn symbols_are_limited_to_functions() {
@@ -99,7 +100,7 @@ mod tests {
                         line: 0,
                         offset: 0
                     },
-                    scope: Scope::new("meta.block.rust").ok()
+                    scope: ScopeStack::from_str("meta.block.rust").unwrap()
                 }
             ),
             Token::Lexeme(
@@ -109,7 +110,7 @@ mod tests {
                         line: 1,
                         offset: 0
                     },
-                    scope: Scope::new("entity.name.function").ok()
+                    scope: ScopeStack::from_str("entity.name.function").unwrap()
                 }
             ),
             Token::Lexeme(
@@ -119,7 +120,7 @@ mod tests {
                         line: 2,
                         offset: 0
                     },
-                    scope: Scope::new("meta.entity.name.function").ok()
+                    scope: ScopeStack::from_str("meta.entity.name.function").unwrap()
                 }
             )
         ];
