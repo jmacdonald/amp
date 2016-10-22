@@ -19,3 +19,6 @@ termion = { git = "https://github.com/jmacdonald/termion", branch = "esc" }
 
 [dependencies.clipboard]
 git = "https://github.com/aweinstock314/rust-clipboard.git"
+
+[replace]
+"scribe:0.4.10" = { git = "https://github.com/jmacdonald/scribe", branch = "syntect" } 
