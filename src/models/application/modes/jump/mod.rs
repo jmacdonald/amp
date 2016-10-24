@@ -142,6 +142,12 @@ impl LexemeMapper for JumpMode {
                                         self.current_position.clone()
                                     ))
                                 );
+
+                                // Advance beyond this suffix.
+                                self.current_position.add(&Distance{
+                                    lines: 0,
+                                    offset: subtoken.lexeme.len() - index
+                                });
                             }
                         }
 
@@ -512,5 +518,43 @@ mod tests {
                        offset: 3,
                    }));
         assert_eq!(jump_mode.map_tag("none"), None);
+    }
+
+    #[test]
+    fn map_splits_tokens_correctly_using_movement_lexer() {
+        let mut jump_mode = JumpMode::new(0);
+        jump_mode.first_phase = false;
+
+        let lexeme = Lexeme{
+            value: "amp_editor",
+            scope: ScopeStack::from_str("entity").unwrap(),
+            position: Position{ line: 0, offset: 0 }
+        };
+        assert_eq!(
+            jump_mode.map(lexeme),
+            vec![
+                Lexeme{
+                    value: "aa",
+                    scope: ScopeStack::from_str("keyword").unwrap(),
+                    position: Position{ line: 0, offset: 0 }
+                }, Lexeme{
+                    value: "p",
+                    scope: ScopeStack::from_str("comment").unwrap(),
+                    position: Position{ line: 0, offset: 2 }
+                }, Lexeme{
+                    value: "_",
+                    scope: ScopeStack::from_str("comment").unwrap(),
+                    position: Position{ line: 0, offset: 3 }
+                }, Lexeme{
+                    value: "ab",
+                    scope: ScopeStack::from_str("keyword").unwrap(),
+                    position: Position{ line: 0, offset: 4 }
+                }, Lexeme{
+                    value: "itor",
+                    scope: ScopeStack::from_str("comment").unwrap(),
+                    position: Position{ line: 0, offset: 6 }
+                }
+            ]
+        );
     }
 }
