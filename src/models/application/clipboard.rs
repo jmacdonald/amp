@@ -1,6 +1,20 @@
 extern crate clipboard;
 
 use self::clipboard::ClipboardContext;
+use std::process::{Command, Stdio};
+use std::io::Write;
+
+/// In-app content can be captured in both regular and full-line selection
+/// modes. This type describes the structure of said content, based on the
+/// context in which it was captured. When OS-level clipboard contents are
+/// used, they are always represented as inline, as we cannot infer block
+/// style without the copy context.
+#[derive(Debug, PartialEq)]
+pub enum ClipboardContent {
+    Inline(String),
+    Block(String),
+    None,
+}
 
 /// Qualifies in-app copy/paste content with structural information, and
 /// synchronizes said content with the OS-level clipboard (preferring it
@@ -78,7 +92,7 @@ impl Clipboard {
             ClipboardContent::Block(ref app_content) => {
                 match self.system_clipboard {
                     Some(ref mut clipboard) => {
-                        clipboard.set_contents(app_content.clone());
+                        set_system_clipboard(app_content);
                     }
                     None => (),
                 }
@@ -88,14 +102,29 @@ impl Clipboard {
     }
 }
 
-/// In-app content can be captured in both regular and full-line selection
-/// modes. This type describes the structure of said content, based on the
-/// context in which it was captured. When OS-level clipboard contents are
-/// used, they are always represented as inline, as we cannot infer block
-/// style without the copy context.
-#[derive(Debug, PartialEq)]
-pub enum ClipboardContent {
-    Inline(String),
-    Block(String),
-    None,
+#[cfg(not(target_os="linux"))]
+fn set_system_clipboard(content: &str) {
+    clipboard.set_contents(content.to_string());
+}
+
+// FIXME: Fix rust-clipboard crate so that this is unnecessary.
+#[cfg(target_os="linux")]
+fn set_system_clipboard(content: &str) {
+    // Spawn xclip process.
+    let mut process = Command::new("xclip")
+        .stdin(Stdio::piped())
+        .arg("-selection")
+        .arg("clipboard")
+        .spawn()
+        .unwrap();
+
+    // Send clipboard data.
+    process
+        .stdin
+        .as_mut()
+        .map(|s| {
+            s.write_all(
+                content.as_bytes()
+            )
+        });
 }
