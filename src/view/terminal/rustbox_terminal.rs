@@ -15,11 +15,15 @@ use view::color::RGBColor;
 /// are discarded and dimension queries are stubbed with static values.
 pub struct RustboxTerminal {
     rustbox: Option<RustBox>,
+    cursor: Option<Position>,
 }
 
 impl RustboxTerminal {
     pub fn new() -> RustboxTerminal {
-        RustboxTerminal { rustbox: Some(create_rustbox_instance()) }
+        RustboxTerminal {
+            rustbox: Some(create_rustbox_instance()),
+            cursor: None
+        }
     }
 }
 
@@ -77,6 +81,10 @@ impl Terminal for RustboxTerminal {
                 None => r.set_cursor(-1, -1),
             }
         }
+
+        // Store the cursor location so that we
+        // can restore it after a stop/start.
+        self.cursor = position;
     }
 
     fn print(&mut self, position: &Position, style: Style, colors: Colors, content: &Display) {
@@ -100,6 +108,12 @@ impl Terminal for RustboxTerminal {
         // We don't want to create two instance of RustBox.
         if self.rustbox.is_none() {
             self.rustbox = Some(create_rustbox_instance());
+
+            // A little idiosyncrasy of suspending and resuming is that
+            // the cursor isn't shown without clearing and resetting it.
+            let cursor = self.cursor.clone();
+            self.set_cursor(None);
+            self.set_cursor(cursor);
         }
     }
 }
