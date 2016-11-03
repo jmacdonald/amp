@@ -90,11 +90,8 @@ impl Clipboard {
         match self.content {
             ClipboardContent::Inline(ref app_content) |
             ClipboardContent::Block(ref app_content) => {
-                match self.system_clipboard {
-                    Some(ref mut clipboard) => {
-                        set_system_clipboard(app_content);
-                    }
-                    None => (),
+                if let Some(ref mut clipboard) = self.system_clipboard {
+                    set_system_clipboard(clipboard, app_content);
                 }
             }
             _ => (),
@@ -103,13 +100,13 @@ impl Clipboard {
 }
 
 #[cfg(not(target_os="linux"))]
-fn set_system_clipboard(content: &str) {
+fn set_system_clipboard(clipboard: &mut ClipboardContext, content: &str) {
     clipboard.set_contents(content.to_string());
 }
 
 // FIXME: Fix rust-clipboard crate so that this is unnecessary.
 #[cfg(target_os="linux")]
-fn set_system_clipboard(content: &str) {
+fn set_system_clipboard(clipboard: &mut ClipboardContext, content: &str) {
     // Spawn xclip process.
     let mut process = Command::new("xclip")
         .stdin(Stdio::piped())
