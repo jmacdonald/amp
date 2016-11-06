@@ -60,8 +60,6 @@ impl View {
             highlight,
             lexeme_mapper,
             scroll_offset,
-            width,
-            height,
             &mut *self.terminal.borrow_mut(),
             &self.theme,
         ).render();

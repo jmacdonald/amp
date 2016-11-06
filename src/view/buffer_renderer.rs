@@ -21,7 +21,6 @@ pub struct BufferRenderer<'a, 'b> {
     buffer_position: Position,
     cursor_position: Option<Position>,
     gutter_width: usize,
-    height: usize,
     highlight: Option<&'a Range>,
     stylist: Highlighter<'a>,
     current_style: ThemeStyle,
@@ -31,13 +30,12 @@ pub struct BufferRenderer<'a, 'b> {
     scroll_offset: usize,
     terminal: &'a mut Terminal,
     theme: &'a Theme,
-    width: usize,
 }
 
 impl<'a, 'b> BufferRenderer<'a, 'b> {
     pub fn new(buffer: &'a Buffer, highlight: Option<&'a Range>,
     lexeme_mapper: Option<&'b mut LexemeMapper>, scroll_offset: usize,
-    width: usize, height: usize, terminal: &'a mut Terminal, theme: &'a Theme) -> BufferRenderer<'a, 'b> {
+    terminal: &'a mut Terminal, theme: &'a Theme) -> BufferRenderer<'a, 'b> {
         // Determine the gutter size based on the number of lines.
         let line_number_width = buffer.line_count().to_string().len() + 1;
 
@@ -50,7 +48,6 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             buffer: buffer,
             cursor_position: None,
             gutter_width: line_number_width + 2,
-            height: height,
             highlight: highlight,
             stylist: stylist,
             current_style: current_style,
@@ -61,7 +58,6 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             scroll_offset: scroll_offset,
             terminal: terminal,
             theme: theme,
-            width: width,
         }
     }
 
@@ -86,7 +82,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         let on_cursor_line = self.on_cursor_line();
         let guide_offset = self.length_guide_offset();
 
-        for offset in self.screen_position.offset..self.width {
+        for offset in self.screen_position.offset..self.terminal.width() {
             let colors = if on_cursor_line || offset == guide_offset {
                 Colors::Focused
             } else {
@@ -183,7 +179,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             let token_color = to_rgb_color(&self.current_style.foreground);
             let (style, color) = self.current_char_style(token_color);
 
-            if LINE_WRAPPING && self.screen_position.offset == self.width {
+            if LINE_WRAPPING && self.screen_position.offset == self.terminal.width() {
                 self.screen_position.line += 1;
                 self.screen_position.offset = self.gutter_width;
                 self.terminal.print(&self.screen_position, style, color, &character);
@@ -217,7 +213,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     }
 
     fn after_visible_content(&self) -> bool {
-        self.screen_position.line >= self.height - 1
+        self.screen_position.line >= self.terminal.height() - 1
     }
 
     fn inside_visible_content(&mut self) -> bool {
