@@ -1,7 +1,4 @@
-extern crate termion;
-
-pub use self::termion::color::Rgb as RGBColor;
-use syntect::highlighting::Color as RGBAColor;
+use view::color::RGBColor;
 
 /// A convenience type used to represent a foreground/background
 /// color combination. Provides generic/convenience variants to
@@ -18,8 +15,4 @@ pub enum Colors {
     CustomForeground(RGBColor),
     CustomFocusedForeground(RGBColor),
     Custom(RGBColor, RGBColor),
-}
-
-pub fn to_rgb_color(color: &RGBAColor) -> RGBColor {
-    RGBColor(color.r, color.g, color.b)
 }
