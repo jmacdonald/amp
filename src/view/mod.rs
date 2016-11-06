@@ -51,16 +51,22 @@ impl View {
     }
 
     pub fn draw_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>, lexeme_mapper: Option<&mut LexemeMapper>) {
-        let theme = self.theme.clone();
-        let highlighter = Highlighter::new(&theme);
+        let width = self.width();
+        let height = self.height();
+        let scroll_offset = self.visible_region(buffer).line_offset();
 
-        BufferRenderer::new(
-            self,
+        let cursor_position = BufferRenderer::new(
             buffer,
             highlight,
             lexeme_mapper,
-            highlighter
+            scroll_offset,
+            width,
+            height,
+            &mut *self.terminal.borrow_mut(),
+            &self.theme,
         ).render();
+
+        self.set_cursor(cursor_position);
     }
 
     /// Renders the app name, version and copyright info to the screen.
