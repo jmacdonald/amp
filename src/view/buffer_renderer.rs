@@ -321,8 +321,9 @@ mod tests {
     use scribe::buffer::Lexeme;
     use std::path::PathBuf;
     use super::{BufferRenderer, LexemeMapper, next_tab_stop, TAB_WIDTH};
-    use syntect::highlighting::Highlighter;
+    use syntect::highlighting::{Highlighter, ThemeSet};
     use view::View;
+    use view::terminal::test_terminal::TestTerminal;
 
     #[test]
     fn next_tab_goes_to_the_next_tab_stop_when_at_a_tab_stop() {
@@ -352,26 +353,27 @@ mod tests {
         }
     }
 
-    #[cfg(not(test))]
+    #[test]
     fn render_uses_lexeme_mapper() {
-        // Set up a bunch of boilerplate variables to initialize the renderer.
+        // Set up a workspace and buffer; the workspace will
+        // handle setting up the buffer's syntax definition.
         let mut workspace = Workspace::new(PathBuf::from("."));
         let mut buffer = Buffer::new();
         buffer.insert("original");
         workspace.add_buffer(buffer);
 
-        let view = View::new();
-        let theme = view.theme.clone();
-        let highlighter = Highlighter::new(&theme);
+        let mut terminal = TestTerminal::new();
+        let theme_set = ThemeSet::load_defaults();
 
         BufferRenderer::new(
-            &mut view,
             workspace.current_buffer().unwrap(),
             None,
             Some(&mut TestMapper{}),
-            highlighter
+            0,
+            &mut terminal,
+            &theme_set.themes["base16-ocean.dark"]
         ).render();
 
-        assert_eq!(view.terminal.data(), " 1  mapped");
+        assert_eq!(terminal.data(), " 1  mapped");
     }
 }
