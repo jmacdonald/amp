@@ -33,7 +33,7 @@ pub fn copy_remote_url(app: &mut Application) {
             let Ok(branches) = repo.branches(Some(BranchType::Local))
         ],
         {
-            for (branch, _) in branches {
+            for (branch, _) in branches.filter(|b| b.is_ok()).map(|b| b.unwrap()) {
                 if branch.is_head() {
                     if let Ok(Some(branch_name)) = branch.name() {
                         let line_range = match app.mode {
