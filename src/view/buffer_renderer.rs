@@ -1,5 +1,5 @@
 use scribe::buffer::{Buffer, Lexeme, Position, Range, Token};
-use view::{Colors, RGBColor, Style, View};
+use view::{Colors, RGBColor, Style};
 use view::color::ColorMap;
 use view::color::to_rgb_color;
 use view::terminal::Terminal;

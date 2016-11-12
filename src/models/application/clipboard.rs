@@ -1,6 +1,8 @@
 extern crate clipboard;
 
 use self::clipboard::ClipboardContext;
+
+// Linux imports for xclip support.
 use std::process::{Command, Stdio};
 use std::io::Write;
 

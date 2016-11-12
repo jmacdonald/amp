@@ -14,7 +14,7 @@ pub use self::style::Style;
 pub use self::color::{Colors, RGBColor};
 
 use input::Key;
-use self::color::{ColorMap, to_rgb_color};
+use self::color::ColorMap;
 use self::terminal::{RustboxTerminal, Terminal};
 use self::buffer_renderer::BufferRenderer;
 use scribe::buffer::{Buffer, Position, Range};
@@ -26,7 +26,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::fmt::Display;
 use self::scrollable_region::ScrollableRegion;
-use syntect::highlighting::{Highlighter, Theme, ThemeSet};
+use syntect::highlighting::{Theme, ThemeSet};
 
 pub struct View {
     terminal: Rc<RefCell<Terminal>>,
@@ -51,8 +51,6 @@ impl View {
     }
 
     pub fn draw_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>, lexeme_mapper: Option<&mut LexemeMapper>) {
-        let width = self.width();
-        let height = self.height();
         let scroll_offset = self.visible_region(buffer).line_offset();
 
         let cursor_position = BufferRenderer::new(
