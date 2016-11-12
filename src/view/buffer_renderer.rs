@@ -64,13 +64,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     fn update_positions(&mut self, token: &Token) {
         match token {
             &Token::Newline => self.advance_to_next_line(),
-            &Token::Lexeme(ref lexeme) => {
-                self.buffer_position = lexeme.position;
-                self.screen_position = Position {
-                    line: lexeme.position.line.checked_sub(self.scroll_offset).unwrap_or(0),
-                    offset: lexeme.position.offset + self.gutter_width
-                };
-            }
+            &Token::Lexeme(ref lexeme) => self.buffer_position = lexeme.position,
         }
     }
 
@@ -339,6 +333,32 @@ mod tests {
 
         // It should go to the next tab stop.
         assert_eq!(next_tab_stop(offset), TAB_WIDTH * 2);
+    }
+
+    #[test]
+    fn render_wraps_lines_correctly() {
+        // Set up a workspace and buffer; the workspace will
+        // handle setting up the buffer's syntax definition.
+        let mut workspace = Workspace::new(PathBuf::from("."));
+        let mut buffer = Buffer::new();
+        buffer.insert("amp editor\nsecond line\n");
+        workspace.add_buffer(buffer);
+
+        let mut terminal = TestTerminal::new();
+        let theme_set = ThemeSet::load_defaults();
+
+        BufferRenderer::new(
+            workspace.current_buffer().unwrap(),
+            None,
+            None,
+            0,
+            &mut terminal,
+            &theme_set.themes["base16-ocean.dark"]
+        ).render();
+
+        assert_eq!(
+            terminal.data(),
+            " 1  amp ed\n    itor  \n 2  second\n     line \n 3        ");
     }
 
     // Used to test lexeme mapper usage.
