@@ -190,7 +190,7 @@ impl LexemeMapper for JumpMode {
 #[cfg(test)]
 mod tests {
     use view::LexemeMapper;
-    use scribe::buffer::{Buffer, Lexeme, Position, ScopeStack, Token};
+    use scribe::buffer::{Lexeme, Position, ScopeStack};
     use std::str::FromStr;
     use super::JumpMode;
 

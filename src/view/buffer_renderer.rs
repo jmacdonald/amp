@@ -315,8 +315,7 @@ mod tests {
     use scribe::buffer::Lexeme;
     use std::path::Path;
     use super::{BufferRenderer, LexemeMapper, next_tab_stop, TAB_WIDTH};
-    use syntect::highlighting::{Highlighter, ThemeSet};
-    use view::View;
+    use syntect::highlighting::ThemeSet;
     use view::terminal::test_terminal::TestTerminal;
 
     #[test]

@@ -1,5 +1,4 @@
 use scribe::buffer::Position;
-use std::error::Error;
 use std::cell::{Cell, RefCell};
 use std::fmt::Display;
 use super::Terminal;
@@ -72,7 +71,7 @@ impl Terminal for TestTerminal {
     fn set_cursor(&mut self, position: Option<Position>) { self.cursor.set(position); }
     fn stop(&mut self) { }
     fn start(&mut self) { }
-    fn print(&mut self, position: &Position, style: Style, colors: Colors, content: &Display) {
+    fn print(&mut self, position: &Position, _: Style, _: Colors, content: &Display) {
         let mut data = self.data.borrow_mut();
         let string_content = format!("{}", content);
 

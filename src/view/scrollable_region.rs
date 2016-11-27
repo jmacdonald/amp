@@ -95,7 +95,6 @@ mod tests {
     use std::rc::Rc;
     use std::cell::RefCell;
     use super::{ScrollableRegion, Visibility};
-    use view::terminal::Terminal;
     use view::terminal::test_terminal::TestTerminal;
     use scribe::buffer::LineRange;
 
