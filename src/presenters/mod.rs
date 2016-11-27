@@ -35,8 +35,12 @@ fn git_status_line_data(repo: &Option<Repository>, path: &Option<PathBuf>) -> St
     let mut content = String::new();
     if let &Some(ref repo) = repo {
         if let &Some(ref path) = path {
-            if let Ok(status) = repo.status_file(path) {
-                content = presentable_status(&status).to_string();
+            if let Some(repo_path) = repo.workdir() {
+                if let Ok(relative_path) = path.strip_prefix(repo_path) {
+                    if let Ok(status) = repo.status_file(relative_path) {
+                        content = presentable_status(&status).to_string();
+                    }
+                }
             }
         }
     }

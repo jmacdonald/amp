@@ -1,7 +1,7 @@
 use commands;
 use git2;
 use git2::{BranchType, Repository};
-use std::path::PathBuf;
+use std::path::Path;
 use models::application::{Application, ClipboardContent, Mode};
 use regex::Regex;
 
@@ -9,9 +9,13 @@ pub fn add(app: &mut Application) {
     if let Some(ref mut repo) = app.repository {
         if let Some(buf) = app.workspace.current_buffer() {
             if let Ok(ref mut index) = repo.index() {
-                if let Some(ref path) = buf.path {
-                    index.add_path(&path);
-                    index.write();
+                if let Some(ref buffer_path) = buf.path {
+                    if let Some(repo_path) = repo.workdir() {
+                        if let Ok(path) = buffer_path.strip_prefix(repo_path) {
+                            index.add_path(path);
+                            index.write();
+                        }
+                    }
                 }
             }
         }
@@ -28,8 +32,10 @@ pub fn copy_remote_url(app: &mut Application) {
             let Ok(regex) = Regex::new(r"^git@github.com:(.*).git$"),
             let Some(captures) = regex.captures(url),
             let Some(gh_path) = captures.at(1),
-            let Some(ref path) = buf.path,
-            exists_in_repo(&repo, &path),
+            let Some(ref buffer_path) = buf.path,
+            let Some(repo_path) = repo.workdir(),
+            let Ok(relative_path) = buffer_path.strip_prefix(repo_path),
+            exists_in_repo(&repo, relative_path),
             let Ok(branches) = repo.branches(Some(BranchType::Local))
         ],
         {
@@ -56,7 +62,7 @@ pub fn copy_remote_url(app: &mut Application) {
                             "https://github.com/{}/tree/{}/{}{}",
                             gh_path,
                             branch_name,
-                            path.to_string_lossy(),
+                            relative_path.to_string_lossy(),
                             line_range
                         );
                         app.clipboard.set_content(
@@ -70,7 +76,7 @@ pub fn copy_remote_url(app: &mut Application) {
     commands::application::switch_to_normal_mode(app);
 }
 
-fn exists_in_repo(repo: &Repository, path: &PathBuf) -> bool {
+fn exists_in_repo(repo: &Repository, path: &Path) -> bool {
     if let Ok(status) = repo.status_file(path) {
         !status.contains(git2::STATUS_WT_NEW) &&
             !status.contains(git2::STATUS_INDEX_NEW)
