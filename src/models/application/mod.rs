@@ -58,18 +58,28 @@ pub fn new() -> Application {
     let view = View::new();
     let clipboard = Clipboard::new();
 
-    // Try to initialize a repository in the working directory.
-    let repo = match Repository::open(&workspace.path) {
-        Ok(repo) => Some(repo),
-        Err(_) => None,
-    };
-
     Application {
         mode: Mode::Normal,
         workspace: workspace,
         search_query: None,
         view: view,
         clipboard: clipboard,
-        repository: repo,
+        repository: find_repo(),
     }
+}
+
+// Searches upwards for a repository, starting from the current directory.
+fn find_repo() -> Option<Repository> {
+    let initial_path = env::current_dir().unwrap();
+    let mut current_path = Some(initial_path.as_path());
+
+    while let Some(path) = current_path {
+        if let Ok(repo) = Repository::open(path) {
+            return Some(repo);
+        } else {
+            current_path = path.parent();
+        }
+    }
+
+    None
 }
