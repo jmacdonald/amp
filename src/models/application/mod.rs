@@ -8,7 +8,7 @@ mod clipboard;
 pub use self::clipboard::ClipboardContent;
 
 use std::env;
-use std::path::PathBuf;
+use std::path::Path;
 use self::modes::{JumpMode, LineJumpMode, SymbolJumpMode, InsertMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode};
 use scribe::{Buffer, Workspace};
 use view::View;
@@ -40,16 +40,16 @@ pub struct Application {
 pub fn new() -> Application {
     // Set up a workspace in the current directory.
     let mut workspace = match env::current_dir() {
-        Ok(path) => Workspace::new(path),
+        Ok(path) => Workspace::new(&path).unwrap(),
         Err(_) => panic!("Could not initialize workspace to the current directory."),
     };
 
     // Try to open the specified file.
     // TODO: Handle non-existent files as new empty buffers.
-    for path in env::args().skip(1) {
-        let argument_buffer = match Buffer::from_file(PathBuf::from(path.clone())) {
+    for path_arg in env::args().skip(1) {
+        let argument_buffer = match Buffer::from_file(Path::new(&path_arg)) {
             Ok(buf) => buf,
-            Err(_) => panic!("Ran into an error trying to open {}.", path),
+            Err(_) => panic!("Ran into an error trying to open {}.", path_arg),
         };
 
         workspace.add_buffer(argument_buffer);

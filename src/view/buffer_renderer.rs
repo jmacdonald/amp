@@ -313,7 +313,7 @@ fn next_tab_stop(offset: usize) -> usize {
 mod tests {
     use scribe::{Buffer, Workspace};
     use scribe::buffer::Lexeme;
-    use std::path::PathBuf;
+    use std::path::Path;
     use super::{BufferRenderer, LexemeMapper, next_tab_stop, TAB_WIDTH};
     use syntect::highlighting::{Highlighter, ThemeSet};
     use view::View;
@@ -339,7 +339,7 @@ mod tests {
     fn render_wraps_lines_correctly() {
         // Set up a workspace and buffer; the workspace will
         // handle setting up the buffer's syntax definition.
-        let mut workspace = Workspace::new(PathBuf::from("."));
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp editor\nsecond line\n");
         workspace.add_buffer(buffer);
@@ -377,7 +377,7 @@ mod tests {
     fn render_uses_lexeme_mapper() {
         // Set up a workspace and buffer; the workspace will
         // handle setting up the buffer's syntax definition.
-        let mut workspace = Workspace::new(PathBuf::from("."));
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("original");
         workspace.add_buffer(buffer);

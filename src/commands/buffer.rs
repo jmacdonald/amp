@@ -12,10 +12,7 @@ const TAB_CONTENT: &'static str = "  ";
 pub fn save(app: &mut Application) {
     remove_trailing_whitespace(app);
     ensure_trailing_newline(app);
-    match app.workspace.current_buffer() {
-        Some(buffer) => buffer.save(),
-        None => None,
-    };
+    app.workspace.current_buffer().map(|b| b.save());
 }
 
 pub fn reload(app: &mut Application) {

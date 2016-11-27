@@ -9,8 +9,7 @@ pub fn open(app: &mut Application) {
 
     if let Mode::Open(ref mut mode) = app.mode {
         if let Some(path) = mode.selected_path() {
-            app.workspace.open_buffer(path.clone());
-
+            app.workspace.open_buffer(path);
             opened = true;
         }
     }
