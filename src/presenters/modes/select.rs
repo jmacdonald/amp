@@ -1,12 +1,14 @@
 use models::application::modes::SelectMode;
 use scribe::Workspace;
 use scribe::buffer::Range;
-use presenters::{buffer_status_line_data};
+use presenters::current_buffer_status_line_data;
 use view::{Colors, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, mode: &SelectMode, view: &mut View) {
     // Wipe the slate clean.
     view.clear();
+
+    let buffer_status = current_buffer_status_line_data(workspace);
 
     if let Some(buf) = workspace.current_buffer() {
         let selected_range = Range::new(mode.anchor, *buf.cursor.clone());
@@ -21,7 +23,7 @@ pub fn display(workspace: &mut Workspace, mode: &SelectMode, view: &mut View) {
                 style: Style::Default,
                 colors: Colors::Select,
             },
-            buffer_status_line_data(&buf)
+            buffer_status
         ]);
     } else {
         // There's no buffer; clear the cursor.

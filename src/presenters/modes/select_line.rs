@@ -1,11 +1,13 @@
 use models::application::modes::SelectLineMode;
 use scribe::Workspace;
-use presenters::{buffer_status_line_data};
+use presenters::current_buffer_status_line_data;
 use view::{Colors, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, mode: &SelectLineMode, view: &mut View) {
     // Wipe the slate clean.
     view.clear();
+
+    let buffer_status = current_buffer_status_line_data(workspace);
 
     if let Some(buf) = workspace.current_buffer() {
         // Get the selected range, relative to the scrolled buffer.
@@ -21,7 +23,7 @@ pub fn display(workspace: &mut Workspace, mode: &SelectLineMode, view: &mut View
                 style: Style::Default,
                 colors: Colors::Select,
             },
-            buffer_status_line_data(&buf)
+            buffer_status
         ]);
     } else {
         // There's no buffer; clear the cursor.

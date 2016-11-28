@@ -1,4 +1,4 @@
-use presenters::{buffer_status_line_data};
+use presenters::current_buffer_status_line_data;
 use scribe::Workspace;
 use models::application::modes::JumpMode;
 use view::{Colors, StatusLineData, Style, View};
@@ -6,6 +6,8 @@ use view::{Colors, StatusLineData, Style, View};
 pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) {
     // Wipe the slate clean.
     view.clear();
+
+    let buffer_status = current_buffer_status_line_data(workspace);
 
     if let Some(buf) = workspace.current_buffer() {
         mode.reset_display();
@@ -20,7 +22,7 @@ pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) 
                 style: Style::Default,
                 colors: Colors::Inverted,
             },
-            buffer_status_line_data(&buf)
+            buffer_status
         ]);
     }
 

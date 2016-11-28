@@ -1,13 +1,15 @@
 extern crate git2;
 
 use scribe::Workspace;
-use presenters::{buffer_status_line_data, git_status_line_data};
+use presenters::{current_buffer_status_line_data, git_status_line_data};
 use git2::Repository;
 use view::{Colors, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Repository>) {
     // Wipe the slate clean.
     view.clear();
+
+    let buffer_status = current_buffer_status_line_data(workspace);
 
     if let Some(buf) = workspace.current_buffer() {
         // Draw the visible set of tokens to the terminal.
@@ -27,7 +29,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
                 style: Style::Default,
                 colors: colors,
             },
-            buffer_status_line_data(&buf),
+            buffer_status,
             git_status_line_data(&repo, &buf.path)
         ];
 

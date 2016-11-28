@@ -2,30 +2,34 @@ extern crate git2;
 
 pub mod modes;
 
-use std::path::PathBuf;
-use scribe::Buffer;
+use std::path::{Path, PathBuf};
+use scribe::Workspace;
 use view::{Colors, StatusLineData, Style};
 use git2::{Repository, Status};
 
-fn path_as_title(path: Option<PathBuf>) -> String {
-    format!(" {}", path.map(|path| path.to_string_lossy().into_owned()).unwrap_or("".to_string()))
+fn path_as_title(path: &Path) -> String {
+    format!(" {}", path.to_string_lossy())
 }
 
-fn buffer_status_line_data(buffer: &Buffer) -> StatusLineData {
-    // Determine buffer title styles based on its modification status.
-    let (buffer_title, buffer_title_style) = if buffer.modified() {
-        // Use an emboldened path with an asterisk.
-        let mut title = path_as_title(buffer.path.clone());
-        title.push('*');
+fn current_buffer_status_line_data(workspace: &mut Workspace) -> StatusLineData {
+    let modified = workspace.current_buffer().map(|b| b.modified()).unwrap_or(false);
 
-        (title, Style::Bold)
-    } else {
-        (path_as_title(buffer.path.clone()), Style::Default)
-    };
+    let (content, style) = workspace.current_buffer_path().map(|path| {
+        // Determine buffer title styles based on its modification status.
+        if modified {
+            // Use an emboldened path with an asterisk.
+            let mut title = path_as_title(path);
+            title.push('*');
+
+            (title, Style::Bold)
+        } else {
+            (path_as_title(path), Style::Default)
+        }
+    }).unwrap_or((String::new(), Style::Default));
 
     StatusLineData {
-        content: buffer_title,
-        style: buffer_title_style,
+        content: content,
+        style: style,
         colors: Colors::Focused,
     }
 }

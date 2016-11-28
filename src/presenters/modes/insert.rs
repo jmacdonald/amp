@@ -1,10 +1,12 @@
-use presenters::{buffer_status_line_data};
+use presenters::current_buffer_status_line_data;
 use scribe::Workspace;
 use view::{Colors, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, view: &mut View) {
     // Wipe the slate clean.
     view.clear();
+
+    let buffer_status = current_buffer_status_line_data(workspace);
 
     if let Some(buf) = workspace.current_buffer() {
         // Draw the visible set of tokens to the terminal.
@@ -17,7 +19,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View) {
                 style: Style::Default,
                 colors: Colors::Insert,
             },
-            buffer_status_line_data(&buf)
+            buffer_status
         ]);
     }
 
