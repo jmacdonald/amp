@@ -3,15 +3,16 @@ extern crate bloodhound;
 use std::cmp;
 use models::application::modes::OpenMode;
 use pad::PadStr;
-use presenters::{buffer_status_line_data};
-use scribe::buffer::{Buffer, Position};
+use presenters::buffer_status_line_data;
+use scribe::Workspace;
+use scribe::buffer::Position;
 use view::{Colors, StatusLineData, Style, View};
 
-pub fn display(buffer: Option<&mut Buffer>, mode: &OpenMode, view: &mut View) {
+pub fn display(workspace: &mut Workspace, mode: &OpenMode, view: &mut View) {
     // Wipe the slate clean.
     view.clear();
 
-    if let Some(buf) = buffer {
+    if let Some(buf) = workspace.current_buffer() {
         view.draw_buffer(buf, None, None);
 
         // Draw the status line.

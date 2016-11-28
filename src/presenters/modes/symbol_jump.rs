@@ -1,15 +1,16 @@
 use std::cmp;
 use models::application::modes::SymbolJumpMode;
 use pad::PadStr;
-use presenters::{buffer_status_line_data};
+use presenters::buffer_status_line_data;
 use view::{Colors, StatusLineData, Style, View};
-use scribe::buffer::{Buffer, Position};
+use scribe::Workspace;
+use scribe::buffer::Position;
 
-pub fn display(buffer: Option<&mut Buffer>, mode: &SymbolJumpMode, view: &mut View) {
+pub fn display(workspace: &mut Workspace, mode: &SymbolJumpMode, view: &mut View) {
     // Wipe the slate clean.
     view.clear();
 
-    if let Some(buf) = buffer {
+    if let Some(buf) = workspace.current_buffer() {
         // Draw the visible set of tokens to the terminal.
         view.draw_buffer(buf, None, None);
 

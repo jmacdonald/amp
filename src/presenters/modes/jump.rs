@@ -1,13 +1,13 @@
 use presenters::{buffer_status_line_data};
-use scribe::Buffer;
+use scribe::Workspace;
 use models::application::modes::JumpMode;
 use view::{Colors, StatusLineData, Style, View};
 
-pub fn display(buffer: Option<&mut Buffer>, mode: &mut JumpMode, view: &mut View) {
+pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) {
     // Wipe the slate clean.
     view.clear();
 
-    if let Some(buf) = buffer {
+    if let Some(buf) = workspace.current_buffer() {
         mode.reset_display();
 
         // Draw the visible set of tokens to the terminal.

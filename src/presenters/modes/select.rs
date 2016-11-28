@@ -1,13 +1,14 @@
 use models::application::modes::SelectMode;
-use scribe::buffer::{Buffer, Range};
+use scribe::Workspace;
+use scribe::buffer::Range;
 use presenters::{buffer_status_line_data};
 use view::{Colors, StatusLineData, Style, View};
 
-pub fn display(buffer: Option<&mut Buffer>, mode: &SelectMode, view: &mut View) {
+pub fn display(workspace: &mut Workspace, mode: &SelectMode, view: &mut View) {
     // Wipe the slate clean.
     view.clear();
 
-    if let Some(buf) = buffer {
+    if let Some(buf) = workspace.current_buffer() {
         let selected_range = Range::new(mode.anchor, *buf.cursor.clone());
 
         // Draw the visible set of tokens to the terminal.

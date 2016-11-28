@@ -25,46 +25,46 @@ fn main() {
         // Present the application state to the view.
         match application.mode {
             Mode::Insert(_) => {
-                presenters::modes::insert::display(application.workspace.current_buffer(),
+                presenters::modes::insert::display(&mut application.workspace,
                                                    &mut application.view)
             }
             Mode::Open(ref mode) => {
-                presenters::modes::open::display(application.workspace.current_buffer(),
+                presenters::modes::open::display(&mut application.workspace,
                                                  mode,
                                                  &mut application.view)
             }
             Mode::SearchInsert(ref mode) => {
-                presenters::modes::search_insert::display(application.workspace.current_buffer(),
+                presenters::modes::search_insert::display(&mut application.workspace,
                                                           mode,
                                                           &mut application.view)
             }
             Mode::Jump(ref mut mode) => {
-                presenters::modes::jump::display(application.workspace.current_buffer(),
+                presenters::modes::jump::display(&mut application.workspace,
                                                  mode,
                                                  &mut application.view)
             }
             Mode::LineJump(ref mode) => {
-                presenters::modes::line_jump::display(application.workspace.current_buffer(),
+                presenters::modes::line_jump::display(&mut application.workspace,
                                                       mode,
                                                       &mut application.view)
             }
             Mode::SymbolJump(ref mode) => {
-                presenters::modes::symbol_jump::display(application.workspace.current_buffer(),
+                presenters::modes::symbol_jump::display(&mut application.workspace,
                                                         mode,
                                                         &mut application.view)
             }
             Mode::Select(ref mode) => {
-                presenters::modes::select::display(application.workspace.current_buffer(),
+                presenters::modes::select::display(&mut application.workspace,
                                                    mode,
                                                    &mut application.view)
             }
             Mode::SelectLine(ref mode) => {
-                presenters::modes::select_line::display(application.workspace.current_buffer(),
+                presenters::modes::select_line::display(&mut application.workspace,
                                                         mode,
                                                         &mut application.view)
             }
             Mode::Normal => {
-                presenters::modes::normal::display(application.workspace.current_buffer(),
+                presenters::modes::normal::display(&mut application.workspace,
                                                    &mut application.view,
                                                    &application.repository)
             }
