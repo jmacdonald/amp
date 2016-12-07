@@ -11,7 +11,7 @@ dependencies = [
  "pad 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.80 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustbox 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "scribe 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)",
+ "scribe 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "syntect 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "termion 1.1.1 (git+https://github.com/jmacdonald/termion?branch=esc)",
 ]
@@ -478,18 +478,12 @@ dependencies = [
 
 [[package]]
 name = "scribe"
-version = "0.4.10"
-source = "git+https://github.com/jmacdonald/scribe?branch=syntect#1dc5f3211d5a2dde254cdb38c3f4a4757591128d"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "luthor 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "syntect 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
-
-[[package]]
-name = "scribe"
-version = "0.4.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-replace = "scribe 0.4.10 (git+https://github.com/jmacdonald/scribe?branch=syntect)"
 
 [[package]]
 name = "semver"
@@ -722,8 +716,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum rustbox 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)" = "acc40f390f6c5e2d47ff358020103deb6ebd0e98f2df2cec3cb15e054f403ed8"
 "checksum rustc-serialize 0.3.21 (registry+https://github.com/rust-lang/crates.io-index)" = "bff9fc1c79f2dec76b253273d07682e94a978bd8f132ded071188122b2af9818"
 "checksum rustc_version 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)" = "c5f5376ea5e30ce23c03eb77cbe4962b988deead10910c372b226388b594c084"
-"checksum scribe 0.4.10 (git+https://github.com/jmacdonald/scribe?branch=syntect)" = "<none>"
-"checksum scribe 0.4.10 (registry+https://github.com/rust-lang/crates.io-index)" = "1293ef1c497daa0eb875de76f05ff02214d3836763d2274edf8f7ffe79c439fa"
+"checksum scribe 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "525a37abce0353a5d479e6dec17b3644ca2b2351d7acc911cdca2a8f4e0b2292"
 "checksum semver 0.1.20 (registry+https://github.com/rust-lang/crates.io-index)" = "d4f410fedcf71af0345d7607d246e7ad15faaadd49d240ee3b24e5dc21a820ac"
 "checksum serde 0.7.15 (registry+https://github.com/rust-lang/crates.io-index)" = "1b0e0732aa8ec4267f61815a396a942ba3525062e3bd5520aa8419927cfc0a92"
 "checksum serde 0.8.19 (registry+https://github.com/rust-lang/crates.io-index)" = "58a19c0871c298847e6b68318484685cd51fa5478c0c905095647540031356e5"
