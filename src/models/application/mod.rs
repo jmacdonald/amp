@@ -38,32 +38,34 @@ pub struct Application {
     pub repository: Option<Repository>,
 }
 
-pub fn new() -> Result<Application> {
-    let current_dir = try!(env::current_dir());
+impl Application {
+    pub fn new() -> Result<Application> {
+        let current_dir = try!(env::current_dir());
 
-    // Set up a workspace in the current directory.
-    let mut workspace = try!(Workspace::new(&current_dir));
+        // Set up a workspace in the current directory.
+        let mut workspace = try!(Workspace::new(&current_dir));
 
-    // Try to open the specified file.
-    // TODO: Handle non-existent files as new empty buffers.
-    for path_arg in env::args().skip(1) {
-        let argument_buffer = match Buffer::from_file(Path::new(&path_arg)) {
-            Ok(buf) => buf,
-            Err(_) => panic!("Ran into an error trying to open {}.", path_arg),
-        };
+        // Try to open the specified file.
+        // TODO: Handle non-existent files as new empty buffers.
+        for path_arg in env::args().skip(1) {
+            let argument_buffer = match Buffer::from_file(Path::new(&path_arg)) {
+                Ok(buf) => buf,
+                Err(_) => panic!("Ran into an error trying to open {}.", path_arg),
+            };
 
-        workspace.add_buffer(argument_buffer);
+            workspace.add_buffer(argument_buffer);
+        }
+
+        let view = View::new();
+        let clipboard = Clipboard::new();
+
+        Ok(Application {
+            mode: Mode::Normal,
+            workspace: workspace,
+            search_query: None,
+            view: view,
+            clipboard: clipboard,
+            repository: Repository::discover(&current_dir).ok(),
+        })
     }
-
-    let view = View::new();
-    let clipboard = Clipboard::new();
-
-    Ok(Application {
-        mode: Mode::Normal,
-        workspace: workspace,
-        search_query: None,
-        view: view,
-        clipboard: clipboard,
-        repository: Repository::discover(&current_dir).ok(),
-    })
 }
