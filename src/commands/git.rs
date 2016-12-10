@@ -1,6 +1,6 @@
 use commands;
 use git2;
-use git2::{BranchType, Repository};
+use git2::{BranchType, Oid, Repository};
 use std::path::Path;
 use models::application::{Application, ClipboardContent, Mode};
 use regex::Regex;
@@ -39,37 +39,47 @@ pub fn copy_remote_url(app: &mut Application) {
             let Ok(branches) = repo.branches(Some(BranchType::Local))
         ],
         {
-            for (branch, _) in branches.filter(|b| b.is_ok()).map(|b| b.unwrap()) {
-                if branch.is_head() {
-                    if let Ok(Some(branch_name)) = branch.name() {
-                        let line_range = match app.mode {
-                            Mode::SelectLine(ref s) => {
-                                // Avoid zero-based line numbers.
-                                let line_1 = buf.cursor.line + 1;
-                                let line_2 = s.anchor + 1;
+            // We want to build URLs that point to an object ID, so that they'll
+            // refer to a snapshot of the file as it looks at this very moment.
+            let last_oid = repo
+              .revwalk()
+              .ok()
+              .and_then(|mut walker| {
+                  // We need to set a starting point for the commit graph we'll
+                  // traverse. We want the most recent commit, so start at HEAD.
+                  walker.push_head();
 
-                                if line_1 < line_2 {
-                                    format!("#L{}-L{}", line_1, line_2)
-                                } else if line_2 < line_1 {
-                                    format!("#L{}-L{}", line_2, line_1)
-                                } else {
-                                    format!("#L{}", line_1)
-                                }
-                            },
-                            _ => String::new(),
-                        };
-                        let gh_url = format!(
-                            "https://github.com/{}/tree/{}/{}{}",
-                            gh_path,
-                            branch_name,
-                            relative_path.to_string_lossy(),
-                            line_range
-                        );
-                        app.clipboard.set_content(
-                            ClipboardContent::Inline(gh_url)
-                        );
-                    }
-                }
+                  // Pull the first revision (HEAD).
+                  walker.next().and_then(|revision| revision.ok())
+              });
+
+            if let Some(oid) = last_oid {
+                let line_range = match app.mode {
+                    Mode::SelectLine(ref s) => {
+                        // Avoid zero-based line numbers.
+                        let line_1 = buf.cursor.line + 1;
+                        let line_2 = s.anchor + 1;
+
+                        if line_1 < line_2 {
+                            format!("#L{}-L{}", line_1, line_2)
+                        } else if line_2 < line_1 {
+                            format!("#L{}-L{}", line_2, line_1)
+                        } else {
+                            format!("#L{}", line_1)
+                        }
+                    },
+                    _ => String::new(),
+                };
+                let gh_url = format!(
+                    "https://github.com/{}/blob/{:?}/{}{}",
+                    gh_path,
+                    oid,
+                    relative_path.to_string_lossy(),
+                    line_range
+                );
+                app.clipboard.set_content(
+                    ClipboardContent::Inline(gh_url)
+                );
             }
         }
     }
