@@ -9,6 +9,7 @@ pub use self::clipboard::ClipboardContent;
 
 use std::env;
 use std::path::Path;
+use std::io::Result;
 use self::modes::{JumpMode, LineJumpMode, SymbolJumpMode, InsertMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode};
 use scribe::{Buffer, Workspace};
 use view::View;
@@ -37,12 +38,11 @@ pub struct Application {
     pub repository: Option<Repository>,
 }
 
-pub fn new() -> Application {
+pub fn new() -> Result<Application> {
+    let current_dir = try!(env::current_dir());
+
     // Set up a workspace in the current directory.
-    let mut workspace = match env::current_dir() {
-        Ok(path) => Workspace::new(&path).unwrap(),
-        Err(_) => panic!("Could not initialize workspace to the current directory."),
-    };
+    let mut workspace = try!(Workspace::new(&current_dir));
 
     // Try to open the specified file.
     // TODO: Handle non-existent files as new empty buffers.
@@ -58,28 +58,12 @@ pub fn new() -> Application {
     let view = View::new();
     let clipboard = Clipboard::new();
 
-    Application {
+    Ok(Application {
         mode: Mode::Normal,
         workspace: workspace,
         search_query: None,
         view: view,
         clipboard: clipboard,
-        repository: find_repo(),
-    }
-}
-
-// Searches upwards for a repository, starting from the current directory.
-fn find_repo() -> Option<Repository> {
-    let initial_path = env::current_dir().unwrap();
-    let mut current_path = Some(initial_path.as_path());
-
-    while let Some(path) = current_path {
-        if let Ok(repo) = Repository::open(path) {
-            return Some(repo);
-        } else {
-            current_path = path.parent();
-        }
-    }
-
-    None
+        repository: Repository::discover(&current_dir).ok(),
+    })
 }

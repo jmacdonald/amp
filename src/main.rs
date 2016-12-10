@@ -19,7 +19,7 @@ mod presenters;
 use models::application::Mode;
 
 fn main() {
-    let mut application = models::application::new();
+    let mut application = models::application::new().unwrap();
 
     loop {
         // Present the application state to the view.
