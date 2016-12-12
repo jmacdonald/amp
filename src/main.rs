@@ -100,9 +100,8 @@ fn main() {
             };
 
             // If the current mode returned a command, run it.
-            match command {
-                Some(c) => c(&mut application),
-                None => (),
+            if let Some(c) = command {
+                c(&mut application);
             }
 
             // Check if the command resulted in an exit, before
