@@ -1,10 +1,11 @@
 extern crate scribe;
 
 use commands;
+use commands::Result;
 use models::application::{Application, Mode};
 use scribe::buffer::Position;
 
-pub fn accept_input(app: &mut Application) {
+pub fn accept_input(app: &mut Application) -> Result {
     match app.mode {
         Mode::LineJump(ref mode) => {
             // Try parsing an integer from the input.
@@ -49,6 +50,8 @@ pub fn accept_input(app: &mut Application) {
 
     commands::application::switch_to_normal_mode(app);
     commands::view::scroll_cursor_to_center(app);
+
+    Ok(())
 }
 
 #[cfg(test)]

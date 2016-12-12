@@ -1,7 +1,8 @@
 use commands;
+use commands::Result;
 use models::application::{Application, Mode};
 
-pub fn move_to_previous_result(app: &mut Application) {
+pub fn move_to_previous_result(app: &mut Application) -> Result {
     let mut moved = false;
 
     match app.search_query {
@@ -40,9 +41,11 @@ pub fn move_to_previous_result(app: &mut Application) {
     if moved {
         commands::view::scroll_cursor_to_center(app);
     }
+
+    Ok(())
 }
 
-pub fn move_to_next_result(app: &mut Application) {
+pub fn move_to_next_result(app: &mut Application) -> commands::Result {
     let mut moved = false;
 
     match app.search_query {
@@ -83,9 +86,11 @@ pub fn move_to_next_result(app: &mut Application) {
     if moved {
         commands::view::scroll_cursor_to_center(app);
     }
+
+    Ok(())
 }
 
-pub fn accept_query(app: &mut Application) {
+pub fn accept_query(app: &mut Application) -> commands::Result {
     let query = match app.mode {
         Mode::SearchInsert(ref mode) => Some(mode.input.clone()),
         _ => None,
@@ -96,6 +101,8 @@ pub fn accept_query(app: &mut Application) {
         app.search_query = query;
         move_to_next_result(app);
     }
+
+    Ok(())
 }
 
 #[cfg(test)]

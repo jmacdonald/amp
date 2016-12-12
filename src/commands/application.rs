@@ -1,23 +1,29 @@
 extern crate libc;
 
 use commands;
+use commands::Result;
 use std::mem;
 use models::application::{Application, Mode};
 use models::application::modes::{jump, InsertMode, JumpMode, LineJumpMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode, SymbolJumpMode};
 
-pub fn switch_to_normal_mode(app: &mut Application) {
+pub fn switch_to_normal_mode(app: &mut Application) -> Result {
     commands::buffer::end_command_group(app);
     app.mode = Mode::Normal;
+
+    Ok(())
 }
-pub fn switch_to_insert_mode(app: &mut Application) {
+
+pub fn switch_to_insert_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer().is_some() {
         commands::buffer::start_command_group(app);
         app.mode = Mode::Insert(InsertMode::new());
         commands::view::scroll_to_cursor(app);
     }
+
+    Ok(())
 }
 
-pub fn switch_to_jump_mode(app: &mut Application) {
+pub fn switch_to_jump_mode(app: &mut Application) -> Result {
     if let Some(buf) = app.workspace.current_buffer() {
         // Initialize a new jump mode and swap
         // it with the current application mode.
@@ -48,49 +54,63 @@ pub fn switch_to_jump_mode(app: &mut Application) {
             _ => (),
         };
     }
+
+    Ok(())
 }
 
-pub fn switch_to_line_jump_mode(app: &mut Application) {
+pub fn switch_to_line_jump_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer().is_some() {
         app.mode = Mode::LineJump(LineJumpMode::new());
     }
+
+    Ok(())
 }
 
-pub fn switch_to_open_mode(app: &mut Application) {
+pub fn switch_to_open_mode(app: &mut Application) -> Result {
     app.mode = Mode::Open(OpenMode::new(app.workspace.path.clone()));
     commands::open_mode::search(app);
+
+    Ok(())
 }
 
-pub fn switch_to_symbol_jump_mode(app: &mut Application) {
+pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
     if let Some(buf) = app.workspace.current_buffer() {
         if let Some(token_set) = buf.tokens() {
             app.mode = Mode::SymbolJump(SymbolJumpMode::new(token_set));
         }
     }
     commands::symbol_jump::search(app);
+
+    Ok(())
 }
 
-pub fn switch_to_select_mode(app: &mut Application) {
+pub fn switch_to_select_mode(app: &mut Application) -> Result {
     if let Some(buffer) = app.workspace.current_buffer() {
         app.mode = Mode::Select(SelectMode::new(*buffer.cursor.clone()));
     }
     commands::view::scroll_to_cursor(app);
+
+    Ok(())
 }
 
-pub fn switch_to_select_line_mode(app: &mut Application) {
+pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
     if let Some(buffer) = app.workspace.current_buffer() {
         app.mode = Mode::SelectLine(SelectLineMode::new(buffer.cursor.line));
     }
     commands::view::scroll_to_cursor(app);
+
+    Ok(())
 }
 
-pub fn switch_to_search_insert_mode(app: &mut Application) {
+pub fn switch_to_search_insert_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer().is_some() {
         app.mode = Mode::SearchInsert(SearchInsertMode::new());
     }
+
+    Ok(())
 }
 
-pub fn suspend(app: &mut Application) {
+pub fn suspend(app: &mut Application) -> Result {
     // The view can't be running when the process stops or we'll lock the screen.
     // We need to clear the cursor or it won't render properly on resume.
     app.view.set_cursor(None);
@@ -104,8 +124,12 @@ pub fn suspend(app: &mut Application) {
     // When the shell sends SIGCONT to the amp process,
     // we'll want to take over the screen again.
     app.view.start();
+
+    Ok(())
 }
 
-pub fn exit(app: &mut Application) {
+pub fn exit(app: &mut Application) -> Result {
     app.mode = Mode::Exit;
+
+    Ok(())
 }

@@ -1,11 +1,12 @@
 use commands;
+use commands::Result;
 use git2;
 use git2::{BranchType, Oid, Repository};
 use std::path::Path;
 use models::application::{Application, ClipboardContent, Mode};
 use regex::Regex;
 
-pub fn add(app: &mut Application) {
+pub fn add(app: &mut Application) -> Result {
     if let Some(ref mut repo) = app.repository {
         if let Some(buf) = app.workspace.current_buffer() {
             if let Ok(ref mut index) = repo.index() {
@@ -20,9 +21,11 @@ pub fn add(app: &mut Application) {
             }
         }
     }
+
+    Ok(())
 }
 
-pub fn copy_remote_url(app: &mut Application) {
+pub fn copy_remote_url(app: &mut Application) -> Result {
     if_let_chain! {
         [
             let Some(ref mut repo) = app.repository,
@@ -84,6 +87,8 @@ pub fn copy_remote_url(app: &mut Application) {
         }
     }
     commands::application::switch_to_normal_mode(app);
+
+    Ok(())
 }
 
 fn exists_in_repo(repo: &Repository, path: &Path) -> bool {

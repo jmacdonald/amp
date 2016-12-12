@@ -1,6 +1,7 @@
 extern crate scribe;
 
 use commands;
+use commands::Result;
 use std::mem;
 use helpers::token::{Direction, adjacent_token_position};
 use models::application::{Application, ClipboardContent, Mode};
@@ -9,27 +10,33 @@ use scribe::buffer::{Position, Range};
 // FIXME: Determine this based on file type and/or user config.
 const TAB_CONTENT: &'static str = "  ";
 
-pub fn save(app: &mut Application) {
+pub fn save(app: &mut Application) -> Result {
     remove_trailing_whitespace(app);
     ensure_trailing_newline(app);
     app.workspace.current_buffer().map(|b| b.save());
+
+    Ok(())
 }
 
-pub fn reload(app: &mut Application) {
+pub fn reload(app: &mut Application) -> Result {
     if let Some(buf) = app.workspace.current_buffer() {
         buf.reload();
     }
+
+    Ok(())
 }
 
-pub fn delete(app: &mut Application) {
+pub fn delete(app: &mut Application) -> Result {
     match app.workspace.current_buffer() {
         Some(buffer) => buffer.delete(),
         None => (),
     }
     commands::view::scroll_to_cursor(app);
+
+    Ok(())
 }
 
-pub fn delete_token(app: &mut Application) {
+pub fn delete_token(app: &mut Application) -> Result {
     let mut subsequent_token_on_line = false;
 
     if_let_chain! {
@@ -50,23 +57,29 @@ pub fn delete_token(app: &mut Application) {
     } else {
         commands::buffer::delete_rest_of_line(app);
     }
+
+    Ok(())
 }
 
-pub fn delete_current_line(app: &mut Application) {
+pub fn delete_current_line(app: &mut Application) -> Result {
     commands::application::switch_to_select_line_mode(app);
     commands::selection::copy_and_delete(app);
     commands::application::switch_to_normal_mode(app);
     commands::view::scroll_to_cursor(app);
+
+    Ok(())
 }
 
-pub fn copy_current_line(app: &mut Application) {
+pub fn copy_current_line(app: &mut Application) -> Result {
     commands::application::switch_to_select_line_mode(app);
     commands::selection::copy(app);
     commands::application::switch_to_normal_mode(app);
     commands::view::scroll_to_cursor(app);
+
+    Ok(())
 }
 
-pub fn merge_next_line(app: &mut Application) {
+pub fn merge_next_line(app: &mut Application) -> Result {
     match app.workspace.current_buffer() {
         Some(buffer) => {
             let current_line = buffer.cursor.line;
@@ -74,7 +87,7 @@ pub fn merge_next_line(app: &mut Application) {
 
             // Don't bother if there isn't a line below.
             if data.lines().nth(current_line + 1).is_none() {
-                return;
+                return Ok(());
             }
 
             // Join the two lines.
@@ -123,18 +136,22 @@ pub fn merge_next_line(app: &mut Application) {
         }
         None => (),
     }
+
+    Ok(())
 }
 
-pub fn close(app: &mut Application) {
+pub fn close(app: &mut Application) -> Result {
     // Clean up view-related data for the buffer.
     if let Some(buf) = app.workspace.current_buffer() {
         app.view.forget_buffer(&buf);
     }
 
     app.workspace.close_current_buffer();
+
+    Ok(())
 }
 
-pub fn close_others(app: &mut Application) {
+pub fn close_others(app: &mut Application) -> Result {
     // Get the current buffer's ID so we know what *not* to close.
     if let Some(id) = app.workspace.current_buffer().map(|b| b.id) {
         loop {
@@ -166,9 +183,11 @@ pub fn close_others(app: &mut Application) {
             app.workspace.close_current_buffer();
         }
     }
+
+    Ok(())
 }
 
-pub fn backspace(app: &mut Application) {
+pub fn backspace(app: &mut Application) -> Result {
     let outdent = match app.workspace.current_buffer() {
         Some(buffer) => {
             if buffer.cursor.offset == 0 {
@@ -201,9 +220,11 @@ pub fn backspace(app: &mut Application) {
     }
 
     commands::view::scroll_to_cursor(app);
+
+    Ok(())
 }
 
-pub fn insert_char(app: &mut Application) {
+pub fn insert_char(app: &mut Application) -> Result {
     if_let_chain! {
         [
             let Some(buffer) = app.workspace.current_buffer(),
@@ -216,12 +237,14 @@ pub fn insert_char(app: &mut Application) {
     }
 
     commands::view::scroll_to_cursor(app);
+
+    Ok(())
 }
 
 /// Inserts a newline character at the current cursor position.
 /// Also performs automatic indentation, basing the indent off
 /// of the previous line's leading whitespace.
-pub fn insert_newline(app: &mut Application) {
+pub fn insert_newline(app: &mut Application) -> Result {
     if let Some(buffer) = app.workspace.current_buffer() {
         // Insert the newline character.
         buffer.insert("\n");
@@ -248,9 +271,11 @@ pub fn insert_newline(app: &mut Application) {
         }
     }
     commands::view::scroll_to_cursor(app);
+
+    Ok(())
 }
 
-pub fn indent_line(app: &mut Application) {
+pub fn indent_line(app: &mut Application) -> Result {
     match app.workspace.current_buffer() {
         Some(buffer) => {
             let target_position = match app.mode {
@@ -293,9 +318,11 @@ pub fn indent_line(app: &mut Application) {
         }
         None => (),
     }
+
+    Ok(())
 }
 
-pub fn outdent_line(app: &mut Application) {
+pub fn outdent_line(app: &mut Application) -> Result {
     match app.workspace.current_buffer() {
         Some(buffer) => {
             // FIXME: Determine this based on file type and/or user config.
@@ -370,14 +397,18 @@ pub fn outdent_line(app: &mut Application) {
         }
         None => (),
     }
+
+    Ok(())
 }
 
-pub fn change_token(app: &mut Application) {
+pub fn change_token(app: &mut Application) -> Result {
     commands::buffer::delete_token(app);
     commands::application::switch_to_insert_mode(app);
+
+    Ok(())
 }
 
-pub fn delete_rest_of_line(app: &mut Application) {
+pub fn delete_rest_of_line(app: &mut Application) -> Result {
     match app.workspace.current_buffer() {
         Some(buffer) => {
             // Create a range extending from the
@@ -396,44 +427,56 @@ pub fn delete_rest_of_line(app: &mut Application) {
         }
         None => (),
     }
+
+    Ok(())
 }
 
-pub fn change_rest_of_line(app: &mut Application) {
+pub fn change_rest_of_line(app: &mut Application) -> Result {
     commands::buffer::delete_rest_of_line(app);
     commands::application::switch_to_insert_mode(app);
+
+    Ok(())
 }
 
-pub fn start_command_group(app: &mut Application) {
+pub fn start_command_group(app: &mut Application) -> Result {
     match app.workspace.current_buffer() {
         Some(buffer) => buffer.start_operation_group(),
         None => (),
     }
+
+    Ok(())
 }
 
-pub fn end_command_group(app: &mut Application) {
+pub fn end_command_group(app: &mut Application) -> Result {
     match app.workspace.current_buffer() {
         Some(buffer) => buffer.end_operation_group(),
         None => (),
     }
+
+    Ok(())
 }
 
-pub fn undo(app: &mut Application) {
+pub fn undo(app: &mut Application) -> Result {
     match app.workspace.current_buffer() {
         Some(buffer) => buffer.undo(),
         None => (),
     }
     commands::view::scroll_to_cursor(app);
+
+    Ok(())
 }
 
-pub fn redo(app: &mut Application) {
+pub fn redo(app: &mut Application) -> Result {
     match app.workspace.current_buffer() {
         Some(buffer) => buffer.redo(),
         None => (),
     }
     commands::view::scroll_to_cursor(app);
+
+    Ok(())
 }
 
-pub fn paste(app: &mut Application) {
+pub fn paste(app: &mut Application) -> Result {
     let insert_below = match app.mode {
         Mode::Select(_) | Mode::SelectLine(_) => {
             commands::selection::delete(app);
@@ -485,9 +528,11 @@ pub fn paste(app: &mut Application) {
     }
 
     commands::view::scroll_to_cursor(app);
+
+    Ok(())
 }
 
-pub fn paste_above(app: &mut Application) {
+pub fn paste_above(app: &mut Application) -> Result {
     match app.workspace.current_buffer() {
         Some(buffer) => {
             match app.clipboard.get_content() {
@@ -508,9 +553,11 @@ pub fn paste_above(app: &mut Application) {
         }
         None => (),
     }
+
+    Ok(())
 }
 
-pub fn remove_trailing_whitespace(app: &mut Application) {
+pub fn remove_trailing_whitespace(app: &mut Application) -> Result {
     match app.workspace.current_buffer() {
         Some(buffer) => {
             let mut line = 0;
@@ -573,9 +620,11 @@ pub fn remove_trailing_whitespace(app: &mut Application) {
         }
         None => (),
     }
+
+    Ok(())
 }
 
-pub fn ensure_trailing_newline(app: &mut Application) {
+pub fn ensure_trailing_newline(app: &mut Application) -> Result {
     // Find end of buffer position.
     match app.workspace.current_buffer() {
         Some(buffer) => {
@@ -600,9 +649,11 @@ pub fn ensure_trailing_newline(app: &mut Application) {
         }
         None => (),
     }
+
+    Ok(())
 }
 
-pub fn insert_tab(app: &mut Application) {
+pub fn insert_tab(app: &mut Application) -> Result {
     if let Some(buf) = app.workspace.current_buffer() {
         buf.insert(TAB_CONTENT);
 
@@ -611,6 +662,8 @@ pub fn insert_tab(app: &mut Application) {
             buf.cursor.move_right();
         }
     }
+
+    Ok(())
 }
 
 #[cfg(test)]

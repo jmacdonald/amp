@@ -4,9 +4,10 @@ use models::application::{Application, ClipboardContent, Mode};
 use scribe::buffer::{LineRange, Range};
 use super::application;
 use commands;
+use commands::Result;
 use helpers;
 
-pub fn delete(app: &mut Application) {
+pub fn delete(app: &mut Application) -> Result {
     match app.workspace.current_buffer() {
         Some(buffer) => {
             match app.mode {
@@ -29,26 +30,34 @@ pub fn delete(app: &mut Application) {
 
     application::switch_to_normal_mode(app);
     commands::view::scroll_to_cursor(app);
+
+    Ok(())
 }
 
-pub fn copy_and_delete(app: &mut Application) {
+pub fn copy_and_delete(app: &mut Application) -> Result {
     copy_to_clipboard(app);
     delete(app);
+
+    Ok(())
 }
 
-pub fn change(app: &mut Application) {
+pub fn change(app: &mut Application) -> Result {
     copy_to_clipboard(app);
     delete(app);
     application::switch_to_insert_mode(app);
+
+    Ok(())
 }
 
-pub fn copy(app: &mut Application) {
+pub fn copy(app: &mut Application) -> Result {
     copy_to_clipboard(app);
     application::switch_to_normal_mode(app);
     commands::view::scroll_to_cursor(app);
+
+    Ok(())
 }
 
-fn copy_to_clipboard(app: &mut Application) {
+fn copy_to_clipboard(app: &mut Application) -> Result {
     match app.workspace.current_buffer() {
         Some(buffer) => {
             match app.mode {
@@ -81,4 +90,6 @@ fn copy_to_clipboard(app: &mut Application) {
         }
         None => (),
     };
+
+    Ok(())
 }
