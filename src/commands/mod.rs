@@ -1,3 +1,5 @@
+use std::error;
+use std::result;
 use models::application::Application;
 
 pub mod application;
@@ -13,4 +15,5 @@ pub mod selection;
 pub mod view;
 pub mod workspace;
 
-pub type Command = fn(&mut Application);
+pub type Command = fn(&mut Application) -> Result;
+pub type Result = result::Result<(), Box<error::Error>>;
