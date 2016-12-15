@@ -1,6 +1,5 @@
-use std::error;
-use std::result;
 use models::application::Application;
+use errors;
 
 pub mod application;
 pub mod buffer;
@@ -16,4 +15,4 @@ pub mod view;
 pub mod workspace;
 
 pub type Command = fn(&mut Application) -> Result;
-pub type Result = result::Result<(), Box<error::Error>>;
+pub type Result = errors::Result<()>;
