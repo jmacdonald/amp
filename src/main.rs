@@ -1,5 +1,8 @@
 #![feature(associated_consts)]
 
+// `error_chain!` can recurse deeply
+#![recursion_limit = "1024"]
+
 extern crate git2;
 extern crate luthor;
 extern crate pad;
@@ -8,17 +11,38 @@ extern crate regex;
 extern crate syntect;
 
 #[macro_use]
+extern crate error_chain;
+
+#[macro_use]
 mod helpers;
 
 pub mod models;
 pub mod view;
+mod errors;
 mod input;
 mod commands;
 mod presenters;
 
+use errors::Result;
 use models::application::Mode;
 
 fn main() {
+    if let Err(ref e) = run() {
+        println!("error: {}", e);
+
+        for e in e.iter().skip(1) {
+            println!("caused by: {}", e);
+        }
+
+        if let Some(backtrace) = e.backtrace() {
+            println!("backtrace: {:?}", backtrace);
+        }
+
+        ::std::process::exit(1);
+    }
+}
+
+fn run() -> Result<()> {
     let mut application = models::Application::new().unwrap();
 
     loop {
@@ -115,4 +139,6 @@ fn main() {
             }
         }
     }
+
+    Ok(())
 }
