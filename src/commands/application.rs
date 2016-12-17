@@ -1,5 +1,6 @@
 extern crate libc;
 
+use errors::*;
 use commands;
 use commands::Result;
 use std::mem;
@@ -7,7 +8,7 @@ use models::application::{Application, Mode};
 use models::application::modes::{jump, InsertMode, JumpMode, LineJumpMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode, SymbolJumpMode};
 
 pub fn switch_to_normal_mode(app: &mut Application) -> Result {
-    commands::buffer::end_command_group(app);
+    commands::buffer::end_command_group(app)?;
     app.mode = Mode::Normal;
 
     Ok(())
@@ -15,45 +16,44 @@ pub fn switch_to_normal_mode(app: &mut Application) -> Result {
 
 pub fn switch_to_insert_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer().is_some() {
-        commands::buffer::start_command_group(app);
+        commands::buffer::start_command_group(app)?;
         app.mode = Mode::Insert(InsertMode::new());
-        commands::view::scroll_to_cursor(app);
+        commands::view::scroll_to_cursor(app)?;
+    } else {
+        bail!(BUFFER_MISSING);
     }
 
     Ok(())
 }
 
 pub fn switch_to_jump_mode(app: &mut Application) -> Result {
-    if let Some(buf) = app.workspace.current_buffer() {
-        // Initialize a new jump mode and swap
-        // it with the current application mode.
-        let jump_mode = Mode::Jump(JumpMode::new(buf.cursor.line));
-        let old_mode = mem::replace(&mut app.mode, jump_mode);
+    let buffer = app
+        .workspace
+        .current_buffer()
+        .ok_or(BUFFER_MISSING)?;
 
-        // If we were previously in a select mode, store it
-        // in the current jump mode so that we can return to
-        // it after we've jumped to a location. This is how
-        // we compose select and jump modes.
-        match old_mode {
-            Mode::Select(select_mode) => {
-                match app.mode {
-                    Mode::Jump(ref mut mode) => {
-                        mode.select_mode = jump::SelectModeOptions::Select(select_mode)
-                    }
-                    _ => (),
-                }
+    // Initialize a new jump mode and swap
+    // it with the current application mode.
+    let jump_mode = Mode::Jump(JumpMode::new(buffer.cursor.line));
+    let old_mode = mem::replace(&mut app.mode, jump_mode);
+
+    // If we were previously in a select mode, store it
+    // in the current jump mode so that we can return to
+    // it after we've jumped to a location. This is how
+    // we compose select and jump modes.
+    match old_mode {
+        Mode::Select(select_mode) => {
+            if let Mode::Jump(ref mut mode) = app.mode {
+                mode.select_mode = jump::SelectModeOptions::Select(select_mode);
             }
-            Mode::SelectLine(select_mode) => {
-                match app.mode {
-                    Mode::Jump(ref mut mode) => {
-                        mode.select_mode = jump::SelectModeOptions::SelectLine(select_mode)
-                    }
-                    _ => (),
-                }
+        }
+        Mode::SelectLine(select_mode) => {
+            if let Mode::Jump(ref mut mode) = app.mode {
+                mode.select_mode = jump::SelectModeOptions::SelectLine(select_mode);
             }
-            _ => (),
-        };
-    }
+        }
+        _ => (),
+    };
 
     Ok(())
 }
@@ -61,6 +61,8 @@ pub fn switch_to_jump_mode(app: &mut Application) -> Result {
 pub fn switch_to_line_jump_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer().is_some() {
         app.mode = Mode::LineJump(LineJumpMode::new());
+    } else {
+        bail!(BUFFER_MISSING);
     }
 
     Ok(())
@@ -68,7 +70,7 @@ pub fn switch_to_line_jump_mode(app: &mut Application) -> Result {
 
 pub fn switch_to_open_mode(app: &mut Application) -> Result {
     app.mode = Mode::Open(OpenMode::new(app.workspace.path.clone()));
-    commands::open_mode::search(app);
+    commands::open_mode::search(app)?;
 
     Ok(())
 }
@@ -77,9 +79,13 @@ pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
     if let Some(buf) = app.workspace.current_buffer() {
         if let Some(token_set) = buf.tokens() {
             app.mode = Mode::SymbolJump(SymbolJumpMode::new(token_set));
+        } else {
+            bail!("No tokens available for the current buffer");
         }
+    } else {
+        bail!(BUFFER_MISSING);
     }
-    commands::symbol_jump::search(app);
+    commands::symbol_jump::search(app)?;
 
     Ok(())
 }
@@ -87,8 +93,10 @@ pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
 pub fn switch_to_select_mode(app: &mut Application) -> Result {
     if let Some(buffer) = app.workspace.current_buffer() {
         app.mode = Mode::Select(SelectMode::new(*buffer.cursor.clone()));
+    } else {
+        bail!(BUFFER_MISSING);
     }
-    commands::view::scroll_to_cursor(app);
+    commands::view::scroll_to_cursor(app)?;
 
     Ok(())
 }
@@ -96,8 +104,10 @@ pub fn switch_to_select_mode(app: &mut Application) -> Result {
 pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
     if let Some(buffer) = app.workspace.current_buffer() {
         app.mode = Mode::SelectLine(SelectLineMode::new(buffer.cursor.line));
+    } else {
+        bail!(BUFFER_MISSING);
     }
-    commands::view::scroll_to_cursor(app);
+    commands::view::scroll_to_cursor(app)?;
 
     Ok(())
 }
@@ -105,6 +115,8 @@ pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
 pub fn switch_to_search_insert_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer().is_some() {
         app.mode = Mode::SearchInsert(SearchInsertMode::new());
+    } else {
+        bail!(BUFFER_MISSING);
     }
 
     Ok(())
