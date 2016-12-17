@@ -1,40 +1,39 @@
+use errors::*;
 use commands::{self, Result};
 use models::application::{Application, Mode};
 
 pub fn move_to_previous_result(app: &mut Application) -> Result {
     let mut moved = false;
 
-    match app.search_query {
-        Some(ref query) => {
-            match app.workspace.current_buffer() {
-                Some(buffer) => {
-                    let positions = buffer.search(query);
-                    for position in positions.iter().rev() {
-                        if position < &*buffer.cursor {
-                            buffer.cursor.move_to(position.clone());
+    {
+        let query = app
+            .search_query
+            .as_ref()
+            .ok_or("Can't navigate results without a search query")?;
+        let buffer = app
+            .workspace
+            .current_buffer()
+            .ok_or(BUFFER_MISSING)?;
 
-                            // We've found one; track that and stop looking.
-                            moved = true;
-                            break;
-                        }
-                    }
+        let positions = buffer.search(query);
+        for position in positions.iter().rev() {
+            if position < &*buffer.cursor {
+                buffer.cursor.move_to(position.clone());
 
-                    if !moved {
-                        // There's nothing before the cursor, so wrap
-                        // to the last match, if there are any at all.
-                        match positions.last() {
-                            Some(position) => {
-                                buffer.cursor.move_to(position.clone());
-                                moved = true;
-                            }
-                            None => (),
-                        }
-                    }
-                }
-                None => (),
+                // We've found one; track that and stop looking.
+                moved = true;
+                break;
             }
         }
-        None => (),
+
+        if !moved {
+            // There's nothing before the cursor, so wrap
+            // to the last match, if there are any at all.
+            if let Some(position) = positions.last() {
+                buffer.cursor.move_to(position.clone());
+                moved = true;
+            }
+        }
     }
 
     if moved {
@@ -44,42 +43,40 @@ pub fn move_to_previous_result(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn move_to_next_result(app: &mut Application) -> commands::Result {
+pub fn move_to_next_result(app: &mut Application) -> Result {
     let mut moved = false;
 
-    match app.search_query {
-        Some(ref query) => {
-            match app.workspace.current_buffer() {
-                Some(buffer) => {
-                    let positions = buffer.search(query);
+    {
+        let query = app
+            .search_query
+            .as_ref()
+            .ok_or("Can't navigate results without a search query")?;
+        let buffer = app
+            .workspace
+            .current_buffer()
+            .ok_or(BUFFER_MISSING)?;
 
-                    // Try to find a result after the cursor.
-                    for position in positions.iter() {
-                        if position > &*buffer.cursor {
-                            buffer.cursor.move_to(position.clone());
+        let positions = buffer.search(query);
 
-                            // We've found one; track that and stop looking.
-                            moved = true;
-                            break;
-                        }
-                    }
+        // Try to find a result after the cursor.
+        for position in positions.iter() {
+            if position > &*buffer.cursor {
+                buffer.cursor.move_to(position.clone());
 
-                    if !moved {
-                        // We haven't found anything after the cursor, so wrap
-                        // to the first match, if there are any matches at all.
-                        match positions.first() {
-                            Some(position) => {
-                                buffer.cursor.move_to(position.clone());
-                                moved = true;
-                            }
-                            None => (),
-                        }
-                    }
-                }
-                None => (),
+                // We've found one; track that and stop looking.
+                moved = true;
+                break;
             }
         }
-        None => (),
+
+        if !moved {
+            // We haven't found anything after the cursor, so wrap
+            // to the first match, if there are any matches at all.
+            if let Some(position) = positions.first() {
+                buffer.cursor.move_to(position.clone());
+                moved = true;
+            }
+        }
     }
 
     if moved {
@@ -89,17 +86,15 @@ pub fn move_to_next_result(app: &mut Application) -> commands::Result {
     Ok(())
 }
 
-pub fn accept_query(app: &mut Application) -> commands::Result {
+pub fn accept_query(app: &mut Application) -> Result {
     let query = match app.mode {
         Mode::SearchInsert(ref mode) => Some(mode.input.clone()),
         _ => None,
-    };
+    }.ok_or("Can't accept search query outside of search mode")?;
 
-    if query.is_some() {
-        commands::application::switch_to_normal_mode(app);
-        app.search_query = query;
-        move_to_next_result(app);
-    }
+    commands::application::switch_to_normal_mode(app);
+    app.search_query = Some(query);
+    move_to_next_result(app);
 
     Ok(())
 }
