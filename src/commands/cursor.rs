@@ -1,8 +1,7 @@
 extern crate scribe;
 extern crate luthor;
 
-use commands;
-use commands::Result;
+use commands::{self, Result};
 use helpers::token::{Direction, adjacent_token_position};
 use models::application::Application;
 use scribe::buffer::{Position};

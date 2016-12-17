@@ -1,5 +1,4 @@
-use commands;
-use commands::Result;
+use commands::{self, Result};
 use models::application::{Application, Mode};
 
 pub fn move_to_previous_result(app: &mut Application) -> Result {

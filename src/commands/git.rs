@@ -1,6 +1,5 @@
 use errors::*;
-use commands;
-use commands::Result;
+use commands::{self, Result};
 use git2;
 use git2::{BranchType, Oid, Repository};
 use std::path::Path;

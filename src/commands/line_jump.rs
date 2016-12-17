@@ -1,6 +1,5 @@
 use errors::*;
-use commands;
-use commands::Result;
+use commands::{self, Result};
 use models::application::{Application, Mode};
 use scribe::buffer::Position;
 

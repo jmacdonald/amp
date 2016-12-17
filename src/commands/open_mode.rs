@@ -2,8 +2,7 @@ extern crate bloodhound;
 extern crate scribe;
 
 use errors::*;
-use commands;
-use commands::Result;
+use commands::{self, Result};
 use models::application::{Application, Mode};
 
 pub fn open(app: &mut Application) -> Result {

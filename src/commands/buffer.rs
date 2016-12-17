@@ -1,7 +1,6 @@
 extern crate scribe;
 
-use commands;
-use commands::Result;
+use commands::{self, Result};
 use std::mem;
 use helpers::token::{Direction, adjacent_token_position};
 use models::application::{Application, ClipboardContent, Mode};

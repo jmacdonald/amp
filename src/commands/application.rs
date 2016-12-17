@@ -1,8 +1,7 @@
 extern crate libc;
 
 use errors::*;
-use commands;
-use commands::Result;
+use commands::{self, Result};
 use std::mem;
 use models::application::{Application, Mode};
 use models::application::modes::{jump, InsertMode, JumpMode, LineJumpMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode, SymbolJumpMode};

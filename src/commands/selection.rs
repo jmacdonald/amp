@@ -4,8 +4,7 @@ use models::application::{Application, ClipboardContent, Mode};
 use scribe::buffer::{LineRange, Range};
 use super::application;
 use errors::*;
-use commands;
-use commands::Result;
+use commands::{self, Result};
 use helpers;
 
 pub fn delete(app: &mut Application) -> Result {
