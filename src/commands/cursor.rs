@@ -1,6 +1,7 @@
 extern crate scribe;
 extern crate luthor;
 
+use errors::*;
 use commands::{self, Result};
 use helpers::token::{Direction, adjacent_token_position};
 use models::application::Application;
@@ -8,110 +9,103 @@ use scribe::buffer::{Position};
 use super::{application, buffer};
 
 pub fn move_up(app: &mut Application) -> Result {
-    match app.workspace.current_buffer() {
-        Some(buffer) => buffer.cursor.move_up(),
-        None => (),
-    }
+    app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.cursor.move_up();
     commands::view::scroll_to_cursor(app);
 
     Ok(())
 }
 
 pub fn move_down(app: &mut Application) -> Result {
-    match app.workspace.current_buffer() {
-        Some(buffer) => buffer.cursor.move_down(),
-        None => (),
-    }
+    app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.cursor.move_down();
     commands::view::scroll_to_cursor(app);
 
     Ok(())
 }
 
 pub fn move_left(app: &mut Application) -> Result {
-    match app.workspace.current_buffer() {
-        Some(buffer) => buffer.cursor.move_left(),
-        None => (),
-    }
+    app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.cursor.move_left();
     commands::view::scroll_to_cursor(app);
 
     Ok(())
 }
 
 pub fn move_right(app: &mut Application) -> Result {
-    match app.workspace.current_buffer() {
-        Some(buffer) => buffer.cursor.move_right(),
-        None => (),
-    }
+    app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.cursor.move_right();
     commands::view::scroll_to_cursor(app);
 
     Ok(())
 }
 
 pub fn move_to_start_of_line(app: &mut Application) -> Result {
-    match app.workspace.current_buffer() {
-        Some(buffer) => buffer.cursor.move_to_start_of_line(),
-        None => (),
-    }
-    commands::view::scroll_to_cursor(app);
-
-    Ok(())
-}
-
-pub fn move_to_first_line(app: &mut Application) -> Result {
-    match app.workspace.current_buffer() {
-        Some(buffer) => buffer.cursor.move_to_first_line(),
-        None => (),
-    }
-    commands::view::scroll_to_cursor(app);
-
-    Ok(())
-}
-
-pub fn move_to_last_line(app: &mut Application) -> Result {
-    match app.workspace.current_buffer() {
-        Some(buffer) => buffer.cursor.move_to_last_line(),
-        None => (),
-    }
-    commands::view::scroll_to_cursor(app);
-
-    Ok(())
-}
-
-pub fn move_to_first_word_of_line(app: &mut Application) -> Result {
-    match app.workspace.current_buffer() {
-        Some(buffer) => {
-            // Get the current line.
-            match buffer.data().lines().nth(buffer.cursor.line) {
-                Some(line) => {
-                    // Find the offset of the first non-whitespace character.
-                    for (offset, character) in line.chars().enumerate() {
-                        if !character.is_whitespace() {
-                            // Move the cursor to this position.
-                            let new_cursor_position = scribe::buffer::Position {
-                                line: buffer.cursor.line,
-                                offset: offset,
-                            };
-                            buffer.cursor.move_to(new_cursor_position);
-
-                            // Stop enumerating; we've done the job.
-                            return Ok(());
-                        }
-                    }
-                }
-                None => (),
-            }
-        }
-        None => (),
-    }
+    app.workspace
+        .current_buffer()
+        .ok_or(BUFFER_MISSING)?
+        .cursor
+        .move_to_start_of_line();
     commands::view::scroll_to_cursor(app);
 
     Ok(())
 }
 
 pub fn move_to_end_of_line(app: &mut Application) -> Result {
-    match app.workspace.current_buffer() {
-        Some(buffer) => buffer.cursor.move_to_end_of_line(),
-        None => (),
+    app.workspace
+        .current_buffer()
+        .ok_or(BUFFER_MISSING)?
+        .cursor
+        .move_to_end_of_line();
+    commands::view::scroll_to_cursor(app);
+
+    Ok(())
+}
+
+pub fn move_to_first_line(app: &mut Application) -> Result {
+    app.workspace
+        .current_buffer()
+        .ok_or(BUFFER_MISSING)?
+        .cursor
+        .move_to_first_line();
+    commands::view::scroll_to_cursor(app);
+
+    Ok(())
+}
+
+pub fn move_to_last_line(app: &mut Application) -> Result {
+    app.workspace
+        .current_buffer()
+        .ok_or(BUFFER_MISSING)?
+        .cursor
+        .move_to_last_line();
+    commands::view::scroll_to_cursor(app);
+
+    Ok(())
+}
+
+pub fn move_to_first_word_of_line(app: &mut Application) -> Result {
+    if let Some(buffer) = app.workspace.current_buffer() {
+        let data = buffer.data();
+        let current_line = data
+            .lines()
+            .nth(buffer.cursor.line)
+            .ok_or("The current line couldn't be found in the buffer")?;
+
+        // Find the offset of the first non-whitespace character.
+        for (offset, character) in current_line.chars().enumerate() {
+            if !character.is_whitespace() {
+                // Move the cursor to this position.
+                let new_cursor_position = scribe::buffer::Position {
+                    line: buffer.cursor.line,
+                    offset: offset,
+                };
+                buffer.cursor.move_to(new_cursor_position);
+
+                // Stop enumerating; we've done the job.
+                return Ok(());
+            }
+        }
+
+        bail!("No characters on the current line");
+    } else {
+        bail!(BUFFER_MISSING);
     }
     commands::view::scroll_to_cursor(app);
 
@@ -119,27 +113,27 @@ pub fn move_to_end_of_line(app: &mut Application) -> Result {
 }
 
 pub fn insert_at_end_of_line(app: &mut Application) -> Result {
-    move_to_end_of_line(app);
-    application::switch_to_insert_mode(app);
-    commands::view::scroll_to_cursor(app);
+    move_to_end_of_line(app)?;
+    application::switch_to_insert_mode(app)?;
+    commands::view::scroll_to_cursor(app)?;
 
     Ok(())
 }
 
 pub fn insert_at_first_word_of_line(app: &mut Application) -> Result {
-    move_to_first_word_of_line(app);
-    application::switch_to_insert_mode(app);
-    commands::view::scroll_to_cursor(app);
+    move_to_first_word_of_line(app)?;
+    application::switch_to_insert_mode(app)?;
+    commands::view::scroll_to_cursor(app)?;
 
     Ok(())
 }
 
 pub fn insert_with_newline(app: &mut Application) -> Result {
-    move_to_end_of_line(app);
-    buffer::start_command_group(app);
-    buffer::insert_newline(app);
-    application::switch_to_insert_mode(app);
-    commands::view::scroll_to_cursor(app);
+    move_to_end_of_line(app)?;
+    buffer::start_command_group(app)?;
+    buffer::insert_newline(app)?;
+    application::switch_to_insert_mode(app)?;
+    commands::view::scroll_to_cursor(app)?;
 
     Ok(())
 }
@@ -157,31 +151,33 @@ pub fn insert_with_newline_above(app: &mut Application) -> Result {
                 }
             }
         }
+    } else {
+        bail!(BUFFER_MISSING);
     };
 
-    move_to_start_of_line(app);
-    buffer::start_command_group(app);
-    buffer::insert_newline(app);
-    commands::cursor::move_up(app);
-    app.workspace.current_buffer().map(|b| b.insert(content));
-    move_to_end_of_line(app);
-    application::switch_to_insert_mode(app);
-    commands::view::scroll_to_cursor(app);
+    move_to_start_of_line(app)?;
+    buffer::start_command_group(app)?;
+    buffer::insert_newline(app)?;
+    commands::cursor::move_up(app)?;
+    app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.insert(content);
+    move_to_end_of_line(app)?;
+    application::switch_to_insert_mode(app)?;
+    commands::view::scroll_to_cursor(app)?;
 
     Ok(())
 }
 
 pub fn move_to_start_of_previous_token(app: &mut Application) -> Result {
-    match app.workspace.current_buffer() {
-        Some(buffer) => {
-            match adjacent_token_position(buffer, false, Direction::Backward) {
-                Some(position) => {
-                    buffer.cursor.move_to(position);
-                }
-                None => (),
-            };
-        }
-        None => (),
+    if let Some(buffer) = app.workspace.current_buffer() {
+        let position = adjacent_token_position(
+            buffer,
+            false,
+            Direction::Backward
+        ).ok_or("Couldn't find previous token")?;
+
+        buffer.cursor.move_to(position);
+    } else {
+        bail!(BUFFER_MISSING);
     }
     commands::view::scroll_to_cursor(app);
 
@@ -189,16 +185,16 @@ pub fn move_to_start_of_previous_token(app: &mut Application) -> Result {
 }
 
 pub fn move_to_start_of_next_token(app: &mut Application) -> Result {
-    match app.workspace.current_buffer() {
-        Some(buffer) => {
-            match adjacent_token_position(buffer, false, Direction::Forward) {
-                Some(position) => {
-                    buffer.cursor.move_to(position);
-                }
-                None => (),
-            };
-        }
-        None => (),
+    if let Some(buffer) = app.workspace.current_buffer() {
+        let position = adjacent_token_position(
+            buffer,
+            false,
+            Direction::Forward
+        ).ok_or("Couldn't find next token")?;
+
+        buffer.cursor.move_to(position);
+    } else {
+        bail!(BUFFER_MISSING);
     }
     commands::view::scroll_to_cursor(app);
 
@@ -206,19 +202,16 @@ pub fn move_to_start_of_next_token(app: &mut Application) -> Result {
 }
 
 pub fn move_to_end_of_current_token(app: &mut Application) -> Result {
-    match app.workspace.current_buffer() {
-        Some(buffer) => {
-            match adjacent_token_position(buffer, true, Direction::Forward) {
-                Some(position) => {
-                    buffer.cursor.move_to(Position {
-                        line: position.line,
-                        offset: position.offset,
-                    });
-                }
-                None => (),
-            };
-        }
-        None => (),
+    if let Some(buffer) = app.workspace.current_buffer() {
+        let position = adjacent_token_position(
+            buffer,
+            true,
+            Direction::Forward
+        ).ok_or("Couldn't find next token")?;
+
+        buffer.cursor.move_to(position);
+    } else {
+        bail!(BUFFER_MISSING);
     }
     commands::view::scroll_to_cursor(app);
 
@@ -226,18 +219,8 @@ pub fn move_to_end_of_current_token(app: &mut Application) -> Result {
 }
 
 pub fn append_to_current_token(app: &mut Application) -> Result {
-    match app.workspace.current_buffer() {
-        Some(buffer) => {
-            match adjacent_token_position(buffer, true, Direction::Forward) {
-                Some(position) => {
-                    buffer.cursor.move_to(position);
-                }
-                None => (),
-            };
-        }
-        None => (),
-    }
-    application::switch_to_insert_mode(app);
+    move_to_end_of_current_token(app)?;
+    application::switch_to_insert_mode(app)?;
 
     Ok(())
 }
