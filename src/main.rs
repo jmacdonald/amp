@@ -24,6 +24,7 @@ mod commands;
 mod presenters;
 
 use errors::*;
+use view::StatusLineData;
 use models::application::Mode;
 
 fn main() {
@@ -95,6 +96,20 @@ fn run() -> Result<()> {
             Mode::Exit => ()
         }
 
+        // Display an error from previous command invocation, if one exists.
+        if let Some(ref error) = application.error {
+            application
+                .view
+                .draw_status_line(
+                    &vec![StatusLineData{
+                        content: error.description().to_string(),
+                        style: view::Style::Bold,
+                        colors: view::Colors::Focused,
+                    }]
+                );
+            application.view.present();
+        }
+
         // Listen for and respond to user input.
         if let Some(key) = application.view.listen() {
             // Pass the input to the current mode.
@@ -123,10 +138,8 @@ fn run() -> Result<()> {
                 Mode::Exit => break,
             };
 
-            // If the current mode returned a command, run it.
-            if let Some(c) = command {
-                c(&mut application);
-            }
+            // If the mode returned a command, run it and store its error output.
+            application.error = command.and_then(|c| c(&mut application).err());
 
             // Check if the command resulted in an exit, before
             // looping again and asking for input we won't use.

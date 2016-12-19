@@ -37,6 +37,7 @@ pub struct Application {
     pub view: View,
     pub clipboard: Clipboard,
     pub repository: Option<Repository>,
+    pub error: Option<Error>,
 }
 
 impl Application {
@@ -63,6 +64,7 @@ impl Application {
             view: view,
             clipboard: clipboard,
             repository: Repository::discover(&current_dir).ok(),
+            error: None,
         })
     }
 }
