@@ -10,11 +10,7 @@ pub fn move_to_previous_result(app: &mut Application) -> Result {
             .search_query
             .as_ref()
             .ok_or("Can't navigate results without a search query")?;
-        let buffer = app
-            .workspace
-            .current_buffer()
-            .ok_or(BUFFER_MISSING)?;
-
+        let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
         let positions = buffer.search(query);
         for position in positions.iter().rev() {
             if position < &*buffer.cursor {
@@ -51,11 +47,7 @@ pub fn move_to_next_result(app: &mut Application) -> Result {
             .search_query
             .as_ref()
             .ok_or("Can't navigate results without a search query")?;
-        let buffer = app
-            .workspace
-            .current_buffer()
-            .ok_or(BUFFER_MISSING)?;
-
+        let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
         let positions = buffer.search(query);
 
         // Try to find a result after the cursor.

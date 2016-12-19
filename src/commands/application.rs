@@ -26,10 +26,7 @@ pub fn switch_to_insert_mode(app: &mut Application) -> Result {
 }
 
 pub fn switch_to_jump_mode(app: &mut Application) -> Result {
-    let buffer = app
-        .workspace
-        .current_buffer()
-        .ok_or(BUFFER_MISSING)?;
+    let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
     // Initialize a new jump mode and swap
     // it with the current application mode.

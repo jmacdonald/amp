@@ -74,11 +74,7 @@ pub fn copy_current_line(app: &mut Application) -> Result {
 }
 
 pub fn merge_next_line(app: &mut Application) -> Result {
-    let buffer = app
-        .workspace
-        .current_buffer()
-        .ok_or(BUFFER_MISSING)?;
-
+    let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
     let current_line = buffer.cursor.line;
     let data = buffer.data();
 
@@ -313,10 +309,7 @@ pub fn indent_line(app: &mut Application) -> Result {
 }
 
 pub fn outdent_line(app: &mut Application) -> Result {
-    let buffer = app
-        .workspace
-        .current_buffer()
-        .ok_or(BUFFER_MISSING)?;
+    let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
     // FIXME: Determine this based on file type and/or user config.
     let data = buffer.data();
@@ -392,10 +385,7 @@ pub fn change_token(app: &mut Application) -> Result {
 }
 
 pub fn delete_rest_of_line(app: &mut Application) -> Result {
-    let buffer = app
-        .workspace
-        .current_buffer()
-        .ok_or(BUFFER_MISSING)?;
+    let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
     // Create a range extending from the
     // cursor's current position to the next line.
@@ -509,10 +499,7 @@ pub fn paste(app: &mut Application) -> Result {
 }
 
 pub fn paste_above(app: &mut Application) -> Result {
-    let buffer = app
-        .workspace
-        .current_buffer()
-        .ok_or(BUFFER_MISSING)?;
+    let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
     if let &ClipboardContent::Block(ref content) = app.clipboard.get_content() {
         let mut start_of_line = Position {
@@ -531,11 +518,7 @@ pub fn paste_above(app: &mut Application) -> Result {
 }
 
 pub fn remove_trailing_whitespace(app: &mut Application) -> Result {
-    let buffer = app
-        .workspace
-        .current_buffer()
-        .ok_or(BUFFER_MISSING)?;
-
+    let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
     let mut line = 0;
     let mut offset = 0;
     let mut space_count = 0;

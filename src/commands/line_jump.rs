@@ -13,10 +13,7 @@ pub fn accept_input(app: &mut Application) -> Result {
 
         // Ignore zero-value line numbers.
         if line_number > 0 {
-            let buffer = app
-                .workspace
-                .current_buffer()
-                .ok_or(BUFFER_MISSING)?;
+            let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
             // Input values won't be zero-indexed; map the value so
             // that we can use it for a zero-indexed buffer position.

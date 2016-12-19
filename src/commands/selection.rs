@@ -57,10 +57,7 @@ pub fn copy(app: &mut Application) -> Result {
 }
 
 fn copy_to_clipboard(app: &mut Application) -> Result {
-    let buffer = app
-        .workspace
-        .current_buffer()
-        .ok_or(BUFFER_MISSING)?;
+    let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
     match app.mode {
         Mode::Select(ref select_mode) => {

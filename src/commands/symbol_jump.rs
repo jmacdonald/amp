@@ -7,11 +7,7 @@ use models::application::{Application, Mode};
 
 pub fn jump_to_selected_symbol(app: &mut Application) -> Result {
     if let Mode::SymbolJump(ref mut mode) = app.mode {
-        let buffer = app
-            .workspace
-            .current_buffer()
-            .ok_or(BUFFER_MISSING)?;
-
+        let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
         let position = mode
             .selected_symbol_position()
             .ok_or("Couldn't find a position for the selected symbol")?;
