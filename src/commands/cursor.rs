@@ -86,7 +86,7 @@ pub fn move_to_first_word_of_line(app: &mut Application) -> Result {
         let current_line = data
             .lines()
             .nth(buffer.cursor.line)
-            .ok_or("The current line couldn't be found in the buffer")?;
+            .ok_or(CURRENT_LINE_MISSING)?;
 
         // Find the offset of the first non-whitespace character.
         for (offset, character) in current_line.chars().enumerate() {
