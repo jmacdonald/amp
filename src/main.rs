@@ -23,7 +23,7 @@ mod input;
 mod commands;
 mod presenters;
 
-use errors::Result;
+use errors::*;
 use models::application::Mode;
 
 fn main() {
@@ -43,7 +43,7 @@ fn main() {
 }
 
 fn run() -> Result<()> {
-    let mut application = models::Application::new().unwrap();
+    let mut application = models::Application::new()?;
 
     loop {
         // Present the application state to the view.

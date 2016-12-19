@@ -7,6 +7,7 @@ mod clipboard;
 // Published API
 pub use self::clipboard::ClipboardContent;
 
+use errors::*;
 use std::env;
 use std::path::Path;
 use std::io::Result;
@@ -40,19 +41,15 @@ pub struct Application {
 
 impl Application {
     pub fn new() -> Result<Application> {
-        let current_dir = try!(env::current_dir());
+        let current_dir = env::current_dir()?;
 
         // Set up a workspace in the current directory.
-        let mut workspace = try!(Workspace::new(&current_dir));
+        let mut workspace = Workspace::new(&current_dir)?;
 
         // Try to open the specified file.
         // TODO: Handle non-existent files as new empty buffers.
         for path_arg in env::args().skip(1) {
-            let argument_buffer = match Buffer::from_file(Path::new(&path_arg)) {
-                Ok(buf) => buf,
-                Err(_) => panic!("Ran into an error trying to open {}.", path_arg),
-            };
-
+            let argument_buffer = Buffer::from_file(Path::new(&path_arg))?;
             workspace.add_buffer(argument_buffer);
         }
 
