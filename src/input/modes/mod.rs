@@ -9,3 +9,5 @@ pub mod open_insert;
 pub mod select;
 pub mod select_line;
 pub mod search_insert;
+pub mod theme;
+pub mod theme_insert;

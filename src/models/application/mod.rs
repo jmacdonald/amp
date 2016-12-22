@@ -11,7 +11,7 @@ use errors::*;
 use std::env;
 use std::path::Path;
 use std::io::Result;
-use self::modes::{JumpMode, LineJumpMode, SymbolJumpMode, InsertMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode};
+use self::modes::{JumpMode, LineJumpMode, SymbolJumpMode, InsertMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode, ThemeMode};
 use scribe::{Buffer, Workspace};
 use view::View;
 use self::clipboard::Clipboard;
@@ -27,6 +27,7 @@ pub enum Mode {
     Select(SelectMode),
     SelectLine(SelectLineMode),
     SearchInsert(SearchInsertMode),
+    Theme(ThemeMode),
     Exit,
 }
 

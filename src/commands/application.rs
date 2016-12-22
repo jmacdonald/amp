@@ -4,7 +4,7 @@ use errors::*;
 use commands::{self, Result};
 use std::mem;
 use models::application::{Application, Mode};
-use models::application::modes::{jump, InsertMode, JumpMode, LineJumpMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode, SymbolJumpMode};
+use models::application::modes::{jump, InsertMode, JumpMode, LineJumpMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode, SymbolJumpMode, ThemeMode};
 
 pub fn switch_to_normal_mode(app: &mut Application) -> Result {
     commands::buffer::end_command_group(app);
@@ -82,6 +82,17 @@ pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
         bail!(BUFFER_MISSING);
     }
     commands::symbol_jump::search(app)?;
+
+    Ok(())
+}
+
+pub fn switch_to_theme_mode(app: &mut Application) -> Result {
+    app.mode = Mode::Theme(
+        ThemeMode::new(
+            app.view.theme_set.themes.keys().map(|k| k.to_string()).collect()
+        )
+    );
+    commands::theme::search(app)?;
 
     Ok(())
 }

@@ -92,6 +92,11 @@ fn run() -> Result<()> {
                 presenters::modes::normal::display(&mut application.workspace,
                                                    &mut application.view,
                                                    &application.repository)
+           }
+            Mode::Theme(ref mode) => {
+                presenters::modes::theme::display(&mut application.workspace,
+                                                       mode,
+                                                       &mut application.view)
             }
             Mode::Exit => ()
         }
@@ -130,6 +135,13 @@ fn run() -> Result<()> {
                         input::modes::open_insert::handle(open_mode, key)
                     } else {
                         input::modes::open::handle(key)
+                    }
+                },
+                Mode::Theme(ref mut mode) => {
+                    if mode.insert {
+                        input::modes::theme_insert::handle(mode, key)
+                    } else {
+                        input::modes::theme::handle(key)
                     }
                 },
                 Mode::Select(_) => input::modes::select::handle(key),

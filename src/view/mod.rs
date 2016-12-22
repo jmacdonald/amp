@@ -13,6 +13,7 @@ pub use self::buffer_renderer::LexemeMapper;
 pub use self::style::Style;
 pub use self::color::{Colors, RGBColor};
 
+use errors::*;
 use input::Key;
 use self::color::ColorMap;
 use self::terminal::{RustboxTerminal, Terminal};
@@ -33,7 +34,7 @@ pub struct View {
     cursor_position: Option<Position>,
     scrollable_regions: HashMap<usize, ScrollableRegion>,
     theme: Theme,
-    theme_set: ThemeSet,
+    pub theme_set: ThemeSet,
 }
 
 impl View {
@@ -48,6 +49,15 @@ impl View {
             theme: theme_set.themes.get("solarized_dark").unwrap().clone(),
             theme_set: theme_set,
         }
+    }
+
+    pub fn set_theme(&mut self, theme_key: &str) -> Result<()> {
+        self.theme = self.theme_set.themes
+            .get(theme_key)
+            .ok_or("Couldn't find the specified theme")?
+            .clone();
+
+        Ok(())
     }
 
     pub fn draw_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>, lexeme_mapper: Option<&mut LexemeMapper>) {

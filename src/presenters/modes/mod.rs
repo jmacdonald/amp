@@ -7,3 +7,4 @@ pub mod open;
 pub mod search_insert;
 pub mod select;
 pub mod select_line;
+pub mod theme;

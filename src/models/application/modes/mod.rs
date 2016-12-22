@@ -6,6 +6,7 @@ mod search_insert;
 mod select;
 mod select_line;
 mod symbol_jump;
+mod theme;
 
 pub use self::insert::InsertMode;
 pub use self::jump::JumpMode;
@@ -15,3 +16,4 @@ pub use self::search_insert::SearchInsertMode;
 pub use self::select::SelectMode;
 pub use self::select_line::SelectLineMode;
 pub use self::symbol_jump::SymbolJumpMode;
+pub use self::theme::ThemeMode;
