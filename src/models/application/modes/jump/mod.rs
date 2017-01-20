@@ -127,30 +127,29 @@ impl LexemeMapper for JumpMode {
                             offset: tag_len
                         });
 
-                        let split_index =
-                            lexeme
-                            .value
-                            .char_indices()
-                            .nth(tag_len)
-                            .map(|(i, _)| i);
+                        let suffix: String =
+                            subtoken
+                            .lexeme
+                            .chars()
+                            .skip(tag_len)
+                            .collect();
+                        let suffix_len = suffix.len();
 
-                        if let Some(index) = split_index {
-                            if index < subtoken.lexeme.len() {
-                                self.mapped_lexeme_values.push(
-                                    MappedLexemeValue::Text((
-                                        subtoken.lexeme[index..].to_string(),
-                                        self.current_position.clone()
-                                    ))
-                                );
+                        if suffix_len > 0 {
+                            // Push the suffix into the mapped set.
+                            self.mapped_lexeme_values.push(
+                                MappedLexemeValue::Text((
+                                    suffix,
+                                    self.current_position.clone()
+                                ))
+                            );
 
-                                // Advance beyond this suffix.
-                                self.current_position.add(&Distance{
-                                    lines: 0,
-                                    offset: subtoken.lexeme.len() - index
-                                });
-                            }
+                            // Advance beyond this suffix.
+                            self.current_position.add(&Distance{
+                                lines: 0,
+                                offset: suffix_len
+                            });
                         }
-
                     }
                     None => {
                         let distance = Distance::from_str(&subtoken.lexeme);
