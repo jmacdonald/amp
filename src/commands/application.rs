@@ -7,7 +7,7 @@ use models::application::{Application, Mode};
 use models::application::modes::{jump, InsertMode, JumpMode, LineJumpMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode, SymbolJumpMode};
 
 pub fn switch_to_normal_mode(app: &mut Application) -> Result {
-    commands::buffer::end_command_group(app)?;
+    commands::buffer::end_command_group(app);
     app.mode = Mode::Normal;
 
     Ok(())
