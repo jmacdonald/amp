@@ -155,12 +155,9 @@ fn run() -> Result<()> {
 
             // Check if the command resulted in an exit, before
             // looping again and asking for input we won't use.
-            match application.mode {
-                Mode::Exit => {
-                    application.view.clear();
-                    break
-                },
-                _ => {}
+            if let Mode::Exit = application.mode {
+                application.view.clear();
+                break
             }
         }
     }

@@ -26,7 +26,7 @@ pub fn adjacent_token_position(buffer: &mut Buffer,
         };
         if position > *buffer.cursor && direction == Direction::Forward {
             // We've found the next token!
-            if whitespace == true {
+            if whitespace {
                 // We're allowing whitespace, so return the token.
                 return Some(position);
             } else {
@@ -41,7 +41,7 @@ pub fn adjacent_token_position(buffer: &mut Buffer,
         }
 
         // We've not yet found it; advance to the next token.
-        match token.lexeme.split("\n").count() {
+        match token.lexeme.split('\n').count() {
             1 => {
                 // There's only one line in this token, so
                 // only advance the offset by its size.
@@ -52,7 +52,7 @@ pub fn adjacent_token_position(buffer: &mut Buffer,
                 // line count and set the offset to the last
                 // line's length
                 line += n - 1;
-                offset = token.lexeme.split("\n").last().unwrap().len();
+                offset = token.lexeme.split('\n').last().unwrap().len();
             }
         };
 

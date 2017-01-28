@@ -108,7 +108,7 @@ fn set_system_clipboard(clipboard: &mut ClipboardContext, content: &str) {
 
 // FIXME: Fix rust-clipboard crate so that this is unnecessary.
 #[cfg(target_os="linux")]
-fn set_system_clipboard(clipboard: &mut ClipboardContext, content: &str) {
+fn set_system_clipboard(_: &mut ClipboardContext, content: &str) {
     // Spawn xclip process.
     let mut process = Command::new("xclip")
         .stdin(Stdio::piped())

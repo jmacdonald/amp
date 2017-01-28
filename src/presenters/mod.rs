@@ -37,8 +37,8 @@ fn current_buffer_status_line_data(workspace: &mut Workspace) -> StatusLineData 
 fn git_status_line_data(repo: &Option<Repository>, path: &Option<PathBuf>) -> StatusLineData {
     // Build a display value for the current buffer's git status.
     let mut content = String::new();
-    if let &Some(ref repo) = repo {
-        if let &Some(ref path) = path {
+    if let Some(ref repo) = *repo {
+        if let Some(ref path) = *path {
             if let Some(repo_path) = repo.workdir() {
                 if let Ok(relative_path) = path.strip_prefix(repo_path) {
                     if let Ok(status) = repo.status_file(relative_path) {
@@ -67,22 +67,20 @@ fn presentable_status(status: &Status) -> &str {
     } else if status.contains(git2::STATUS_INDEX_NEW) {
         // The complete file is staged as new in the index.
         "[staged]"
-    } else {
-        if status.contains(git2::STATUS_WT_MODIFIED) {
-            if status.contains(git2::STATUS_INDEX_MODIFIED) {
-                // The file has both staged and unstaged modifications.
-                "[partially staged]"
-            } else {
-                // The file has unstaged modifications.
-                "[modified]"
-            }
-        } else if status.contains(git2::STATUS_INDEX_MODIFIED) {
-            // The file has staged modifications.
-            "[staged]"
+    } else if status.contains(git2::STATUS_WT_MODIFIED) {
+        if status.contains(git2::STATUS_INDEX_MODIFIED) {
+            // The file has both staged and unstaged modifications.
+            "[partially staged]"
         } else {
-            // The file is tracked, but has no modifications.
-            "[ok]"
+            // The file has unstaged modifications.
+            "[modified]"
         }
+    } else if status.contains(git2::STATUS_INDEX_MODIFIED) {
+        // The file has staged modifications.
+        "[staged]"
+    } else {
+        // The file is tracked, but has no modifications.
+        "[ok]"
     }
 }
 

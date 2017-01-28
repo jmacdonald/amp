@@ -5,7 +5,6 @@ use errors::*;
 use commands::{self, Result};
 use helpers::token::{Direction, adjacent_token_position};
 use models::application::Application;
-use scribe::buffer::{Position};
 use super::{application, buffer};
 
 pub fn move_up(app: &mut Application) -> Result {

@@ -111,7 +111,7 @@ impl Terminal for RustboxTerminal {
 
             // A little idiosyncrasy of suspending and resuming is that
             // the cursor isn't shown without clearing and resetting it.
-            let cursor = self.cursor.clone();
+            let cursor = self.cursor;
             self.set_cursor(None);
             self.set_cursor(cursor);
         }
@@ -119,11 +119,10 @@ impl Terminal for RustboxTerminal {
 }
 
 fn map_style(style: &Style) -> rustbox::Style {
-    match style {
-        &Style::Default  => rustbox::RB_NORMAL,
-        &Style::Bold     => rustbox::RB_BOLD,
-        &Style::Inverted => rustbox::RB_REVERSE,
-        &Style::Italic   => rustbox::RB_NORMAL, // unavailable!
+    match *style {
+        Style::Bold     => rustbox::RB_BOLD,
+        Style::Inverted => rustbox::RB_REVERSE,
+        _               => rustbox::RB_NORMAL,
     }
 }
 
@@ -140,7 +139,7 @@ fn ansi_256_color(rgb: RGBColor) -> RustboxColor {
 
     if r == g && g == b {
         // 24 Shades of Grey
-        return RustboxColor::Byte(greyscale_ansi(r))
+        RustboxColor::Byte(greyscale_ansi(r))
     } else {
         // Color!
         let segments: Vec<u8> = vec![89, 125, 161, 197, 232];

@@ -84,7 +84,7 @@ impl LexemeMapper for JumpMode {
                 self.mapped_lexeme_values.push(
                     MappedLexemeValue::Text((
                         subtoken.lexeme,
-                        self.current_position.clone()
+                        self.current_position
                     ))
                 );
 
@@ -97,12 +97,10 @@ impl LexemeMapper for JumpMode {
                     } else {
                         None // We haven't reached the cursor yet.
                     }
+                } else if subtoken.lexeme.len() > 1 {
+                    self.tag_generator.next()
                 } else {
-                    if subtoken.lexeme.len() > 1 {
-                        self.tag_generator.next()
-                    } else {
-                        None
-                    }
+                    None
                 };
 
                 match tag {
@@ -114,12 +112,12 @@ impl LexemeMapper for JumpMode {
                         self.mapped_lexeme_values.push(
                             MappedLexemeValue::Tag((
                                 tag.clone(),
-                                self.current_position.clone()
+                                self.current_position
                             ))
                         );
 
                         // Track the location of this tag.
-                        self.tag_positions.insert(tag, self.current_position.clone());
+                        self.tag_positions.insert(tag, self.current_position);
 
                         // Advance beyond this tag.
                         self.current_position.add(&Distance{
@@ -140,7 +138,7 @@ impl LexemeMapper for JumpMode {
                             self.mapped_lexeme_values.push(
                                 MappedLexemeValue::Text((
                                     suffix,
-                                    self.current_position.clone()
+                                    self.current_position
                                 ))
                             );
 
@@ -158,7 +156,7 @@ impl LexemeMapper for JumpMode {
                         self.mapped_lexeme_values.push(
                             MappedLexemeValue::Text((
                                 subtoken.lexeme,
-                                self.current_position.clone()
+                                self.current_position
                             ))
                         );
 
@@ -170,16 +168,16 @@ impl LexemeMapper for JumpMode {
         }
 
         self.mapped_lexeme_values.iter().map(|mapped_lexeme| {
-            match mapped_lexeme {
-                &MappedLexemeValue::Tag((ref lexeme, ref position)) => Lexeme{
+            match *mapped_lexeme {
+                MappedLexemeValue::Tag((ref lexeme, ref position)) => Lexeme{
                     value: lexeme.as_str(),
                     scope: ScopeStack::from_str("keyword").unwrap(),
-                    position: position.clone(),
+                    position: *position,
                 },
-                &MappedLexemeValue::Text((ref lexeme, ref position)) => Lexeme{
+                MappedLexemeValue::Text((ref lexeme, ref position)) => Lexeme{
                     value: lexeme.as_str(),
                     scope: ScopeStack::from_str("comment").unwrap(),
-                    position: position.clone(),
+                    position: *position,
                 }
             }
         }).collect()

@@ -29,12 +29,12 @@ impl fmt::Display for Symbol {
 
 impl Clone for Symbol {
     fn clone(&self) -> Symbol {
-        Symbol{ token: self.token.clone(), position: self.position.clone() }
+        Symbol{ token: self.token.clone(), position: self.position }
     }
 
     fn clone_from(&mut self, source: &Self) {
         self.token = source.token.clone();
-        self.position = source.position.clone();
+        self.position = source.position;
     }
 }
 
@@ -53,7 +53,7 @@ impl SymbolJumpMode {
     }
 
     pub fn selected_symbol_position(&self) -> Option<Position> {
-        self.results.selection().map(|symbol| symbol.position.clone())
+        self.results.selection().map(|symbol| symbol.position)
     }
 
     pub fn search(&mut self) {
@@ -73,7 +73,7 @@ fn symbols<'a, T>(tokens: T) -> Vec<Symbol> where T: Iterator<Item=Token<'a>> {
               if ScopeStack::from_str("entity.name.function").unwrap().does_match(lexeme.scope.as_slice()).is_some() {
                   return Some(Symbol {
                       token: lexeme.value.to_string(),
-                      position: lexeme.position.clone(),
+                      position: lexeme.position,
                   })
               }
           }

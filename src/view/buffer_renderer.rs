@@ -41,7 +41,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
         // Build an initial style to start with,
         // which we'll modify as we highlight tokens.
-        let stylist = Highlighter::new(&theme);
+        let stylist = Highlighter::new(theme);
         let current_style = stylist.get_default();
 
         BufferRenderer{
@@ -62,9 +62,9 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     }
 
     fn update_positions(&mut self, token: &Token) {
-        match token {
-            &Token::Newline => self.advance_to_next_line(),
-            &Token::Lexeme(ref lexeme) => self.buffer_position = lexeme.position,
+        match *token {
+            Token::Newline => self.advance_to_next_line(),
+            Token::Lexeme(ref lexeme) => self.buffer_position = lexeme.position,
         }
     }
 
@@ -116,24 +116,20 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     // at which point we can set it relative to the screen,
     // which will compensate for scrolling, tab expansion, etc.
     fn set_cursor(&mut self) {
-        if self.inside_visible_content() {
-            if *self.buffer.cursor == self.buffer_position {
-                self.cursor_position = Some(self.screen_position);
-            }
+        if self.inside_visible_content() && *self.buffer.cursor == self.buffer_position {
+            self.cursor_position = Some(self.screen_position);
         }
     }
 
     fn current_char_style(&self, token_color: RGBColor) -> (Style, Colors) {
         let (style, colors) = match self.highlight {
-            Some(ref highlight_range) => {
+            Some(highlight_range) => {
                 if highlight_range.includes(&self.buffer_position) {
                     (Style::Inverted, Colors::Default)
+                } else if self.on_cursor_line() {
+                    (Style::Default, Colors::CustomFocusedForeground(token_color))
                 } else {
-                    if self.on_cursor_line() {
-                        (Style::Default, Colors::CustomFocusedForeground(token_color))
-                    } else {
-                        (Style::Default, Colors::CustomForeground(token_color))
-                    }
+                    (Style::Default, Colors::CustomForeground(token_color))
                 }
             }
             None => {

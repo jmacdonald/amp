@@ -46,7 +46,7 @@ impl View {
             terminal: terminal,
             cursor_position: None,
             scrollable_regions: HashMap::new(),
-            theme: theme_set.themes.get("solarized_dark").unwrap().clone(),
+            theme: theme_set.themes["solarized_dark"].clone(),
             theme_set: theme_set,
         }
     }
@@ -93,7 +93,7 @@ impl View {
         self.print(&position, Style::Default, Colors::Default, &copyright);
     }
 
-    pub fn draw_status_line(&self, data: &Vec<StatusLineData>) {
+    pub fn draw_status_line(&self, data: &[StatusLineData]) {
         let line = self.height() - 1;
 
         data.iter().enumerate().fold(0, |offset, (index, element)| {
@@ -147,7 +147,7 @@ impl View {
     }
 
     pub fn scroll_down(&mut self, buffer: &Buffer, amount: usize) {
-        let current_offset = self.get_region(&buffer).line_offset();
+        let current_offset = self.get_region(buffer).line_offset();
         let line_count = buffer.line_count();
         let half_screen_height = self.terminal.borrow().height() / 2;
 
@@ -180,14 +180,14 @@ impl View {
         self.scrollable_regions.remove(&buffer_key(buffer));
     }
 
+    // Tries to fetch a scrollable region for the specified buffer,
+    // inserting (and returning a reference to) a new one if not.
     fn get_region(&mut self, buffer: &Buffer) -> &mut ScrollableRegion {
-        if self.scrollable_regions.contains_key(&buffer_key(buffer)) {
-            self.scrollable_regions.get_mut(&buffer_key(buffer)).unwrap()
-        } else {
-            self.scrollable_regions.insert(buffer_key(buffer),
-                                           ScrollableRegion::new(self.terminal.clone()));
-            self.scrollable_regions.get_mut(&buffer_key(buffer)).unwrap()
-        }
+        self.scrollable_regions
+            .entry(buffer_key(buffer))
+            .or_insert(
+                ScrollableRegion::new(self.terminal.clone())
+            )
     }
 
     ///

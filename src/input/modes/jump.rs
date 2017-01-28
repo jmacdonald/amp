@@ -18,7 +18,7 @@ pub fn handle(mode: &mut JumpMode, input: Key) -> Option<Command> {
         },
         Key::Char(c) => {
             // Add the input to whatever we've received in jump mode so far.
-            mode.input.push(c.clone());
+            mode.input.push(c);
 
             Some(jump_mode::match_tag)
         }

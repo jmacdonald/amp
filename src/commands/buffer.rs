@@ -454,9 +454,9 @@ pub fn paste(app: &mut Application) -> Result {
 
     // TODO: Clean up duplicate buffer.insert(content.clone()) calls.
     if let Some(buffer) = app.workspace.current_buffer() {
-        match app.clipboard.get_content() {
-            &ClipboardContent::Inline(ref content) => buffer.insert(content.clone()),
-            &ClipboardContent::Block(ref content) => {
+        match *app.clipboard.get_content() {
+            ClipboardContent::Inline(ref content) => buffer.insert(content.clone()),
+            ClipboardContent::Block(ref content) => {
                 let original_cursor_position = *buffer.cursor.clone();
                 let line = original_cursor_position.line;
 
@@ -488,7 +488,7 @@ pub fn paste(app: &mut Application) -> Result {
                     buffer.insert(content.clone());
                 }
             }
-            &ClipboardContent::None => (),
+            ClipboardContent::None => (),
         }
     } else {
         bail!(BUFFER_MISSING);
@@ -501,7 +501,7 @@ pub fn paste(app: &mut Application) -> Result {
 pub fn paste_above(app: &mut Application) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
-    if let &ClipboardContent::Block(ref content) = app.clipboard.get_content() {
+    if let ClipboardContent::Block(ref content) = *app.clipboard.get_content() {
         let mut start_of_line = Position {
             line: buffer.cursor.line,
             offset: 0,

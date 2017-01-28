@@ -1,13 +1,11 @@
 use errors::*;
 use commands::{self, Result};
 use git2;
-use git2::{BranchType, Oid, Repository};
-use std::path::Path;
 use models::application::{Application, ClipboardContent, Mode};
 use regex::Regex;
 
 pub fn add(app: &mut Application) -> Result {
-    let mut repo = app.repository.as_ref().ok_or("No repository available")?;
+    let repo = app.repository.as_ref().ok_or("No repository available")?;
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
     let mut index = repo.index().chain_err(|| "Couldn't get the repository index")?;
     let buffer_path = buffer.path.as_ref().ok_or(BUFFER_PATH_MISSING)?;

@@ -48,10 +48,10 @@ impl TermionTerminal {
 
                     // Resetting styles unfortunately clears active colors, too.
                     if let Some(ref current_colors) = self.current_colors {
-                        match current_colors {
-                            &Colors::Blank => { write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
-                            &Colors::Custom(fg, bg) => { write!(output, "{}{}", Fg(fg), Bg(bg)); }
-                            &Colors::CustomForeground(fg) => { write!(output, "{}{}", Fg(fg), Bg(color::Reset)); }
+                        match *current_colors {
+                            Colors::Blank => { write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
+                            Colors::Custom(fg, bg) => { write!(output, "{}{}", Fg(fg), Bg(bg)); }
+                            Colors::CustomForeground(fg) => { write!(output, "{}{}", Fg(fg), Bg(color::Reset)); }
                             _ => (),
                         };
                     }
@@ -66,7 +66,7 @@ impl TermionTerminal {
     fn update_colors(&mut self, colors: Colors) {
         if let Some(ref mut output) = self.output {
             // Check if colors have changed.
-            if Some(colors.clone()) != self.current_colors {
+            if Some(&colors) != self.current_colors.as_ref() {
                 match colors {
                     Colors::Blank => { write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
                     Colors::Custom(fg, bg) => { write!(output, "{}{}", Fg(fg), Bg(bg)); }

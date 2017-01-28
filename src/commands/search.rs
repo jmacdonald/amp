@@ -14,7 +14,7 @@ pub fn move_to_previous_result(app: &mut Application) -> Result {
         let positions = buffer.search(query);
         for position in positions.iter().rev() {
             if position < &*buffer.cursor {
-                buffer.cursor.move_to(position.clone());
+                buffer.cursor.move_to(*position);
 
                 // We've found one; track that and stop looking.
                 moved = true;
@@ -26,7 +26,7 @@ pub fn move_to_previous_result(app: &mut Application) -> Result {
             // There's nothing before the cursor, so wrap
             // to the last match, if there are any at all.
             if let Some(position) = positions.last() {
-                buffer.cursor.move_to(position.clone());
+                buffer.cursor.move_to(*position);
                 moved = true;
             }
         }
@@ -51,9 +51,9 @@ pub fn move_to_next_result(app: &mut Application) -> Result {
         let positions = buffer.search(query);
 
         // Try to find a result after the cursor.
-        for position in positions.iter() {
-            if position > &*buffer.cursor {
-                buffer.cursor.move_to(position.clone());
+        for position in &positions {
+            if position > &buffer.cursor {
+                buffer.cursor.move_to(*position);
 
                 // We've found one; track that and stop looking.
                 moved = true;
@@ -65,7 +65,7 @@ pub fn move_to_next_result(app: &mut Application) -> Result {
             // We haven't found anything after the cursor, so wrap
             // to the first match, if there are any matches at all.
             if let Some(position) = positions.first() {
-                buffer.cursor.move_to(position.clone());
+                buffer.cursor.move_to(*position);
                 moved = true;
             }
         }

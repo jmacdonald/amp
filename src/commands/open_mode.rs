@@ -6,8 +6,6 @@ use commands::{self, Result};
 use models::application::{Application, Mode};
 
 pub fn open(app: &mut Application) -> Result {
-    let mut opened = false;
-
     if let Mode::Open(ref mut mode) = app.mode {
         let path = mode
             .selected_path()
