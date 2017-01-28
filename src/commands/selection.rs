@@ -28,32 +28,24 @@ pub fn delete(app: &mut Application) -> Result {
     }
 
     application::switch_to_normal_mode(app)?;
-    commands::view::scroll_to_cursor(app)?;
-
-    Ok(())
+    commands::view::scroll_to_cursor(app)
 }
 
 pub fn copy_and_delete(app: &mut Application) -> Result {
-    copy_to_clipboard(app);
-    delete(app);
-
-    Ok(())
+    let _ = copy_to_clipboard(app);
+    delete(app)
 }
 
 pub fn change(app: &mut Application) -> Result {
-    copy_to_clipboard(app);
-    delete(app);
-    application::switch_to_insert_mode(app);
-
-    Ok(())
+    let _ = copy_to_clipboard(app);
+    delete(app)?;
+    application::switch_to_insert_mode(app)
 }
 
 pub fn copy(app: &mut Application) -> Result {
-    copy_to_clipboard(app);
-    application::switch_to_normal_mode(app);
-    commands::view::scroll_to_cursor(app);
-
-    Ok(())
+    copy_to_clipboard(app)?;
+    application::switch_to_normal_mode(app)?;
+    commands::view::scroll_to_cursor(app)
 }
 
 fn copy_to_clipboard(app: &mut Application) -> Result {

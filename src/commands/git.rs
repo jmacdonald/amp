@@ -14,9 +14,8 @@ pub fn add(app: &mut Application) -> Result {
         "Failed to build a relative buffer path"
     })?;
 
-    index.add_path(relative_path);
-    index.write();
-    Ok(())
+    index.add_path(relative_path).chain_err(|| "Failed to add path to index.")?;
+    index.write().chain_err(|| "Failed to write index.")
 }
 
 pub fn copy_remote_url(app: &mut Application) -> Result {
@@ -53,7 +52,7 @@ pub fn copy_remote_url(app: &mut Application) -> Result {
 
         // We need to set a starting point for the commit graph we'll
         // traverse. We want the most recent commit, so start at HEAD.
-        revisions.push_head();
+        revisions.push_head().chain_err(|| "Failed to push HEAD to commit graph.")?;
 
         // Pull the first revision (HEAD).
         let last_oid = revisions.next().and_then(|revision| revision.ok()).ok_or(

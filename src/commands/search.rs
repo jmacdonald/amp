@@ -33,7 +33,8 @@ pub fn move_to_previous_result(app: &mut Application) -> Result {
     }
 
     if moved {
-        commands::view::scroll_cursor_to_center(app);
+        commands::view::scroll_cursor_to_center(app)
+            .chain_err(|| SCROLL_TO_CURSOR_FAILED)?;
     }
 
     Ok(())
@@ -72,7 +73,9 @@ pub fn move_to_next_result(app: &mut Application) -> Result {
     }
 
     if moved {
-        commands::view::scroll_cursor_to_center(app);
+        commands::view::scroll_cursor_to_center(app)
+            .chain_err(|| SCROLL_TO_CURSOR_FAILED)?;
+
     }
 
     Ok(())
@@ -84,9 +87,9 @@ pub fn accept_query(app: &mut Application) -> Result {
         _ => None,
     }.ok_or("Can't accept search query outside of search mode")?;
 
-    commands::application::switch_to_normal_mode(app);
+    commands::application::switch_to_normal_mode(app)?;
     app.search_query = Some(query);
-    move_to_next_result(app);
+    move_to_next_result(app)?;
 
     Ok(())
 }

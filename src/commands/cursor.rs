@@ -9,30 +9,22 @@ use super::{application, buffer};
 
 pub fn move_up(app: &mut Application) -> Result {
     app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.cursor.move_up();
-    commands::view::scroll_to_cursor(app);
-
-    Ok(())
+    commands::view::scroll_to_cursor(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)
 }
 
 pub fn move_down(app: &mut Application) -> Result {
     app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.cursor.move_down();
-    commands::view::scroll_to_cursor(app);
-
-    Ok(())
+    commands::view::scroll_to_cursor(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)
 }
 
 pub fn move_left(app: &mut Application) -> Result {
     app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.cursor.move_left();
-    commands::view::scroll_to_cursor(app);
-
-    Ok(())
+    commands::view::scroll_to_cursor(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)
 }
 
 pub fn move_right(app: &mut Application) -> Result {
     app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.cursor.move_right();
-    commands::view::scroll_to_cursor(app);
-
-    Ok(())
+    commands::view::scroll_to_cursor(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)
 }
 
 pub fn move_to_start_of_line(app: &mut Application) -> Result {
@@ -41,9 +33,7 @@ pub fn move_to_start_of_line(app: &mut Application) -> Result {
         .ok_or(BUFFER_MISSING)?
         .cursor
         .move_to_start_of_line();
-    commands::view::scroll_to_cursor(app);
-
-    Ok(())
+    commands::view::scroll_to_cursor(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)
 }
 
 pub fn move_to_end_of_line(app: &mut Application) -> Result {
@@ -52,9 +42,7 @@ pub fn move_to_end_of_line(app: &mut Application) -> Result {
         .ok_or(BUFFER_MISSING)?
         .cursor
         .move_to_end_of_line();
-    commands::view::scroll_to_cursor(app);
-
-    Ok(())
+    commands::view::scroll_to_cursor(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)
 }
 
 pub fn move_to_first_line(app: &mut Application) -> Result {
@@ -63,9 +51,7 @@ pub fn move_to_first_line(app: &mut Application) -> Result {
         .ok_or(BUFFER_MISSING)?
         .cursor
         .move_to_first_line();
-    commands::view::scroll_to_cursor(app);
-
-    Ok(())
+    commands::view::scroll_to_cursor(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)
 }
 
 pub fn move_to_last_line(app: &mut Application) -> Result {
@@ -74,9 +60,7 @@ pub fn move_to_last_line(app: &mut Application) -> Result {
         .ok_or(BUFFER_MISSING)?
         .cursor
         .move_to_last_line();
-    commands::view::scroll_to_cursor(app);
-
-    Ok(())
+    commands::view::scroll_to_cursor(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)
 }
 
 pub fn move_to_first_word_of_line(app: &mut Application) -> Result {
@@ -106,9 +90,7 @@ pub fn move_to_first_word_of_line(app: &mut Application) -> Result {
     } else {
         bail!(BUFFER_MISSING);
     }
-    commands::view::scroll_to_cursor(app);
-
-    Ok(())
+    commands::view::scroll_to_cursor(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)
 }
 
 pub fn insert_at_end_of_line(app: &mut Application) -> Result {
@@ -178,9 +160,7 @@ pub fn move_to_start_of_previous_token(app: &mut Application) -> Result {
     } else {
         bail!(BUFFER_MISSING);
     }
-    commands::view::scroll_to_cursor(app);
-
-    Ok(())
+    commands::view::scroll_to_cursor(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)
 }
 
 pub fn move_to_start_of_next_token(app: &mut Application) -> Result {
@@ -195,9 +175,7 @@ pub fn move_to_start_of_next_token(app: &mut Application) -> Result {
     } else {
         bail!(BUFFER_MISSING);
     }
-    commands::view::scroll_to_cursor(app);
-
-    Ok(())
+    commands::view::scroll_to_cursor(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)
 }
 
 pub fn move_to_end_of_current_token(app: &mut Application) -> Result {
@@ -212,16 +190,12 @@ pub fn move_to_end_of_current_token(app: &mut Application) -> Result {
     } else {
         bail!(BUFFER_MISSING);
     }
-    commands::view::scroll_to_cursor(app);
-
-    Ok(())
+    commands::view::scroll_to_cursor(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)
 }
 
 pub fn append_to_current_token(app: &mut Application) -> Result {
     move_to_end_of_current_token(app)?;
-    application::switch_to_insert_mode(app)?;
-
-    Ok(())
+    application::switch_to_insert_mode(app)
 }
 
 #[cfg(test)]

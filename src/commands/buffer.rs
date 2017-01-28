@@ -13,15 +13,15 @@ const TAB_CONTENT: &'static str = "  ";
 pub fn save(app: &mut Application) -> Result {
     remove_trailing_whitespace(app)?;
     ensure_trailing_newline(app)?;
-    app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.save();
-
-    Ok(())
+    app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.save().chain_err(|| {
+        "Unable to save buffer."
+    })
 }
 
 pub fn reload(app: &mut Application) -> Result {
-    app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.reload();
-
-    Ok(())
+    app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.reload().chain_err(|| {
+        "Unable to reload buffer."
+    })
 }
 
 pub fn delete(app: &mut Application) -> Result {
@@ -431,22 +431,24 @@ pub fn end_command_group(app: &mut Application) -> Result {
 
 pub fn undo(app: &mut Application) -> Result {
     app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.undo();
-    commands::view::scroll_to_cursor(app);
-
-    Ok(())
+    commands::view::scroll_to_cursor(app).chain_err(|| {
+        "Couldn't scroll to cursor after undoing."
+    })
 }
 
 pub fn redo(app: &mut Application) -> Result {
     app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.redo();
-    commands::view::scroll_to_cursor(app);
-
-    Ok(())
+    commands::view::scroll_to_cursor(app).chain_err(|| {
+        "Couldn't scroll to cursor after redoing."
+    })
 }
 
 pub fn paste(app: &mut Application) -> Result {
     let insert_below = match app.mode {
         Mode::Select(_) | Mode::SelectLine(_) => {
-            commands::selection::delete(app);
+            commands::selection::delete(app).chain_err(|| {
+                "Couldn't delete selection prior to pasting."
+            })?;
             false
         }
         _ => true,

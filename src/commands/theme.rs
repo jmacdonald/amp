@@ -10,10 +10,8 @@ pub fn use_selected_theme(app: &mut Application) -> Result {
         app.view.set_theme(theme_key)?;
     }
 
-    commands::view::scroll_cursor_to_center(app);
-    commands::application::switch_to_normal_mode(app)?;
-
-    Ok(())
+    commands::view::scroll_cursor_to_center(app)?;
+    commands::application::switch_to_normal_mode(app)
 }
 
 pub fn search(app: &mut Application) -> Result {
