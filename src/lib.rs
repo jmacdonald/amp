@@ -14,16 +14,14 @@ extern crate syntect;
 #[macro_use]
 extern crate error_chain;
 
-#[macro_use]
-mod helpers;
-
 // Private modules
-mod models;
-mod view;
-mod errors;
-mod input;
 mod commands;
+mod errors;
+mod helpers;
+mod input;
+mod models;
 mod presenters;
+mod view;
 
 // External application API
 pub use models::Application;
