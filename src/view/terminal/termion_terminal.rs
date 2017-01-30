@@ -38,9 +38,9 @@ impl TermionTerminal {
             // Check if style has changed.
             if Some(style) != self.current_style {
                 if let Some(mapped_style) = map_style(style) {
-                    write!(output, "{}", mapped_style);
+                    let _ = write!(output, "{}", mapped_style);
                 } else {
-                    write!(
+                    let _ = write!(
                         output,
                         "{}",
                         style::Reset
@@ -49,9 +49,9 @@ impl TermionTerminal {
                     // Resetting styles unfortunately clears active colors, too.
                     if let Some(ref current_colors) = self.current_colors {
                         match *current_colors {
-                            Colors::Blank => { write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
-                            Colors::Custom(fg, bg) => { write!(output, "{}{}", Fg(fg), Bg(bg)); }
-                            Colors::CustomForeground(fg) => { write!(output, "{}{}", Fg(fg), Bg(color::Reset)); }
+                            Colors::Blank => { let _ = write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
+                            Colors::Custom(fg, bg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(bg)); }
+                            Colors::CustomForeground(fg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(color::Reset)); }
                             _ => (),
                         };
                     }
@@ -68,9 +68,9 @@ impl TermionTerminal {
             // Check if colors have changed.
             if Some(&colors) != self.current_colors.as_ref() {
                 match colors {
-                    Colors::Blank => { write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
-                    Colors::Custom(fg, bg) => { write!(output, "{}{}", Fg(fg), Bg(bg)); }
-                    Colors::CustomForeground(fg) => { write!(output, "{}{}", Fg(fg), Bg(color::Reset)); }
+                    Colors::Blank => { let _ = write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
+                    Colors::Custom(fg, bg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(bg)); }
+                    Colors::CustomForeground(fg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(color::Reset)); }
                     _ => (),
                 };
             }
@@ -117,9 +117,9 @@ impl Terminal for TermionTerminal {
 
         // It's important to reset the terminal styles prior to clearing the
         // screen, otherwise the current background color will be used.
-        self.output.as_mut().map(|t| {
-            write!(t, "{}{}", style::Reset, termion::clear::All)
-        });
+        if let Some(ref mut t) = self.output {
+            let _ = write!(t, "{}{}", style::Reset, termion::clear::All);
+        }
     }
 
     fn present(&mut self) {
@@ -141,13 +141,15 @@ impl Terminal for TermionTerminal {
     fn set_cursor(&mut self, position: Option<Position>) {
         self.output.as_mut().map(|t| {
             match position {
-                Some(ref pos) => write!(
-                    t,
-                    "{}{}",
-                    cursor::Show,
-                    cursor_position(pos)
-                ),
-                None => write!(t, "{}", cursor::Hide),
+                Some(ref pos) => {
+                    let _ = write!(
+                        t,
+                        "{}{}",
+                        cursor::Show,
+                        cursor_position(pos)
+                    );
+                },
+                None => { let _ = write!(t, "{}", cursor::Hide); },
             }
         });
     }
@@ -158,7 +160,7 @@ impl Terminal for TermionTerminal {
 
         if let Some(ref mut output) = self.output {
             // Now that style and color have been addressed, print the content.
-            write!(
+            let _ = write!(
                 output,
                 "{}{}",
                 cursor_position(position),
@@ -169,7 +171,7 @@ impl Terminal for TermionTerminal {
 
     fn stop(&mut self) {
         if let Some(ref mut output) = self.output {
-            write!(
+            let _ = write!(
                 output,
                 "{}{}{}",
                 termion::cursor::Show,
