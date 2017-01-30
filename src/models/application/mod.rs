@@ -1,5 +1,6 @@
 pub mod modes;
 mod clipboard;
+mod preferences;
 
 // Published API
 pub use self::clipboard::ClipboardContent;
@@ -13,6 +14,7 @@ use self::modes::{JumpMode, LineJumpMode, SymbolJumpMode, InsertMode, OpenMode, 
 use scribe::{Buffer, Workspace};
 use view::{self, StatusLineData, View};
 use self::clipboard::Clipboard;
+use self::preferences::Preferences;
 use git2::Repository;
 
 pub enum Mode {
@@ -37,6 +39,7 @@ pub struct Application {
     pub clipboard: Clipboard,
     pub repository: Option<Repository>,
     pub error: Option<Error>,
+    pub preferences: Preferences,
 }
 
 impl Application {
@@ -64,6 +67,7 @@ impl Application {
             clipboard: clipboard,
             repository: Repository::discover(&current_dir).ok(),
             error: None,
+            preferences: Preferences::new(),
         })
     }
 
