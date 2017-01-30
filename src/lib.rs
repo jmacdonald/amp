@@ -9,9 +9,11 @@ extern crate fragment;
 extern crate git2;
 extern crate luthor;
 extern crate pad;
-extern crate scribe;
 extern crate regex;
+extern crate scribe;
 extern crate syntect;
+extern crate rustc_serialize;
+extern crate preferences;
 
 #[macro_use]
 extern crate error_chain;

@@ -18,5 +18,8 @@ rustbox = "0.9.0"
 termion = { git = "https://github.com/jmacdonald/termion", branch = "esc" }
 error-chain = "0.7.1"
 
+preferences = "0.7.3"
+rustc-serialize = "*"
+
 [dependencies.clipboard]
 git = "https://github.com/aweinstock314/rust-clipboard.git"
