@@ -96,8 +96,6 @@ pub fn accept_query(app: &mut Application) -> Result {
 
 #[cfg(test)]
 mod tests {
-    extern crate scribe;
-
     use scribe::Buffer;
     use scribe::buffer::Position;
     use models::Application;

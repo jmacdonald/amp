@@ -1,5 +1,3 @@
-extern crate scribe;
-
 pub struct LineJumpMode {
     pub input: String,
 }

@@ -1,5 +1,3 @@
-extern crate scribe;
-
 use errors::*;
 use commands::{self, Result};
 use std::mem;
@@ -248,7 +246,7 @@ pub fn insert_newline(app: &mut Application) -> Result {
             buffer.insert(prefix);
 
             // Move the cursor to the end of the inserted whitespace.
-            let new_cursor_position = scribe::buffer::Position {
+            let new_cursor_position = Position {
                 line: position.line + 1,
                 offset: prefix_length,
             };
@@ -628,8 +626,6 @@ pub fn insert_tab(app: &mut Application) -> Result {
 
 #[cfg(test)]
 mod tests {
-    extern crate scribe;
-
     use commands;
     use models::application::ClipboardContent;
     use scribe::Buffer;
@@ -642,7 +638,7 @@ mod tests {
 
         // Insert data with indentation and move to the end of the line.
         buffer.insert("    amp");
-        let position = scribe::buffer::Position {
+        let position = Position {
             line: 0,
             offset: 7,
         };
@@ -658,7 +654,7 @@ mod tests {
                    "    amp\n    ");
 
         // Also ensure that the cursor is moved to the end of the inserted whitespace.
-        let expected_position = scribe::buffer::Position {
+        let expected_position = Position {
             line: 1,
             offset: 4,
         };
@@ -675,7 +671,7 @@ mod tests {
 
         // Insert data with indentation and move to the end of the line.
         buffer.insert("    amp\neditor");
-        let position = scribe::buffer::Position {
+        let position = Position {
             line: 0,
             offset: 4,
         };
@@ -740,7 +736,7 @@ mod tests {
 
         // Insert data with indentation and move to the end of the line.
         buffer.insert("    amp\neditor");
-        let position = scribe::buffer::Position {
+        let position = Position {
             line: 0,
             offset: 4,
         };

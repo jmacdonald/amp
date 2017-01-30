@@ -1,5 +1,3 @@
-extern crate scribe;
-
 pub struct SearchInsertMode {
     pub input: String,
 }

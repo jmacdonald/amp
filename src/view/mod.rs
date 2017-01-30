@@ -1,5 +1,3 @@
-extern crate scribe;
-
 pub mod scrollable_region;
 pub mod terminal;
 pub mod color;
@@ -239,8 +237,6 @@ fn buffer_key(buffer: &Buffer) -> usize {
 
 #[cfg(test)]
 mod tests {
-    extern crate scribe;
-
     use scribe::Buffer;
 
     #[test]

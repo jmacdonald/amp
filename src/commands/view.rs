@@ -1,5 +1,3 @@
-extern crate scribe;
-
 use errors::*;
 use commands::Result;
 use models::application::Application;

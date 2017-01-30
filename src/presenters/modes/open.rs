@@ -1,5 +1,3 @@
-extern crate bloodhound;
-
 use std::cmp;
 use models::application::modes::OpenMode;
 use pad::PadStr;

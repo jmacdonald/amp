@@ -1,6 +1,4 @@
-extern crate fragment;
-extern crate scribe;
-
+use fragment;
 use scribe::buffer::{Position, ScopeStack, Token, TokenSet};
 use helpers::SelectableSet;
 use std::fmt;
@@ -84,8 +82,6 @@ fn symbols<'a, T>(tokens: T) -> Vec<Symbol> where T: Iterator<Item=Token<'a>> {
 
 #[cfg(test)]
 mod tests {
-    extern crate scribe;
-
     use scribe::buffer::{Lexeme, Position, ScopeStack, Token};
     use std::str::FromStr;
     use super::{Symbol, symbols};

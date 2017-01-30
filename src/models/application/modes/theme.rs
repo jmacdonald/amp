@@ -1,5 +1,4 @@
-extern crate fragment;
-
+use fragment;
 use helpers::SelectableSet;
 use std::iter::Iterator;
 

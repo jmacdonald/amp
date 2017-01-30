@@ -1,5 +1,3 @@
-extern crate scribe;
-
 pub use self::selectable_set::SelectableSet;
 
 pub mod movement_lexer;
@@ -51,8 +49,6 @@ pub fn inclusive_range(line_range: &LineRange, buffer: &mut Buffer) -> Range {
 
 #[cfg(test)]
 mod tests {
-    extern crate scribe;
-
     use scribe::Buffer;
     use scribe::buffer::{LineRange, Position, Range};
 

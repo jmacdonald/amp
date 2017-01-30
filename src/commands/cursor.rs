@@ -1,10 +1,8 @@
-extern crate scribe;
-extern crate luthor;
-
 use errors::*;
 use commands::{self, Result};
 use helpers::token::{Direction, adjacent_token_position};
 use models::application::Application;
+use scribe::buffer::Position;
 use super::{application, buffer};
 
 pub fn move_up(app: &mut Application) -> Result {
@@ -75,7 +73,7 @@ pub fn move_to_first_word_of_line(app: &mut Application) -> Result {
         for (offset, character) in current_line.chars().enumerate() {
             if !character.is_whitespace() {
                 // Move the cursor to this position.
-                let new_cursor_position = scribe::buffer::Position {
+                let new_cursor_position = Position {
                     line: buffer.cursor.line,
                     offset: offset,
                 };
@@ -200,8 +198,6 @@ pub fn append_to_current_token(app: &mut Application) -> Result {
 
 #[cfg(test)]
 mod tests {
-    extern crate scribe;
-
     use scribe::Buffer;
     use scribe::buffer::Position;
     use models::application::Application;
@@ -212,7 +208,7 @@ mod tests {
         let mut app = set_up_application("    amp");
 
         // Move to the end of the line.
-        let position = scribe::buffer::Position {
+        let position = Position {
             line: 0,
             offset: 7,
         };

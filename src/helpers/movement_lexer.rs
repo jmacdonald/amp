@@ -1,7 +1,5 @@
-extern crate luthor;
-
-use self::luthor::{Tokenizer, StateFunction};
-use self::luthor::token::{Token, Category};
+use luthor::{Tokenizer, StateFunction};
+use luthor::token::{Token, Category};
 
 fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
     if lexer.has_prefix("::") {
@@ -124,7 +122,7 @@ pub fn lex(data: &str) -> Vec<Token> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use super::luthor::token::{Token, Category};
+    use luthor::token::{Token, Category};
 
     #[test]
     fn it_works() {

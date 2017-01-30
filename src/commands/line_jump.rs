@@ -52,8 +52,6 @@ pub fn accept_input(app: &mut Application) -> Result {
 
 #[cfg(test)]
 mod tests {
-    extern crate scribe;
-
     use commands;
     use scribe::Buffer;
     use scribe::buffer::Position;

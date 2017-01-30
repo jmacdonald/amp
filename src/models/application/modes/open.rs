@@ -1,8 +1,6 @@
-extern crate bloodhound;
-
 use std::path::PathBuf;
 use helpers::SelectableSet;
-use self::bloodhound::Index;
+use bloodhound::Index;
 
 pub struct OpenMode {
     pub insert: bool,

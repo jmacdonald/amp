@@ -1,6 +1,3 @@
-extern crate git2;
-extern crate scribe;
-
 pub mod modes;
 mod clipboard;
 
@@ -16,7 +13,7 @@ use self::modes::{JumpMode, LineJumpMode, SymbolJumpMode, InsertMode, OpenMode, 
 use scribe::{Buffer, Workspace};
 use view::{self, StatusLineData, View};
 use self::clipboard::Clipboard;
-use self::git2::Repository;
+use git2::Repository;
 
 pub enum Mode {
     Normal,

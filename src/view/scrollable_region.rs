@@ -90,8 +90,6 @@ impl ScrollableRegion {
 
 #[cfg(test)]
 mod tests {
-    extern crate scribe;
-
     use std::rc::Rc;
     use std::cell::RefCell;
     use super::{ScrollableRegion, Visibility};

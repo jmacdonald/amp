@@ -1,11 +1,9 @@
-extern crate git2;
-
 pub mod modes;
 
 use std::path::{Path, PathBuf};
 use scribe::Workspace;
 use view::{Colors, StatusLineData, Style};
-use git2::{Repository, Status};
+use git2::{self, Repository, Status};
 
 fn path_as_title(path: &Path) -> String {
     format!(" {}", path.to_string_lossy())
@@ -86,9 +84,7 @@ fn presentable_status(status: &Status) -> &str {
 
 #[cfg(test)]
 mod tests {
-    extern crate git2;
-    extern crate scribe;
-
+    use git2;
     use super::presentable_status;
 
     #[test]

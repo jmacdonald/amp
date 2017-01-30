@@ -1,5 +1,3 @@
-extern crate scribe;
-
 use scribe::buffer::Position;
 
 pub struct SelectMode {

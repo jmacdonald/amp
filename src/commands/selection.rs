@@ -1,5 +1,3 @@
-extern crate scribe;
-
 use models::application::{Application, ClipboardContent, Mode};
 use scribe::buffer::{LineRange, Range};
 use super::application;

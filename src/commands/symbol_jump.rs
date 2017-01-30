@@ -1,6 +1,3 @@
-extern crate bloodhound;
-extern crate scribe;
-
 use errors::*;
 use commands::{self, Result};
 use models::application::{Application, Mode};

@@ -1,5 +1,3 @@
-extern crate git2;
-
 use scribe::Workspace;
 use presenters::{current_buffer_status_line_data, git_status_line_data};
 use git2::Repository;

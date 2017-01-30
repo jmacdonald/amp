@@ -4,6 +4,8 @@
 #![recursion_limit = "1024"]
 
 // External dependencies
+extern crate bloodhound;
+extern crate fragment;
 extern crate git2;
 extern crate luthor;
 extern crate pad;
