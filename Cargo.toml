@@ -5,7 +5,7 @@ version = "0.1.0"
 authors = ["Jordan MacDonald <jordan@wastedintelligence.com>"]
 
 [dependencies]
-scribe = "0.5.2"
+scribe = "0.5.3"
 pad = "0.1.4"
 bloodhound = "0.2.4"
 luthor = "0.1.7"
@@ -13,7 +13,7 @@ git2 = "0.6"
 fragment = "0.1.2"
 regex = "^0.1"
 libc = "0.2.4"
-syntect = "1.0.1"
+syntect = "1.0.4"
 rustbox = "0.9.0"
 termion = { git = "https://github.com/jmacdonald/termion", branch = "esc" }
 error-chain = "0.7.1"
