@@ -133,7 +133,7 @@ impl Application {
                         &vec![StatusLineData{
                             content: error.description().to_string(),
                             style: view::Style::Bold,
-                            colors: view::Colors::Focused,
+                            colors: view::Colors::Warning,
                         }]
                     );
                 application.view.present();
