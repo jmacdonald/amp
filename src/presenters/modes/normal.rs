@@ -15,7 +15,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
 
         // Determine mode display color based on buffer modification status.
         let colors = if buf.modified() {
-            Colors::Modified
+            Colors::Warning
         } else {
             Colors::Inverted
         };

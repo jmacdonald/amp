@@ -10,7 +10,7 @@ pub enum Colors {
     Focused,  // default/alt background
     Inverted, // background/default
     Insert,   // white/green
-    Modified, // white/yellow
+    Warning,  // white/yellow
     Select,   // white/blue
     CustomForeground(RGBColor),
     CustomFocusedForeground(RGBColor),
