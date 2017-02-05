@@ -3,80 +3,75 @@ use commands::{self, Result};
 use models::application::{Application, Mode};
 
 pub fn move_to_previous_result(app: &mut Application) -> Result {
-    let mut moved = false;
-
     {
         let query = app
             .search_query
             .as_ref()
             .ok_or("Can't navigate results without a search query")?;
         let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+        let initial_position = *buffer.cursor;
         let positions = buffer.search(query);
+
+        // Try to find and move to a result before the cursor.
         for position in positions.iter().rev() {
             if position < &*buffer.cursor {
                 buffer.cursor.move_to(*position);
 
-                // We've found one; track that and stop looking.
-                moved = true;
+                // We've found one; stop looking.
                 break;
             }
         }
 
-        if !moved {
+        if buffer.cursor.position == initial_position {
             // There's nothing before the cursor, so wrap
             // to the last match, if there are any at all.
-            if let Some(position) = positions.last() {
-                buffer.cursor.move_to(*position);
-                moved = true;
+            if let Some(last_position) = positions.last() {
+                buffer.cursor.move_to(*last_position);
+            } else {
+                bail!(NO_SEARCH_RESULTS);
             }
         }
     }
 
-    if moved {
-        commands::view::scroll_cursor_to_center(app)
-            .chain_err(|| SCROLL_TO_CURSOR_FAILED)?;
-    }
+    commands::view::scroll_cursor_to_center(app)
+        .chain_err(|| SCROLL_TO_CURSOR_FAILED)?;
 
     Ok(())
 }
 
 pub fn move_to_next_result(app: &mut Application) -> Result {
-    let mut moved = false;
-
     {
         let query = app
             .search_query
             .as_ref()
             .ok_or("Can't navigate results without a search query")?;
         let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+        let initial_position = *buffer.cursor;
         let positions = buffer.search(query);
 
-        // Try to find a result after the cursor.
+        // Try to find and move to a result after the cursor.
         for position in &positions {
             if position > &buffer.cursor {
                 buffer.cursor.move_to(*position);
 
-                // We've found one; track that and stop looking.
-                moved = true;
+                // We've found one; stop looking.
                 break;
             }
         }
 
-        if !moved {
+        if buffer.cursor.position == initial_position {
             // We haven't found anything after the cursor, so wrap
             // to the first match, if there are any matches at all.
             if let Some(position) = positions.first() {
                 buffer.cursor.move_to(*position);
-                moved = true;
+            } else {
+                bail!(NO_SEARCH_RESULTS);
             }
         }
     }
 
-    if moved {
-        commands::view::scroll_cursor_to_center(app)
-            .chain_err(|| SCROLL_TO_CURSOR_FAILED)?;
-
-    }
+    commands::view::scroll_cursor_to_center(app)
+        .chain_err(|| SCROLL_TO_CURSOR_FAILED)?;
 
     Ok(())
 }
