@@ -17,9 +17,7 @@ syntect = "1.0.4"
 rustbox = "0.9.0"
 termion = { git = "https://github.com/jmacdonald/termion", branch = "esc" }
 error-chain = "0.7.1"
-
-preferences = "0.7.3"
-rustc-serialize = "*"
+preferences = "1.0.0"
 
 [dependencies.clipboard]
 git = "https://github.com/aweinstock314/rust-clipboard.git"

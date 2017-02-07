@@ -12,7 +12,6 @@ extern crate pad;
 extern crate regex;
 extern crate scribe;
 extern crate syntect;
-extern crate rustc_serialize;
 extern crate preferences;
 
 #[macro_use]
