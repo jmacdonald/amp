@@ -1,14 +1,19 @@
 use commands::{self, Result};
 use models::application::{Application, Mode};
+use view;
 
 pub fn use_selected_theme(app: &mut Application) -> Result {
     if let Mode::Theme(ref mut mode) = app.mode {
-        let theme_key = mode
-            .results
-            .selection()
-            .ok_or("No theme selected")?;
-        app.view.set_theme(theme_key)?;
-    }
+        let theme_key = mode.results.selection().ok_or("No theme selected")?;
+        app.view.set_theme(&theme_key)?;
+
+        // Persist the theme selection in the app preferences.
+        app.preferences.insert(String::from(view::THEME_KEY), theme_key.clone());
+        app.preferences.save()?;
+    } else {
+        bail!("Not in theme mode");
+    };
+
 
     commands::view::scroll_cursor_to_center(app)?;
     commands::application::switch_to_normal_mode(app)
