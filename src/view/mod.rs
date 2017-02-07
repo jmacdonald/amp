@@ -27,6 +27,8 @@ use std::fmt::Display;
 use self::scrollable_region::ScrollableRegion;
 use syntect::highlighting::{Theme, ThemeSet};
 
+const DEFAULT_THEME: &'static str = "solarized_dark";
+
 pub struct View {
     terminal: Rc<RefCell<Terminal>>,
     cursor_position: Option<Position>,
@@ -36,15 +38,16 @@ pub struct View {
 }
 
 impl View {
-    pub fn new() -> View {
+    pub fn new(initial_theme: Option<&str>) -> View {
         let terminal = build_terminal();
         let theme_set = build_theme_set();
+        let theme_name: &str = initial_theme.unwrap_or(&DEFAULT_THEME);
 
         View {
             terminal: terminal,
             cursor_position: None,
             scrollable_regions: HashMap::new(),
-            theme: theme_set.themes["solarized_dark"].clone(),
+            theme: theme_set.themes[theme_name].clone(),
             theme_set: theme_set,
         }
     }

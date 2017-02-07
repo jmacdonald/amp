@@ -45,6 +45,7 @@ pub struct Application {
 impl Application {
     pub fn new() -> Result<Application> {
         let current_dir = env::current_dir()?;
+        let preferences = ApplicationPreferences::load()?;
 
         // Set up a workspace in the current directory.
         let mut workspace = Workspace::new(&current_dir)?;
@@ -56,7 +57,7 @@ impl Application {
             workspace.add_buffer(argument_buffer);
         }
 
-        let view = View::new();
+        let view = View::new(preferences.get("theme").map(|t| t.as_ref()));
         let clipboard = Clipboard::new();
 
         Ok(Application {
@@ -67,7 +68,7 @@ impl Application {
             clipboard: clipboard,
             repository: Repository::discover(&current_dir).ok(),
             error: None,
-            preferences: ApplicationPreferences::load()?,
+            preferences: preferences,
         })
     }
 
