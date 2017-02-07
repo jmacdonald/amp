@@ -4,6 +4,7 @@ mod preferences;
 
 // Published API
 pub use self::clipboard::ClipboardContent;
+pub use self::preferences::ApplicationPreferences;
 
 use errors::*;
 use std::env;
@@ -14,7 +15,6 @@ use self::modes::{JumpMode, LineJumpMode, SymbolJumpMode, InsertMode, OpenMode, 
 use scribe::{Buffer, Workspace};
 use view::{self, StatusLineData, View};
 use self::clipboard::Clipboard;
-use self::preferences::ApplicationPreferences;
 use git2::Repository;
 
 pub enum Mode {
@@ -57,7 +57,7 @@ impl Application {
             workspace.add_buffer(argument_buffer);
         }
 
-        let view = View::new(preferences.get("theme").map(|t| t.as_ref()));
+        let view = View::new(&preferences);
         let clipboard = Clipboard::new();
 
         Ok(Application {
