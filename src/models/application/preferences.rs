@@ -1,11 +1,26 @@
 use errors::*;
 use std::io::ErrorKind;
+use std::ops::{Deref, DerefMut};
 use preferences::{AppInfo, Preferences, PreferencesError, PreferencesMap};
 
 const PREFERENCE_KEY: &'static str = "config";
 const APP_INFO: AppInfo = AppInfo{ name: "amp", author: "Jordan MacDonald" };
 pub struct ApplicationPreferences {
     preferences: PreferencesMap<String>
+}
+
+impl Deref for ApplicationPreferences {
+    type Target = PreferencesMap<String>;
+
+    fn deref(&self) -> &PreferencesMap {
+        &self.preferences
+    }
+}
+
+impl DerefMut for ApplicationPreferences {
+    fn deref_mut(&mut self) -> &mut PreferencesMap {
+        &mut self.preferences
+    }
 }
 
 impl ApplicationPreferences {
