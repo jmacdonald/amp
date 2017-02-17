@@ -3,7 +3,7 @@ use std::io::ErrorKind;
 use std::ops::{Deref, DerefMut};
 use preferences::{AppInfo, Preferences, PreferencesError, PreferencesMap};
 
-const PREFERENCE_KEY: &'static str = "config";
+const PREFERENCE_KEY: &'static str = "";
 const APP_INFO: AppInfo = AppInfo{ name: "amp", author: "Jordan MacDonald" };
 pub struct ApplicationPreferences {
     preferences: PreferencesMap<String>
