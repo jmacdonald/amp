@@ -246,10 +246,12 @@ fn buffer_key(buffer: &Buffer) -> usize {
 #[cfg(test)]
 mod tests {
     use scribe::Buffer;
+    use models::application::ApplicationPreferences;
 
     #[test]
     fn scroll_down_prevents_scrolling_completely_beyond_buffer() {
-        let mut view = super::View::new();
+        let preferences = ApplicationPreferences::new();
+        let mut view = super::View::new(&preferences);
 
         // Build a 10-line buffer.
         let mut buffer = Buffer::new();
@@ -270,7 +272,8 @@ mod tests {
 
     #[test]
     fn scroll_down_prevents_scrolling_when_buffer_is_smaller_than_top_half() {
-        let mut view = super::View::new();
+        let preferences = ApplicationPreferences::new();
+        let mut view = super::View::new(&preferences);
 
         // Build a 2-line buffer and try to scroll it.
         let mut buffer = Buffer::new();
