@@ -24,6 +24,13 @@ impl DerefMut for ApplicationPreferences {
 }
 
 impl ApplicationPreferences {
+    /// Creates a new empty preference set.
+    /// Outside of testing, you'll likely want ::load(), which falls back
+    /// to an empty set when a pre-existing preferences file cannot be found.
+    pub fn new() -> ApplicationPreferences {
+        ApplicationPreferences{ preferences: PreferencesMap::new() }
+    }
+
     /// Loads the user's preferences from disk. If the
     /// preferences don't exist, it will return a new set
     /// of preferences. Anything else will return an error.
