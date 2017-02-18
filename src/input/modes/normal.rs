@@ -29,6 +29,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('o') => Some(cursor::insert_with_newline),
         Key::Char('O') => Some(cursor::insert_with_newline_above),
         Key::Char('f') => Some(application::switch_to_jump_mode),
+        Key::Char('\'') => Some(application::switch_to_second_stage_jump_mode),
         Key::Char(' ') => Some(application::switch_to_open_mode),
         Key::Char('v') => Some(application::switch_to_select_mode),
         Key::Char('V') => Some(application::switch_to_select_line_mode),

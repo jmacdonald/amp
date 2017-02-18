@@ -54,6 +54,17 @@ pub fn switch_to_jump_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
+pub fn switch_to_second_stage_jump_mode(app: &mut Application) -> Result {
+    switch_to_jump_mode(app)?;
+    if let Mode::Jump(ref mut mode) = app.mode {
+        mode.first_phase = false;
+    } else {
+        bail!("Failed to switch to jump mode.");
+    };
+
+    Ok(())
+}
+
 pub fn switch_to_line_jump_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer().is_some() {
         app.mode = Mode::LineJump(LineJumpMode::new());
