@@ -14,8 +14,6 @@ pub fn use_selected_theme(app: &mut Application) -> Result {
         bail!("Not in theme mode");
     };
 
-
-    commands::view::scroll_cursor_to_center(app)?;
     commands::application::switch_to_normal_mode(app)
 }
 
