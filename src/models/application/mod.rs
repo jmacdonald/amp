@@ -16,6 +16,7 @@ use scribe::{Buffer, Workspace};
 use view::{self, StatusLineData, View};
 use self::clipboard::Clipboard;
 use git2::Repository;
+use models::application::modes::SearchSelectMode;
 
 pub enum Mode {
     Normal,
@@ -122,7 +123,7 @@ impl Application {
                                                        &mut application.view,
                                                        &application.repository)
                }
-                Mode::Theme(ref mode) => {
+                Mode::Theme(ref mut mode) => {
                     presenters::modes::theme::display(&mut application.workspace,
                                                            mode,
                                                            &mut application.view)
@@ -167,7 +168,7 @@ impl Application {
                         }
                     },
                     Mode::Theme(ref mut mode) => {
-                        if mode.insert {
+                        if mode.insert_mode() {
                             input::modes::theme_insert::handle(mode, key)
                         } else {
                             input::modes::theme::handle(key)

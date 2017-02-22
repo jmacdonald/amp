@@ -1,12 +1,13 @@
 use fragment;
 use helpers::SelectableSet;
-use std::iter::Iterator;
+use std::slice::Iter;
+use models::application::modes::SearchSelectMode;
 
 pub struct ThemeMode {
-    pub insert: bool,
-    pub input: String,
-    pub themes: Vec<String>,
-    pub results: SelectableSet<String>,
+    insert: bool,
+    input: String,
+    themes: Vec<String>,
+    results: SelectableSet<String>,
 }
 
 impl ThemeMode {
@@ -20,8 +21,10 @@ impl ThemeMode {
             results: SelectableSet::new(Vec::new()),
         }
     }
+}
 
-    pub fn search(&mut self) {
+impl SearchSelectMode<String> for ThemeMode {
+    fn search(&mut self) {
         // Find the themes we're looking for using the query.
         let results = fragment::matching::find(&self.input, &self.themes, ThemeMode::MAX_RESULTS);
 
@@ -33,5 +36,37 @@ impl ThemeMode {
             .map(|r| r.clone())
             .collect()
         );
+    }
+
+    fn query(&mut self) -> &mut String {
+        &mut self.input
+    }
+
+    fn insert_mode(&self) -> bool {
+        self.insert
+    }
+
+    fn set_insert_mode(&mut self, insert_mode: bool) {
+        self.insert = insert_mode;
+    }
+
+    fn results(&self) -> Iter<String> {
+        self.results.iter()
+    }
+
+    fn selection(&self) -> Option<&String> {
+        self.results.selection()
+    }
+
+    fn selected_index(&self) -> usize {
+        self.results.selected_index()
+    }
+
+    fn select_previous(&mut self) {
+        self.results.select_previous();
+    }
+
+    fn select_next(&mut self) {
+        self.results.select_next();
     }
 }

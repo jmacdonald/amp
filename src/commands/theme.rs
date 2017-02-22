@@ -1,10 +1,11 @@
 use commands::{self, Result};
 use models::application::{Application, Mode};
+use models::application::modes::SearchSelectMode;
 use view;
 
 pub fn use_selected_theme(app: &mut Application) -> Result {
     if let Mode::Theme(ref mut mode) = app.mode {
-        let theme_key = mode.results.selection().ok_or("No theme selected")?;
+        let theme_key = mode.selection().ok_or("No theme selected")?;
         app.view.set_theme(&theme_key)?;
 
         // Persist the theme selection in the app preferences.
@@ -29,7 +30,7 @@ pub fn search(app: &mut Application) -> Result {
 
 pub fn select_next_symbol(app: &mut Application) -> Result {
     if let Mode::Theme(ref mut mode) = app.mode {
-        mode.results.select_next();
+        mode.select_next();
     } else {
         bail!("Can't change symbol selection outside of symbol jump mode");
     }
@@ -39,7 +40,7 @@ pub fn select_next_symbol(app: &mut Application) -> Result {
 
 pub fn select_previous_symbol(app: &mut Application) -> Result {
     if let Mode::Theme(ref mut mode) = app.mode {
-        mode.results.select_previous();
+        mode.select_previous();
     } else {
         bail!("Can't change symbol selection outside of symbol jump mode");
     }
@@ -49,7 +50,7 @@ pub fn select_previous_symbol(app: &mut Application) -> Result {
 
 pub fn enable_insert(app: &mut Application) -> Result {
     if let Mode::Theme(ref mut mode) = app.mode {
-        mode.insert = true;
+        mode.set_insert_mode(true);
     } else {
         bail!("Can't change symbol search insert state outside of symbol jump mode");
     }
@@ -59,7 +60,7 @@ pub fn enable_insert(app: &mut Application) -> Result {
 
 pub fn disable_insert(app: &mut Application) -> Result {
     if let Mode::Theme(ref mut mode) = app.mode {
-        mode.insert = false;
+        mode.set_insert_mode(false);
     } else {
         bail!("Can't change symbol search insert state outside of symbol jump mode");
     }
