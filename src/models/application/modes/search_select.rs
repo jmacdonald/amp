@@ -7,12 +7,14 @@ pub trait SearchSelectMode<T: Display> {
     fn search(&mut self);
     fn insert_mode(&self) -> bool;
     fn set_insert_mode(&mut self, insert_mode: bool);
-    fn selection(&self) -> &T;
+    fn selection(&self) -> Option<&T>;
     fn select_previous(&mut self);
     fn select_next(&mut self);
+
     fn push_search_char(&mut self, c: char) {
         self.query().push(c);
     }
+
     fn pop_search_token(&mut self) {
         let mut query = self.query();
 
@@ -50,7 +52,7 @@ mod tests {
         fn search(&mut self) { }
         fn insert_mode(&self) -> bool { false }
         fn set_insert_mode(&mut self, insert_mode: bool) { }
-        fn selection(&self) -> &String { &self.selection }
+        fn selection(&self) -> Option<&String> { Some(&self.selection) }
         fn select_previous(&mut self) { }
         fn select_next(&mut self) { }
     }
