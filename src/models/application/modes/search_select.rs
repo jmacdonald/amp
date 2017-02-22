@@ -1,4 +1,5 @@
 use std::fmt::Display;
+use std::slice::Iter;
 
 /// This trait will become vastly simpler if/when fields are added to traits.
 /// See: https://github.com/rust-lang/rfcs/pull/1546
@@ -7,6 +8,7 @@ pub trait SearchSelectMode<T: Display> {
     fn search(&mut self);
     fn insert_mode(&self) -> bool;
     fn set_insert_mode(&mut self, insert_mode: bool);
+    fn results(&self) -> Iter<T>;
     fn selection(&self) -> Option<&T>;
     fn select_previous(&mut self);
     fn select_next(&mut self);
@@ -37,11 +39,13 @@ pub trait SearchSelectMode<T: Display> {
 
 #[cfg(test)]
 mod tests {
+    use std::slice::Iter;
     use super::SearchSelectMode;
 
     struct TestMode {
         input: String,
-        selection: String
+        selection: String,
+        results: Vec<String>,
     }
 
     impl SearchSelectMode<String> for TestMode {
@@ -52,6 +56,7 @@ mod tests {
         fn search(&mut self) { }
         fn insert_mode(&self) -> bool { false }
         fn set_insert_mode(&mut self, insert_mode: bool) { }
+        fn results(&self) -> Iter<String> { self.results.iter() }
         fn selection(&self) -> Option<&String> { Some(&self.selection) }
         fn select_previous(&mut self) { }
         fn select_next(&mut self) { }
@@ -59,28 +64,28 @@ mod tests {
 
     #[test]
     fn push_search_char_updates_query() {
-        let mut mode = TestMode{ input: String::new(), selection: String::new() };
+        let mut mode = TestMode{ input: String::new(), selection: String::new(), results: Vec::new() };
         mode.push_search_char('a');
         assert_eq!(mode.query(), "a");
     }
 
     #[test]
     fn pop_search_token_pops_all_characters_when_on_only_token() {
-        let mut mode = TestMode{ input: String::from("amp"), selection: String::new() };
+        let mut mode = TestMode{ input: String::from("amp"), selection: String::new(), results: Vec::new() };
         mode.pop_search_token();
         assert_eq!(mode.query(), "");
     }
 
     #[test]
     fn pop_search_token_pops_all_adjacent_non_whitespace_characters_when_on_non_whitespace_character() {
-        let mut mode = TestMode{ input: String::from("amp editor"), selection: String::new() };
+        let mut mode = TestMode{ input: String::from("amp editor"), selection: String::new(), results: Vec::new() };
         mode.pop_search_token();
         assert_eq!(mode.query(), "amp ");
     }
 
     #[test]
     fn pop_search_token_pops_all_whitespace_characters_when_on_whitespace_character() {
-        let mut mode = TestMode{ input: String::from("amp  "), selection: String::new() };
+        let mut mode = TestMode{ input: String::from("amp  "), selection: String::new(), results: Vec::new() };
         mode.pop_search_token();
         assert_eq!(mode.query(), "amp");
     }
