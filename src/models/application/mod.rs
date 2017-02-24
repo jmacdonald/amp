@@ -103,7 +103,7 @@ impl Application {
                                                           mode,
                                                           &mut application.view)
                 }
-                Mode::SymbolJump(ref mode) => {
+                Mode::SymbolJump(ref mut mode) => {
                     presenters::modes::symbol_jump::display(&mut application.workspace,
                                                             mode,
                                                             &mut application.view)
@@ -154,7 +154,7 @@ impl Application {
                     Mode::Jump(ref mut j) => input::modes::jump::handle(j, key),
                     Mode::LineJump(ref mut j) => input::modes::line_jump::handle(j, key),
                     Mode::SymbolJump(ref mut mode) => {
-                        if mode.insert {
+                        if mode.insert_mode() {
                             input::modes::symbol_jump_insert::handle(mode, key)
                         } else {
                             input::modes::symbol_jump::handle(key)
