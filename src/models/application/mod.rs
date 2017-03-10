@@ -104,9 +104,9 @@ impl Application {
                                                           &mut application.view)
                 }
                 Mode::SymbolJump(ref mut mode) => {
-                    presenters::modes::symbol_jump::display(&mut application.workspace,
-                                                            mode,
-                                                            &mut application.view)
+                    presenters::modes::search_select::display(&mut application.workspace,
+                                                              mode,
+                                                              &mut application.view)
                 }
                 Mode::Select(ref mode) => {
                     presenters::modes::select::display(&mut application.workspace,
@@ -124,9 +124,9 @@ impl Application {
                                                        &application.repository)
                }
                 Mode::Theme(ref mut mode) => {
-                    presenters::modes::theme::display(&mut application.workspace,
-                                                           mode,
-                                                           &mut application.view)
+                    presenters::modes::search_select::display(&mut application.workspace,
+                                                              mode,
+                                                              &mut application.view)
                 }
                 Mode::Exit => ()
             }
