@@ -16,6 +16,7 @@ dependencies = [
  "scribe 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "syntect 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "termion 1.1.1 (git+https://github.com/jmacdonald/termion?branch=esc)",
+ "unicode-segmentation 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

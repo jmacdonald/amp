@@ -13,6 +13,7 @@ extern crate regex;
 extern crate scribe;
 extern crate syntect;
 extern crate preferences;
+extern crate unicode_segmentation;
 
 #[macro_use]
 extern crate error_chain;
