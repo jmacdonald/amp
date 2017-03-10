@@ -154,11 +154,7 @@ impl Application {
                     Mode::Jump(ref mut j) => input::modes::jump::handle(j, key),
                     Mode::LineJump(ref mut j) => input::modes::line_jump::handle(j, key),
                     Mode::SymbolJump(ref mut mode) => {
-                        if mode.insert_mode() {
-                            input::modes::symbol_jump_insert::handle(mode, key)
-                        } else {
-                            input::modes::symbol_jump::handle(key)
-                        }
+                        input::modes::search_select::handle(mode, key)
                     },
                     Mode::Open(ref mut open_mode) => {
                         if open_mode.insert {
@@ -168,11 +164,7 @@ impl Application {
                         }
                     },
                     Mode::Theme(ref mut mode) => {
-                        if mode.insert_mode() {
-                            input::modes::theme_insert::handle(mode, key)
-                        } else {
-                            input::modes::theme::handle(key)
-                        }
+                        input::modes::search_select::handle(mode, key)
                     },
                     Mode::Select(_) => input::modes::select::handle(key),
                     Mode::SelectLine(_) => input::modes::select_line::handle(key),

@@ -11,6 +11,7 @@ pub mod symbol_jump;
 pub mod open_mode;
 pub mod search;
 pub mod selection;
+pub mod search_select_mode;
 pub mod theme;
 pub mod view;
 pub mod workspace;
