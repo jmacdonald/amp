@@ -83,10 +83,10 @@ impl Application {
                     presenters::modes::insert::display(&mut application.workspace,
                                                        &mut application.view)
                 }
-                Mode::Open(ref mode) => {
-                    presenters::modes::open::display(&mut application.workspace,
-                                                     mode,
-                                                     &mut application.view)
+                Mode::Open(ref mut mode) => {
+                    presenters::modes::search_select::display(&mut application.workspace,
+                                                              mode,
+                                                              &mut application.view)
                 }
                 Mode::SearchInsert(ref mode) => {
                     presenters::modes::search_insert::display(&mut application.workspace,
@@ -153,19 +153,9 @@ impl Application {
                     Mode::Insert(ref mut i) => input::modes::insert::handle(i, key),
                     Mode::Jump(ref mut j) => input::modes::jump::handle(j, key),
                     Mode::LineJump(ref mut j) => input::modes::line_jump::handle(j, key),
-                    Mode::SymbolJump(ref mut mode) => {
-                        input::modes::search_select::handle(mode, key)
-                    },
-                    Mode::Open(ref mut open_mode) => {
-                        if open_mode.insert {
-                            input::modes::open_insert::handle(open_mode, key)
-                        } else {
-                            input::modes::open::handle(key)
-                        }
-                    },
-                    Mode::Theme(ref mut mode) => {
-                        input::modes::search_select::handle(mode, key)
-                    },
+                    Mode::SymbolJump(ref mut mode) => input::modes::search_select::handle(mode, key),
+                    Mode::Open(ref mut mode) => input::modes::search_select::handle(mode, key),
+                    Mode::Theme(ref mut mode) => input::modes::search_select::handle(mode, key),
                     Mode::Select(_) => input::modes::select::handle(key),
                     Mode::SelectLine(_) => input::modes::select_line::handle(key),
                     Mode::SearchInsert(ref mut s) => input::modes::search_insert::handle(s, key),

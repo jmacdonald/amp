@@ -1,7 +1,7 @@
 mod insert;
 pub mod jump;
 mod line_jump;
-mod open;
+pub mod open;
 mod search_insert;
 mod search_select;
 mod select;
