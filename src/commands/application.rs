@@ -92,7 +92,7 @@ pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
     } else {
         bail!(BUFFER_MISSING);
     }
-    commands::symbol_jump::search(app)?;
+    commands::search_select_mode::search(app)?;
 
     Ok(())
 }
@@ -103,7 +103,7 @@ pub fn switch_to_theme_mode(app: &mut Application) -> Result {
             app.view.theme_set.themes.keys().map(|k| k.to_string()).collect()
         )
     );
-    commands::theme::search(app)?;
+    commands::search_select_mode::search(app)?;
 
     Ok(())
 }
