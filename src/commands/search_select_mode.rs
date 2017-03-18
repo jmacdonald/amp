@@ -109,5 +109,6 @@ pub fn pop_search_token(app: &mut Application) -> Result {
         _ => bail!("Can't pop search token outside of search select mode"),
     }
 
+    search(app)?;
     Ok(())
 }
