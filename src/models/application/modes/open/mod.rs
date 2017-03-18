@@ -1,24 +1,17 @@
-use std::fmt;
+mod displayable_path;
+
 use std::path::PathBuf;
 use std::slice::Iter;
 use helpers::SelectableSet;
 use models::application::modes::SearchSelectMode;
 use bloodhound::Index;
+pub use self::displayable_path::DisplayablePath;
 
 pub struct OpenMode {
     pub insert: bool,
     pub input: String,
     index: Index,
     pub results: SelectableSet<DisplayablePath>,
-}
-
-pub struct DisplayablePath(pub PathBuf);
-
-impl fmt::Display for DisplayablePath {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let &DisplayablePath(ref path) = self;
-        write!(f, "{}", path.to_string_lossy())
-    }
 }
 
 impl OpenMode {
