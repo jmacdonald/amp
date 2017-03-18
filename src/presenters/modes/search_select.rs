@@ -74,7 +74,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
     // Place the cursor on the search input line, right after its contents.
     view.set_cursor(Some(Position {
         line: ThemeMode::MAX_RESULTS,
-        offset: mode.query().unicode_words().count(),
+        offset: mode.query().graphemes(true).count(),
     }));
 
     // Render the changes to the screen.
