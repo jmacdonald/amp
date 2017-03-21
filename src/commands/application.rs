@@ -4,7 +4,7 @@ use errors::*;
 use commands::{self, Result};
 use std::mem;
 use models::application::{Application, Mode};
-use models::application::modes::{jump, InsertMode, JumpMode, LineJumpMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode, SymbolJumpMode, ThemeMode};
+use models::application::modes::{jump, CommandMode, InsertMode, JumpMode, LineJumpMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode, SymbolJumpMode, ThemeMode};
 
 pub fn switch_to_normal_mode(app: &mut Application) -> Result {
     let _ = commands::buffer::end_command_group(app);
@@ -77,6 +77,13 @@ pub fn switch_to_line_jump_mode(app: &mut Application) -> Result {
 
 pub fn switch_to_open_mode(app: &mut Application) -> Result {
     app.mode = Mode::Open(OpenMode::new(app.workspace.path.clone()));
+    commands::search_select_mode::search(app)?;
+
+    Ok(())
+}
+
+pub fn switch_to_command_mode(app: &mut Application) -> Result {
+    app.mode = Mode::Command(CommandMode::new());
     commands::search_select_mode::search(app)?;
 
     Ok(())

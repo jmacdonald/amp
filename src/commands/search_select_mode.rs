@@ -1,5 +1,6 @@
 use errors::*;
 use commands::{self, Result};
+use std::mem;
 use std::path::PathBuf;
 use models::application::modes::open::DisplayablePath;
 use models::application::{Application, Mode};
@@ -8,7 +9,18 @@ use std::fmt::Display;
 use view;
 
 pub fn accept(app: &mut Application) -> Result {
-    match app.mode {
+    // Consume the application mode. This is necessary because the selection in
+    // command mode needs to run against the application, but we can't hold the
+    // reference to the selection and lend the app mutably to it at the time.
+    let mut app_mode = mem::replace(&mut app.mode, Mode::Normal);
+
+    match app_mode {
+        Mode::Command(ref mode) => {
+            let selection = mode.selection().ok_or("No command selected")?;
+
+            // Run the selected command.
+            (selection.command)(app)?;
+        },
         Mode::Open(ref mut mode) => {
             let &DisplayablePath(ref path) = mode
                 .selection()
@@ -41,13 +53,13 @@ pub fn accept(app: &mut Application) -> Result {
     }
 
     commands::view::scroll_cursor_to_center(app);
-    commands::application::switch_to_normal_mode(app)?;
 
     Ok(())
 }
 
 pub fn search(app: &mut Application) -> Result {
     match app.mode {
+        Mode::Command(ref mut mode) => mode.search(),
         Mode::Open(ref mut mode) => mode.search(),
         Mode::Theme(ref mut mode) => mode.search(),
         Mode::SymbolJump(ref mut mode) => mode.search(),
@@ -59,6 +71,7 @@ pub fn search(app: &mut Application) -> Result {
 
 pub fn select_next(app: &mut Application) -> Result {
     match app.mode {
+        Mode::Command(ref mut mode) => mode.select_next(),
         Mode::Open(ref mut mode) => mode.select_next(),
         Mode::Theme(ref mut mode) => mode.select_next(),
         Mode::SymbolJump(ref mut mode) => mode.select_next(),
@@ -70,6 +83,7 @@ pub fn select_next(app: &mut Application) -> Result {
 
 pub fn select_previous(app: &mut Application) -> Result {
     match app.mode {
+        Mode::Command(ref mut mode) => mode.select_previous(),
         Mode::Open(ref mut mode) => mode.select_previous(),
         Mode::Theme(ref mut mode) => mode.select_previous(),
         Mode::SymbolJump(ref mut mode) => mode.select_previous(),
@@ -81,6 +95,7 @@ pub fn select_previous(app: &mut Application) -> Result {
 
 pub fn enable_insert(app: &mut Application) -> Result {
     match app.mode {
+        Mode::Command(ref mut mode) => mode.set_insert_mode(true),
         Mode::Open(ref mut mode) => mode.set_insert_mode(true),
         Mode::Theme(ref mut mode) => mode.set_insert_mode(true),
         Mode::SymbolJump(ref mut mode) => mode.set_insert_mode(true),
@@ -92,6 +107,7 @@ pub fn enable_insert(app: &mut Application) -> Result {
 
 pub fn disable_insert(app: &mut Application) -> Result {
     match app.mode {
+        Mode::Command(ref mut mode) => mode.set_insert_mode(false),
         Mode::Open(ref mut mode) => mode.set_insert_mode(false),
         Mode::Theme(ref mut mode) => mode.set_insert_mode(false),
         Mode::SymbolJump(ref mut mode) => mode.set_insert_mode(false),
@@ -103,6 +119,7 @@ pub fn disable_insert(app: &mut Application) -> Result {
 
 pub fn pop_search_token(app: &mut Application) -> Result {
     match app.mode {
+        Mode::Command(ref mut mode) => mode.pop_search_token(),
         Mode::Open(ref mut mode) => mode.pop_search_token(),
         Mode::Theme(ref mut mode) => mode.pop_search_token(),
         Mode::SymbolJump(ref mut mode) => mode.pop_search_token(),

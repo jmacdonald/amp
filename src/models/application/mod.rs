@@ -11,7 +11,7 @@ use std::env;
 use std::path::Path;
 use input;
 use presenters;
-use self::modes::{ConfirmMode, JumpMode, LineJumpMode, SymbolJumpMode, InsertMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode, ThemeMode};
+use self::modes::{ConfirmMode, CommandMode, JumpMode, LineJumpMode, SymbolJumpMode, InsertMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode, ThemeMode};
 use scribe::{Buffer, Workspace};
 use view::{self, StatusLineData, View};
 use self::clipboard::Clipboard;
@@ -19,18 +19,19 @@ use git2::Repository;
 use models::application::modes::SearchSelectMode;
 
 pub enum Mode {
-    Normal,
+    Confirm(ConfirmMode),
+    Command(CommandMode),
+    Exit,
     Insert(InsertMode),
     Jump(JumpMode),
     LineJump(LineJumpMode),
-    SymbolJump(SymbolJumpMode),
+    Normal,
     Open(OpenMode),
     Select(SelectMode),
     SelectLine(SelectLineMode),
     SearchInsert(SearchInsertMode),
+    SymbolJump(SymbolJumpMode),
     Theme(ThemeMode),
-    Confirm(ConfirmMode),
-    Exit,
 }
 
 pub struct Application {
@@ -101,6 +102,11 @@ impl Application {
                     presenters::modes::confirm::display(&mut application.workspace,
                                                         &mut application.view)
                 },
+                Mode::Command(ref mut mode) => {
+                    presenters::modes::search_select::display(&mut application.workspace,
+                                                              mode,
+                                                              &mut application.view)
+                }
                 Mode::Insert(_) => {
                     presenters::modes::insert::display(&mut application.workspace,
                                                        &mut application.view)
@@ -144,7 +150,7 @@ impl Application {
                     presenters::modes::normal::display(&mut application.workspace,
                                                        &mut application.view,
                                                        &application.repository)
-               }
+                }
                 Mode::Theme(ref mut mode) => {
                     presenters::modes::search_select::display(&mut application.workspace,
                                                               mode,
@@ -171,6 +177,7 @@ impl Application {
             if let Some(key) = application.view.listen() {
                 // Pass the input to the current mode.
                 let command = match application.mode {
+                    Mode::Command(ref mut mode) => input::modes::search_select::handle(mode, key),
                     Mode::Normal => input::modes::normal::handle(key),
                     Mode::Confirm(_) => input::modes::confirm::handle(key),
                     Mode::Insert(ref mut i) => input::modes::insert::handle(i, key),

@@ -1,4 +1,5 @@
 mod confirm;
+mod command;
 mod insert;
 pub mod jump;
 mod line_jump;
@@ -11,6 +12,7 @@ mod symbol_jump;
 mod theme;
 
 pub use self::confirm::ConfirmMode;
+pub use self::command::CommandMode;
 pub use self::insert::InsertMode;
 pub use self::jump::JumpMode;
 pub use self::line_jump::LineJumpMode;
