@@ -7,10 +7,10 @@ authors = ["Jordan MacDonald <jordan@wastedintelligence.com>"]
 [dependencies]
 scribe = "0.5.3"
 pad = "0.1.4"
-bloodhound = "0.2.4"
+bloodhound = "0.3.0"
 luthor = "0.1.7"
 git2 = "0.6"
-fragment = "0.1.2"
+fragment = "0.2.0"
 regex = "^0.1"
 libc = "0.2.4"
 syntect = "1.0.4"

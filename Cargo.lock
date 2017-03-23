@@ -2,10 +2,10 @@
 name = "amp"
 version = "0.1.0"
 dependencies = [
- "bloodhound 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bloodhound 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clipboard 0.1.2 (git+https://github.com/aweinstock314/rust-clipboard.git)",
  "error-chain 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "fragment 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fragment 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "git2 0.6.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "luthor 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -89,10 +89,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "bloodhound"
-version = "0.2.4"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "fragment 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fragment 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "walkdir 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -197,7 +197,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "fragment"
-version = "0.1.2"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -799,7 +799,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum bitflags 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "a41f80ec2e140d19e789764fdf22d0f2da98fe7e55d26f99db59cb3d2605d327"
 "checksum bitflags 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "aad18937a628ec6abcd26d1489012cc0e18c21798210f491af69ded9b881106d"
 "checksum block 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "0d8c1fef690941d3e7788d328517591fecc684c084084702d6ff1641e993699a"
-"checksum bloodhound 0.2.4 (registry+https://github.com/rust-lang/crates.io-index)" = "ee0b7ab6b8ce76431db88bde3a648d793d0fff8ee2e4aa80fd140c38894519c7"
+"checksum bloodhound 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2935ae155a21844bd8e96648ae4ae3fc878fe1daefa7a969cc313b590f539b01"
 "checksum byteorder 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)" = "0fc10e8cc6b2580fda3f36eb6dc5316657f812a3df879a44a66fc9f0fdbc4855"
 "checksum cfg-if 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "de1e760d7b6535af4241fca8bd8adf68e2e7edacc6b29f5d399050c5e48cf88c"
 "checksum chrono 0.2.25 (registry+https://github.com/rust-lang/crates.io-index)" = "9213f7cd7c27e95c2b57c49f0e69b1ea65b27138da84a170133fd21b07659c00"
@@ -812,7 +812,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum error-chain 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)" = "1cd681735364a04cd5d69f01a4f6768e70473941f8d86d8c224faf6955a75799"
 "checksum flate2 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)" = "3eeb481e957304178d2e782f2da1257f1434dfecbae883bafb61ada2a9fea3bb"
 "checksum fnv 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)" = "6cc484842f1e2884faf56f529f960cc12ad8c71ce96cc7abba0a067c98fee344"
-"checksum fragment 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7e9e837d91bdd9f9bcf380b5343ff578e4bea3d2f83742c8e3f269fab32b0969"
+"checksum fragment 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "920a4d2a5e9641184c7f9e499b9c48f61c1d7507a6056834f401a78e98cb918f"
 "checksum gag 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)" = "c606f5c0da18075916377e73de8aec7c140e1b6110a3cf26ae1f47873529b47e"
 "checksum gcc 0.3.38 (registry+https://github.com/rust-lang/crates.io-index)" = "553f11439bdefe755bf366b264820f1da70f3aaf3924e594b886beb9c831bcf5"
 "checksum gdi32-sys 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "0912515a8ff24ba900422ecda800b52f4016a56251922d397c576bf92c690518"

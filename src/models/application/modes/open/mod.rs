@@ -35,7 +35,8 @@ impl SearchSelectMode<DisplayablePath> for OpenMode {
     fn search(&mut self) {
         let results = self.index.find(
             &self.input,
-            OpenMode::MAX_RESULTS
+            OpenMode::MAX_RESULTS,
+            false
         ).into_iter().map(|path| DisplayablePath(path)).collect();
         self.results = SelectableSet::new(results);
     }
