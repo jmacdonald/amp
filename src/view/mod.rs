@@ -83,7 +83,7 @@ impl View {
 
     /// Renders the app name, version and copyright info to the screen.
     pub fn draw_splash_screen(&mut self) {
-        let title = "Amp v0.1";
+        let title = "Amp v0.2.0";
         let copyright = "© 2015-2017 Jordan MacDonald";
 
         let mut position = Position{
