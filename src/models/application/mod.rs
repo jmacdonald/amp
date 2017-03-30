@@ -54,7 +54,24 @@ impl Application {
         // Try to open the specified file.
         // TODO: Handle non-existent files as new empty buffers.
         for path_arg in env::args().skip(1) {
-            let argument_buffer = Buffer::from_file(Path::new(&path_arg))?;
+            let path = Path::new(&path_arg);
+
+            let argument_buffer = if path.exists() {
+                // Load the buffer from disk.
+                Buffer::from_file(path)?
+            } else {
+                // Build an empty buffer.
+                let mut buffer = Buffer::new();
+
+                // Point the buffer to the path, ensuring that it's absolute.
+                if path.is_absolute() {
+                    buffer.path = Some(path.to_path_buf());
+                } else {
+                    buffer.path = Some(workspace.path.join(path));
+                }
+
+                buffer
+            };
             workspace.add_buffer(argument_buffer);
         }
 
