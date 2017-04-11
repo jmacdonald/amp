@@ -42,8 +42,7 @@ pub fn change(app: &mut Application) -> Result {
 
 pub fn copy(app: &mut Application) -> Result {
     copy_to_clipboard(app)?;
-    application::switch_to_normal_mode(app)?;
-    commands::view::scroll_to_cursor(app)
+    application::switch_to_normal_mode(app)
 }
 
 fn copy_to_clipboard(app: &mut Application) -> Result {

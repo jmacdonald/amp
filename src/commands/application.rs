@@ -114,7 +114,6 @@ pub fn switch_to_select_mode(app: &mut Application) -> Result {
     } else {
         bail!(BUFFER_MISSING);
     }
-    commands::view::scroll_to_cursor(app)?;
 
     Ok(())
 }
@@ -125,7 +124,6 @@ pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
     } else {
         bail!(BUFFER_MISSING);
     }
-    commands::view::scroll_to_cursor(app)?;
 
     Ok(())
 }
