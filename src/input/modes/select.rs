@@ -21,6 +21,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('m') | Key::PageDown => Some(view::scroll_down),
         Key::Char('f') => Some(application::switch_to_jump_mode),
         Key::Char('p') => Some(buffer::paste),
+        Key::Ctrl('a') => Some(selection::select_all),
         Key::Ctrl('z') => Some(application::suspend),
         Key::Ctrl('c') => Some(application::exit),
         Key::Esc => Some(application::switch_to_normal_mode),

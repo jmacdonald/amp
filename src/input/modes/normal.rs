@@ -1,4 +1,4 @@
-use commands::{Command, application, workspace, cursor, buffer, search, view, git};
+use commands::{Command, application, workspace, cursor, buffer, search, selection, view, git};
 use input::Key;
 
 pub fn handle(input: Key) -> Option<Command> {
@@ -52,6 +52,7 @@ pub fn handle(input: Key) -> Option<Command> {
         Key::Char('=') => Some(git::add),
         Key::Char('R') => Some(git::copy_remote_url),
         Key::Char('z') | Key::Ctrl('z') => Some(application::suspend),
+        Key::Ctrl('a') => Some(selection::select_all),
         Key::Ctrl('c') => Some(application::exit),
         Key::Char('Q') => Some(application::exit),
         Key::Ctrl('r') => Some(buffer::reload),

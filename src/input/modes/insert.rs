@@ -1,5 +1,5 @@
 use models::application::modes::InsertMode;
-use commands::{Command, application, buffer, cursor, view};
+use commands::{Command, application, buffer, cursor, selection, view};
 use input::Key;
 
 pub fn handle(mode: &mut InsertMode, input: Key) -> Option<Command> {
@@ -20,6 +20,7 @@ pub fn handle(mode: &mut InsertMode, input: Key) -> Option<Command> {
             mode.input = Some(c);
             Some(buffer::insert_char)
         }
+        Key::Ctrl('a') => Some(selection::select_all),
         Key::Ctrl('z')  => Some(application::suspend),
         Key::Ctrl('c')  => Some(application::exit),
         _ => None,
