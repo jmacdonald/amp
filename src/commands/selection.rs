@@ -45,6 +45,22 @@ pub fn copy(app: &mut Application) -> Result {
     application::switch_to_normal_mode(app)
 }
 
+pub fn select_all(app: &mut Application) -> Result {
+    app.workspace
+        .current_buffer()
+        .ok_or(BUFFER_MISSING)?
+        .cursor
+        .move_to_first_line();
+    application::switch_to_select_line_mode(app)?;
+    app.workspace
+        .current_buffer()
+        .ok_or(BUFFER_MISSING)?
+        .cursor
+        .move_to_last_line();
+
+    Ok(())
+}
+
 fn copy_to_clipboard(app: &mut Application) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
@@ -75,4 +91,43 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
     };
 
     Ok(())
+}
+
+mod tests {
+    use models::application::{Application, Mode};
+    use scribe::Buffer;
+    use scribe::buffer::Position;
+
+    #[test]
+    fn select_all_selects_the_entire_buffer() {
+        let mut app = ::models::Application::new().unwrap();
+        let mut buffer = Buffer::new();
+
+        // Insert data with indentation and move to the end of the line.
+        buffer.insert("amp\neditor\nbuffer");
+        let position = Position {
+            line: 1,
+            offset: 3,
+        };
+        buffer.cursor.move_to(position);
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        super::select_all(&mut app);
+
+        // Ensure that the application is in select line mode,
+        // and that its anchor position is on the first line
+        // of the buffer.
+        match app.mode {
+            Mode::SelectLine(mode) => {
+                assert_eq!(mode.anchor, 0);
+            },
+            _ => panic!("Application isn't in select line mode.")
+        }
+
+        // Ensure that the cursor is moved to the last line of the buffer.
+        assert_eq!(app.workspace.current_buffer().unwrap().cursor.line, 2);
+    }
+
 }
