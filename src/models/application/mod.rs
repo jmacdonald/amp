@@ -11,7 +11,7 @@ use std::env;
 use std::path::Path;
 use input;
 use presenters;
-use self::modes::{JumpMode, LineJumpMode, SymbolJumpMode, InsertMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode, ThemeMode};
+use self::modes::{ConfirmMode, JumpMode, LineJumpMode, SymbolJumpMode, InsertMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode, ThemeMode};
 use scribe::{Buffer, Workspace};
 use view::{self, StatusLineData, View};
 use self::clipboard::Clipboard;
@@ -29,6 +29,7 @@ pub enum Mode {
     SelectLine(SelectLineMode),
     SearchInsert(SearchInsertMode),
     Theme(ThemeMode),
+    Confirm(ConfirmMode),
     Exit,
 }
 
@@ -96,6 +97,10 @@ impl Application {
         loop {
             // Present the application state to the view.
             match application.mode {
+                Mode::Confirm(_) => {
+                    presenters::modes::confirm::display(&mut application.workspace,
+                                                        &mut application.view)
+                },
                 Mode::Insert(_) => {
                     presenters::modes::insert::display(&mut application.workspace,
                                                        &mut application.view)
@@ -167,6 +172,7 @@ impl Application {
                 // Pass the input to the current mode.
                 let command = match application.mode {
                     Mode::Normal => input::modes::normal::handle(key),
+                    Mode::Confirm(_) => input::modes::confirm::handle(key),
                     Mode::Insert(ref mut i) => input::modes::insert::handle(i, key),
                     Mode::Jump(ref mut j) => input::modes::jump::handle(j, key),
                     Mode::LineJump(ref mut j) => input::modes::line_jump::handle(j, key),
