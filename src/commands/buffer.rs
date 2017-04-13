@@ -3,6 +3,7 @@ use commands::{self, Result};
 use std::mem;
 use helpers::token::{Direction, adjacent_token_position};
 use models::application::{Application, ClipboardContent, Mode};
+use models::application::modes::ConfirmMode;
 use scribe::buffer::{Position, Range};
 
 // FIXME: Determine this based on file type and/or user config.
@@ -127,11 +128,31 @@ pub fn merge_next_line(app: &mut Application) -> Result {
 }
 
 pub fn close(app: &mut Application) -> Result {
-    // Clean up view-related data for the buffer.
-    app.view.forget_buffer(
-        app.workspace.current_buffer().ok_or(BUFFER_MISSING)?
-    );
-    app.workspace.close_current_buffer();
+    // Build confirmation check conditions.
+    let (unmodified, empty) =
+        if let Some(buf) = app.workspace.current_buffer() {
+            (!buf.modified(), buf.data().is_empty())
+        } else {
+            bail!(BUFFER_MISSING);
+        };
+    let confirm_mode =
+        if let Mode::Confirm(_) = app.mode {
+            true
+        } else {
+            false
+        };
+
+    if unmodified || empty || confirm_mode {
+        // Clean up view-related data for the buffer.
+        app.view.forget_buffer(
+            app.workspace.current_buffer().ok_or(BUFFER_MISSING)?
+        );
+        app.workspace.close_current_buffer();
+    } else {
+        // Display a confirmation prompt before closing a modified buffer.
+        let confirm_mode = ConfirmMode::new(close);
+        app.mode = Mode::Confirm(confirm_mode);
+    }
 
     Ok(())
 }
@@ -627,9 +648,10 @@ pub fn insert_tab(app: &mut Application) -> Result {
 #[cfg(test)]
 mod tests {
     use commands;
-    use models::application::ClipboardContent;
+    use models::application::{ClipboardContent, Mode};
     use scribe::Buffer;
     use scribe::buffer::Position;
+    use std::path::Path;
 
     #[test]
     fn insert_newline_uses_current_line_indentation() {
@@ -1340,6 +1362,55 @@ mod tests {
                    "amp\neditor");
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
                    original_position);
+    }
+
+    #[test]
+    fn close_displays_confirmation_when_buffer_is_modified() {
+        let mut app = ::models::Application::new().unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("data");
+
+        // Now that we've set up the buffer, add
+        // it to the application and run the command.
+        app.workspace.add_buffer(buffer);
+        commands::buffer::close(&mut app);
+
+        if let Mode::Confirm(_) = app.mode {
+        } else {
+            panic!("Not in confirm mode");
+        }
+    }
+
+    #[test]
+    fn close_skips_confirmation_when_buffer_is_empty() {
+        let mut app = ::models::Application::new().unwrap();
+        let mut buffer = Buffer::new();
+
+        // Empty the workspace.
+        app.workspace.close_current_buffer();
+
+        // Now that we've set up the buffer, add
+        // it to the application and run the command.
+        app.workspace.add_buffer(buffer);
+        commands::buffer::close(&mut app);
+
+        assert!(app.workspace.current_buffer().is_none());
+    }
+
+    #[test]
+    fn close_skips_confirmation_when_buffer_is_unmodified() {
+        let mut app = ::models::Application::new().unwrap();
+        let mut buffer = Buffer::from_file(Path::new("LICENSE")).unwrap();
+
+        // Empty the workspace.
+        app.workspace.close_current_buffer();
+
+        // Now that we've set up the buffer, add
+        // it to the application and run the command.
+        app.workspace.add_buffer(buffer);
+        commands::buffer::close(&mut app);
+
+        assert!(app.workspace.current_buffer().is_none());
     }
 
     #[test]
