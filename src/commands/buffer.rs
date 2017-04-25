@@ -160,6 +160,7 @@ pub fn close(app: &mut Application) -> Result {
 pub fn close_others(app: &mut Application) -> Result {
     // Get the current buffer's ID so we know what *not* to close.
     let id = app.workspace.current_buffer().map(|b| b.id).ok_or(BUFFER_MISSING)?;
+    let mut modified_buffer = false;
 
     loop {
         // Try to advance to the next buffer. Handles two important states:
@@ -180,15 +181,34 @@ pub fn close_others(app: &mut Application) -> Result {
             if buf.id == id {
                 // We've only got one buffer open; we're done.
                 break;
+            } else if buf.modified() && !buf.data().is_empty() {
+                modified_buffer = true;
             } else {
                 app.view.forget_buffer(buf);
             }
+        }
+
+        if modified_buffer {
+            // Display a confirmation prompt before closing a modified buffer.
+            let confirm_mode = ConfirmMode::new(close_others_confirm);
+            app.mode = Mode::Confirm(confirm_mode);
+            break;
         }
 
         // We haven't broken from the loop, so we're not back
         // at the original buffer; close the current buffer.
         app.workspace.close_current_buffer();
     }
+
+    Ok(())
+}
+
+pub fn close_others_confirm(app: &mut Application) -> Result {
+    if let Some(buf) = app.workspace.current_buffer() {
+        app.view.forget_buffer(buf);
+    }
+    app.workspace.close_current_buffer();
+    commands::application::switch_to_normal_mode(app)?;
 
     Ok(())
 }
@@ -1414,14 +1434,15 @@ mod tests {
     }
 
     #[test]
-    fn close_others_works_when_current_buffer_is_last() {
+    fn close_others_skips_confirmation_when_all_other_buffers_are_empty_or_unmodified() {
         let mut app = ::models::Application::new().unwrap();
         let mut buffer_1 = Buffer::new();
-        let mut buffer_2 = Buffer::new();
+        let mut buffer_2 = Buffer::from_file(Path::new("LICENSE")).unwrap();
         let mut buffer_3 = Buffer::new();
-        buffer_1.insert("one");
-        buffer_2.insert("two");
         buffer_3.insert("three");
+
+        // Empty the workspace.
+        app.workspace.close_current_buffer();
 
         // Now that we've set up the buffers, add
         // them to the application and run the command.
@@ -1436,14 +1457,67 @@ mod tests {
     }
 
     #[test]
+    fn close_others_displays_confirmation_before_closing_modified_buffer() {
+        let mut app = ::models::Application::new().unwrap();
+        let mut buffer = Buffer::new();
+        let mut modified_buffer = Buffer::new();
+        modified_buffer.insert("data");
+
+        // Empty the workspace.
+        app.workspace.close_current_buffer();
+
+        // Now that we've set up the buffers, add
+        // them to the application and run the command.
+        app.workspace.add_buffer(modified_buffer);
+        app.workspace.add_buffer(buffer);
+        commands::buffer::close_others(&mut app);
+
+        if let Mode::Confirm(_) = app.mode {
+        } else {
+            panic!("Not in confirm mode");
+        }
+
+        // Confirm the command.
+        commands::confirm::confirm_command(&mut app);
+
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "");
+        app.workspace.next_buffer();
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "");
+    }
+
+    #[test]
+    fn close_others_works_when_current_buffer_is_last() {
+        let mut app = ::models::Application::new().unwrap();
+        let mut buffer_1 = Buffer::new();
+        let mut buffer_2 = Buffer::new();
+        let mut buffer_3 = Buffer::new();
+        buffer_1.insert(""); // Empty to prevent close confirmation.
+        buffer_2.insert(""); // Empty to prevent close confirmation.
+        buffer_3.insert("three");
+
+        // Now that we've set up the buffers, add
+        // them to the application and run the command.
+        app.workspace.add_buffer(buffer_1);
+        app.workspace.add_buffer(buffer_2);
+        app.workspace.add_buffer(buffer_3);
+
+        // Run the command twice, to
+        commands::buffer::close_others(&mut app);
+
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "three");
+        app.workspace.next_buffer();
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "three");
+    }
+
+    #[test]
     fn close_others_works_when_current_buffer_is_not_last() {
         let mut app = ::models::Application::new().unwrap();
         let mut buffer_1 = Buffer::new();
         let mut buffer_2 = Buffer::new();
         let mut buffer_3 = Buffer::new();
-        buffer_1.insert("one");
+        buffer_1.insert("");    // Empty to prevent close confirmation.
         buffer_2.insert("two");
-        buffer_3.insert("three");
+        buffer_3.insert("");    // Empty to prevent close confirmation.
 
         // Now that we've set up the buffers, add
         // them to the application and run the command.
