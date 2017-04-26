@@ -1,10 +1,11 @@
 use std::fmt::Display;
 use std::slice::Iter;
 
+const MAX_RESULTS: usize = 5;
+
 /// This trait will become vastly simpler if/when fields are added to traits.
 /// See: https://github.com/rust-lang/rfcs/pull/1546
 pub trait SearchSelectMode<T: Display> {
-    const MAX_RESULTS: usize = 5;
 
     fn query(&mut self) -> &mut String;
     fn search(&mut self);
