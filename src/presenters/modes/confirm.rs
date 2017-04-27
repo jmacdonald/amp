@@ -15,8 +15,8 @@ pub fn display(workspace: &mut Workspace, view: &mut View) {
     view.draw_status_line(&vec![
         StatusLineData {
             content: confirmation,
-            style: Style::Default,
-            colors: Colors::Focused,
+            style: Style::Bold,
+            colors: Colors::Warning,
         }
     ]);
 
