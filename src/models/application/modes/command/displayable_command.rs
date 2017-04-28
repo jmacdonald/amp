@@ -4,7 +4,7 @@ use commands::Command;
 // Utility type to make an Amp command function presentable (via the
 // Display trait), which is required for any type used in search/select mode.
 pub struct DisplayableCommand {
-    pub description: String,
+    pub description: &'static str,
     pub command: Command,
 }
 

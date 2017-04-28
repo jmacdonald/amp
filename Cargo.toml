@@ -4,6 +4,9 @@ name = "amp"
 version = "0.2.0"
 authors = ["Jordan MacDonald <jordan@wastedintelligence.com>"]
 
+[build-dependencies]
+syntex_syntax = "0.58.1"
+
 [dependencies]
 scribe = "0.5.4"
 pad = "0.1.4"

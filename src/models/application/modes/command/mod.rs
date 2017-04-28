@@ -6,13 +6,13 @@ use std::collections::HashMap;
 use std::fmt;
 use std::slice::Iter;
 use models::application::modes::SearchSelectMode;
-use commands::{self, Command};
+use commands::*;
 pub use self::displayable_command::DisplayableCommand;
 
 pub struct CommandMode {
     insert: bool,
     input: String,
-    commands: HashMap<String, Command>,
+    commands: HashMap<&'static str, Command>,
     results: SelectableSet<DisplayableCommand>,
 }
 
@@ -20,20 +20,16 @@ impl CommandMode {
     pub const MAX_RESULTS: usize = 5;
 
     pub fn new() -> CommandMode {
-        let commands = CommandMode::generate_commands();
-
         CommandMode {
             insert: true,
             input: String::new(),
-            commands: commands,
+            commands: CommandMode::generate_commands(),
             results: SelectableSet::new(Vec::new()),
         }
     }
 
-    fn generate_commands() -> HashMap<String, Command> {
-        let mut commands: HashMap<String, Command> = HashMap::new();
-        commands.insert(String::from("Close current buffer"), commands::buffer::close);
-        commands
+    fn generate_commands() -> HashMap<&'static str, Command> {
+        include!("generated_commands")
     }
 }
 
@@ -55,7 +51,7 @@ impl SearchSelectMode<DisplayableCommand> for CommandMode {
             .filter_map(|result| {
                 self.commands.get(*result).map(|command| {
                     DisplayableCommand{
-                      description: result.clone(),
+                      description: *result,
                       command: *command
                     }
                 })
