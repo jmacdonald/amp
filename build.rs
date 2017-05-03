@@ -10,12 +10,23 @@ use syntax::ast::{ItemKind, Visibility};
 use syntax::symbol::Symbol;
 
 fn main() {
+    generate_commands();
+}
+
+/// This build task generates a Rust snippet which, when included later on in
+/// build process, adds logic to construct a HashMap<String, Command> for all
+/// public commands declared in the commands module. This facilitates runtime
+/// command referencing via string, which is required for command mode, as well
+/// as user-defined keymaps.
+fn generate_commands() {
+    // Create the output file and write the opening lines.
     let current_dir = env::current_dir().expect("Couldn't get the current directory");
     let mut output = File::create("src/models/application/modes/command/generated_commands")
         .expect("Couldn't create output file");
-    output.write("{\nlet mut commands: HashMap<&'static str, Command> = HashMap::new();\n"
+    output.write("{\n    let mut commands: HashMap<&'static str, Command> = HashMap::new();\n"
                      .as_bytes());
 
+    // Parse the crate and get a reference to the command module.
     let session = ParseSess::new();
     let parsed_crate =
         parse_crate_from_file(&current_dir.join("src/lib.rs"), &session)
@@ -28,13 +39,15 @@ fn main() {
         .expect("Couldn't find command module")
         .node;
 
+    // Locate any public methods under the command module
+    // and generate String => Command map entries for them.
     if let &ItemKind::Mod(ref module) = command_module {
         for module_item in module.items.iter() {
             if let ItemKind::Mod(ref submodule) = module_item.node {
                 for submodule_item in submodule.items.iter() {
                     if submodule_item.node.descriptive_variant() == "function" &&
                        submodule_item.vis == Visibility::Public {
-                        output.write(format!("commands.insert(\"{}::{}\", {}::{});\n",
+                        output.write(format!("    commands.insert(\"{}::{}\", {}::{});\n",
                                              module_item.ident.name.as_str(),
                                              submodule_item.ident.name.as_str(),
                                              module_item.ident.name.as_str(),
@@ -46,5 +59,6 @@ fn main() {
         }
     }
 
-    output.write("commands\n}\n".as_bytes());
+    // Finalize the output file.
+    output.write("    commands\n}\n".as_bytes());
 }
