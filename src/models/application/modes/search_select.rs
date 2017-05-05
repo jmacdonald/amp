@@ -59,7 +59,7 @@ mod tests {
 
         fn search(&mut self) { }
         fn insert_mode(&self) -> bool { false }
-        fn set_insert_mode(&mut self, insert_mode: bool) { }
+        fn set_insert_mode(&mut self, _: bool) { }
         fn results(&self) -> Iter<String> { self.results.iter() }
         fn selection(&self) -> Option<&String> { Some(&self.selection) }
         fn selected_index(&self) -> usize { 0 }

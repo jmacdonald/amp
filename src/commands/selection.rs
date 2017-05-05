@@ -100,7 +100,7 @@ mod tests {
 
     #[test]
     fn select_all_selects_the_entire_buffer() {
-        let mut app = ::models::Application::new().unwrap();
+        let mut app = Application::new().unwrap();
         let mut buffer = Buffer::new();
 
         // Insert data with indentation and move to the end of the line.

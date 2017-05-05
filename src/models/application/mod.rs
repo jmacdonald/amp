@@ -16,7 +16,6 @@ use scribe::{Buffer, Workspace};
 use view::{self, StatusLineData, View};
 use self::clipboard::Clipboard;
 use git2::Repository;
-use models::application::modes::SearchSelectMode;
 
 pub enum Mode {
     Confirm(ConfirmMode),

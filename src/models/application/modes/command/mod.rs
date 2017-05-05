@@ -3,7 +3,6 @@ mod displayable_command;
 use fragment;
 use helpers::SelectableSet;
 use std::collections::HashMap;
-use std::fmt;
 use std::slice::Iter;
 use models::application::modes::SearchSelectMode;
 use commands::*;
@@ -36,7 +35,7 @@ impl CommandMode {
 impl SearchSelectMode<DisplayableCommand> for CommandMode {
     fn search(&mut self) {
         // Find the commands we're looking for using the query.
-        let mut results = fragment::matching::find(
+        let results = fragment::matching::find(
             &self.input,
             &self.commands.keys().collect(),
             CommandMode::MAX_RESULTS,

@@ -1,11 +1,9 @@
 use errors::*;
 use commands::{self, Result};
 use std::mem;
-use std::path::PathBuf;
 use models::application::modes::open::DisplayablePath;
 use models::application::{Application, Mode};
 use models::application::modes::SearchSelectMode;
-use std::fmt::Display;
 use view;
 
 pub fn accept(app: &mut Application) -> Result {
