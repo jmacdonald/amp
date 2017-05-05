@@ -22,6 +22,4 @@ termion = { git = "https://github.com/jmacdonald/termion", branch = "esc" }
 error-chain = "0.7.1"
 preferences = "1.1.0"
 unicode-segmentation = "1.0.1"
-
-[dependencies.clipboard]
-git = "https://github.com/aweinstock314/rust-clipboard.git"
+clipboard = "0.3.0"

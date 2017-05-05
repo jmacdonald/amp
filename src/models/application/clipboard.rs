@@ -1,10 +1,4 @@
-extern crate clipboard;
-
-use self::clipboard::ClipboardContext;
-
-// Linux imports for xclip support.
-use std::process::{Command, Stdio};
-use std::io::Write;
+use clipboard::{ClipboardContext, ClipboardProvider};
 
 /// In-app content can be captured in both regular and full-line selection
 /// modes. This type describes the structure of said content, based on the
@@ -29,7 +23,7 @@ pub struct Clipboard {
 impl Clipboard {
     pub fn new() -> Clipboard {
         // Initialize and keep a reference to the system clipboard.
-        let system_clipboard = match ClipboardContext::new() {
+        let system_clipboard = match ClipboardProvider::new() {
             Ok(clipboard) => Some(clipboard),
             Err(_) => None,
         };
@@ -46,7 +40,7 @@ impl Clipboard {
     pub fn get_content(&mut self) -> &ClipboardContent {
         // Check the system clipboard for newer content.
         let new_content = match self.system_clipboard {
-            Some(ref clipboard) => {
+            Some(ref mut clipboard) => {
                 match clipboard.get_contents() {
                     Ok(content) => {
                         if content.is_empty() {
@@ -93,37 +87,10 @@ impl Clipboard {
             ClipboardContent::Inline(ref app_content) |
             ClipboardContent::Block(ref app_content) => {
                 if let Some(ref mut clipboard) = self.system_clipboard {
-                    set_system_clipboard(clipboard, app_content);
+                    clipboard.set_contents(app_content.clone());
                 }
             }
             _ => (),
         }
     }
-}
-
-#[cfg(not(target_os="linux"))]
-fn set_system_clipboard(clipboard: &mut ClipboardContext, content: &str) {
-    clipboard.set_contents(content.to_string());
-}
-
-// FIXME: Fix rust-clipboard crate so that this is unnecessary.
-#[cfg(target_os="linux")]
-fn set_system_clipboard(_: &mut ClipboardContext, content: &str) {
-    // Spawn xclip process.
-    let mut process = Command::new("xclip")
-        .stdin(Stdio::piped())
-        .arg("-selection")
-        .arg("clipboard")
-        .spawn()
-        .unwrap();
-
-    // Send clipboard data.
-    process
-        .stdin
-        .as_mut()
-        .map(|s| {
-            s.write_all(
-                content.as_bytes()
-            )
-        });
 }

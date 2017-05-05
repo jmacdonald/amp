@@ -14,6 +14,7 @@ extern crate scribe;
 extern crate syntect;
 extern crate preferences;
 extern crate unicode_segmentation;
+extern crate clipboard;
 
 #[macro_use]
 extern crate error_chain;
