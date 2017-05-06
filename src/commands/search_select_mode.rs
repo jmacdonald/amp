@@ -31,10 +31,6 @@ pub fn accept(app: &mut Application) -> Result {
         Mode::Theme(ref mut mode) => {
             let theme_key = mode.selection().ok_or("No theme selected")?;
             app.view.set_theme(&theme_key)?;
-
-            // Persist the theme selection in the app preferences.
-            app.preferences.insert(String::from(view::THEME_KEY), theme_key.clone());
-            app.preferences.save()?;
         },
         Mode::SymbolJump(ref mut mode) => {
             let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;

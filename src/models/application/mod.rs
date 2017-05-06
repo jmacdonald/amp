@@ -41,7 +41,6 @@ pub struct Application {
     pub clipboard: Clipboard,
     pub repository: Option<Repository>,
     pub error: Option<Error>,
-    pub preferences: ApplicationPreferences,
 }
 
 impl Application {
@@ -86,8 +85,7 @@ impl Application {
             view: view,
             clipboard: clipboard,
             repository: Repository::discover(&current_dir).ok(),
-            error: None,
-            preferences: preferences,
+            error: None
         })
     }
 
