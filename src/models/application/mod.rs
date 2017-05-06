@@ -43,10 +43,17 @@ pub struct Application {
     pub error: Option<Error>,
 }
 
+const DEFAULT_THEME: &'static str = "solarized_dark";
+pub const THEME_KEY: &'static str = "theme";
+
 impl Application {
     pub fn new() -> Result<Application> {
         let current_dir = env::current_dir()?;
         let preferences = ApplicationPreferences::load()?;
+        let theme_name = preferences
+            .get(THEME_KEY)
+            .map(|t| t.clone())
+            .unwrap_or(String::from(DEFAULT_THEME));
 
         // Set up a workspace in the current directory.
         let mut workspace = Workspace::new(&current_dir)?;
@@ -75,7 +82,7 @@ impl Application {
             workspace.add_buffer(argument_buffer);
         }
 
-        let view = View::new(&preferences);
+        let view = View::new(&theme_name)?;
         let clipboard = Clipboard::new();
 
         Ok(Application {

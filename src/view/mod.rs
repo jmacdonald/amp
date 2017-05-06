@@ -31,9 +31,6 @@ use models::application::ApplicationPreferences;
 #[cfg(not(test))]
 use self::terminal::RustboxTerminal;
 
-const DEFAULT_THEME: &'static str = "solarized_dark";
-pub const THEME_KEY: &'static str = "theme";
-
 pub struct View {
     terminal: Rc<RefCell<Terminal>>,
     cursor_position: Option<Position>,
@@ -43,21 +40,21 @@ pub struct View {
 }
 
 impl View {
-    pub fn new(preferences: &ApplicationPreferences) -> View {
+    pub fn new(theme_name: &str) -> Result<View> {
         let terminal = build_terminal();
         let theme_set = build_theme_set();
-        let theme_name = preferences
-            .get(THEME_KEY)
-            .map(|t| t.clone())
-            .unwrap_or(String::from(DEFAULT_THEME));
+        let theme = theme_set.themes
+            .get(theme_name)
+            .ok_or(format!("Couldn't find \"{}\" theme", theme_name))?
+            .clone();
 
-        View {
+        Ok(View {
             terminal: terminal,
             cursor_position: None,
             scrollable_regions: HashMap::new(),
-            theme: theme_set.themes[&theme_name].clone(),
+            theme: theme,
             theme_set: theme_set,
-        }
+        })
     }
 
     pub fn set_theme(&mut self, theme_key: &str) -> Result<()> {
@@ -246,48 +243,6 @@ fn buffer_key(buffer: &Buffer) -> usize {
     buffer.id.unwrap_or(0)
 }
 
-#[cfg(test)]
-mod tests {
-    use scribe::Buffer;
-    use models::application::ApplicationPreferences;
-
-    #[test]
-    fn scroll_down_prevents_scrolling_completely_beyond_buffer() {
-        let preferences = ApplicationPreferences::new();
-        let mut view = super::View::new(&preferences);
-
-        // Build a 10-line buffer.
-        let mut buffer = Buffer::new();
-        buffer.insert("\n\n\n\n\n\n\n\n\n");
-
-        // Do an initial scroll to make sure it considers
-        // existing offset when determining maximum.
-        view.scroll_down(&buffer, 3);
-        assert_eq!(view.visible_region(&buffer).line_offset(), 3);
-
-        // Try to scroll completely beyond the buffer.
-        view.scroll_down(&buffer, 20);
-
-        // The view should limit the scroll to 50% of the screen height.
-        // The test environment uses a terminal height of 10.
-        assert_eq!(view.visible_region(&buffer).line_offset(), 5);
-    }
-
-    #[test]
-    fn scroll_down_prevents_scrolling_when_buffer_is_smaller_than_top_half() {
-        let preferences = ApplicationPreferences::new();
-        let mut view = super::View::new(&preferences);
-
-        // Build a 2-line buffer and try to scroll it.
-        let mut buffer = Buffer::new();
-        buffer.insert("\n");
-        view.scroll_down(&buffer, 20);
-
-        // The view should not be scrolled.
-        assert_eq!(view.visible_region(&buffer).line_offset(), 0);
-    }
-}
-
 fn build_theme_set() -> ThemeSet {
     let mut themes: BTreeMap<String, Theme> = BTreeMap::new();
     let built_in_themes = vec![
@@ -316,3 +271,56 @@ fn build_terminal() -> Rc<RefCell<Terminal>> {
     // Use a headless terminal if we're in test mode.
     Rc::new(RefCell::new(terminal::test_terminal::TestTerminal::new()))
 }
+
+#[cfg(test)]
+mod tests {
+    use scribe::Buffer;
+    use super::View;
+
+    #[test]
+    fn view_constructor_handles_unknown_theme_names() {
+        let result = View::new("unknown");
+        assert!(result.is_err());
+        if let Result::Err(error) = result {
+            assert_eq!(
+                error.description().to_string(),
+                "Couldn't find \"unknown\" theme"
+            );
+        }
+    }
+
+    #[test]
+    fn scroll_down_prevents_scrolling_completely_beyond_buffer() {
+        let mut view = View::new("solarized_dark").unwrap();
+
+        // Build a 10-line buffer.
+        let mut buffer = Buffer::new();
+        buffer.insert("\n\n\n\n\n\n\n\n\n");
+
+        // Do an initial scroll to make sure it considers
+        // existing offset when determining maximum.
+        view.scroll_down(&buffer, 3);
+        assert_eq!(view.visible_region(&buffer).line_offset(), 3);
+
+        // Try to scroll completely beyond the buffer.
+        view.scroll_down(&buffer, 20);
+
+        // The view should limit the scroll to 50% of the screen height.
+        // The test environment uses a terminal height of 10.
+        assert_eq!(view.visible_region(&buffer).line_offset(), 5);
+    }
+
+    #[test]
+    fn scroll_down_prevents_scrolling_when_buffer_is_smaller_than_top_half() {
+        let mut view = View::new("solarized_dark").unwrap();
+
+        // Build a 2-line buffer and try to scroll it.
+        let mut buffer = Buffer::new();
+        buffer.insert("\n");
+        view.scroll_down(&buffer, 20);
+
+        // The view should not be scrolled.
+        assert_eq!(view.visible_region(&buffer).line_offset(), 0);
+    }
+}
+
