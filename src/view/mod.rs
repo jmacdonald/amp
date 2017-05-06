@@ -57,10 +57,10 @@ impl View {
         })
     }
 
-    pub fn set_theme(&mut self, theme_key: &str) -> Result<()> {
+    pub fn set_theme(&mut self, theme_name: &str) -> Result<()> {
         self.theme = self.theme_set.themes
-            .get(theme_key)
-            .ok_or("Couldn't find the specified theme")?
+            .get(theme_name)
+            .ok_or(format!("Couldn't find \"{}\" theme", theme_name))?
             .clone();
 
         Ok(())
@@ -280,6 +280,21 @@ mod tests {
     #[test]
     fn view_constructor_handles_unknown_theme_names() {
         let result = View::new("unknown");
+
+        assert!(result.is_err());
+        if let Result::Err(error) = result {
+            assert_eq!(
+                error.description().to_string(),
+                "Couldn't find \"unknown\" theme"
+            );
+        }
+    }
+
+    #[test]
+    fn set_theme_handles_unknown_theme_names() {
+        let mut view = View::new("solarized_dark").unwrap();
+        let result = view.set_theme("unknown");
+
         assert!(result.is_err());
         if let Result::Err(error) = result {
             assert_eq!(
