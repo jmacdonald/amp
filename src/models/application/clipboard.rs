@@ -91,11 +91,11 @@ impl Clipboard {
                     return clipboard
                         .set_contents(app_content.clone())
                         .map_err(|_| Error::from("Failed to update system clipboard"));
-                } else {
-                    bail!("No system clipboard to push content to")
                 }
             }
-            _ => Ok(()),
+            _ => (),
         }
+
+        Ok(())
     }
 }
