@@ -50,7 +50,7 @@ pub fn accept(app: &mut Application) -> Result {
         _ => bail!("Can't accept selection outside of search select mode."),
     }
 
-    commands::view::scroll_cursor_to_center(app);
+    commands::view::scroll_cursor_to_center(app).ok();
 
     Ok(())
 }

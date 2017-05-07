@@ -14,7 +14,7 @@ pub use self::color::{Colors, RGBColor};
 use errors::*;
 use input::Key;
 use self::color::ColorMap;
-use self::terminal::{RustboxTerminal, Terminal};
+use self::terminal::Terminal;
 use self::buffer_renderer::BufferRenderer;
 use scribe::buffer::{Buffer, Position, Range};
 use pad::PadStr;
@@ -27,6 +27,9 @@ use std::fmt::Display;
 use self::scrollable_region::ScrollableRegion;
 use syntect::highlighting::{Theme, ThemeSet};
 use models::application::ApplicationPreferences;
+
+#[cfg(not(test))]
+use self::terminal::RustboxTerminal;
 
 const DEFAULT_THEME: &'static str = "solarized_dark";
 pub const THEME_KEY: &'static str = "theme";

@@ -1,3 +1,4 @@
+use errors::*;
 use clipboard::{ClipboardContext, ClipboardProvider};
 
 /// In-app content can be captured in both regular and full-line selection
@@ -78,7 +79,7 @@ impl Clipboard {
     }
 
     // Updates the in-app and system clipboards with the specified content.
-    pub fn set_content(&mut self, content: ClipboardContent) {
+    pub fn set_content(&mut self, content: ClipboardContent) -> Result<()> {
         // Update the in-app clipboard.
         self.content = content;
 
@@ -87,10 +88,14 @@ impl Clipboard {
             ClipboardContent::Inline(ref app_content) |
             ClipboardContent::Block(ref app_content) => {
                 if let Some(ref mut clipboard) = self.system_clipboard {
-                    clipboard.set_contents(app_content.clone());
+                    return clipboard
+                        .set_contents(app_content.clone())
+                        .map_err(|_| Error::from("Failed to update system clipboard"));
+                } else {
+                    bail!("No system clipboard to push content to")
                 }
             }
-            _ => (),
+            _ => Ok(()),
         }
     }
 }

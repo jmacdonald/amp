@@ -86,7 +86,7 @@ pub fn copy_remote_url(app: &mut Application) -> Result {
 
         app.clipboard.set_content(
             ClipboardContent::Inline(gh_url)
-        );
+        )?;
     } else {
         bail!("No repository available");
     }

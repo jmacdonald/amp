@@ -70,7 +70,7 @@ pub fn move_to_first_word_of_line(app: &mut Application) -> Result {
             .ok_or(CURRENT_LINE_MISSING)?;
 
         // Find the offset of the first non-whitespace character.
-        for (offset, character) in current_line.chars().enumerate() {
+        let all_blank = current_line.chars().enumerate().all(|(offset, character)| {
             if !character.is_whitespace() {
                 // Move the cursor to this position.
                 let new_cursor_position = Position {
@@ -79,15 +79,19 @@ pub fn move_to_first_word_of_line(app: &mut Application) -> Result {
                 };
                 buffer.cursor.move_to(new_cursor_position);
 
-                // Stop enumerating; we've done the job.
-                return Ok(());
+                false
+            } else {
+                true
             }
-        }
+        });
 
-        bail!("No characters on the current line");
+        if all_blank {
+            bail!("No characters on the current line");
+        }
     } else {
         bail!(BUFFER_MISSING);
     }
+
     commands::view::scroll_to_cursor(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)
 }
 
@@ -215,7 +219,7 @@ mod tests {
         app.workspace.current_buffer().unwrap().cursor.move_to(position);
 
         // Call the command.
-        super::move_to_first_word_of_line(&mut app);
+        super::move_to_first_word_of_line(&mut app).ok();
 
         // Ensure that the cursor is moved to the start of the first word.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
@@ -237,7 +241,7 @@ mod tests {
         });
 
         // Call the command.
-        super::move_to_start_of_previous_token(&mut app);
+        super::move_to_start_of_previous_token(&mut app).ok();
 
         // Ensure that the cursor is moved to the start of the previous word.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
@@ -259,7 +263,7 @@ mod tests {
         });
 
         // Call the command.
-        super::move_to_start_of_previous_token(&mut app);
+        super::move_to_start_of_previous_token(&mut app).ok();
 
         // Ensure that the cursor is moved to the start of the previous word.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
@@ -281,7 +285,7 @@ mod tests {
         });
 
         // Call the command.
-        super::move_to_start_of_next_token(&mut app);
+        super::move_to_start_of_next_token(&mut app).ok();
 
         // Ensure that the cursor is moved to the start of the next word.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
@@ -303,7 +307,7 @@ mod tests {
         });
 
         // Call the command.
-        super::move_to_end_of_current_token(&mut app);
+        super::move_to_end_of_current_token(&mut app).ok();
 
         // Ensure that the cursor is moved to the end of the current word.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
@@ -325,7 +329,7 @@ mod tests {
         });
 
         // Call the command.
-        super::append_to_current_token(&mut app);
+        super::append_to_current_token(&mut app).ok();
 
         // Ensure that the cursor is moved to the end of the current word.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,

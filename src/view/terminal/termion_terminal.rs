@@ -23,6 +23,8 @@ pub struct TermionTerminal {
 }
 
 impl TermionTerminal {
+
+    #[allow(dead_code)]
     pub fn new() -> TermionTerminal {
         TermionTerminal {
             input: Some(stdin().keys()),

@@ -71,7 +71,7 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
 
             let data = buffer.read(&selected_range.clone())
                 .ok_or("Couldn't read selected data from buffer")?;
-            app.clipboard.set_content(ClipboardContent::Inline(data));
+            app.clipboard.set_content(ClipboardContent::Inline(data))?;
         }
         Mode::SelectLine(ref mode) => {
             let selected_range = helpers::inclusive_range(
@@ -85,7 +85,7 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
 
             let data = buffer.read(&selected_range.clone())
                 .ok_or("Couldn't read selected data from buffer")?;
-            app.clipboard.set_content(ClipboardContent::Block(data));
+            app.clipboard.set_content(ClipboardContent::Block(data))?;
         }
         _ => bail!("Can't copy data to clipboard outside of select modes"),
     };
@@ -93,6 +93,7 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
     Ok(())
 }
 
+#[cfg(test)]
 mod tests {
     use models::application::{Application, Mode};
     use scribe::Buffer;
@@ -114,7 +115,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
-        super::select_all(&mut app);
+        super::select_all(&mut app).ok();
 
         // Ensure that the application is in select line mode,
         // and that its anchor position is on the first line

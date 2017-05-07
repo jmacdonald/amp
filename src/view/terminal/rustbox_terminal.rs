@@ -13,12 +13,14 @@ use view::color::RGBColor;
 /// The terminal type acts as a shim layer on top of Rustbox.
 /// It also enables headless testing; initialization and render calls
 /// are discarded and dimension queries are stubbed with static values.
+#[cfg_attr(test, allow(dead_code))]
 pub struct RustboxTerminal {
     rustbox: Option<RustBox>,
     cursor: Option<Position>,
 }
 
 impl RustboxTerminal {
+    #[cfg(not(test))]
     pub fn new() -> RustboxTerminal {
         RustboxTerminal {
             rustbox: Some(create_rustbox_instance()),
