@@ -66,12 +66,12 @@ mod tests {
         // Now that we've set up the buffer, add it to the application,
         // switch to line jump mode, set the line input, and run the command.
         app.workspace.add_buffer(buffer);
-        commands::application::switch_to_line_jump_mode(&mut app).ok();
+        commands::application::switch_to_line_jump_mode(&mut app).unwrap();
         match app.mode {
             Mode::LineJump(ref mut mode) => mode.input = "3".to_string(),
             _ => (),
         };
-        commands::line_jump::accept_input(&mut app).ok();
+        commands::line_jump::accept_input(&mut app).unwrap();
 
         // Ensure that the cursor is in the right place.
         // NOTE: We look for a decremented version of the input line number
@@ -102,12 +102,12 @@ mod tests {
         // Now that we've set up the buffer, add it to the application,
         // switch to line jump mode, set the line input, and run the command.
         app.workspace.add_buffer(buffer);
-        commands::application::switch_to_line_jump_mode(&mut app).ok();
+        commands::application::switch_to_line_jump_mode(&mut app).unwrap();
         match app.mode {
             Mode::LineJump(ref mut mode) => mode.input = "3".to_string(),
             _ => (),
         };
-        commands::line_jump::accept_input(&mut app).ok();
+        commands::line_jump::accept_input(&mut app).unwrap();
 
         // Ensure that the cursor is in the right place.
         // NOTE: We look for a decremented version of the input line number
@@ -134,12 +134,12 @@ mod tests {
         // Now that we've set up the buffer, add it to the application,
         // switch to line jump mode, set the line input, and run the command.
         app.workspace.add_buffer(buffer);
-        commands::application::switch_to_line_jump_mode(&mut app).ok();
+        commands::application::switch_to_line_jump_mode(&mut app).unwrap();
         match app.mode {
             Mode::LineJump(ref mut mode) => mode.input = "0".to_string(),
             _ => (),
         };
-        commands::line_jump::accept_input(&mut app).ok();
+        commands::line_jump::accept_input(&mut app).unwrap();
 
         // Ensure that the cursor is in the right place.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,

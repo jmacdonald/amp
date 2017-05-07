@@ -689,7 +689,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
-        super::insert_newline(&mut app).ok();
+        super::insert_newline(&mut app).unwrap();
 
         // Ensure that the whitespace is inserted.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -722,7 +722,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
-        super::change_rest_of_line(&mut app).ok();
+        super::change_rest_of_line(&mut app).unwrap();
 
         // Ensure that the content is removed.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -750,7 +750,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
-        super::delete_token(&mut app).ok();
+        super::delete_token(&mut app).unwrap();
 
         // Ensure that the content is removed.
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "editor");
@@ -765,7 +765,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
-        super::delete_token(&mut app).ok();
+        super::delete_token(&mut app).unwrap();
 
         // Ensure that the content is removed.
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "\neditor");
@@ -787,7 +787,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
-        super::delete_current_line(&mut app).ok();
+        super::delete_current_line(&mut app).unwrap();
 
         // Ensure that the content is removed.
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "editor");
@@ -806,7 +806,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
-        super::indent_line(&mut app).ok();
+        super::indent_line(&mut app).unwrap();
 
         // Ensure that the content is inserted correctly.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -822,9 +822,9 @@ mod tests {
         // Now that we've set up the buffer, add it to the
         // application, select all lines, and call the command.
         app.workspace.add_buffer(buffer);
-        commands::application::switch_to_select_line_mode(&mut app).ok();
-        commands::cursor::move_down(&mut app).ok();
-        super::indent_line(&mut app).ok();
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+        commands::cursor::move_down(&mut app).unwrap();
+        super::indent_line(&mut app).unwrap();
 
         // Ensure that the content is inserted correctly.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -844,8 +844,8 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
-        commands::application::switch_to_insert_mode(&mut app).ok();
-        super::indent_line(&mut app).ok();
+        commands::application::switch_to_insert_mode(&mut app).unwrap();
+        super::indent_line(&mut app).unwrap();
 
         // Ensure that the cursor is updated.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
@@ -868,7 +868,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
-        super::indent_line(&mut app).ok();
+        super::indent_line(&mut app).unwrap();
 
         // Ensure that the cursor is not updated.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
@@ -887,16 +887,16 @@ mod tests {
         // Now that we've set up the buffer, add it to the
         // application, select all lines, and call the command.
         app.workspace.add_buffer(buffer);
-        commands::application::switch_to_select_line_mode(&mut app).ok();
-        commands::cursor::move_down(&mut app).ok();
-        super::indent_line(&mut app).ok();
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+        commands::cursor::move_down(&mut app).unwrap();
+        super::indent_line(&mut app).unwrap();
 
         // Ensure that the indentation is applied correctly.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
                    "  amp\n    editor");
 
         // Undo the indent and check that it's treated as one operation.
-        super::undo(&mut app).ok();
+        super::undo(&mut app).unwrap();
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
                    "amp\n  editor");
     }
@@ -910,10 +910,10 @@ mod tests {
         // Now that we've set up the buffer, add it to the
         // application, select all lines, and call the command.
         app.workspace.add_buffer(buffer);
-        commands::cursor::move_down(&mut app).ok();
-        commands::application::switch_to_select_line_mode(&mut app).ok();
-        commands::cursor::move_up(&mut app).ok();
-        super::indent_line(&mut app).ok();
+        commands::cursor::move_down(&mut app).unwrap();
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+        commands::cursor::move_up(&mut app).unwrap();
+        super::indent_line(&mut app).unwrap();
 
         // Ensure that the indentation is applied correctly.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -933,7 +933,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
-        super::outdent_line(&mut app).ok();
+        super::outdent_line(&mut app).unwrap();
 
         // Ensure that the content is removed.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -961,7 +961,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
-        super::outdent_line(&mut app).ok();
+        super::outdent_line(&mut app).unwrap();
 
         // Ensure that the content is inserted correctly.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -979,7 +979,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
-        super::outdent_line(&mut app).ok();
+        super::outdent_line(&mut app).unwrap();
 
         // Ensure that the content is inserted correctly.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -995,9 +995,9 @@ mod tests {
         // Now that we've set up the buffer, add it to the
         // application, select all lines, and call the command.
         app.workspace.add_buffer(buffer);
-        commands::application::switch_to_select_line_mode(&mut app).ok();
-        commands::cursor::move_down(&mut app).ok();
-        super::outdent_line(&mut app).ok();
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+        commands::cursor::move_down(&mut app).unwrap();
+        super::outdent_line(&mut app).unwrap();
 
         // Ensure that the content is inserted correctly.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -1013,16 +1013,16 @@ mod tests {
         // Now that we've set up the buffer, add it to the
         // application, select all lines, and call the command.
         app.workspace.add_buffer(buffer);
-        commands::application::switch_to_select_line_mode(&mut app).ok();
-        commands::cursor::move_down(&mut app).ok();
-        super::outdent_line(&mut app).ok();
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+        commands::cursor::move_down(&mut app).unwrap();
+        super::outdent_line(&mut app).unwrap();
 
         // Ensure that the indentation is applied correctly.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
                    "amp\neditor");
 
         // Undo the outdent and check that it's treated as one operation.
-        super::undo(&mut app).ok();
+        super::undo(&mut app).unwrap();
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
                    "  amp\n  editor");
     }
@@ -1036,10 +1036,10 @@ mod tests {
         // Now that we've set up the buffer, add it to the
         // application, select all lines, and call the command.
         app.workspace.add_buffer(buffer);
-        commands::cursor::move_down(&mut app).ok();
-        commands::application::switch_to_select_line_mode(&mut app).ok();
-        commands::cursor::move_up(&mut app).ok();
-        super::outdent_line(&mut app).ok();
+        commands::cursor::move_down(&mut app).unwrap();
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+        commands::cursor::move_up(&mut app).unwrap();
+        super::outdent_line(&mut app).unwrap();
 
         // Ensure that the indentation is applied correctly.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -1055,7 +1055,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
-        super::remove_trailing_whitespace(&mut app).ok();
+        super::remove_trailing_whitespace(&mut app).unwrap();
 
         // Ensure that trailing whitespace is removed.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -1088,10 +1088,10 @@ mod tests {
         // to the application, copy the first line to
         // the buffer, and then paste the clipboard contents.
         app.workspace.add_buffer(buffer);
-        commands::application::switch_to_select_mode(&mut app).ok();
-        commands::cursor::move_right(&mut app).ok();
-        commands::selection::copy(&mut app).ok();
-        commands::buffer::paste(&mut app).ok();
+        commands::application::switch_to_select_mode(&mut app).unwrap();
+        commands::cursor::move_right(&mut app).unwrap();
+        commands::selection::copy(&mut app).unwrap();
+        commands::buffer::paste(&mut app).unwrap();
 
         // Ensure that the clipboard contents are pasted to the line below.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -1112,9 +1112,9 @@ mod tests {
         // to the application, copy the first line to
         // the buffer, and then paste the clipboard contents.
         app.workspace.add_buffer(buffer);
-        commands::application::switch_to_select_line_mode(&mut app).ok();
-        commands::selection::copy(&mut app).ok();
-        commands::buffer::paste(&mut app).ok();
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+        commands::selection::copy(&mut app).unwrap();
+        commands::buffer::paste(&mut app).unwrap();
 
         // Ensure that the clipboard contents are pasted to the line below.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -1135,10 +1135,10 @@ mod tests {
         // to the application, copy the first line to
         // the buffer, and then paste it at the end of the buffer.
         app.workspace.add_buffer(buffer);
-        commands::application::switch_to_select_line_mode(&mut app).ok();
-        commands::selection::copy(&mut app).ok();
-        commands::cursor::move_down(&mut app).ok();
-        commands::buffer::paste(&mut app).ok();
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+        commands::selection::copy(&mut app).unwrap();
+        commands::cursor::move_down(&mut app).unwrap();
+        commands::buffer::paste(&mut app).unwrap();
 
         // Ensure that the clipboard contents are pasted to the line below.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -1159,11 +1159,11 @@ mod tests {
         // to the application, copy the first line to
         // the buffer, and then paste it at the end of the buffer.
         app.workspace.add_buffer(buffer);
-        commands::application::switch_to_select_line_mode(&mut app).ok();
-        commands::selection::copy(&mut app).ok();
-        commands::cursor::move_down(&mut app).ok();
-        commands::cursor::move_down(&mut app).ok();
-        commands::buffer::paste(&mut app).ok();
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+        commands::selection::copy(&mut app).unwrap();
+        commands::cursor::move_down(&mut app).unwrap();
+        commands::cursor::move_down(&mut app).unwrap();
+        commands::buffer::paste(&mut app).unwrap();
 
         // Ensure that the clipboard contents are pasted to the line below.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -1183,7 +1183,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and run the command.
         app.workspace.add_buffer(buffer);
-        commands::buffer::backspace(&mut app).ok();
+        commands::buffer::backspace(&mut app).unwrap();
 
         // Ensure that the clipboard contents are pasted to the line below.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -1199,7 +1199,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and run the command.
         app.workspace.add_buffer(buffer);
-        commands::buffer::merge_next_line(&mut app).ok();
+        commands::buffer::merge_next_line(&mut app).unwrap();
 
         // Ensure that the lines are merged correctly.
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp editor");
@@ -1243,7 +1243,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and run the command.
         app.workspace.add_buffer(buffer);
-        commands::buffer::merge_next_line(&mut app).ok();
+        commands::buffer::merge_next_line(&mut app).unwrap();
 
         // Ensure that the lines are merged correctly.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -1263,7 +1263,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and run the command.
         app.workspace.add_buffer(buffer);
-        commands::buffer::merge_next_line(&mut app).ok();
+        commands::buffer::merge_next_line(&mut app).unwrap();
 
         // Ensure that the lines are merged correctly.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -1279,7 +1279,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and run the command.
         app.workspace.add_buffer(buffer);
-        commands::buffer::merge_next_line(&mut app).ok();
+        commands::buffer::merge_next_line(&mut app).unwrap();
 
         // Ensure that the lines are merged correctly.
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "amp editor");
@@ -1294,7 +1294,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and run the command.
         app.workspace.add_buffer(buffer);
-        commands::buffer::ensure_trailing_newline(&mut app).ok();
+        commands::buffer::ensure_trailing_newline(&mut app).unwrap();
 
         // Ensure that trailing newline is added.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -1310,7 +1310,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and run the command.
         app.workspace.add_buffer(buffer);
-        commands::buffer::ensure_trailing_newline(&mut app).ok();
+        commands::buffer::ensure_trailing_newline(&mut app).unwrap();
 
         // Ensure that trailing newline is added.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -1322,14 +1322,14 @@ mod tests {
         let mut app = ::models::Application::new().unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp");
-        app.clipboard.set_content(ClipboardContent::Inline("editor".to_string())).ok();
+        app.clipboard.set_content(ClipboardContent::Inline("editor".to_string())).unwrap();
 
         // Now that we've set up the buffer, add it to
         // the application, select its contents, and paste.
         app.workspace.add_buffer(buffer);
-        commands::application::switch_to_select_mode(&mut app).ok();
-        commands::cursor::move_to_end_of_line(&mut app).ok();
-        commands::buffer::paste(&mut app).ok();
+        commands::application::switch_to_select_mode(&mut app).unwrap();
+        commands::cursor::move_to_end_of_line(&mut app).unwrap();
+        commands::buffer::paste(&mut app).unwrap();
 
         // Ensure that the content is replaced
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "editor");
@@ -1344,13 +1344,13 @@ mod tests {
         let mut app = ::models::Application::new().unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
-        app.clipboard.set_content(ClipboardContent::Block("paste amp\n".to_string())).ok();
+        app.clipboard.set_content(ClipboardContent::Block("paste amp\n".to_string())).unwrap();
 
         // Now that we've set up the buffer, add it to
         // the application, select its contents, and paste.
         app.workspace.add_buffer(buffer);
-        commands::application::switch_to_select_line_mode(&mut app).ok();
-        commands::buffer::paste(&mut app).ok();
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+        commands::buffer::paste(&mut app).unwrap();
 
         // Ensure that the content is replaced
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
@@ -1371,12 +1371,12 @@ mod tests {
         };
         buffer.insert("editor");
         buffer.cursor.move_to(original_position.clone());
-        app.clipboard.set_content(ClipboardContent::Block("amp\n".to_string())).ok();
+        app.clipboard.set_content(ClipboardContent::Block("amp\n".to_string())).unwrap();
 
         // Now that we've set up the buffer,
         // add it to the application and paste.
         app.workspace.add_buffer(buffer);
-        commands::buffer::paste_above(&mut app).ok();
+        commands::buffer::paste_above(&mut app).unwrap();
 
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
                    "amp\neditor");
@@ -1393,7 +1393,7 @@ mod tests {
         // Now that we've set up the buffer, add
         // it to the application and run the command.
         app.workspace.add_buffer(buffer);
-        commands::buffer::close(&mut app).ok();
+        commands::buffer::close(&mut app).unwrap();
 
         if let Mode::Confirm(_) = app.mode {
         } else {
@@ -1412,7 +1412,7 @@ mod tests {
         // Now that we've set up the buffer, add
         // it to the application and run the command.
         app.workspace.add_buffer(buffer);
-        commands::buffer::close(&mut app).ok();
+        commands::buffer::close(&mut app).unwrap();
 
         assert!(app.workspace.current_buffer().is_none());
     }
@@ -1428,7 +1428,7 @@ mod tests {
         // Now that we've set up the buffer, add
         // it to the application and run the command.
         app.workspace.add_buffer(buffer);
-        commands::buffer::close(&mut app).ok();
+        commands::buffer::close(&mut app).unwrap();
 
         assert!(app.workspace.current_buffer().is_none());
     }
@@ -1449,7 +1449,7 @@ mod tests {
         app.workspace.add_buffer(buffer_1);
         app.workspace.add_buffer(buffer_2);
         app.workspace.add_buffer(buffer_3);
-        commands::buffer::close_others(&mut app).ok();
+        commands::buffer::close_others(&mut app).unwrap();
 
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "three");
         app.workspace.next_buffer();
@@ -1470,7 +1470,7 @@ mod tests {
         // them to the application and run the command.
         app.workspace.add_buffer(modified_buffer);
         app.workspace.add_buffer(buffer);
-        commands::buffer::close_others(&mut app).ok();
+        commands::buffer::close_others(&mut app).unwrap();
 
         if let Mode::Confirm(_) = app.mode {
         } else {
@@ -1478,7 +1478,7 @@ mod tests {
         }
 
         // Confirm the command.
-        commands::confirm::confirm_command(&mut app).ok();
+        commands::confirm::confirm_command(&mut app).unwrap();
 
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "");
         app.workspace.next_buffer();
@@ -1502,7 +1502,7 @@ mod tests {
         app.workspace.add_buffer(buffer_3);
 
         // Run the command twice, to
-        commands::buffer::close_others(&mut app).ok();
+        commands::buffer::close_others(&mut app).unwrap();
 
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "three");
         app.workspace.next_buffer();
@@ -1525,7 +1525,7 @@ mod tests {
         app.workspace.add_buffer(buffer_2);
         app.workspace.add_buffer(buffer_3);
         app.workspace.previous_buffer();
-        commands::buffer::close_others(&mut app).ok();
+        commands::buffer::close_others(&mut app).unwrap();
 
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "two");
         app.workspace.next_buffer();

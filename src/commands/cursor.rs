@@ -219,7 +219,7 @@ mod tests {
         app.workspace.current_buffer().unwrap().cursor.move_to(position);
 
         // Call the command.
-        super::move_to_first_word_of_line(&mut app).ok();
+        super::move_to_first_word_of_line(&mut app).unwrap();
 
         // Ensure that the cursor is moved to the start of the first word.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
@@ -241,7 +241,7 @@ mod tests {
         });
 
         // Call the command.
-        super::move_to_start_of_previous_token(&mut app).ok();
+        super::move_to_start_of_previous_token(&mut app).unwrap();
 
         // Ensure that the cursor is moved to the start of the previous word.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
@@ -263,7 +263,7 @@ mod tests {
         });
 
         // Call the command.
-        super::move_to_start_of_previous_token(&mut app).ok();
+        super::move_to_start_of_previous_token(&mut app).unwrap();
 
         // Ensure that the cursor is moved to the start of the previous word.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
@@ -285,7 +285,7 @@ mod tests {
         });
 
         // Call the command.
-        super::move_to_start_of_next_token(&mut app).ok();
+        super::move_to_start_of_next_token(&mut app).unwrap();
 
         // Ensure that the cursor is moved to the start of the next word.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
@@ -307,7 +307,7 @@ mod tests {
         });
 
         // Call the command.
-        super::move_to_end_of_current_token(&mut app).ok();
+        super::move_to_end_of_current_token(&mut app).unwrap();
 
         // Ensure that the cursor is moved to the end of the current word.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
@@ -329,7 +329,7 @@ mod tests {
         });
 
         // Call the command.
-        super::append_to_current_token(&mut app).ok();
+        super::append_to_current_token(&mut app).unwrap();
 
         // Ensure that the cursor is moved to the end of the current word.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,

@@ -115,7 +115,7 @@ mod tests {
         });
 
         // Reverse to the second result.
-        commands::search::move_to_previous_result(&mut app).ok();
+        commands::search::move_to_previous_result(&mut app).unwrap();
 
         // Ensure the buffer cursor is at the expected position.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
@@ -137,7 +137,7 @@ mod tests {
         app.search_query = Some("ed".to_string());
 
         // Reverse to the previous result, forcing the wrap.
-        commands::search::move_to_previous_result(&mut app).ok();
+        commands::search::move_to_previous_result(&mut app).unwrap();
 
         // Ensure the buffer cursor is at the expected position.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
@@ -159,7 +159,7 @@ mod tests {
         app.search_query = Some("ed".to_string());
 
         // Advance to the second result.
-        commands::search::move_to_next_result(&mut app).ok();
+        commands::search::move_to_next_result(&mut app).unwrap();
 
         // Ensure the buffer cursor is at the expected position.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
@@ -187,7 +187,7 @@ mod tests {
         });
 
         // Advance to the next result, forcing the wrap.
-        commands::search::move_to_next_result(&mut app).ok();
+        commands::search::move_to_next_result(&mut app).unwrap();
 
         // Ensure the buffer cursor is at the expected position.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
@@ -206,12 +206,12 @@ mod tests {
         app.workspace.add_buffer(buffer);
 
         // Enter search mode and add a search value.
-        commands::application::switch_to_search_insert_mode(&mut app).ok();
+        commands::application::switch_to_search_insert_mode(&mut app).unwrap();
         match app.mode {
             Mode::SearchInsert(ref mut mode) => mode.input = "ed".to_string(),
             _ => (),
         };
-        commands::search::accept_query(&mut app).ok();
+        commands::search::accept_query(&mut app).unwrap();
 
         // Ensure that we're in normal mode.
         assert!(match app.mode {

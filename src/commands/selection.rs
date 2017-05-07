@@ -115,7 +115,7 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
-        super::select_all(&mut app).ok();
+        super::select_all(&mut app).unwrap();
 
         // Ensure that the application is in select line mode,
         // and that its anchor position is on the first line
