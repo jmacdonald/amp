@@ -1,13 +1,10 @@
-#[macro_use]
 extern crate syntex_syntax as syntax;
 
 use std::env;
-use std::path::Path;
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::Write;
 use syntax::parse::{parse_crate_from_file, ParseSess};
 use syntax::ast::{ItemKind, Visibility};
-use syntax::symbol::Symbol;
 
 fn main() {
     generate_commands();
@@ -23,8 +20,10 @@ fn generate_commands() {
     let current_dir = env::current_dir().expect("Couldn't get the current directory");
     let mut output = File::create("src/models/application/modes/command/generated_commands")
         .expect("Couldn't create output file");
-    output.write("{\n    let mut commands: HashMap<&'static str, Command> = HashMap::new();\n"
-                     .as_bytes());
+    output
+        .write("{\n    let mut commands: HashMap<&'static str, Command> = HashMap::new();\n"
+                   .as_bytes())
+        .expect("Failed to write command hash init");
 
     // Parse the crate and get a reference to the command module.
     let session = ParseSess::new();
@@ -47,12 +46,14 @@ fn generate_commands() {
                 for submodule_item in submodule.items.iter() {
                     if submodule_item.node.descriptive_variant() == "function" &&
                        submodule_item.vis == Visibility::Public {
-                        output.write(format!("    commands.insert(\"{}::{}\", {}::{});\n",
-                                             module_item.ident.name.as_str(),
-                                             submodule_item.ident.name.as_str(),
-                                             module_item.ident.name.as_str(),
-                                             submodule_item.ident.name.as_str())
-                                             .as_bytes());
+                        output
+                            .write(format!("    commands.insert(\"{}::{}\", {}::{});\n",
+                                           module_item.ident.name.as_str(),
+                                           submodule_item.ident.name.as_str(),
+                                           module_item.ident.name.as_str(),
+                                           submodule_item.ident.name.as_str())
+                                           .as_bytes())
+                            .expect("Failed to write command");
                     }
                 }
             }
@@ -60,5 +61,7 @@ fn generate_commands() {
     }
 
     // Finalize the output file.
-    output.write("    commands\n}\n".as_bytes());
+    output
+        .write("    commands\n}\n".as_bytes())
+        .expect("Failed to write command hash return");
 }
