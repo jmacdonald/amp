@@ -4,7 +4,6 @@ use std::mem;
 use models::application::modes::open::DisplayablePath;
 use models::application::{Application, Mode};
 use models::application::modes::SearchSelectMode;
-use view;
 
 pub fn accept(app: &mut Application) -> Result {
     // Consume the application mode. This is necessary because the selection in

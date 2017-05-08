@@ -26,7 +26,6 @@ use std::cell::RefCell;
 use std::fmt::Display;
 use self::scrollable_region::ScrollableRegion;
 use syntect::highlighting::{Theme, ThemeSet};
-use models::application::ApplicationPreferences;
 
 #[cfg(not(test))]
 use self::terminal::RustboxTerminal;

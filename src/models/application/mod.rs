@@ -4,7 +4,7 @@ mod preferences;
 
 // Published API
 pub use self::clipboard::ClipboardContent;
-pub use self::preferences::ApplicationPreferences;
+pub use self::preferences::Preferences;
 
 use errors::*;
 use std::env;
@@ -43,17 +43,14 @@ pub struct Application {
     pub error: Option<Error>,
 }
 
-const DEFAULT_THEME: &'static str = "solarized_dark";
-pub const THEME_KEY: &'static str = "theme";
-
 impl Application {
     pub fn new() -> Result<Application> {
         let current_dir = env::current_dir()?;
-        let preferences = ApplicationPreferences::load()?;
-        let theme_name = preferences
-            .get(THEME_KEY)
-            .map(|t| t.clone())
-            .unwrap_or(String::from(DEFAULT_THEME));
+
+        // TODO: Log errors to disk.
+        let preferences = Preferences::load()
+            .unwrap_or_else(|_| Preferences::new(None));
+        let theme_name = preferences.theme();
 
         // Set up a workspace in the current directory.
         let mut workspace = Workspace::new(&current_dir)?;

@@ -16,6 +16,7 @@ extern crate syntect;
 extern crate preferences;
 extern crate unicode_segmentation;
 extern crate clipboard;
+extern crate yaml_rust as yaml;
 
 #[macro_use]
 extern crate error_chain;
