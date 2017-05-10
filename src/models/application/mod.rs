@@ -9,6 +9,8 @@ pub use self::preferences::Preferences;
 use errors::*;
 use std::env;
 use std::path::Path;
+use std::cell::RefCell;
+use std::rc::Rc;
 use input;
 use presenters;
 use self::modes::{ConfirmMode, CommandMode, JumpMode, LineJumpMode, SymbolJumpMode, InsertMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode, ThemeMode};
@@ -41,6 +43,7 @@ pub struct Application {
     pub clipboard: Clipboard,
     pub repository: Option<Repository>,
     pub error: Option<Error>,
+    pub preferences: Rc<RefCell<Preferences>>,
 }
 
 impl Application {
@@ -48,9 +51,8 @@ impl Application {
         let current_dir = env::current_dir()?;
 
         // TODO: Log errors to disk.
-        let preferences = Preferences::load()
-            .unwrap_or_else(|_| Preferences::new(None));
-        let theme_name = preferences.theme();
+        let preferences =
+            Rc::new(RefCell::new(Preferences::load().unwrap_or_else(|_| Preferences::new(None))));
 
         // Set up a workspace in the current directory.
         let mut workspace = Workspace::new(&current_dir)?;
@@ -79,18 +81,19 @@ impl Application {
             workspace.add_buffer(argument_buffer);
         }
 
-        let view = View::new(&theme_name)?;
+        let view = View::new(preferences.clone())?;
         let clipboard = Clipboard::new();
 
         Ok(Application {
-            mode: Mode::Normal,
-            workspace: workspace,
-            search_query: None,
-            view: view,
-            clipboard: clipboard,
-            repository: Repository::discover(&current_dir).ok(),
-            error: None
-        })
+               mode: Mode::Normal,
+               workspace: workspace,
+               search_query: None,
+               view: view,
+               clipboard: clipboard,
+               repository: Repository::discover(&current_dir).ok(),
+               error: None,
+               preferences: preferences,
+           })
     }
 
     pub fn run() -> Result<()> {

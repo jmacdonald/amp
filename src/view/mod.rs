@@ -13,6 +13,7 @@ pub use self::color::{Colors, RGBColor};
 
 use errors::*;
 use input::Key;
+use models::application::Preferences;
 use self::color::ColorMap;
 use self::terminal::Terminal;
 use self::buffer_renderer::BufferRenderer;
@@ -36,20 +37,22 @@ pub struct View {
     scrollable_regions: HashMap<usize, ScrollableRegion>,
     theme: Theme,
     pub theme_set: ThemeSet,
+    preferences: Rc<RefCell<Preferences>>,
 }
 
 impl View {
-    pub fn new(theme_name: &str) -> Result<View> {
+    pub fn new(preferences: Rc<RefCell<Preferences>>) -> Result<View> {
         let terminal = build_terminal();
         let theme_set = build_theme_set();
         let theme = theme_set.themes
-            .get(theme_name)
-            .ok_or(format!("Couldn't find \"{}\" theme", theme_name))?
+            .get(preferences.borrow().theme())
+            .ok_or(format!("Couldn't find \"{}\" theme", preferences.borrow().theme()))?
             .clone();
 
         Ok(View {
             terminal: terminal,
             cursor_position: None,
+            preferences: preferences,
             scrollable_regions: HashMap::new(),
             theme: theme,
             theme_set: theme_set,
@@ -275,10 +278,15 @@ fn build_terminal() -> Rc<RefCell<Terminal>> {
 mod tests {
     use scribe::Buffer;
     use super::View;
+    use models::application::Preferences;
+    use yaml::yaml::YamlLoader;
+    use std::cell::RefCell;
+    use std::rc::Rc;
 
     #[test]
     fn view_constructor_handles_unknown_theme_names() {
-        let result = View::new("unknown");
+        let data = YamlLoader::load_from_str("theme: \"unknown\"").unwrap().into_iter().nth(0).unwrap();
+        let result = View::new(Rc::new(RefCell::new(Preferences::new(Some(data)))));
 
         assert!(result.is_err());
         if let Result::Err(error) = result {
@@ -291,7 +299,7 @@ mod tests {
 
     #[test]
     fn set_theme_handles_unknown_theme_names() {
-        let mut view = View::new("solarized_dark").unwrap();
+        let mut view = View::new(Rc::new(RefCell::new(Preferences::new(None)))).unwrap();
         let result = view.set_theme("unknown");
 
         assert!(result.is_err());
@@ -305,7 +313,7 @@ mod tests {
 
     #[test]
     fn scroll_down_prevents_scrolling_completely_beyond_buffer() {
-        let mut view = View::new("solarized_dark").unwrap();
+        let mut view = View::new(Rc::new(RefCell::new(Preferences::new(None)))).unwrap();
 
         // Build a 10-line buffer.
         let mut buffer = Buffer::new();
@@ -326,7 +334,7 @@ mod tests {
 
     #[test]
     fn scroll_down_prevents_scrolling_when_buffer_is_smaller_than_top_half() {
-        let mut view = View::new("solarized_dark").unwrap();
+        let mut view = View::new(Rc::new(RefCell::new(Preferences::new(None)))).unwrap();
 
         // Build a 2-line buffer and try to scroll it.
         let mut buffer = Buffer::new();
