@@ -17,7 +17,6 @@ pub struct Preferences {
 }
 
 impl Preferences {
-    #[allow(dead_code)]
     pub fn new(data: Option<Yaml>) -> Preferences {
         Preferences { data: data }
     }
