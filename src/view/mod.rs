@@ -78,6 +78,7 @@ impl View {
             scroll_offset,
             &mut *self.terminal.borrow_mut(),
             &self.theme,
+            &self.preferences.borrow()
         ).render();
 
         self.set_cursor(cursor_position);

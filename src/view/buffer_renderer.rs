@@ -1,3 +1,4 @@
+use models::application::Preferences;
 use scribe::buffer::{Buffer, Lexeme, Position, Range, Token};
 use view::{Colors, RGBColor, Style};
 use view::color::ColorMap;
@@ -5,10 +6,6 @@ use view::color::to_rgb_color;
 use view::terminal::Terminal;
 use syntect::highlighting::{Highlighter, Theme};
 use syntect::highlighting::Style as ThemeStyle;
-
-const LINE_LENGTH_GUIDE_OFFSET: usize = 80;
-const LINE_WRAPPING: bool = true;
-const TAB_WIDTH: usize = 4;
 
 pub trait LexemeMapper {
     fn map<'x, 'y>(&'x mut self, lexeme: Lexeme<'y>) -> Vec<Lexeme<'x>>;
@@ -26,6 +23,7 @@ pub struct BufferRenderer<'a, 'b> {
     current_style: ThemeStyle,
     lexeme_mapper: Option<&'b mut LexemeMapper>,
     line_number_width: usize,
+    preferences: &'a Preferences,
     screen_position: Position,
     scroll_offset: usize,
     terminal: &'a mut Terminal,
@@ -35,7 +33,7 @@ pub struct BufferRenderer<'a, 'b> {
 impl<'a, 'b> BufferRenderer<'a, 'b> {
     pub fn new(buffer: &'a Buffer, highlight: Option<&'a Range>,
     lexeme_mapper: Option<&'b mut LexemeMapper>, scroll_offset: usize,
-    terminal: &'a mut Terminal, theme: &'a Theme) -> BufferRenderer<'a, 'b> {
+    terminal: &'a mut Terminal, theme: &'a Theme, preferences: &'a Preferences) -> BufferRenderer<'a, 'b> {
         // Determine the gutter size based on the number of lines.
         let line_number_width = buffer.line_count().to_string().len() + 1;
 
@@ -54,6 +52,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             lexeme_mapper: lexeme_mapper,
             line_number_width: line_number_width,
             buffer_position: Position{ line: 0, offset: 0 },
+            preferences: preferences,
             screen_position: Position{ line: 0, offset: 0 },
             scroll_offset: scroll_offset,
             terminal: terminal,
@@ -91,7 +90,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     }
 
     fn length_guide_offset(&self) -> usize {
-        self.gutter_width + LINE_LENGTH_GUIDE_OFFSET
+        self.gutter_width + self.preferences.line_length_guide().unwrap_or(0)
     }
 
     fn advance_to_next_line(&mut self) {
@@ -169,7 +168,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             let token_color = to_rgb_color(&self.current_style.foreground);
             let (style, color) = self.current_char_style(token_color);
 
-            if LINE_WRAPPING && self.screen_position.offset == self.terminal.width() {
+            if self.preferences.line_wrapping() && self.screen_position.offset == self.terminal.width() {
                 self.screen_position.line += 1;
                 self.screen_position.offset = self.gutter_width;
                 self.terminal.print(&self.screen_position, style, color, &character);
@@ -179,8 +178,13 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
                 // Calculate the next tab stop using the tab-aware offset,
                 // *without considering the line number gutter*, and then
                 // re-add the gutter width to get the actual/screen offset.
-                let buffer_tab_stop = next_tab_stop(self.screen_position.offset - self.gutter_width);
-                let screen_tab_stop = buffer_tab_stop + self.gutter_width;
+                let buffer_tab_stop = self.next_tab_stop(self.screen_position.offset - self.gutter_width);
+                let mut screen_tab_stop = buffer_tab_stop + self.gutter_width;
+
+                // Now that we know where we'd like to go, prevent it from being off-screen.
+                if screen_tab_stop > self.terminal.width() {
+                    screen_tab_stop = self.terminal.width();
+                }
 
                 // Print the sequence of spaces and move the offset accordingly.
                 for _ in self.screen_position.offset..screen_tab_stop {
@@ -299,35 +303,106 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
         self.screen_position.offset = offset;
     }
-}
 
-fn next_tab_stop(offset: usize) -> usize {
-    (offset / TAB_WIDTH + 1) * TAB_WIDTH
+    fn next_tab_stop(&self, offset: usize) -> usize {
+        (offset / self.preferences.tab_width() + 1) * self.preferences.tab_width()
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use models::application::Preferences;
     use scribe::{Buffer, Workspace};
     use scribe::buffer::Lexeme;
     use std::path::Path;
-    use super::{BufferRenderer, LexemeMapper, next_tab_stop, TAB_WIDTH};
+    use super::{BufferRenderer, LexemeMapper};
     use syntect::highlighting::ThemeSet;
     use view::terminal::test_terminal::TestTerminal;
+    use yaml::yaml::YamlLoader;
 
     #[test]
-    fn next_tab_goes_to_the_next_tab_stop_when_at_a_tab_stop() {
-        let offset = TAB_WIDTH * 2;
+    fn tabs_beyond_terminal_width_dont_panic() {
+        // Set up a workspace and buffer; the workspace will
+        // handle setting up the buffer's syntax definition.
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("\t\t\t");
+        workspace.add_buffer(buffer);
 
-        // It should go to the next tab stop.
-        assert_eq!(next_tab_stop(offset), TAB_WIDTH * 3);
+        let mut terminal = TestTerminal::new();
+        let theme_set = ThemeSet::load_defaults();
+        let data = YamlLoader::load_from_str("tab_width: 100").unwrap().into_iter().nth(0).unwrap();
+        let preferences = Preferences::new(Some(data));
+
+        BufferRenderer::new(
+            workspace.current_buffer().unwrap(),
+            None,
+            None,
+            0,
+            &mut terminal,
+            &theme_set.themes["base16-ocean.dark"],
+            &preferences
+        ).render();
     }
 
     #[test]
-    fn next_tab_goes_to_the_next_tab_stop_when_between_tab_stops() {
-        let offset = TAB_WIDTH + 1;
+    fn aligned_tabs_expand_to_correct_number_of_spaces() {
+        // Set up a workspace and buffer; the workspace will
+        // handle setting up the buffer's syntax definition.
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut buffer = Buffer::new();
+        // The renderer will draw to the full width of the terminal, so we pad
+        // the tabs with characters (which will also show us where the whitespace ends).
+        buffer.insert("\t\txy");
+        workspace.add_buffer(buffer);
 
-        // It should go to the next tab stop.
-        assert_eq!(next_tab_stop(offset), TAB_WIDTH * 2);
+        let mut terminal = TestTerminal::new();
+        let theme_set = ThemeSet::load_defaults();
+        let data = YamlLoader::load_from_str("tab_width: 2").unwrap().into_iter().nth(0).unwrap();
+        let preferences = Preferences::new(Some(data));
+
+        BufferRenderer::new(
+            workspace.current_buffer().unwrap(),
+            None,
+            None,
+            0,
+            &mut terminal,
+            &theme_set.themes["base16-ocean.dark"],
+            &preferences
+        ).render();
+
+        // Both tabs should fully expand.
+        assert_eq!(terminal.data(), " 1      xy");
+    }
+
+    #[test]
+    fn unaligned_tabs_expand_to_correct_number_of_spaces() {
+        // Set up a workspace and buffer; the workspace will
+        // handle setting up the buffer's syntax definition.
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut buffer = Buffer::new();
+        // The renderer will draw to the full width of the terminal, so we pad
+        // the tabs with characters (which will also show us where the whitespace ends).
+        buffer.insert("\t \txy");
+        workspace.add_buffer(buffer);
+
+        let mut terminal = TestTerminal::new();
+        let theme_set = ThemeSet::load_defaults();
+        let data = YamlLoader::load_from_str("tab_width: 2").unwrap().into_iter().nth(0).unwrap();
+        let preferences = Preferences::new(Some(data));
+
+        BufferRenderer::new(
+            workspace.current_buffer().unwrap(),
+            None,
+            None,
+            0,
+            &mut terminal,
+            &theme_set.themes["base16-ocean.dark"],
+            &preferences
+        ).render();
+
+        // The space between the tabs should just eat into the second tab's width.
+        assert_eq!(terminal.data(), " 1      xy");
     }
 
     #[test]
@@ -341,6 +416,7 @@ mod tests {
 
         let mut terminal = TestTerminal::new();
         let theme_set = ThemeSet::load_defaults();
+        let preferences = Preferences::new(None);
 
         BufferRenderer::new(
             workspace.current_buffer().unwrap(),
@@ -348,7 +424,8 @@ mod tests {
             None,
             0,
             &mut terminal,
-            &theme_set.themes["base16-ocean.dark"]
+            &theme_set.themes["base16-ocean.dark"],
+            &preferences
         ).render();
 
         assert_eq!(
@@ -379,6 +456,7 @@ mod tests {
 
         let mut terminal = TestTerminal::new();
         let theme_set = ThemeSet::load_defaults();
+        let preferences = Preferences::new(None);
 
         BufferRenderer::new(
             workspace.current_buffer().unwrap(),
@@ -386,7 +464,8 @@ mod tests {
             Some(&mut TestMapper{}),
             0,
             &mut terminal,
-            &theme_set.themes["base16-ocean.dark"]
+            &theme_set.themes["base16-ocean.dark"],
+            &preferences
         ).render();
 
         assert_eq!(terminal.data(), " 1  mapped");
