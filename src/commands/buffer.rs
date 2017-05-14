@@ -6,9 +6,6 @@ use models::application::{Application, ClipboardContent, Mode};
 use models::application::modes::ConfirmMode;
 use scribe::buffer::{Position, Range};
 
-// FIXME: Determine this based on file type and/or user config.
-const TAB_CONTENT: &'static str = "  ";
-
 pub fn save(app: &mut Application) -> Result {
     remove_trailing_whitespace(app)?;
     ensure_trailing_newline(app)?;
@@ -302,53 +299,53 @@ pub fn insert_newline(app: &mut Application) -> Result {
 }
 
 pub fn indent_line(app: &mut Application) -> Result {
-    if let Some(buffer) = app.workspace.current_buffer() {
-        let target_position = match app.mode {
-            Mode::Insert(_) => {
-                Position {
-                    line: buffer.cursor.line,
-                    offset: buffer.cursor.offset + TAB_CONTENT.len(),
-                }
-            }
-            _ => *buffer.cursor.clone(),
-        };
+    let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+    let tab_content = app.preferences.borrow().tab_content();
 
-        // Get the range of lines we'll outdent based on
-        // either the current selection or cursor line.
-        let lines = match app.mode {
-            Mode::SelectLine(ref mode) => {
-                if mode.anchor >= buffer.cursor.line {
-                    buffer.cursor.line..mode.anchor + 1
-                } else {
-                    mode.anchor..buffer.cursor.line + 1
-                }
+    let target_position = match app.mode {
+        Mode::Insert(_) => {
+            Position {
+                line: buffer.cursor.line,
+                offset: buffer.cursor.offset + tab_content.chars().count(),
             }
-            _ => buffer.cursor.line..buffer.cursor.line + 1,
-        };
-
-        // Move to the start of the current line and
-        // insert the content, as a single operation.
-        buffer.start_operation_group();
-        for line in lines {
-            buffer.cursor.move_to(Position {
-                line: line,
-                offset: 0,
-            });
-            buffer.insert(TAB_CONTENT);
         }
-        buffer.end_operation_group();
+        _ => *buffer.cursor.clone(),
+    };
 
-        // Move to the original position, shifted to compensate for the indent.
-        buffer.cursor.move_to(target_position);
-    } else {
-        bail!(BUFFER_MISSING);
+    // Get the range of lines we'll outdent based on
+    // either the current selection or cursor line.
+    let lines = match app.mode {
+        Mode::SelectLine(ref mode) => {
+            if mode.anchor >= buffer.cursor.line {
+                buffer.cursor.line..mode.anchor + 1
+            } else {
+                mode.anchor..buffer.cursor.line + 1
+            }
+        }
+        _ => buffer.cursor.line..buffer.cursor.line + 1,
+    };
+
+    // Move to the start of the current line and
+    // insert the content, as a single operation.
+    buffer.start_operation_group();
+    for line in lines {
+        buffer.cursor.move_to(Position {
+            line: line,
+            offset: 0,
+        });
+        buffer.insert(tab_content.clone());
     }
+    buffer.end_operation_group();
+
+    // Move to the original position, shifted to compensate for the indent.
+    buffer.cursor.move_to(target_position);
 
     Ok(())
 }
 
 pub fn outdent_line(app: &mut Application) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+    let tab_content = app.preferences.borrow().tab_content();
 
     // FIXME: Determine this based on file type and/or user config.
     let data = buffer.data();
@@ -374,7 +371,7 @@ pub fn outdent_line(app: &mut Application) -> Result {
             let mut space_char_count = 0;
 
             // Check for leading whitespace.
-            for character in content.chars().take(TAB_CONTENT.len()) {
+            for character in content.chars().take(tab_content.chars().count()) {
                 if character == ' ' {
                     space_char_count += 1;
                 } else {
@@ -655,10 +652,12 @@ pub fn ensure_trailing_newline(app: &mut Application) -> Result {
 
 pub fn insert_tab(app: &mut Application) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
-    buffer.insert(TAB_CONTENT);
+    let tab_content = app.preferences.borrow().tab_content();
+    let tab_content_width = tab_content.chars().count();
+    buffer.insert(tab_content.clone());
 
     // Move the cursor to the end of the inserted content.
-    for _ in 0..TAB_CONTENT.chars().count() {
+    for _ in 0..tab_content_width {
         buffer.cursor.move_right();
     }
 
