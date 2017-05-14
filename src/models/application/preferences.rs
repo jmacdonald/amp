@@ -13,11 +13,13 @@ const THEME_KEY: &'static str = "theme";
 const TAB_WIDTH_KEY: &'static str = "tab_width";
 const LINE_LENGTH_GUIDE_KEY: &'static str = "line_length_guide";
 const LINE_WRAPPING_KEY: &'static str = "line_wrapping";
+const SOFT_TABS_KEY: &'static str = "soft_tabs";
 
 const THEME_DEFAULT: &'static str = "solarized_dark";
 const TAB_WIDTH_DEFAULT: usize = 4;
 const LINE_LENGTH_GUIDE_DEFAULT: usize = 80;
 const LINE_WRAPPING_DEFAULT: bool = true;
+const SOFT_TABS_DEFAULT: bool = true;
 
 pub struct Preferences {
     data: Option<Yaml>,
@@ -105,6 +107,17 @@ impl Preferences {
                       })
             .unwrap_or(LINE_WRAPPING_DEFAULT)
     }
+
+    pub fn soft_tabs(&self) -> bool {
+        self.data
+            .as_ref()
+            .and_then(|data| if let Yaml::Boolean(soft_tabs) = data[SOFT_TABS_KEY] {
+                          Some(soft_tabs)
+                      } else {
+                          None
+                      })
+            .unwrap_or(SOFT_TABS_DEFAULT)
+    }
 }
 
 #[cfg(test)]
@@ -157,5 +170,13 @@ mod tests {
         let preferences = Preferences::new(data.into_iter().nth(0));
 
         assert_eq!(preferences.line_wrapping(), false);
+    }
+
+    #[test]
+    fn preferences_returns_user_defined_soft_tabs() {
+        let data = YamlLoader::load_from_str("soft_tabs: false").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.soft_tabs(), false);
     }
 }
