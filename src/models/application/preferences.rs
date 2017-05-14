@@ -118,6 +118,14 @@ impl Preferences {
                       })
             .unwrap_or(SOFT_TABS_DEFAULT)
     }
+
+    pub fn tab_content(&self) -> String {
+        if self.soft_tabs() {
+            format!("{:1$}", "", self.tab_width())
+        } else {
+            String::from("\t")
+        }
+    }
 }
 
 #[cfg(test)]
@@ -178,5 +186,21 @@ mod tests {
         let preferences = Preferences::new(data.into_iter().nth(0));
 
         assert_eq!(preferences.soft_tabs(), false);
+    }
+
+    #[test]
+    fn tab_content_uses_tab_width_spaces_when_soft_tabs_are_enabled() {
+        let data = YamlLoader::load_from_str("soft_tabs: true\ntab_width: 5").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.tab_content(), "     ");
+    }
+
+    #[test]
+    fn tab_content_returns_tab_character_when_soft_tabs_are_disabled() {
+        let data = YamlLoader::load_from_str("soft_tabs: false\ntab_width: 5").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.tab_content(), "\t");
     }
 }
