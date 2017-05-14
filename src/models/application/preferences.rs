@@ -16,7 +16,7 @@ const LINE_WRAPPING_KEY: &'static str = "line_wrapping";
 const SOFT_TABS_KEY: &'static str = "soft_tabs";
 
 const THEME_DEFAULT: &'static str = "solarized_dark";
-const TAB_WIDTH_DEFAULT: usize = 4;
+const TAB_WIDTH_DEFAULT: usize = 2;
 const LINE_LENGTH_GUIDE_DEFAULT: usize = 80;
 const LINE_WRAPPING_DEFAULT: bool = true;
 const SOFT_TABS_DEFAULT: bool = true;
