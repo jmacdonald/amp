@@ -76,7 +76,7 @@ impl Preferences {
         self.data
             .as_ref()
             .and_then(|data| {
-                if let Some(extension) = path.and_then(|p| p.extension()).and_then(|e| e.to_str()) {
+                if let Some(extension) = path_extension(path) {
                     if let Yaml::Integer(tab_width) = data[TYPES_KEY][extension][TAB_WIDTH_KEY] {
                         return Some(tab_width as usize);
                     } else if let Yaml::Integer(tab_width) = data[TAB_WIDTH_KEY] {
@@ -89,6 +89,25 @@ impl Preferences {
                 None
             })
             .unwrap_or(TAB_WIDTH_DEFAULT)
+    }
+
+    pub fn soft_tabs(&self, path: Option<&PathBuf>) -> bool {
+        self.data
+            .as_ref()
+            .and_then(|data| {
+                if let Some(extension) = path_extension(path) {
+                    if let Yaml::Boolean(soft_tabs) = data[TYPES_KEY][extension][SOFT_TABS_KEY] {
+                        return Some(soft_tabs);
+                    } else if let Yaml::Boolean(soft_tabs) = data[SOFT_TABS_KEY] {
+                        return Some(soft_tabs);
+                    }
+                } else if let Yaml::Boolean(soft_tabs) = data[SOFT_TABS_KEY] {
+                    return Some(soft_tabs);
+                }
+
+                None
+            })
+            .unwrap_or(SOFT_TABS_DEFAULT)
     }
 
     pub fn line_length_guide(&self) -> Option<usize> {
@@ -118,24 +137,17 @@ impl Preferences {
             .unwrap_or(LINE_WRAPPING_DEFAULT)
     }
 
-    pub fn soft_tabs(&self) -> bool {
-        self.data
-            .as_ref()
-            .and_then(|data| if let Yaml::Boolean(soft_tabs) = data[SOFT_TABS_KEY] {
-                          Some(soft_tabs)
-                      } else {
-                          None
-                      })
-            .unwrap_or(SOFT_TABS_DEFAULT)
-    }
-
     pub fn tab_content(&self) -> String {
-        if self.soft_tabs() {
+        if self.soft_tabs(None) {
             format!("{:1$}", "", self.tab_width(None))
         } else {
             String::from("\t")
         }
     }
+}
+
+fn path_extension(path: Option<&PathBuf>) -> Option<&str> {
+    path.and_then(|p| p.extension()).and_then(|e| e.to_str())
 }
 
 #[cfg(test)]
@@ -179,6 +191,33 @@ mod tests {
     }
 
     #[test]
+    fn soft_tabs_returns_user_defined_data() {
+        let data = YamlLoader::load_from_str("soft_tabs: false").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.soft_tabs(None), false);
+    }
+
+    #[test]
+    fn soft_tabs_returns_user_defined_type_specific_data() {
+        let data = YamlLoader::load_from_str("soft_tabs: true\ntypes:\n  rs:\n    soft_tabs: false")
+            .unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.soft_tabs(Some(PathBuf::from("preferences.rs")).as_ref()),
+                   false);
+    }
+
+    #[test]
+    fn soft_tabs_returns_default_when_user_defined_type_specific_data_not_found() {
+        let data = YamlLoader::load_from_str("soft_tabs: false").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.soft_tabs(Some(PathBuf::from("preferences.rs")).as_ref()),
+                   false);
+    }
+
+    #[test]
     fn preferences_returns_user_defined_line_length_guide() {
         let data = YamlLoader::load_from_str("line_length_guide: 100").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
@@ -208,14 +247,6 @@ mod tests {
         let preferences = Preferences::new(data.into_iter().nth(0));
 
         assert_eq!(preferences.line_wrapping(), false);
-    }
-
-    #[test]
-    fn preferences_returns_user_defined_soft_tabs() {
-        let data = YamlLoader::load_from_str("soft_tabs: false").unwrap();
-        let preferences = Preferences::new(data.into_iter().nth(0));
-
-        assert_eq!(preferences.soft_tabs(), false);
     }
 
     #[test]
