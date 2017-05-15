@@ -76,7 +76,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         let guide_offset = self.length_guide_offset();
 
         for offset in self.screen_position.offset..self.terminal.width() {
-            let colors = if on_cursor_line || offset == guide_offset {
+            let colors = if on_cursor_line || guide_offset.map(|go| go == offset).unwrap_or(false) {
                 Colors::Focused
             } else {
                 Colors::Blank
@@ -89,8 +89,8 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         }
     }
 
-    fn length_guide_offset(&self) -> usize {
-        self.gutter_width + self.preferences.line_length_guide().unwrap_or(0)
+    fn length_guide_offset(&self) -> Option<usize> {
+        self.preferences.line_length_guide().map(|offset| self.gutter_width + offset)
     }
 
     fn advance_to_next_line(&mut self) {
