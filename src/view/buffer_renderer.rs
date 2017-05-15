@@ -305,7 +305,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     }
 
     fn next_tab_stop(&self, offset: usize) -> usize {
-        (offset / self.preferences.tab_width() + 1) * self.preferences.tab_width()
+        (offset / self.preferences.tab_width(self.buffer.path.as_ref()) + 1) * self.preferences.tab_width(self.buffer.path.as_ref())
     }
 }
 

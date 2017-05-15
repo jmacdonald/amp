@@ -2,6 +2,7 @@ use errors::*;
 use app_dirs::{app_root, AppDataType, AppInfo};
 use std::fs::OpenOptions;
 use std::io::Read;
+use std::path::PathBuf;
 use yaml::yaml::{Yaml, YamlLoader};
 
 const FILE_NAME: &'static str = "config.yml";
@@ -9,6 +10,7 @@ const APP_INFO: AppInfo = AppInfo {
     name: "amp",
     author: "Jordan MacDonald",
 };
+const TYPES_KEY: &'static str = "types";
 const THEME_KEY: &'static str = "theme";
 const TAB_WIDTH_KEY: &'static str = "tab_width";
 const LINE_LENGTH_GUIDE_KEY: &'static str = "line_length_guide";
@@ -70,14 +72,22 @@ impl Preferences {
             .unwrap_or(THEME_DEFAULT)
     }
 
-    pub fn tab_width(&self) -> usize {
+    pub fn tab_width(&self, path: Option<&PathBuf>) -> usize {
         self.data
             .as_ref()
-            .and_then(|data| if let Yaml::Integer(tab_width) = data[TAB_WIDTH_KEY] {
-                          Some(tab_width as usize)
-                      } else {
-                          None
-                      })
+            .and_then(|data| {
+                if let Some(extension) = path.and_then(|p| p.extension()).and_then(|e| e.to_str()) {
+                    if let Yaml::Integer(tab_width) = data[TYPES_KEY][extension][TAB_WIDTH_KEY] {
+                        return Some(tab_width as usize);
+                    } else if let Yaml::Integer(tab_width) = data[TAB_WIDTH_KEY] {
+                        return Some(tab_width as usize);
+                    }
+                } else if let Yaml::Integer(tab_width) = data[TAB_WIDTH_KEY] {
+                    return Some(tab_width as usize);
+                }
+
+                None
+            })
             .unwrap_or(TAB_WIDTH_DEFAULT)
     }
 
@@ -121,7 +131,7 @@ impl Preferences {
 
     pub fn tab_content(&self) -> String {
         if self.soft_tabs() {
-            format!("{:1$}", "", self.tab_width())
+            format!("{:1$}", "", self.tab_width(None))
         } else {
             String::from("\t")
         }
@@ -131,6 +141,7 @@ impl Preferences {
 #[cfg(test)]
 mod tests {
     use super::{Preferences, YamlLoader};
+    use std::path::PathBuf;
 
     #[test]
     fn preferences_returns_user_defined_theme_name() {
@@ -141,11 +152,30 @@ mod tests {
     }
 
     #[test]
-    fn preferences_returns_user_defined_tab_width() {
+    fn tab_width_returns_user_defined_data() {
         let data = YamlLoader::load_from_str("tab_width: 12").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.tab_width(), 12);
+        assert_eq!(preferences.tab_width(None), 12);
+    }
+
+    #[test]
+    fn tab_width_returns_user_defined_type_specific_data() {
+        let data = YamlLoader::load_from_str("tab_width: 12\ntypes:\n  rs:\n    tab_width: 24")
+            .unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.tab_width(Some(PathBuf::from("preferences.rs")).as_ref()),
+                   24);
+    }
+
+    #[test]
+    fn tab_width_returns_default_when_user_defined_type_specific_data_not_found() {
+        let data = YamlLoader::load_from_str("tab_width: 12").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.tab_width(Some(PathBuf::from("preferences.rs")).as_ref()),
+                   12);
     }
 
     #[test]
