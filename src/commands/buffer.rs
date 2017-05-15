@@ -300,7 +300,7 @@ pub fn insert_newline(app: &mut Application) -> Result {
 
 pub fn indent_line(app: &mut Application) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
-    let tab_content = app.preferences.borrow().tab_content();
+    let tab_content = app.preferences.borrow().tab_content(buffer.path.as_ref());
 
     let target_position = match app.mode {
         Mode::Insert(_) => {
@@ -345,7 +345,7 @@ pub fn indent_line(app: &mut Application) -> Result {
 
 pub fn outdent_line(app: &mut Application) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
-    let tab_content = app.preferences.borrow().tab_content();
+    let tab_content = app.preferences.borrow().tab_content(buffer.path.as_ref());
 
     // FIXME: Determine this based on file type and/or user config.
     let data = buffer.data();
@@ -652,7 +652,7 @@ pub fn ensure_trailing_newline(app: &mut Application) -> Result {
 
 pub fn insert_tab(app: &mut Application) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
-    let tab_content = app.preferences.borrow().tab_content();
+    let tab_content = app.preferences.borrow().tab_content(buffer.path.as_ref());
     let tab_content_width = tab_content.chars().count();
     buffer.insert(tab_content.clone());
 

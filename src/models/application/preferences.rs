@@ -137,9 +137,9 @@ impl Preferences {
             .unwrap_or(LINE_WRAPPING_DEFAULT)
     }
 
-    pub fn tab_content(&self) -> String {
-        if self.soft_tabs(None) {
-            format!("{:1$}", "", self.tab_width(None))
+    pub fn tab_content(&self, path: Option<&PathBuf>) -> String {
+        if self.soft_tabs(path) {
+            format!("{:1$}", "", self.tab_width(path))
         } else {
             String::from("\t")
         }
@@ -200,12 +200,10 @@ mod tests {
 
     #[test]
     fn soft_tabs_returns_user_defined_type_specific_data() {
-        let data = YamlLoader::load_from_str("soft_tabs: true\ntypes:\n  rs:\n    soft_tabs: false")
-            .unwrap();
+        let data = YamlLoader::load_from_str("soft_tabs: true\ntypes:\n  rs:\n    soft_tabs: false").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.soft_tabs(Some(PathBuf::from("preferences.rs")).as_ref()),
-                   false);
+        assert_eq!(preferences.soft_tabs(Some(PathBuf::from("preferences.rs")).as_ref()), false);
     }
 
     #[test]
@@ -213,8 +211,7 @@ mod tests {
         let data = YamlLoader::load_from_str("soft_tabs: false").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.soft_tabs(Some(PathBuf::from("preferences.rs")).as_ref()),
-                   false);
+        assert_eq!(preferences.soft_tabs(Some(PathBuf::from("preferences.rs")).as_ref()), false);
     }
 
     #[test]
@@ -254,7 +251,7 @@ mod tests {
         let data = YamlLoader::load_from_str("soft_tabs: true\ntab_width: 5").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.tab_content(), "     ");
+        assert_eq!(preferences.tab_content(None), "     ");
     }
 
     #[test]
@@ -262,6 +259,26 @@ mod tests {
         let data = YamlLoader::load_from_str("soft_tabs: false\ntab_width: 5").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.tab_content(), "\t");
+        assert_eq!(preferences.tab_content(None), "\t");
+    }
+
+    #[test]
+    fn tab_content_uses_tab_width_spaces_when_type_specific_soft_tabs_are_enabled() {
+        let data = YamlLoader::load_from_str(
+            "soft_tabs: false\ntypes:\n  rs:\n    soft_tabs: true\n    tab_width: 5").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.tab_content(Some(PathBuf::from("preferences.rs")).as_ref()),
+                   "     ");
+    }
+
+    #[test]
+    fn tab_content_returns_tab_character_when_type_specific_soft_tabs_are_disabled() {
+        let data = YamlLoader::load_from_str(
+            "soft_tabs: true\ntab_width: 5\ntypes:\n  rs:\n    soft_tabs: false\n").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.tab_content(Some(PathBuf::from("preferences.rs")).as_ref()),
+                   "\t");
     }
 }
