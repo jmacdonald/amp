@@ -33,32 +33,7 @@ impl Preferences {
     }
 
     pub fn load() -> Result<Preferences> {
-        // Build a path to the config file.
-        let mut config_path =
-            app_root(AppDataType::UserConfig, &APP_INFO)
-                .chain_err(|| "Couldn't create or open application config directory")?;
-        config_path.push(FILE_NAME);
-
-        // Open (or create) the config file.
-        let mut config_file = OpenOptions::new()
-            .read(true)
-            .write(true)
-            .create(true)
-            .open(config_path)
-            .chain_err(|| "Couldn't create or open config file")?;
-
-        // Read the config file's contents.
-        let mut data = String::new();
-        config_file
-            .read_to_string(&mut data)
-            .chain_err(|| "Couldn't read config file")?;
-
-        // Parse the config file's contents and get the first YAML document inside.
-        let parsed_data = YamlLoader::load_from_str(&data)
-            .chain_err(|| "Couldn't parse config file")?;
-        let document = parsed_data.into_iter().nth(0);
-
-        Ok(Preferences { data: document })
+        Ok(Preferences { data: load_document()? })
     }
 
     pub fn path() -> Result<PathBuf> {
@@ -68,6 +43,12 @@ impl Preferences {
         config_path.push(FILE_NAME);
 
         Ok(config_path)
+    }
+
+    pub fn reload(&mut self) -> Result<()> {
+        self.data = load_document()?;
+
+        Ok(())
     }
 
     pub fn theme(&self) -> &str {
@@ -153,6 +134,33 @@ impl Preferences {
             String::from("\t")
         }
     }
+}
+
+fn load_document() -> Result<Option<Yaml>> {
+    // Build a path to the config file.
+    let mut config_path =
+        app_root(AppDataType::UserConfig, &APP_INFO)
+            .chain_err(|| "Couldn't create or open application config directory")?;
+    config_path.push(FILE_NAME);
+
+    // Open (or create) the config file.
+    let mut config_file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .open(config_path)
+        .chain_err(|| "Couldn't create or open config file")?;
+
+    // Read the config file's contents.
+    let mut data = String::new();
+    config_file
+        .read_to_string(&mut data)
+        .chain_err(|| "Couldn't read config file")?;
+
+    // Parse the config file's contents and get the first YAML document inside.
+    let parsed_data = YamlLoader::load_from_str(&data)
+        .chain_err(|| "Couldn't parse config file")?;
+    Ok(parsed_data.into_iter().nth(0))
 }
 
 fn path_extension(path: Option<&PathBuf>) -> Option<&str> {

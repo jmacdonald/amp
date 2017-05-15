@@ -7,3 +7,9 @@ pub fn edit(app: &mut Application) -> Result {
 
     Ok(())
 }
+
+pub fn reload(app: &mut Application) -> Result {
+    app.preferences.borrow_mut().reload()?;
+
+    Ok(())
+}
