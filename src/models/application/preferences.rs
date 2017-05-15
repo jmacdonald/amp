@@ -61,6 +61,15 @@ impl Preferences {
         Ok(Preferences { data: document })
     }
 
+    pub fn path() -> Result<PathBuf> {
+        let mut config_path =
+            app_root(AppDataType::UserConfig, &APP_INFO)
+                .chain_err(|| "Couldn't create or open application config directory")?;
+        config_path.push(FILE_NAME);
+
+        Ok(config_path)
+    }
+
     pub fn theme(&self) -> &str {
         self.data
             .as_ref()

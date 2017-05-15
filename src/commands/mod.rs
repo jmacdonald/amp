@@ -8,6 +8,7 @@ pub mod cursor;
 pub mod git;
 pub mod jump_mode;
 pub mod line_jump;
+pub mod preferences;
 pub mod search;
 pub mod selection;
 pub mod search_select_mode;
