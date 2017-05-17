@@ -29,7 +29,9 @@ pub fn accept(app: &mut Application) -> Result {
         },
         Mode::Theme(ref mut mode) => {
             let theme_key = mode.selection().ok_or("No theme selected")?;
-            app.view.set_theme(&theme_key)?;
+
+            // TODO: Replace with a call to update in-memory preferences.
+            // app.view.set_theme(&theme_key)?;
         },
         Mode::SymbolJump(ref mut mode) => {
             let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;

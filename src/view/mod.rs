@@ -35,7 +35,6 @@ pub struct View {
     terminal: Rc<RefCell<Terminal>>,
     cursor_position: Option<Position>,
     scrollable_regions: HashMap<usize, ScrollableRegion>,
-    theme: Theme,
     pub theme_set: ThemeSet,
     preferences: Rc<RefCell<Preferences>>,
 }
@@ -54,22 +53,17 @@ impl View {
             cursor_position: None,
             preferences: preferences,
             scrollable_regions: HashMap::new(),
-            theme: theme,
             theme_set: theme_set,
         })
     }
 
-    pub fn set_theme(&mut self, theme_name: &str) -> Result<()> {
-        self.theme = self.theme_set.themes
-            .get(theme_name)
-            .ok_or(format!("Couldn't find \"{}\" theme", theme_name))?
-            .clone();
-
-        Ok(())
-    }
-
-    pub fn draw_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>, lexeme_mapper: Option<&mut LexemeMapper>) {
+    pub fn draw_buffer(&mut self, buffer: &Buffer, highlight: Option<&Range>, lexeme_mapper: Option<&mut LexemeMapper>) -> Result<()> {
         let scroll_offset = self.visible_region(buffer).line_offset();
+        let preferences = self.preferences.borrow();
+        let theme_name = preferences.theme();
+        let theme = self.theme_set.themes
+            .get(theme_name)
+            .ok_or(format!("Couldn't find \"{}\" theme", theme_name))?;
 
         let cursor_position = BufferRenderer::new(
             buffer,
@@ -77,11 +71,13 @@ impl View {
             lexeme_mapper,
             scroll_offset,
             &mut *self.terminal.borrow_mut(),
-            &self.theme,
+            theme,
             &self.preferences.borrow()
         ).render();
 
-        self.set_cursor(cursor_position);
+        self.cursor_position = cursor_position;
+
+        Ok(())
     }
 
     /// Renders the app name, version and copyright info to the screen.
@@ -228,9 +224,16 @@ impl View {
         self.terminal.borrow_mut().present();
     }
 
-    pub fn print(&self, position: &Position, style: Style, colors: Colors, content: &Display) {
-        let mapped_colors = self.theme.map_colors(colors);
+    pub fn print(&self, position: &Position, style: Style, colors: Colors, content: &Display) -> Result<()> {
+        let preferences = self.preferences.borrow();
+        let theme_name = preferences.theme();
+        let theme = self.theme_set.themes
+            .get(theme_name)
+            .ok_or(format!("Couldn't find \"{}\" theme", theme_name))?;
+        let mapped_colors = theme.map_colors(colors);
         self.terminal.borrow_mut().print(position, style, mapped_colors, content);
+
+        Ok(())
     }
 
     pub fn stop(&mut self) {
@@ -288,20 +291,6 @@ mod tests {
     fn view_constructor_handles_unknown_theme_names() {
         let data = YamlLoader::load_from_str("theme: \"unknown\"").unwrap().into_iter().nth(0).unwrap();
         let result = View::new(Rc::new(RefCell::new(Preferences::new(Some(data)))));
-
-        assert!(result.is_err());
-        if let Result::Err(error) = result {
-            assert_eq!(
-                error.description().to_string(),
-                "Couldn't find \"unknown\" theme"
-            );
-        }
-    }
-
-    #[test]
-    fn set_theme_handles_unknown_theme_names() {
-        let mut view = View::new(Rc::new(RefCell::new(Preferences::new(None)))).unwrap();
-        let result = view.set_theme("unknown");
 
         assert!(result.is_err());
         if let Result::Err(error) = result {
