@@ -25,15 +25,16 @@ const SOFT_TABS_DEFAULT: bool = true;
 
 pub struct Preferences {
     data: Option<Yaml>,
+    theme: Option<String>,
 }
 
 impl Preferences {
     pub fn new(data: Option<Yaml>) -> Preferences {
-        Preferences { data: data }
+        Preferences { data: data, theme: None }
     }
 
     pub fn load() -> Result<Preferences> {
-        Ok(Preferences { data: load_document()? })
+        Ok(Preferences { data: load_document()?, theme: None })
     }
 
     pub fn path() -> Result<PathBuf> {
@@ -47,11 +48,15 @@ impl Preferences {
 
     pub fn reload(&mut self) -> Result<()> {
         self.data = load_document()?;
+        self.theme = None;
 
         Ok(())
     }
 
     pub fn theme(&self) -> &str {
+        // Return the mutable in-memory value, if set.
+        if let Some(ref theme) = self.theme { return theme; }
+
         self.data
             .as_ref()
             .and_then(|data| if let Yaml::String(ref theme) = data[THEME_KEY] {
@@ -60,6 +65,10 @@ impl Preferences {
                           None
                       })
             .unwrap_or(THEME_DEFAULT)
+    }
+
+    pub fn set_theme<T: Into<String>>(&mut self, theme: T) {
+        self.theme = Some(theme.into());
     }
 
     pub fn tab_width(&self, path: Option<&PathBuf>) -> usize {
@@ -178,6 +187,23 @@ mod tests {
         let preferences = Preferences::new(data.into_iter().nth(0));
 
         assert_eq!(preferences.theme(), "my_theme");
+    }
+
+    #[test]
+    fn set_theme_updates_in_memory_value() {
+        let mut preferences = Preferences::new(None);
+        preferences.set_theme("new_in_memory_theme");
+
+        assert_eq!(preferences.theme(), "new_in_memory_theme");
+    }
+
+    #[test]
+    fn reload_clears_in_memory_value() {
+        let mut preferences = Preferences::new(None);
+        preferences.set_theme("new_in_memory_theme");
+        preferences.reload();
+
+        assert_eq!(preferences.theme(), super::THEME_DEFAULT);
     }
 
     #[test]
