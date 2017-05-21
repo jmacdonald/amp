@@ -1,5 +1,6 @@
 use errors::*;
-use app_dirs::{app_root, AppDataType, AppInfo};
+use app_dirs::{app_root, get_app_root, AppDataType, AppInfo};
+use scribe::Buffer;
 use std::fs::OpenOptions;
 use std::io::Read;
 use std::path::PathBuf;
@@ -23,29 +24,46 @@ const LINE_LENGTH_GUIDE_DEFAULT: usize = 80;
 const LINE_WRAPPING_DEFAULT: bool = true;
 const SOFT_TABS_DEFAULT: bool = true;
 
+/// Loads, creates, and provides default values for application preferences.
+/// Values are immutable once loaded, with the exception of those that provide
+/// expicit setter methods (e.g. `theme`).
 pub struct Preferences {
     data: Option<Yaml>,
     theme: Option<String>,
 }
 
 impl Preferences {
+    /// Builds a new in-memory instance with default values.
     pub fn new(data: Option<Yaml>) -> Preferences {
         Preferences { data: data, theme: None }
     }
 
+    /// Loads preferences from disk, returning any filesystem or parse errors.
     pub fn load() -> Result<Preferences> {
         Ok(Preferences { data: load_document()?, theme: None })
     }
 
-    pub fn path() -> Result<PathBuf> {
+    /// Returns the preference file loaded into a buffer for editing.
+    /// If the file doesn't already exist, it will return a new in-memory buffer
+    /// with a pre-populated path, creating the parent config directories
+    /// if they don't already exist.
+    pub fn edit() -> Result<Buffer> {
+        // Build the path, creating parent directories, if required.
         let mut config_path =
             app_root(AppDataType::UserConfig, &APP_INFO)
                 .chain_err(|| "Couldn't create or open application config directory")?;
         config_path.push(FILE_NAME);
 
-        Ok(config_path)
+        // Load the buffer, falling back to a
+        // new/empty buffer if it doesn't exist.
+        Buffer::from_file(&config_path).or_else(|_| {
+            let mut buf = Buffer::new();
+            buf.path = Some(config_path);
+            Ok(buf)
+        })
     }
 
+    /// Reloads preferences from disk, discarding any updated in-memory values.
     pub fn reload(&mut self) -> Result<()> {
         self.data = load_document()?;
         self.theme = None;
@@ -53,6 +71,8 @@ impl Preferences {
         Ok(())
     }
 
+    /// If set, returns the in-memory theme, falling back to the value set via
+    /// the configuration file, and then the default value.
     pub fn theme(&self) -> &str {
         // Return the mutable in-memory value, if set.
         if let Some(ref theme) = self.theme { return theme; }
@@ -67,6 +87,7 @@ impl Preferences {
             .unwrap_or(THEME_DEFAULT)
     }
 
+    /// Updates the in-memory theme value.
     pub fn set_theme<T: Into<String>>(&mut self, theme: T) {
         self.theme = Some(theme.into());
     }
@@ -145,20 +166,19 @@ impl Preferences {
     }
 }
 
+/// Loads the first YAML document in the user's config file.
 fn load_document() -> Result<Option<Yaml>> {
     // Build a path to the config file.
     let mut config_path =
-        app_root(AppDataType::UserConfig, &APP_INFO)
-            .chain_err(|| "Couldn't create or open application config directory")?;
+        get_app_root(AppDataType::UserConfig, &APP_INFO)
+            .chain_err(|| "Couldn't open application config directory")?;
     config_path.push(FILE_NAME);
 
     // Open (or create) the config file.
     let mut config_file = OpenOptions::new()
         .read(true)
-        .write(true)
-        .create(true)
         .open(config_path)
-        .chain_err(|| "Couldn't create or open config file")?;
+        .chain_err(|| "Couldn't open config file")?;
 
     // Read the config file's contents.
     let mut data = String::new();
@@ -172,6 +192,7 @@ fn load_document() -> Result<Option<Yaml>> {
     Ok(parsed_data.into_iter().nth(0))
 }
 
+/// Maps a path to its file extension.
 fn path_extension(path: Option<&PathBuf>) -> Option<&str> {
     path.and_then(|p| p.extension()).and_then(|e| e.to_str())
 }
