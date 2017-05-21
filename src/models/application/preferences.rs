@@ -220,10 +220,15 @@ mod tests {
 
     #[test]
     fn reload_clears_in_memory_value() {
-        let mut preferences = Preferences::new(None);
-        preferences.set_theme("new_in_memory_theme");
-        preferences.reload();
+        // Write an empty preferences file so we can reload without error.
+        Preferences::edit().unwrap().save().unwrap();
 
+        // Load the preferences and modify their in-memory state.
+        let mut preferences = Preferences::load().unwrap();
+        preferences.set_theme("new_in_memory_theme");
+
+        // Reload the preferences and verify that we're no longer using in-memory value.
+        preferences.reload().unwrap();
         assert_eq!(preferences.theme(), super::THEME_DEFAULT);
     }
 
