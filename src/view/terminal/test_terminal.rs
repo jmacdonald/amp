@@ -59,7 +59,7 @@ impl TestTerminal {
 }
 
 impl Terminal for TestTerminal {
-    fn listen(&mut self) -> Option<Key> { None }
+    fn listen(&mut self) -> Option<Key> { Some(Key::Char('A')) }
     fn clear(&mut self) {
         for row in self.data.borrow_mut().iter_mut() {
             *row = [None; WIDTH];

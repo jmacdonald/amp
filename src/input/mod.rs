@@ -1,5 +1,10 @@
+use std::clone::Clone;
+use std::fmt::Debug;
+use std::cmp::PartialEq;
+
 pub mod modes;
 
+#[derive(Clone, Debug, PartialEq)]
 pub enum Key {
     Backspace,
     Left,

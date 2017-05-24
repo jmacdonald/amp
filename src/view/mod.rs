@@ -37,6 +37,7 @@ pub struct View {
     scrollable_regions: HashMap<usize, ScrollableRegion>,
     pub theme_set: ThemeSet,
     preferences: Rc<RefCell<Preferences>>,
+    last_key: Option<Key>,
 }
 
 impl View {
@@ -51,6 +52,7 @@ impl View {
         Ok(View {
             terminal: terminal,
             cursor_position: None,
+            last_key: None,
             preferences: preferences,
             scrollable_regions: HashMap::new(),
             theme_set: theme_set,
@@ -211,8 +213,9 @@ impl View {
         self.terminal.borrow().height()
     }
 
-    pub fn listen(&self) -> Option<Key> {
-        self.terminal.borrow_mut().listen()
+    pub fn listen(&mut self) -> Option<Key> {
+        self.last_key = self.terminal.borrow_mut().listen();
+        self.last_key.clone()
     }
 
     pub fn clear(&mut self) {
@@ -242,6 +245,10 @@ impl View {
 
     pub fn start(&mut self) {
         self.terminal.borrow_mut().start();
+    }
+
+    pub fn last_key(&self) -> &Option<Key> {
+        &self.last_key
     }
 }
 
@@ -282,6 +289,7 @@ fn build_terminal() -> Rc<RefCell<Terminal>> {
 mod tests {
     use scribe::Buffer;
     use super::View;
+    use input::Key;
     use models::application::Preferences;
     use yaml::yaml::YamlLoader;
     use std::cell::RefCell;
@@ -333,6 +341,15 @@ mod tests {
 
         // The view should not be scrolled.
         assert_eq!(view.visible_region(&buffer).line_offset(), 0);
+    }
+
+    #[test]
+    fn listen_stores_last_key() {
+        let mut view = View::new(Rc::new(RefCell::new(Preferences::new(None)))).unwrap();
+
+        assert!(view.last_key().is_none());
+        view.listen();
+        assert_eq!(*view.last_key(), Some(Key::Char('A')));
     }
 }
 

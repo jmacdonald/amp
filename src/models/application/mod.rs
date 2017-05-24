@@ -178,9 +178,9 @@ impl Application {
             }
 
             // Listen for and respond to user input.
-            if let Some(key) = application.view.listen() {
+            let command = application.view.listen().and_then(|key| {
                 // Pass the input to the current mode.
-                let command = match application.mode {
+                match application.mode {
                     Mode::Command(ref mut mode) => input::modes::search_select::handle(mode, key),
                     Mode::Normal => input::modes::normal::handle(key),
                     Mode::Confirm(_) => input::modes::confirm::handle(key),
@@ -193,18 +193,20 @@ impl Application {
                     Mode::Select(_) => input::modes::select::handle(key),
                     Mode::SelectLine(_) => input::modes::select_line::handle(key),
                     Mode::SearchInsert(ref mut s) => input::modes::search_insert::handle(s, key),
-                    Mode::Exit => break,
-                };
-
-                // If the mode returned a command, run it and store its error output.
-                application.error = command.and_then(|c| c(&mut application).err());
-
-                // Check if the command resulted in an exit, before
-                // looping again and asking for input we won't use.
-                if let Mode::Exit = application.mode {
-                    application.view.clear();
-                    break
+                    Mode::Exit => None,
                 }
+            });
+
+            if let Some(com) = command {
+                // Run the command and store its error output.
+                application.error = com(&mut application).err();
+            }
+
+            // Check if the command resulted in an exit, before
+            // looping again and asking for input we won't use.
+            if let Mode::Exit = application.mode {
+                application.view.clear();
+                break
             }
         }
 
