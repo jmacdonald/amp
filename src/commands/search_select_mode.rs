@@ -1,5 +1,6 @@
 use errors::*;
-use commands::{self, Result};
+use commands::{self, application, Result};
+use input::Key;
 use std::mem;
 use models::application::modes::open::DisplayablePath;
 use models::application::{Application, Mode};
@@ -110,6 +111,21 @@ pub fn disable_insert(app: &mut Application) -> Result {
     Ok(())
 }
 
+pub fn push_search_char(app: &mut Application) -> Result {
+    if let &Some(Key::Char(c)) = app.view.last_key() {
+        match app.mode {
+            Mode::Command(ref mut mode) => mode.push_search_char(c),
+            Mode::Open(ref mut mode) => mode.push_search_char(c),
+            Mode::Theme(ref mut mode) => mode.push_search_char(c),
+            Mode::SymbolJump(ref mut mode) => mode.push_search_char(c),
+            _ => bail!("Can't push search character outside of search select mode"),
+        }
+    }
+
+    // Re-run the search.
+    search(app)
+}
+
 pub fn pop_search_token(app: &mut Application) -> Result {
     match app.mode {
         Mode::Command(ref mut mode) => mode.pop_search_token(),
@@ -121,4 +137,20 @@ pub fn pop_search_token(app: &mut Application) -> Result {
 
     search(app)?;
     Ok(())
+}
+
+pub fn step_back(app: &mut Application) -> Result {
+    let result_count = match app.mode {
+        Mode::Command(ref mut mode) => mode.results().count(),
+        Mode::Open(ref mut mode) => mode.results().count(),
+        Mode::Theme(ref mut mode) => mode.results().count(),
+        Mode::SymbolJump(ref mut mode) => mode.results().count(),
+        _ => bail!("Can't pop search token outside of search select mode"),
+    };
+
+    if result_count == 0 {
+        application::switch_to_normal_mode(app)
+    } else {
+        disable_insert(app)
+    }
 }
