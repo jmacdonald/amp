@@ -1,6 +1,5 @@
 mod confirm;
 mod command;
-mod insert;
 pub mod jump;
 mod line_jump;
 pub mod open;
@@ -13,7 +12,6 @@ mod theme;
 
 pub use self::confirm::ConfirmMode;
 pub use self::command::CommandMode;
-pub use self::insert::InsertMode;
 pub use self::jump::JumpMode;
 pub use self::line_jump::LineJumpMode;
 pub use self::open::OpenMode;

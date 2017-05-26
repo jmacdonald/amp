@@ -4,7 +4,7 @@ use errors::*;
 use commands::{self, Result};
 use std::mem;
 use models::application::{Application, Mode};
-use models::application::modes::{jump, CommandMode, InsertMode, JumpMode, LineJumpMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode, SymbolJumpMode, ThemeMode};
+use models::application::modes::*;
 
 pub fn switch_to_normal_mode(app: &mut Application) -> Result {
     let _ = commands::buffer::end_command_group(app);
@@ -16,7 +16,7 @@ pub fn switch_to_normal_mode(app: &mut Application) -> Result {
 pub fn switch_to_insert_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer().is_some() {
         commands::buffer::start_command_group(app)?;
-        app.mode = Mode::Insert(InsertMode::new());
+        app.mode = Mode::Insert;
         commands::view::scroll_to_cursor(app)?;
     } else {
         bail!(BUFFER_MISSING);

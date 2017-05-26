@@ -1,8 +1,7 @@
-use models::application::modes::InsertMode;
 use commands::{Command, application, buffer, cursor, selection, view};
 use input::Key;
 
-pub fn handle(mode: &mut InsertMode, input: Key) -> Option<Command> {
+pub fn handle(input: Key) -> Option<Command> {
     match input {
         Key::Esc        => Some(application::switch_to_normal_mode),
         Key::Enter      => Some(buffer::insert_newline),
@@ -16,11 +15,8 @@ pub fn handle(mode: &mut InsertMode, input: Key) -> Option<Command> {
         Key::End        => Some(cursor::move_to_end_of_line),
         Key::PageUp     => Some(view::scroll_up),
         Key::PageDown   => Some(view::scroll_down),
-        Key::Char(c)    => {
-            mode.input = Some(c);
-            Some(buffer::insert_char)
-        }
-        Key::Ctrl('a') => Some(selection::select_all),
+        Key::Char(_)    => Some(buffer::insert_char),
+        Key::Ctrl('a')  => Some(selection::select_all),
         Key::Ctrl('z')  => Some(application::suspend),
         Key::Ctrl('c')  => Some(application::exit),
         _ => None,

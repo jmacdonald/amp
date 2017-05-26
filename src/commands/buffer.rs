@@ -1,6 +1,7 @@
 use errors::*;
 use commands::{self, Result};
 use std::mem;
+use input::Key;
 use helpers::token::{Direction, adjacent_token_position};
 use models::application::{Application, ClipboardContent, Mode};
 use models::application::modes::ConfirmMode;
@@ -245,14 +246,12 @@ pub fn backspace(app: &mut Application) -> Result {
 
 pub fn insert_char(app: &mut Application) -> Result {
     if let Some(buffer) = app.workspace.current_buffer() {
-        if let Mode::Insert(ref mut mode) = app.mode {
-            let character = mode.input.ok_or("No character to insert")?;
-
+        if let &Some(Key::Char(character)) = app.view.last_key() {
             // TODO: Drop explicit call to to_string().
             buffer.insert(character.to_string());
             buffer.cursor.move_right();
         } else {
-            bail!("Can't insert a character outside of insert mode");
+            bail!("No character to insert");
         }
     } else {
         bail!(BUFFER_MISSING);
@@ -303,7 +302,7 @@ pub fn indent_line(app: &mut Application) -> Result {
     let tab_content = app.preferences.borrow().tab_content(buffer.path.as_ref());
 
     let target_position = match app.mode {
-        Mode::Insert(_) => {
+        Mode::Insert => {
             Position {
                 line: buffer.cursor.line,
                 offset: buffer.cursor.offset + tab_content.chars().count(),
@@ -729,7 +728,7 @@ mod tests {
 
         // Ensure that we're in insert mode.
         assert!(match app.mode {
-            ::models::application::Mode::Insert(_) => true,
+            ::models::application::Mode::Insert => true,
             _ => false,
         });
 

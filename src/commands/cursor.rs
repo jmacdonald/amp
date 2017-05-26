@@ -340,7 +340,7 @@ mod tests {
 
         // Ensure that we're in insert mode.
         assert!(match app.mode {
-            ::models::application::Mode::Insert(_) => true,
+            ::models::application::Mode::Insert => true,
             _ => false,
         });
     }

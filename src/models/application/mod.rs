@@ -13,7 +13,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use input;
 use presenters;
-use self::modes::{ConfirmMode, CommandMode, JumpMode, LineJumpMode, SymbolJumpMode, InsertMode, OpenMode, SelectMode, SelectLineMode, SearchInsertMode, ThemeMode};
+use self::modes::*;
 use scribe::{Buffer, Workspace};
 use view::{self, StatusLineData, View};
 use self::clipboard::Clipboard;
@@ -23,7 +23,7 @@ pub enum Mode {
     Confirm(ConfirmMode),
     Command(CommandMode),
     Exit,
-    Insert(InsertMode),
+    Insert,
     Jump(JumpMode),
     LineJump(LineJumpMode),
     Normal,
@@ -111,7 +111,7 @@ impl Application {
                                                               mode,
                                                               &mut application.view)
                 }
-                Mode::Insert(_) => {
+                Mode::Insert => {
                     presenters::modes::insert::display(&mut application.workspace,
                                                        &mut application.view)
                 }
@@ -184,7 +184,7 @@ impl Application {
                     Mode::Command(ref mut mode) => input::modes::search_select::handle(mode, key),
                     Mode::Normal => input::modes::normal::handle(key),
                     Mode::Confirm(_) => input::modes::confirm::handle(key),
-                    Mode::Insert(ref mut i) => input::modes::insert::handle(i, key),
+                    Mode::Insert => input::modes::insert::handle(key),
                     Mode::Jump(ref mut j) => input::modes::jump::handle(j, key),
                     Mode::LineJump(ref mut j) => input::modes::line_jump::handle(j, key),
                     Mode::SymbolJump(ref mut mode) => input::modes::search_select::handle(mode, key),
