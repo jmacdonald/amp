@@ -1,4 +1,5 @@
 use errors::*;
+use input::Key;
 use commands::{self, Result};
 use models::application::{Application, Mode};
 
@@ -85,6 +86,32 @@ pub fn accept_query(app: &mut Application) -> Result {
     commands::application::switch_to_normal_mode(app)?;
     app.search_query = Some(query);
     move_to_next_result(app)?;
+
+    Ok(())
+}
+
+pub fn push_search_char(app: &mut Application) -> Result {
+    let key = app.view.last_key().as_ref().ok_or("View hasn't tracked a key press")?;
+
+    if let &Key::Char(c) = key {
+        if let Mode::SearchInsert(ref mut mode) = app.mode {
+            mode.input.push(c)
+        } else {
+            bail!("Can't push search character outside of search insert mode")
+        }
+    } else {
+        bail!("Last key press wasn't a character")
+    }
+
+    Ok(())
+}
+
+pub fn pop_search_char(app: &mut Application) -> Result {
+    if let Mode::SearchInsert(ref mut mode) = app.mode {
+        mode.input.pop()
+    } else {
+        bail!("Can't pop search character outside of search insert mode")
+    };
 
     Ok(())
 }
