@@ -1,4 +1,5 @@
 use errors::*;
+use input::Key;
 use std::mem;
 use commands::Result;
 use models::application::modes::jump;
@@ -58,4 +59,29 @@ fn switch_to_previous_mode(app: &mut Application) {
             }
         }
     }
+}
+
+pub fn push_search_char(app: &mut Application) -> Result {
+    if let &Some(ref key) = app.view.last_key() {
+        if let Mode::Jump(ref mut mode) = app.mode {
+            match key {
+                &Key::Char('f') => {
+                    if mode.first_phase {
+                        mode.first_phase = false;
+                    } else {
+                        // Add the input to whatever we've received in jump mode so far.
+                        mode.input.push('f');
+                    }
+                },
+                &Key::Char(c) => mode.input.push(c),
+                _ => bail!("Last key press wasn't a character")
+            }
+        } else {
+            bail!("Can't push jump character outside of jump mode")
+        }
+    } else {
+        bail!("View hasn't tracked a key press")
+    }
+
+    match_tag(app)
 }
