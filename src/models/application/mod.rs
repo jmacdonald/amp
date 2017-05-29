@@ -185,14 +185,14 @@ impl Application {
                     Mode::Normal => input::modes::normal::handle(key),
                     Mode::Confirm(_) => input::modes::confirm::handle(key),
                     Mode::Insert => input::modes::insert::handle(key),
-                    Mode::Jump(ref mut j) => input::modes::jump::handle(j, key),
-                    Mode::LineJump(ref mut j) => input::modes::line_jump::handle(j, key),
+                    Mode::Jump(_) => input::modes::jump::handle(key),
+                    Mode::LineJump(_) => input::modes::line_jump::handle(key),
                     Mode::SymbolJump(ref mut mode) => input::modes::search_select::handle(mode, key),
                     Mode::Open(ref mut mode) => input::modes::search_select::handle(mode, key),
                     Mode::Theme(ref mut mode) => input::modes::search_select::handle(mode, key),
                     Mode::Select(_) => input::modes::select::handle(key),
                     Mode::SelectLine(_) => input::modes::select_line::handle(key),
-                    Mode::SearchInsert(ref mut s) => input::modes::search_insert::handle(s, key),
+                    Mode::SearchInsert(_) => input::modes::search_insert::handle(key),
                     Mode::Exit => None,
                 }
             });
