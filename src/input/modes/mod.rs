@@ -7,3 +7,4 @@ pub mod select;
 pub mod select_line;
 pub mod search_insert;
 pub mod search_select;
+pub mod search_select_insert;

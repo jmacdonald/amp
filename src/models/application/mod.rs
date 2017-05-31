@@ -181,15 +181,31 @@ impl Application {
             let command = application.view.listen().and_then(|key| {
                 // Pass the input to the current mode.
                 match application.mode {
-                    Mode::Command(ref mut mode) => input::modes::search_select::handle(mode, key),
+                    Mode::Command(ref mode) => if mode.insert_mode() {
+                        input::modes::search_select_insert::handle(key)
+                    } else {
+                        input::modes::search_select::handle(key)
+                    },
+                    Mode::SymbolJump(ref mode) => if mode.insert_mode() {
+                        input::modes::search_select_insert::handle(key)
+                    } else {
+                        input::modes::search_select::handle(key)
+                    },
+                    Mode::Open(ref mode) => if mode.insert_mode() {
+                        input::modes::search_select_insert::handle(key)
+                    } else {
+                        input::modes::search_select::handle(key)
+                    },
+                    Mode::Theme(ref mode) => if mode.insert_mode() {
+                        input::modes::search_select_insert::handle(key)
+                    } else {
+                        input::modes::search_select::handle(key)
+                    },
                     Mode::Normal => input::modes::normal::handle(key),
                     Mode::Confirm(_) => input::modes::confirm::handle(key),
                     Mode::Insert => input::modes::insert::handle(key),
                     Mode::Jump(_) => input::modes::jump::handle(key),
                     Mode::LineJump(_) => input::modes::line_jump::handle(key),
-                    Mode::SymbolJump(ref mut mode) => input::modes::search_select::handle(mode, key),
-                    Mode::Open(ref mut mode) => input::modes::search_select::handle(mode, key),
-                    Mode::Theme(ref mut mode) => input::modes::search_select::handle(mode, key),
                     Mode::Select(_) => input::modes::select::handle(key),
                     Mode::SelectLine(_) => input::modes::select_line::handle(key),
                     Mode::SearchInsert(_) => input::modes::search_insert::handle(key),
