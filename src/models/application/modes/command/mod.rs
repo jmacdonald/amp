@@ -5,7 +5,7 @@ use helpers::SelectableSet;
 use std::collections::HashMap;
 use std::slice::Iter;
 use models::application::modes::SearchSelectMode;
-use commands::*;
+use commands::{self, Command};
 pub use self::displayable_command::DisplayableCommand;
 
 pub struct CommandMode {
@@ -22,13 +22,9 @@ impl CommandMode {
         CommandMode {
             insert: true,
             input: String::new(),
-            commands: CommandMode::generate_commands(),
+            commands: commands::hash_map(),
             results: SelectableSet::new(Vec::new()),
         }
-    }
-
-    fn generate_commands() -> HashMap<&'static str, Command> {
-        include!("generated_commands")
     }
 }
 

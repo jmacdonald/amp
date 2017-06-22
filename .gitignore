@@ -1,4 +1,4 @@
-/src/models/application/modes/command/generated_commands
+/src/commands/hash_map
 /target
 *.swp
 *.bk

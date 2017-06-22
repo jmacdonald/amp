@@ -1,5 +1,6 @@
-use models::application::Application;
 use errors;
+use models::application::Application;
+use std::collections::HashMap;
 
 pub mod application;
 pub mod buffer;
@@ -17,3 +18,7 @@ pub mod workspace;
 
 pub type Command = fn(&mut Application) -> Result;
 pub type Result = errors::Result<()>;
+
+pub fn hash_map() -> HashMap<&'static str, Command> {
+    include!("hash_map")
+}

@@ -18,7 +18,7 @@ fn main() {
 fn generate_commands() {
     // Create the output file and write the opening lines.
     let current_dir = env::current_dir().expect("Couldn't get the current directory");
-    let mut output = File::create("src/models/application/modes/command/generated_commands")
+    let mut output = File::create("src/commands/hash_map")
         .expect("Couldn't create output file");
     output
         .write("{\n    let mut commands: HashMap<&'static str, Command> = HashMap::new();\n"
