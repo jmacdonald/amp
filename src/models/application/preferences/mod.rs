@@ -6,6 +6,8 @@ use std::io::Read;
 use std::path::PathBuf;
 use yaml::yaml::{Yaml, YamlLoader};
 
+mod key_map;
+
 const FILE_NAME: &'static str = "config.yml";
 const APP_INFO: AppInfo = AppInfo {
     name: "amp",
