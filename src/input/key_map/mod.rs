@@ -6,7 +6,7 @@ use std::ops::Deref;
 use yaml::Yaml;
 
 type KeyMapData = HashMap<Key, Command>;
-struct KeyMap(KeyMapData);
+pub struct KeyMap(KeyMapData);
 
 impl KeyMap {
     fn from(keymap_data: &Yaml) -> Result<KeyMap> {
