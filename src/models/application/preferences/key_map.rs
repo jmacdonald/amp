@@ -59,12 +59,29 @@ fn parse_key(data: &str) -> Result<Key> {
         }
     } else {
         // No modifier; just get the key.
-        let key_char = component.chars().nth(0).ok_or(format!(
-            "Keymap key \"{}\" is invalid",
-            component
-        ))?;
-
-        Ok(Key::Char(key_char))
+        Ok(match component {
+            "Space"     => Key::Char(' '),
+            "Backspace" => Key::Backspace,
+            "Left"      => Key::Left,
+            "Right"     => Key::Right,
+            "Up"        => Key::Up,
+            "Down"      => Key::Down,
+            "Home"      => Key::Home,
+            "End"       => Key::End,
+            "PageUp"    => Key::PageUp,
+            "PageDown"  => Key::PageDown,
+            "Delete"    => Key::Delete,
+            "Insert"    => Key::Insert,
+            "Esc"       => Key::Esc,
+            "Tab"       => Key::Tab,
+            "Enter"     => Key::Enter,
+            _           => Key::Char(
+                // It's not a keyword; take its first character, if available.
+                component.chars().nth(0).ok_or(
+                    format!("Keymap key \"{}\" is invalid", component)
+                )?
+            ),
+        })
     }
 }
 
@@ -113,5 +130,35 @@ mod tests {
             (*command as *const usize),
             (commands::cursor::move_up as *const usize)
         );
+    }
+
+    #[test]
+    fn keymap_correctly_parses_yaml_keyword_keybindings() {
+        let mappings = vec![
+            ("Space: cursor::move_up",     Key::Char(' '), commands::cursor::move_up),
+            ("Backspace: cursor::move_up", Key::Backspace, commands::cursor::move_up),
+            ("Left: cursor::move_up",      Key::Left,      commands::cursor::move_up),
+            ("Right: cursor::move_up",     Key::Right,     commands::cursor::move_up),
+            ("Up: cursor::move_up",        Key::Up,        commands::cursor::move_up),
+            ("Down: cursor::move_up",      Key::Down,      commands::cursor::move_up),
+            ("Home: cursor::move_up",      Key::Home,      commands::cursor::move_up),
+            ("End: cursor::move_up",       Key::End,       commands::cursor::move_up),
+            ("PageUp: cursor::move_up",    Key::PageUp,    commands::cursor::move_up),
+            ("PageDown: cursor::move_up",  Key::PageDown,  commands::cursor::move_up),
+            ("Delete: cursor::move_up",    Key::Delete,    commands::cursor::move_up),
+            ("Insert: cursor::move_up",    Key::Insert,    commands::cursor::move_up),
+            ("Esc: cursor::move_up",       Key::Esc,       commands::cursor::move_up),
+            ("Tab: cursor::move_up",       Key::Tab,       commands::cursor::move_up),
+            ("Enter: cursor::move_up",     Key::Enter,     commands::cursor::move_up)
+        ];
+
+        for (binding, key, command) in mappings {
+            // Build the keymap
+            let yaml = YamlLoader::load_from_str(binding).unwrap();
+            let keymap = KeyMap::from(&yaml[0]).unwrap();
+
+            let parsed_command = keymap.get(&key).expect("Keymap doesn't contain command");
+            assert_eq!((*parsed_command as *const usize), (command as *const usize));
+        }
     }
 }
