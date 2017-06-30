@@ -121,7 +121,7 @@ fn parse_key(data: &str) -> Result<Key> {
             "page_down" => Key::PageDown,
             "delete"    => Key::Delete,
             "insert"    => Key::Insert,
-            "esc"       => Key::Esc,
+            "escape"    => Key::Esc,
             "tab"       => Key::Tab,
             "enter"     => Key::Enter,
             _           => Key::Char(
@@ -188,7 +188,7 @@ mod tests {
             ("normal:\n  page_down: cursor::move_up", Key::PageDown,  commands::cursor::move_up),
             ("normal:\n  delete: cursor::move_up",    Key::Delete,    commands::cursor::move_up),
             ("normal:\n  insert: cursor::move_up",    Key::Insert,    commands::cursor::move_up),
-            ("normal:\n  esc: cursor::move_up",       Key::Esc,       commands::cursor::move_up),
+            ("normal:\n  escape: cursor::move_up",    Key::Esc,       commands::cursor::move_up),
             ("normal:\n  tab: cursor::move_up",       Key::Tab,       commands::cursor::move_up),
             ("normal:\n  enter: cursor::move_up",     Key::Enter,     commands::cursor::move_up)
         ];
