@@ -109,21 +109,21 @@ fn parse_key(data: &str) -> Result<Key> {
     } else {
         // No modifier; just get the key.
         Ok(match component {
-            "Space"     => Key::Char(' '),
-            "Backspace" => Key::Backspace,
-            "Left"      => Key::Left,
-            "Right"     => Key::Right,
-            "Up"        => Key::Up,
-            "Down"      => Key::Down,
-            "Home"      => Key::Home,
-            "End"       => Key::End,
-            "PageUp"    => Key::PageUp,
-            "PageDown"  => Key::PageDown,
-            "Delete"    => Key::Delete,
-            "Insert"    => Key::Insert,
-            "Esc"       => Key::Esc,
-            "Tab"       => Key::Tab,
-            "Enter"     => Key::Enter,
+            "space"     => Key::Char(' '),
+            "backspace" => Key::Backspace,
+            "left"      => Key::Left,
+            "right"     => Key::Right,
+            "up"        => Key::Up,
+            "down"      => Key::Down,
+            "home"      => Key::Home,
+            "end"       => Key::End,
+            "page_up"   => Key::PageUp,
+            "page_down" => Key::PageDown,
+            "delete"    => Key::Delete,
+            "insert"    => Key::Insert,
+            "esc"       => Key::Esc,
+            "tab"       => Key::Tab,
+            "enter"     => Key::Enter,
             _           => Key::Char(
                 // It's not a keyword; take its first character, if available.
                 component.chars().nth(0).ok_or(
@@ -176,21 +176,21 @@ mod tests {
     #[test]
     fn keymap_correctly_parses_yaml_keyword_keybindings() {
         let mappings = vec![
-            ("normal:\n  Space: cursor::move_up",     Key::Char(' '), commands::cursor::move_up),
-            ("normal:\n  Backspace: cursor::move_up", Key::Backspace, commands::cursor::move_up),
-            ("normal:\n  Left: cursor::move_up",      Key::Left,      commands::cursor::move_up),
-            ("normal:\n  Right: cursor::move_up",     Key::Right,     commands::cursor::move_up),
-            ("normal:\n  Up: cursor::move_up",        Key::Up,        commands::cursor::move_up),
-            ("normal:\n  Down: cursor::move_up",      Key::Down,      commands::cursor::move_up),
-            ("normal:\n  Home: cursor::move_up",      Key::Home,      commands::cursor::move_up),
-            ("normal:\n  End: cursor::move_up",       Key::End,       commands::cursor::move_up),
-            ("normal:\n  PageUp: cursor::move_up",    Key::PageUp,    commands::cursor::move_up),
-            ("normal:\n  PageDown: cursor::move_up",  Key::PageDown,  commands::cursor::move_up),
-            ("normal:\n  Delete: cursor::move_up",    Key::Delete,    commands::cursor::move_up),
-            ("normal:\n  Insert: cursor::move_up",    Key::Insert,    commands::cursor::move_up),
-            ("normal:\n  Esc: cursor::move_up",       Key::Esc,       commands::cursor::move_up),
-            ("normal:\n  Tab: cursor::move_up",       Key::Tab,       commands::cursor::move_up),
-            ("normal:\n  Enter: cursor::move_up",     Key::Enter,     commands::cursor::move_up)
+            ("normal:\n  space: cursor::move_up",     Key::Char(' '), commands::cursor::move_up),
+            ("normal:\n  backspace: cursor::move_up", Key::Backspace, commands::cursor::move_up),
+            ("normal:\n  left: cursor::move_up",      Key::Left,      commands::cursor::move_up),
+            ("normal:\n  right: cursor::move_up",     Key::Right,     commands::cursor::move_up),
+            ("normal:\n  up: cursor::move_up",        Key::Up,        commands::cursor::move_up),
+            ("normal:\n  down: cursor::move_up",      Key::Down,      commands::cursor::move_up),
+            ("normal:\n  home: cursor::move_up",      Key::Home,      commands::cursor::move_up),
+            ("normal:\n  end: cursor::move_up",       Key::End,       commands::cursor::move_up),
+            ("normal:\n  page_up: cursor::move_up",   Key::PageUp,    commands::cursor::move_up),
+            ("normal:\n  page_down: cursor::move_up", Key::PageDown,  commands::cursor::move_up),
+            ("normal:\n  delete: cursor::move_up",    Key::Delete,    commands::cursor::move_up),
+            ("normal:\n  insert: cursor::move_up",    Key::Insert,    commands::cursor::move_up),
+            ("normal:\n  esc: cursor::move_up",       Key::Esc,       commands::cursor::move_up),
+            ("normal:\n  tab: cursor::move_up",       Key::Tab,       commands::cursor::move_up),
+            ("normal:\n  enter: cursor::move_up",     Key::Enter,     commands::cursor::move_up)
         ];
 
         for (binding, key, command) in mappings {
