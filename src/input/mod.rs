@@ -24,6 +24,7 @@ pub enum Key {
     Esc,
     Tab,
     Enter,
+    AnyChar,
     Char(char),
     Ctrl(char),
 }

@@ -39,8 +39,20 @@ impl KeyMap {
         Ok(KeyMap(keymap))
     }
 
+    /// Searches the keymap for the specified key.
+    /// Character keys will fall back to wildcard character bindings
+    /// if the specific character binding cannot be found.
+    ///
     pub fn command_for(&self, mode: &str, key: &Key) -> Option<&Command> {
-        self.0.get(mode).and_then(|mode_keymap| mode_keymap.get(key))
+        self.0.get(mode).and_then(|mode_keymap| {
+            if let &Key::Char(_) = key {
+                // Look for a command for this specific character, falling
+                // back to another search for a wildcard character binding.
+                mode_keymap.get(key).or_else(|| mode_keymap.get(&Key::AnyChar))
+            } else {
+                mode_keymap.get(key)
+            }
+        })
     }
 }
 
@@ -124,6 +136,7 @@ fn parse_key(data: &str) -> Result<Key> {
             "escape"    => Key::Esc,
             "tab"       => Key::Tab,
             "enter"     => Key::Enter,
+            "_"         => Key::AnyChar,
             _           => Key::Char(
                 // It's not a keyword; take its first character, if available.
                 component.chars().nth(0).ok_or(
@@ -153,6 +166,48 @@ mod tests {
         );
         assert_eq!(
             (*command as *const usize),
+            (commands::cursor::move_up as *const usize)
+        );
+    }
+
+    #[test]
+    fn keymap_correctly_parses_yaml_wildcard_character_keybindings() {
+        // Build the keymap
+        let yaml_data = "normal:\n  _: cursor::move_up";
+        let yaml = YamlLoader::load_from_str(yaml_data).unwrap();
+        let keymap = KeyMap::from(&yaml[0]).unwrap();
+
+        let characters = vec!['a', 'b', 'c'];
+        for c in characters.into_iter() {
+            let command = keymap.command_for("normal", &Key::Char(c)).expect(
+                "Keymap doesn't contain command",
+            );
+            assert_eq!(
+                (*command as *const usize),
+                (commands::cursor::move_up as *const usize)
+            );
+        }
+    }
+
+    #[test]
+    fn keymap_correctly_prioritizes_character_over_wildcard_character_keybindings() {
+        // Build the keymap
+        let yaml_data = "normal:\n  j: cursor::move_down\n  _: cursor::move_up";
+        let yaml = YamlLoader::load_from_str(yaml_data).unwrap();
+        let keymap = KeyMap::from(&yaml[0]).unwrap();
+
+        let char_command = keymap.command_for("normal", &Key::Char('j')).expect(
+            "Keymap doesn't contain command",
+        );
+        assert_eq!(
+            (*char_command as *const usize),
+            (commands::cursor::move_down as *const usize)
+        );
+        let wildcard_command = keymap.command_for("normal", &Key::Char('a')).expect(
+            "Keymap doesn't contain command",
+        );
+        assert_eq!(
+            (*wildcard_command as *const usize),
             (commands::cursor::move_up as *const usize)
         );
     }
