@@ -77,14 +77,14 @@ pub fn switch_to_line_jump_mode(app: &mut Application) -> Result {
 
 pub fn switch_to_open_mode(app: &mut Application) -> Result {
     app.mode = Mode::Open(OpenMode::new(app.workspace.path.clone()));
-    commands::search_select_mode::search(app)?;
+    commands::search_select::search(app)?;
 
     Ok(())
 }
 
 pub fn switch_to_command_mode(app: &mut Application) -> Result {
     app.mode = Mode::Command(CommandMode::new());
-    commands::search_select_mode::search(app)?;
+    commands::search_select::search(app)?;
 
     Ok(())
 }
@@ -99,7 +99,7 @@ pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
     } else {
         bail!(BUFFER_MISSING);
     }
-    commands::search_select_mode::search(app)?;
+    commands::search_select::search(app)?;
 
     Ok(())
 }
@@ -110,7 +110,7 @@ pub fn switch_to_theme_mode(app: &mut Application) -> Result {
             app.view.theme_set.themes.keys().map(|k| k.to_string()).collect()
         )
     );
-    commands::search_select_mode::search(app)?;
+    commands::search_select::search(app)?;
 
     Ok(())
 }

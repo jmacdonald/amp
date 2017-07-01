@@ -12,7 +12,7 @@ pub mod line_jump;
 pub mod preferences;
 pub mod search;
 pub mod selection;
-pub mod search_select_mode;
+pub mod search_select;
 pub mod view;
 pub mod workspace;
 
