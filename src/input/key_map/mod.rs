@@ -13,7 +13,7 @@ impl KeyMap {
     /// e.g.
     ///
     ///  normal:
-    ///     Ctrl-r: cursor::move_up
+    ///     ctrl-r: cursor::move_up
     ///
     /// becomes this HashMap entry:
     ///
@@ -60,7 +60,7 @@ impl KeyMap {
 ///
 /// e.g.
 ///
-///   Ctrl-r: cursor::move_up
+///   ctrl-r: cursor::move_up
 ///
 /// becomes this HashMap entry:
 ///
@@ -98,7 +98,7 @@ fn parse_mode_key_bindings(mode: &Yaml, commands: &HashMap<&str, Command>) -> Re
 ///
 /// e.g.
 ///
-///   Ctrl-r becomes Key::Ctrl('r')
+///   ctrl-r becomes Key::Ctrl('r')
 ///
 fn parse_key(data: &str) -> Result<Key> {
     let mut key_components = data.split("-");
@@ -115,7 +115,7 @@ fn parse_key(data: &str) -> Result<Key> {
 
         // Find the variant for the specified modifier.
         match component {
-            "Ctrl" => Ok(Key::Ctrl(key_char)),
+            "ctrl" => Ok(Key::Ctrl(key_char)),
             _ => bail!(format!("Keymap modifier \"{}\" is invalid", component)),
         }
     } else {
@@ -215,7 +215,7 @@ mod tests {
     #[test]
     fn keymap_correctly_parses_yaml_control_keybindings() {
         // Build the keymap
-        let yaml_data = "normal:\n  Ctrl-r: cursor::move_up";
+        let yaml_data = "normal:\n  ctrl-r: cursor::move_up";
         let yaml = YamlLoader::load_from_str(yaml_data).unwrap();
         let keymap = KeyMap::from(&yaml[0]).unwrap();
 
