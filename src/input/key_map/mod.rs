@@ -2,7 +2,7 @@ use commands::{self, Command};
 use errors::*;
 use input::Key;
 use std::collections::HashMap;
-use yaml::Yaml;
+use yaml::{Yaml, YamlLoader};
 
 /// Nested HashMap newtype that provides a more ergonomic interface.
 pub struct KeyMap(HashMap<String, HashMap<Key, Command>>);
@@ -54,6 +54,17 @@ impl KeyMap {
             }
         })
     }
+
+    pub fn default() -> Result<KeyMap> {
+        let default_keymap_data = YamlLoader::load_from_str(include_str!("default.yml"))
+            .chain_err(|| "Couldn't parse default keymap")?
+            .into_iter()
+            .nth(0)
+            .ok_or("Couldn't locate a document in the default keymap")?;
+
+        KeyMap::from(&default_keymap_data)
+    }
+
 }
 
 /// Parses the key bindings for a particular mode.
@@ -256,5 +267,19 @@ mod tests {
             let parsed_command = keymap.command_for("normal", &key).expect("Keymap doesn't contain command");
             assert_eq!((*parsed_command as *const usize), (command as *const usize));
         }
+    }
+
+    #[test]
+    fn keymap_correctly_loads_default_keybindings() {
+        // Build the keymap
+        let keymap = KeyMap::default().unwrap();
+
+        let command = keymap.command_for("normal", &Key::Char('k')).expect(
+            "Keymap doesn't contain command",
+        );
+        assert_eq!(
+            (*command as *const usize),
+            (commands::cursor::move_up as *const usize)
+        );
     }
 }

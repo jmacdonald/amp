@@ -1,0 +1,203 @@
+normal:
+  up: cursor::move_up
+  down: cursor::move_down
+  left: cursor::move_left
+  right: cursor::move_right
+  j: cursor::move_down
+  k: cursor::move_up
+  h: cursor::move_left
+  l: cursor::move_right
+  q: buffer::close
+  F: buffer::close_others
+  J: cursor::move_to_last_line
+  K: cursor::move_to_first_line
+  H: cursor::move_to_start_of_line
+  L: cursor::move_to_end_of_line
+  b: cursor::move_to_start_of_previous_token
+  w: cursor::move_to_start_of_next_token
+  e: cursor::move_to_end_of_current_token
+  a: cursor::append_to_current_token
+  I: cursor::insert_at_first_word_of_line
+  A: cursor::insert_at_end_of_line
+  o: cursor::insert_with_newline
+  O: cursor::insert_with_newline_above
+  x: buffer::delete
+  d: buffer::delete_token
+  ;: buffer::delete_current_line
+  D: buffer::delete_rest_of_line
+  C: buffer::change_rest_of_line
+  s: buffer::save
+  i: application::switch_to_insert_mode
+  f: application::switch_to_second_stage_jump_mode
+  v: application::switch_to_select_mode
+  V: application::switch_to_select_line_mode
+  g: application::switch_to_line_jump_mode
+  t: application::switch_to_theme_mode
+  u: buffer::undo
+  r: buffer::redo
+  p: buffer::paste
+  P: buffer::paste_above
+  n: search::move_to_next_result
+  N: search::move_to_previous_result
+  m: view::scroll_down
+  M: buffer::merge_next_line
+  y: buffer::copy_current_line
+  c: buffer::change_token
+  R: git::copy_remote_url
+  z: application::suspend
+  Q: application::exit
+  B: workspace::new_buffer
+  "'": application::switch_to_jump_mode
+  "0": application::switch_to_command_mode
+  "/": application::switch_to_search_insert_mode
+  ",": view::scroll_up
+  ">": buffer::indent_line
+  "<": buffer::outdent_line
+  "=": git::add
+  page_up: view::scroll_up
+  page_down: view::scroll_down
+  space: application::switch_to_open_mode
+  tab: workspace::next_buffer
+  enter: application::switch_to_symbol_jump_mode
+  backspace: buffer::backspace
+  ctrl-a: selection::select_all
+  ctrl-r: buffer::reload
+  ctrl-z: application::suspend
+  ctrl-c: application::exit
+
+insert:
+  _: buffer::insert_char
+  enter: buffer::insert_newline
+  tab: buffer::insert_tab
+  backspace: buffer::backspace
+  up: cursor::move_up
+  down: cursor::move_down
+  left: cursor::move_left
+  right: cursor::move_right
+  home: cursor::move_to_start_of_line
+  end: cursor::move_to_end_of_line
+  page_up: view::scroll_up
+  page_down: view::scroll_down
+  escape: application::switch_to_normal_mode
+  ctrl-a: selection::select_all
+  ctrl-z: application::suspend
+  ctrl-c: application::exit
+
+jump:
+  _: jump::push_search_char
+  escape: application::switch_to_normal_mode
+  ctrl-z: application::suspend
+  ctrl-c: application::exit
+
+line_jump:
+  _: line_jump::push_search_char
+  enter: line_jump::accept_input
+  backspace: line_jump::pop_search_char
+  escape: application::switch_to_normal_mode
+  ctrl-z: application::suspend
+  ctrl-c: application::exit
+
+search_insert:
+  _: search::push_search_char
+  enter: search::accept_query
+  backspace: search::pop_search_char
+  escape: application::switch_to_normal_mode
+  ctrl-z: application::suspend
+  ctrl-c: application::exit
+
+search_select:
+  enter: search_select::accept
+  space: search_select::accept
+  backspace: search_select::pop_search_token
+  escape: application::switch_to_normal_mode
+  up: search_select::select_previous
+  down: search_select::select_next
+  i: search_select::enable_insert
+  j: search_select::select_next
+  k: search_select::select_previous
+  ctrl-z: application::suspend
+  ctrl-c: application::exit
+
+search_select_insert:
+  _: search_select::push_search_char
+  enter: search_select::accept
+  backspace: search_select::pop_search_token
+  escape: search_select::step_back
+  down: search_select::select_next
+  up: search_select::select_previous
+  ctrl-j: search_select::select_next
+  ctrl-k: search_select::select_previous
+  ctrl-z: application::suspend
+  ctrl-c: application::exit
+
+select:
+  up: cursor::move_up
+  down: cursor::move_down
+  left: cursor::move_left
+  right: cursor::move_right
+  j: cursor::move_down
+  k: cursor::move_up
+  h: cursor::move_left
+  l: cursor::move_right
+  J: cursor::move_to_last_line
+  K: cursor::move_to_first_line
+  H: cursor::move_to_start_of_line
+  L: cursor::move_to_end_of_line
+  b: cursor::move_to_start_of_previous_token
+  w: cursor::move_to_start_of_next_token
+  e: cursor::move_to_end_of_current_token
+  d: selection::copy_and_delete
+  c: selection::change
+  y: selection::copy
+  p: buffer::paste
+  R: git::copy_remote_url
+  m: view::scroll_down
+  f: application::switch_to_second_stage_jump_mode
+  "'": application::switch_to_jump_mode
+  ",": view::scroll_up
+  page_up: view::scroll_up
+  page_down: view::scroll_down
+  escape: application::switch_to_normal_mode
+  ctrl-a: selection::select_all
+  ctrl-z: application::suspend
+  ctrl-c: application::exit
+
+select_line:
+  up: cursor::move_up
+  down: cursor::move_down
+  left: cursor::move_left
+  right: cursor::move_right
+  j: cursor::move_down
+  k: cursor::move_up
+  h: cursor::move_left
+  l: cursor::move_right
+  J: cursor::move_to_last_line
+  K: cursor::move_to_first_line
+  H: cursor::move_to_start_of_line
+  L: cursor::move_to_end_of_line
+  b: cursor::move_to_start_of_previous_token
+  w: cursor::move_to_start_of_next_token
+  e: cursor::move_to_end_of_current_token
+  d: selection::copy_and_delete
+  c: selection::change
+  y: selection::copy
+  p: buffer::paste
+  R: git::copy_remote_url
+  m: view::scroll_down
+  f: application::switch_to_second_stage_jump_mode
+  ",": view::scroll_up
+  ">": buffer::indent_line
+  "<": buffer::outdent_line
+  page_up: view::scroll_up
+  page_down: view::scroll_down
+  escape: application::switch_to_normal_mode
+  ctrl-a: selection::select_all
+  ctrl-z: application::suspend
+  ctrl-c: application::exit
+
+confirm:
+  n: application::switch_to_normal_mode
+  y: confirm::confirm_command
+  escape: application::switch_to_normal_mode
+  ctrl-z: application::suspend
+  ctrl-c: application::exit
