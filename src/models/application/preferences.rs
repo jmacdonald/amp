@@ -164,6 +164,10 @@ impl Preferences {
             String::from("\t")
         }
     }
+
+    pub fn key_map(&self) -> Option<&Yaml> {
+        self.data.as_ref().map(|data| &data["keymap"])
+    }
 }
 
 /// Loads the first YAML document in the user's config file.
@@ -349,5 +353,13 @@ mod tests {
 
         assert_eq!(preferences.tab_content(Some(PathBuf::from("preferences.rs")).as_ref()),
                    "\t");
+    }
+
+    #[test]
+    fn preferences_returns_user_defined_key_map() {
+        let data = YamlLoader::load_from_str("keymap:\n  normal: value").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.key_map().unwrap()["normal"].as_str(), Some("value"));
     }
 }
