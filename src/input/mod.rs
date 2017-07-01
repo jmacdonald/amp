@@ -5,7 +5,6 @@ use std::hash::Hash;
 
 pub use self::key_map::KeyMap;
 
-pub mod modes;
 mod key_map;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
