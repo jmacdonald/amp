@@ -11,7 +11,7 @@ use std::env;
 use std::path::Path;
 use std::cell::RefCell;
 use std::rc::Rc;
-use input;
+use input::{self, KeyMap};
 use presenters;
 use self::modes::*;
 use scribe::{Buffer, Workspace};
@@ -44,6 +44,7 @@ pub struct Application {
     pub repository: Option<Repository>,
     pub error: Option<Error>,
     pub preferences: Rc<RefCell<Preferences>>,
+    key_map: KeyMap,
 }
 
 impl Application {
@@ -93,6 +94,7 @@ impl Application {
                repository: Repository::discover(&current_dir).ok(),
                error: None,
                preferences: preferences,
+               key_map: KeyMap::default()?,
            })
     }
 
@@ -179,38 +181,41 @@ impl Application {
 
             // Listen for and respond to user input.
             let command = application.view.listen().and_then(|key| {
-                // Pass the input to the current mode.
-                match application.mode {
+                let mode = match application.mode {
                     Mode::Command(ref mode) => if mode.insert_mode() {
-                        input::modes::search_select_insert::handle(key)
+                        Some("search_select_insert")
                     } else {
-                        input::modes::search_select::handle(key)
+                        Some("search_select")
                     },
                     Mode::SymbolJump(ref mode) => if mode.insert_mode() {
-                        input::modes::search_select_insert::handle(key)
+                        Some("search_select_insert")
                     } else {
-                        input::modes::search_select::handle(key)
+                        Some("search_select")
                     },
                     Mode::Open(ref mode) => if mode.insert_mode() {
-                        input::modes::search_select_insert::handle(key)
+                        Some("search_select_insert")
                     } else {
-                        input::modes::search_select::handle(key)
+                        Some("search_select")
                     },
                     Mode::Theme(ref mode) => if mode.insert_mode() {
-                        input::modes::search_select_insert::handle(key)
+                        Some("search_select_insert")
                     } else {
-                        input::modes::search_select::handle(key)
+                        Some("search_select")
                     },
-                    Mode::Normal => input::modes::normal::handle(key),
-                    Mode::Confirm(_) => input::modes::confirm::handle(key),
-                    Mode::Insert => input::modes::insert::handle(key),
-                    Mode::Jump(_) => input::modes::jump::handle(key),
-                    Mode::LineJump(_) => input::modes::line_jump::handle(key),
-                    Mode::Select(_) => input::modes::select::handle(key),
-                    Mode::SelectLine(_) => input::modes::select_line::handle(key),
-                    Mode::SearchInsert(_) => input::modes::search_insert::handle(key),
+                    Mode::Normal => Some("normal"),
+                    Mode::Confirm(_) => Some("confirm"),
+                    Mode::Insert => Some("insert"),
+                    Mode::Jump(_) => Some("jump"),
+                    Mode::LineJump(_) => Some("line_jump"),
+                    Mode::Select(_) => Some("select"),
+                    Mode::SelectLine(_) => Some("select_line"),
+                    Mode::SearchInsert(_) => Some("search_insert"),
                     Mode::Exit => None,
-                }
+                };
+
+                mode.and_then(|mode| {
+                    application.key_map.command_for(&mode, &key)
+                })
             });
 
             if let Some(com) = command {
