@@ -7,7 +7,7 @@ pub mod buffer;
 pub mod confirm;
 pub mod cursor;
 pub mod git;
-pub mod jump_mode;
+pub mod jump;
 pub mod line_jump;
 pub mod preferences;
 pub mod search;
