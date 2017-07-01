@@ -43,7 +43,7 @@ impl KeyMap {
     /// Character keys will fall back to wildcard character bindings
     /// if the specific character binding cannot be found.
     ///
-    pub fn command_for(&self, mode: &str, key: &Key) -> Option<&Command> {
+    pub fn command_for(&self, mode: &str, key: &Key) -> Option<Command> {
         self.0.get(mode).and_then(|mode_keymap| {
             if let &Key::Char(_) = key {
                 // Look for a command for this specific character, falling
@@ -52,7 +52,7 @@ impl KeyMap {
             } else {
                 mode_keymap.get(key)
             }
-        })
+        }).map(|command| *command)
     }
 
     pub fn default() -> Result<KeyMap> {
@@ -176,7 +176,7 @@ mod tests {
             "Keymap doesn't contain command",
         );
         assert_eq!(
-            (*command as *const usize),
+            (command as *const usize),
             (commands::cursor::move_up as *const usize)
         );
     }
@@ -194,7 +194,7 @@ mod tests {
                 "Keymap doesn't contain command",
             );
             assert_eq!(
-                (*command as *const usize),
+                (command as *const usize),
                 (commands::cursor::move_up as *const usize)
             );
         }
@@ -211,14 +211,14 @@ mod tests {
             "Keymap doesn't contain command",
         );
         assert_eq!(
-            (*char_command as *const usize),
+            (char_command as *const usize),
             (commands::cursor::move_down as *const usize)
         );
         let wildcard_command = keymap.command_for("normal", &Key::Char('a')).expect(
             "Keymap doesn't contain command",
         );
         assert_eq!(
-            (*wildcard_command as *const usize),
+            (wildcard_command as *const usize),
             (commands::cursor::move_up as *const usize)
         );
     }
@@ -234,7 +234,7 @@ mod tests {
             "Keymap doesn't contain command",
         );
         assert_eq!(
-            (*command as *const usize),
+            (command as *const usize),
             (commands::cursor::move_up as *const usize)
         );
     }
@@ -265,7 +265,7 @@ mod tests {
             let keymap = KeyMap::from(&yaml[0]).unwrap();
 
             let parsed_command = keymap.command_for("normal", &key).expect("Keymap doesn't contain command");
-            assert_eq!((*parsed_command as *const usize), (command as *const usize));
+            assert_eq!((parsed_command as *const usize), (command as *const usize));
         }
     }
 
@@ -278,7 +278,7 @@ mod tests {
             "Keymap doesn't contain command",
         );
         assert_eq!(
-            (*command as *const usize),
+            (command as *const usize),
             (commands::cursor::move_up as *const usize)
         );
     }
