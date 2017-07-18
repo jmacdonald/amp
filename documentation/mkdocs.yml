@@ -1,0 +1,5 @@
+site_name: Amp
+docs_dir: 'pages'
+pages:
+- 'index.md'
+- 'preferences.md'
