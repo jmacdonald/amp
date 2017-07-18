@@ -2,6 +2,8 @@ use commands::{self, Command};
 use errors::*;
 use input::Key;
 use std::collections::HashMap;
+use std::ops::{Deref, DerefMut};
+use std::convert::Into;
 use yaml::{Yaml, YamlLoader};
 
 /// Nested HashMap newtype that provides a more ergonomic interface.
@@ -155,6 +157,26 @@ fn parse_key(data: &str) -> Result<Key> {
                 )?
             ),
         })
+    }
+}
+
+impl Deref for KeyMap {
+    type Target = HashMap<String, HashMap<Key, Command>>;
+
+    fn deref(&self) -> &HashMap<String, HashMap<Key, Command>> {
+        &self.0
+    }
+}
+
+impl DerefMut for KeyMap {
+    fn deref_mut(&mut self) -> &mut HashMap<String, HashMap<Key, Command>> {
+        &mut self.0
+    }
+}
+
+impl Into<HashMap<String, HashMap<Key, Command>>> for KeyMap {
+    fn into(self) -> HashMap<String, HashMap<Key, Command>> {
+        self.0
     }
 }
 
