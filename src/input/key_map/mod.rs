@@ -19,7 +19,7 @@ impl KeyMap {
     ///
     /// becomes this HashMap entry:
     ///
-    ///   "normal" => HashMap(Key::Ctrl('r') => commands::cursor::move_up)
+    ///   "normal" => { Key::Ctrl('r') => commands::cursor::move_up }
     ///
     pub fn from(keymap_data: &Yaml) -> Result<KeyMap> {
         let modes = keymap_data.as_hash().ok_or(
