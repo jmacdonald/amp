@@ -84,6 +84,14 @@ impl Application {
 
         let view = View::new(preferences.clone())?;
         let clipboard = Clipboard::new();
+        let mut key_map = KeyMap::default()?;
+
+        // Merge user-defined keymaps into defaults.
+        preferences.borrow().key_map().map(|user_defined_key_map_data| {
+            KeyMap::from(user_defined_key_map_data).map(|user_defined_key_map| {
+                key_map.merge(user_defined_key_map);
+            })
+        });
 
         Ok(Application {
                mode: Mode::Normal,
@@ -94,7 +102,7 @@ impl Application {
                repository: Repository::discover(&current_dir).ok(),
                error: None,
                preferences: preferences,
-               key_map: KeyMap::default()?,
+               key_map: key_map,
            })
     }
 
