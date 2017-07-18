@@ -67,6 +67,39 @@ impl KeyMap {
         KeyMap::from(&default_keymap_data)
     }
 
+    /// Merges each of the passed key map's modes, consuming them in the process.
+    /// Note: the mode must exist to be merged; unmatched modes are discarded.
+    ///
+    /// e.g.
+    ///
+    /// normal:
+    ///     ctrl-r: cursor::move_up
+    ///
+    /// merged with:
+    ///
+    /// normal:
+    ///     ctrl-s: cursor::move_down
+    /// unknown:
+    ///     ctrl-l: cursor::move_right
+    ///
+    /// becomes this:
+    ///
+    ///   "normal" => {
+    ///       Key::Ctrl('r') => commands::cursor::move_up
+    ///       Key::Ctrl('s') => commands::cursor::move_down
+    ///   }
+    ///
+    pub fn merge(&mut self, mut key_map: KeyMap) {
+        // Step through the specified key map's modes.
+        for (mode, other_key_bindings) in key_map.iter_mut() {
+            // Fetch the current key bindings for the specified mode.
+            if let Some(mut key_bindings) = self.get_mut(mode) {
+                for (key, command) in other_key_bindings.drain() {
+                    key_bindings.insert(key, command);
+                }
+            }
+        }
+    }
 }
 
 /// Parses the key bindings for a particular mode.
@@ -302,6 +335,43 @@ mod tests {
         assert_eq!(
             (command as *const usize),
             (commands::cursor::move_up as *const usize)
+        );
+    }
+
+    #[test]
+    fn keymap_correctly_merges_keybindings() {
+        let yaml_data = "normal:\n  k: cursor::move_up\n  j: cursor::move_down";
+        let yaml = YamlLoader::load_from_str(yaml_data).unwrap();
+        let mut keymap = KeyMap::from(&yaml[0]).unwrap();
+
+        let other_yaml_data = "normal:\n  k: cursor::move_left\n  l: cursor::move_right";
+        let other_yaml = YamlLoader::load_from_str(other_yaml_data).unwrap();
+        let other_keymap = KeyMap::from(&other_yaml[0]).unwrap();
+
+        keymap.merge(other_keymap);
+
+        let mut command = keymap.command_for("normal", &Key::Char('j')).expect(
+            "Keymap doesn't contain original command",
+        );
+        assert_eq!(
+            (command as *const usize),
+            (commands::cursor::move_down as *const usize)
+        );
+
+        command = keymap.command_for("normal", &Key::Char('k')).expect(
+            "Keymap doesn't contain overlapping command",
+        );
+        assert_eq!(
+            (command as *const usize),
+            (commands::cursor::move_left as *const usize)
+        );
+
+        command = keymap.command_for("normal", &Key::Char('l')).expect(
+            "Keymap doesn't contain other command",
+        );
+        assert_eq!(
+            (command as *const usize),
+            (commands::cursor::move_right as *const usize)
         );
     }
 }
