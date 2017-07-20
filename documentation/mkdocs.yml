@@ -1,10 +1,14 @@
 site_name: Amp
 docs_dir: 'pages'
 theme_dir: 'themes/mkdocs-material/material'
+pages:
+  - 'index.md'
+  - 'preferences.md'
 extra:
   palette:
     primary: 'blue grey'
     accent: 'red'
-pages:
-- 'index.md'
-- 'preferences.md'
+markdown_extensions:
+  - admonition
+  - codehilite(guess_lang=false)
+  - toc(permalink=true)
