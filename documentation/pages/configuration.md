@@ -1,4 +1,4 @@
-# Preferences
+# Configuration
 
 Amp uses a YAML file to define preferences. The easiest way to edit these is to use the built-in `preferences::edit` command, which can be run in command mode.
 

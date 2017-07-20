@@ -5,7 +5,7 @@ repo_name: 'jmacdonald/amp'
 repo_url: 'https://github.com/jmacdonald/amp'
 pages:
   - 'index.md'
-  - 'preferences.md'
+  - 'configuration.md'
 extra:
   palette:
     primary: 'blue grey'
