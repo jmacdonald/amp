@@ -1,6 +1,8 @@
 site_name: Amp
 docs_dir: 'pages'
 theme_dir: 'themes/mkdocs-material/material'
+repo_name: 'jmacdonald/amp'
+repo_url: 'https://github.com/jmacdonald/amp'
 pages:
   - 'index.md'
   - 'preferences.md'
