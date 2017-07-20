@@ -1,6 +1,11 @@
 # Configuration
 
-Amp uses a YAML file to define preferences. The easiest way to edit these is to use the built-in `preferences::edit` command, which can be run in command mode.
+Amp uses a YAML file to define preferences that sit in a platform-dependent configuration folder. The easiest way to edit these is to use the built-in `preferences::edit` command, which can be run in command mode. There's a corresponding `reload` command, too, if you persist any changes.
+
+!!! tip
+    If you want to version this file, the aforementioned `edit` command will
+    display the full path at the bottom of the screen once the preferences have
+    been loaded into a new buffer for editing.
 
 ## General Options
 
@@ -11,6 +16,12 @@ theme: solarized_dark
 ```
 
 Used to specify the default theme. Values can be located through Amp's theme mode.
+
+!!! tip
+    You can configure the current theme without making a permanent configuration
+    change. Hit `t` to pick a theme that'll only last until you close the editor.
+    It's handy for temporarily changing to a lighter theme when working outdoors,
+    or vice-versa.
 
 ### Tab Width
 
