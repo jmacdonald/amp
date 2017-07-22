@@ -189,39 +189,8 @@ impl Application {
 
             // Listen for and respond to user input.
             let command = application.view.listen().and_then(|key| {
-                let mode = match application.mode {
-                    Mode::Command(ref mode) => if mode.insert_mode() {
-                        Some("search_select_insert")
-                    } else {
-                        Some("search_select")
-                    },
-                    Mode::SymbolJump(ref mode) => if mode.insert_mode() {
-                        Some("search_select_insert")
-                    } else {
-                        Some("search_select")
-                    },
-                    Mode::Open(ref mode) => if mode.insert_mode() {
-                        Some("search_select_insert")
-                    } else {
-                        Some("search_select")
-                    },
-                    Mode::Theme(ref mode) => if mode.insert_mode() {
-                        Some("search_select_insert")
-                    } else {
-                        Some("search_select")
-                    },
-                    Mode::Normal => Some("normal"),
-                    Mode::Confirm(_) => Some("confirm"),
-                    Mode::Insert => Some("insert"),
-                    Mode::Jump(_) => Some("jump"),
-                    Mode::LineJump(_) => Some("line_jump"),
-                    Mode::Select(_) => Some("select"),
-                    Mode::SelectLine(_) => Some("select_line"),
-                    Mode::SearchInsert(_) => Some("search_insert"),
-                    Mode::Exit => None,
-                };
 
-                mode.and_then(|mode| {
+                Application::mode_str(&application).and_then(|mode| {
                     application.key_map.command_for(&mode, &key)
                 })
             });
@@ -240,5 +209,39 @@ impl Application {
         }
 
         Ok(())
+    }
+
+    fn mode_str(application: &Application) -> Option<&'static str> {
+        match application.mode {
+            Mode::Command(ref mode) => if mode.insert_mode() {
+                Some("search_select_insert")
+            } else {
+                Some("search_select")
+            },
+            Mode::SymbolJump(ref mode) => if mode.insert_mode() {
+                Some("search_select_insert")
+            } else {
+                Some("search_select")
+            },
+            Mode::Open(ref mode) => if mode.insert_mode() {
+                Some("search_select_insert")
+            } else {
+                Some("search_select")
+            },
+            Mode::Theme(ref mode) => if mode.insert_mode() {
+                Some("search_select_insert")
+            } else {
+                Some("search_select")
+            },
+            Mode::Normal => Some("normal"),
+            Mode::Confirm(_) => Some("confirm"),
+            Mode::Insert => Some("insert"),
+            Mode::Jump(_) => Some("jump"),
+            Mode::LineJump(_) => Some("line_jump"),
+            Mode::Select(_) => Some("select"),
+            Mode::SelectLine(_) => Some("select_line"),
+            Mode::SearchInsert(_) => Some("search_insert"),
+            Mode::Exit => None,
+        }
     }
 }
