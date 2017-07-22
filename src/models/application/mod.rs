@@ -106,76 +106,74 @@ impl Application {
            })
     }
 
-    pub fn run() -> Result<()> {
-        let mut application = Application::new()?;
-
+    pub fn run(&mut self) -> Result<()> {
         loop {
             // Present the application state to the view.
-            match application.mode {
+            match self.mode {
                 Mode::Confirm(_) => {
-                    presenters::modes::confirm::display(&mut application.workspace,
-                                                        &mut application.view)
+                    presenters::modes::confirm::display(&mut self.workspace,
+                                                        &mut self.view)
                 },
                 Mode::Command(ref mut mode) => {
-                    presenters::modes::search_select::display(&mut application.workspace,
+                    presenters::modes::search_select::display(&mut self.workspace,
                                                               mode,
-                                                              &mut application.view)
+                                                              &mut self.view)
                 }
                 Mode::Insert => {
-                    presenters::modes::insert::display(&mut application.workspace,
-                                                       &mut application.view)
+                    presenters::modes::insert::display(&mut self.workspace,
+                                                       &mut self.view)
                 }
                 Mode::Open(ref mut mode) => {
-                    presenters::modes::search_select::display(&mut application.workspace,
+                    presenters::modes::search_select::display(&mut self.workspace,
                                                               mode,
-                                                              &mut application.view)
+                                                              &mut self.view)
                 }
                 Mode::SearchInsert(ref mode) => {
-                    presenters::modes::search_insert::display(&mut application.workspace,
+                    presenters::modes::search_insert::display(&mut self.workspace,
                                                               mode,
-                                                              &mut application.view)
+                                                              &mut self.view)
                 }
                 Mode::Jump(ref mut mode) => {
-                    presenters::modes::jump::display(&mut application.workspace,
+                    presenters::modes::jump::display(&mut self.workspace,
                                                      mode,
-                                                     &mut application.view)
+                                                     &mut self.view)
                 }
                 Mode::LineJump(ref mode) => {
-                    presenters::modes::line_jump::display(&mut application.workspace,
+                    presenters::modes::line_jump::display(&mut self.workspace,
                                                           mode,
-                                                          &mut application.view)
+                                                          &mut self.view)
                 }
                 Mode::SymbolJump(ref mut mode) => {
-                    presenters::modes::search_select::display(&mut application.workspace,
+                    presenters::modes::search_select::display(&mut self.workspace,
                                                               mode,
-                                                              &mut application.view)
+                                                              &mut self.view)
                 }
                 Mode::Select(ref mode) => {
-                    presenters::modes::select::display(&mut application.workspace,
+                    presenters::modes::select::display(&mut self.workspace,
                                                        mode,
-                                                       &mut application.view)
+                                                       &mut self.view)
                 }
                 Mode::SelectLine(ref mode) => {
-                    presenters::modes::select_line::display(&mut application.workspace,
+                    presenters::modes::select_line::display(&mut self.workspace,
                                                             mode,
-                                                            &mut application.view)
+                                                            &mut self.view)
                 }
                 Mode::Normal => {
-                    presenters::modes::normal::display(&mut application.workspace,
-                                                       &mut application.view,
-                                                       &application.repository)
+                    presenters::modes::normal::display(&mut self.workspace,
+                                                       &mut self.view,
+                                                       &self.repository)
                 }
                 Mode::Theme(ref mut mode) => {
-                    presenters::modes::search_select::display(&mut application.workspace,
+                    presenters::modes::search_select::display(&mut self.workspace,
                                                               mode,
-                                                              &mut application.view)
+                                                              &mut self.view)
                 }
                 Mode::Exit => ()
             }
 
             // Display an error from previous command invocation, if one exists.
-            if let Some(ref error) = application.error {
-                application
+            if let Some(ref error) = self.error {
+                self
                     .view
                     .draw_status_line(
                         &vec![StatusLineData{
@@ -184,26 +182,26 @@ impl Application {
                             colors: view::Colors::Warning,
                         }]
                     );
-                application.view.present();
+                self.view.present();
             }
 
             // Listen for and respond to user input.
-            let command = application.view.listen().and_then(|key| {
+            let command = self.view.listen().and_then(|key| {
 
-                Application::mode_str(&application).and_then(|mode| {
-                    application.key_map.command_for(&mode, &key)
+                Application::mode_str(&self).and_then(|mode| {
+                    self.key_map.command_for(&mode, &key)
                 })
             });
 
             if let Some(com) = command {
                 // Run the command and store its error output.
-                application.error = com(&mut application).err();
+                self.error = com(self).err();
             }
 
             // Check if the command resulted in an exit, before
             // looping again and asking for input we won't use.
-            if let Mode::Exit = application.mode {
-                application.view.clear();
+            if let Mode::Exit = self.mode {
+                self.view.clear();
                 break
             }
         }

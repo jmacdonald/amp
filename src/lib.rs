@@ -31,3 +31,4 @@ mod view;
 
 // External application API
 pub use models::Application;
+pub use errors::Error;
