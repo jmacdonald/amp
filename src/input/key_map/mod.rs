@@ -15,11 +15,11 @@ impl KeyMap {
     /// e.g.
     ///
     ///  normal:
-    ///     ctrl-r: cursor::move_up
+    ///     k: "cursor::move_up"
     ///
     /// becomes this HashMap entry:
     ///
-    ///   "normal" => { Key::Ctrl('r') => commands::cursor::move_up }
+    ///   "normal" => { Key::Char('k') => commands::cursor::move_up }
     ///
     pub fn from(keymap_data: &Yaml) -> Result<KeyMap> {
         let modes = keymap_data.as_hash().ok_or(
@@ -57,6 +57,8 @@ impl KeyMap {
         }).map(|command| *command)
     }
 
+    /// Loads the default keymap from a static
+    /// YAML document injected during the build.
     pub fn default() -> Result<KeyMap> {
         let default_keymap_data = YamlLoader::load_from_str(include_str!("default.yml"))
             .chain_err(|| "Couldn't parse default keymap")?
@@ -73,20 +75,20 @@ impl KeyMap {
     /// e.g.
     ///
     /// normal:
-    ///     ctrl-r: cursor::move_up
+    ///     k: "cursor::move_up"
     ///
     /// merged with:
     ///
     /// normal:
-    ///     ctrl-s: cursor::move_down
+    ///     j: "cursor::move_down"
     /// unknown:
-    ///     ctrl-l: cursor::move_right
+    ///     l: "cursor::move_right"
     ///
     /// becomes this:
     ///
     ///   "normal" => {
-    ///       Key::Ctrl('r') => commands::cursor::move_up
-    ///       Key::Ctrl('s') => commands::cursor::move_down
+    ///       Key::Char('k') => commands::cursor::move_up
+    ///       Key::Char('j') => commands::cursor::move_down
     ///   }
     ///
     pub fn merge(&mut self, mut key_map: KeyMap) {
@@ -106,11 +108,11 @@ impl KeyMap {
 ///
 /// e.g.
 ///
-///   ctrl-r: cursor::move_up
+///   k: "cursor::move_up"
 ///
 /// becomes this HashMap entry:
 ///
-///   Key::Ctrl('r') => commands::cursor::move_up
+///   Key::Char('k') => commands::cursor::move_up
 ///
 fn parse_mode_key_bindings(mode: &Yaml, commands: &HashMap<&str, Command>) -> Result<HashMap<Key, Command>> {
     let mode_key_bindings = mode.as_hash().ok_or(
