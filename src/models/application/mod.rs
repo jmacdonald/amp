@@ -188,7 +188,7 @@ impl Application {
             // Listen for and respond to user input.
             let command = self.view.listen().and_then(|key| {
 
-                Application::mode_str(&self).and_then(|mode| {
+                self.mode_str().and_then(|mode| {
                     self.key_map.command_for(&mode, &key)
                 })
             });
@@ -209,8 +209,8 @@ impl Application {
         Ok(())
     }
 
-    fn mode_str(application: &Application) -> Option<&'static str> {
-        match application.mode {
+    fn mode_str(&self) -> Option<&'static str> {
+        match self.mode {
             Mode::Command(ref mode) => if mode.insert_mode() {
                 Some("search_select_insert")
             } else {
