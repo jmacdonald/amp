@@ -21,3 +21,5 @@ pub use self::select::SelectMode;
 pub use self::select_line::SelectLineMode;
 pub use self::symbol_jump::SymbolJumpMode;
 pub use self::theme::ThemeMode;
+
+pub const MAX_SEARCH_SELECT_RESULTS: usize = 5;

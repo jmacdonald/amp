@@ -3,7 +3,7 @@ mod displayable_path;
 use std::path::PathBuf;
 use std::slice::Iter;
 use helpers::SelectableSet;
-use models::application::modes::SearchSelectMode;
+use models::application::modes::{SearchSelectMode, MAX_SEARCH_SELECT_RESULTS};
 use bloodhound::Index;
 pub use self::displayable_path::DisplayablePath;
 
@@ -15,8 +15,6 @@ pub struct OpenMode {
 }
 
 impl OpenMode {
-    pub const MAX_RESULTS: usize = 5;
-
     pub fn new(path: PathBuf) -> OpenMode {
         // Build and populate the index.
         let mut index = Index::new(path);
@@ -35,7 +33,7 @@ impl SearchSelectMode<DisplayablePath> for OpenMode {
     fn search(&mut self) {
         let results = self.index.find(
             &self.input,
-            OpenMode::MAX_RESULTS,
+            MAX_SEARCH_SELECT_RESULTS,
             false
         ).into_iter().map(|path| DisplayablePath(path)).collect();
         self.results = SelectableSet::new(results);

@@ -1,7 +1,7 @@
 use fragment;
 use helpers::SelectableSet;
 use std::slice::Iter;
-use models::application::modes::SearchSelectMode;
+use models::application::modes::{SearchSelectMode, MAX_SEARCH_SELECT_RESULTS};
 
 pub struct ThemeMode {
     insert: bool,
@@ -11,8 +11,6 @@ pub struct ThemeMode {
 }
 
 impl ThemeMode {
-    pub const MAX_RESULTS: usize = 5;
-
     pub fn new(themes: Vec<String>) -> ThemeMode {
         ThemeMode {
             insert: true,
@@ -26,7 +24,7 @@ impl ThemeMode {
 impl SearchSelectMode<String> for ThemeMode {
     fn search(&mut self) {
         // Find the themes we're looking for using the query.
-        let results = fragment::matching::find(&self.input, &self.themes, ThemeMode::MAX_RESULTS, false);
+        let results = fragment::matching::find(&self.input, &self.themes, MAX_SEARCH_SELECT_RESULTS, false);
 
         // We don't care about the result objects; we just want
         // the underlying symbols. Map the collection to get these.

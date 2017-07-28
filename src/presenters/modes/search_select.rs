@@ -1,6 +1,6 @@
 use std::cmp;
 use std::fmt::Display;
-use models::application::modes::{SearchSelectMode, ThemeMode};
+use models::application::modes::{SearchSelectMode, ThemeMode, MAX_SEARCH_SELECT_RESULTS};
 use pad::PadStr;
 use presenters::current_buffer_status_line_data;
 use scribe::Workspace;
@@ -59,7 +59,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
     }
 
     // Draw the divider.
-    let line = ThemeMode::MAX_RESULTS;
+    let line = MAX_SEARCH_SELECT_RESULTS;
     let colors = if mode.insert_mode() {
         Colors::Insert
     } else {
@@ -73,7 +73,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
 
     // Place the cursor on the search input line, right after its contents.
     view.set_cursor(Some(Position {
-        line: ThemeMode::MAX_RESULTS,
+        line: MAX_SEARCH_SELECT_RESULTS,
         offset: mode.query().graphemes(true).count(),
     }));
 

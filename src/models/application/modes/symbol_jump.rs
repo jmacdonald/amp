@@ -6,7 +6,7 @@ use std::iter::Iterator;
 use std::clone::Clone;
 use std::str::FromStr;
 use std::slice::Iter;
-use models::application::modes::SearchSelectMode;
+use models::application::modes::{SearchSelectMode, MAX_SEARCH_SELECT_RESULTS};
 
 pub struct SymbolJumpMode {
     insert: bool,
@@ -39,8 +39,6 @@ impl Clone for Symbol {
 }
 
 impl SymbolJumpMode {
-    pub const MAX_RESULTS: usize = 5;
-
     pub fn new(tokens: TokenSet) -> SymbolJumpMode {
         let symbols = symbols(tokens.iter());
 
@@ -56,7 +54,7 @@ impl SymbolJumpMode {
 impl SearchSelectMode<Symbol> for SymbolJumpMode {
     fn search(&mut self) {
         // Find the symbols we're looking for using the query.
-        let results = fragment::matching::find(&self.input, &self.symbols, SymbolJumpMode::MAX_RESULTS, false);
+        let results = fragment::matching::find(&self.input, &self.symbols, MAX_SEARCH_SELECT_RESULTS, false);
 
         // We don't care about the result objects; we just want
         // the underlying symbols. Map the collection to get these.

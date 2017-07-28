@@ -4,7 +4,7 @@ use fragment;
 use helpers::SelectableSet;
 use std::collections::HashMap;
 use std::slice::Iter;
-use models::application::modes::SearchSelectMode;
+use models::application::modes::{SearchSelectMode, MAX_SEARCH_SELECT_RESULTS};
 use commands::{self, Command};
 pub use self::displayable_command::DisplayableCommand;
 
@@ -16,8 +16,6 @@ pub struct CommandMode {
 }
 
 impl CommandMode {
-    pub const MAX_RESULTS: usize = 5;
-
     pub fn new() -> CommandMode {
         CommandMode {
             insert: true,
@@ -34,7 +32,7 @@ impl SearchSelectMode<DisplayableCommand> for CommandMode {
         let results = fragment::matching::find(
             &self.input,
             &self.commands.keys().collect(),
-            CommandMode::MAX_RESULTS,
+            MAX_SEARCH_SELECT_RESULTS,
             false
         );
 
