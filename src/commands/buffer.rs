@@ -5,7 +5,7 @@ use input::Key;
 use helpers::token::{Direction, adjacent_token_position};
 use models::application::{Application, ClipboardContent, Mode};
 use models::application::modes::ConfirmMode;
-use scribe::buffer::{Position, Range};
+use scribe::buffer::{Buffer, Position, Range};
 
 pub fn save(app: &mut Application) -> Result {
     remove_trailing_whitespace(app)?;
@@ -257,6 +257,24 @@ pub fn insert_char(app: &mut Application) -> Result {
         bail!(BUFFER_MISSING);
     }
     commands::view::scroll_to_cursor(app)?;
+
+    Ok(())
+}
+
+pub fn display_current_scope(app: &mut Application) -> Result {
+    let scope_display_buffer = {
+        let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+        let scope_stack = buffer.current_scope().chain_err(|| "No syntax definition for the current buffer")?;
+        let mut scope_display_buffer = Buffer::new();
+        for scope in scope_stack.as_slice().iter() {
+            scope_display_buffer.insert(
+                format!("{}\n", scope.build_string())
+            );
+        }
+
+        scope_display_buffer
+    };
+    app.workspace.add_buffer(scope_display_buffer);
 
     Ok(())
 }
