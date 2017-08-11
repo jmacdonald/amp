@@ -6,6 +6,7 @@ use view::color::to_rgb_color;
 use view::terminal::Terminal;
 use syntect::highlighting::{Highlighter, Theme};
 use syntect::highlighting::Style as ThemeStyle;
+use errors::*;
 
 pub trait LexemeMapper {
     fn map<'x, 'y>(&'x mut self, lexeme: Lexeme<'y>) -> Vec<Lexeme<'x>>;
@@ -214,7 +215,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         !self.before_visible_content() && !self.after_visible_content()
     }
 
-    pub fn render(&mut self) -> Option<Position> {
+    pub fn render(&mut self) -> Result<Option<Position>> {
         // Print the first line number. Others will
         // be handled as newlines are encountered.
         self.print_line_number();
@@ -224,35 +225,35 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         // renderer to be borrowed (which is required for printing methods).
         let mut lexeme_mapper = self.lexeme_mapper.take();
 
-        if let Some(tokens) = self.buffer.tokens() {
-            'print: for token in tokens.iter() {
-                self.update_positions(&token);
-                self.set_cursor();
+        let tokens = self.buffer.tokens().chain_err(|| "No buffer tokens to render")?;
 
-                // Move along until we've hit visible content.
-                if self.before_visible_content() {
-                    continue;
-                }
+        'print: for token in tokens.iter() {
+            self.update_positions(&token);
+            self.set_cursor();
 
-                // Stop the machine after we've printed all visible content.
-                if self.after_visible_content() {
-                    break 'print;
-                }
-
-                // We're in a visible area.
-                if let Token::Lexeme(lexeme) = token {
-                    if let Some(ref mut mapper) = lexeme_mapper {
-                        for mapped_lexeme in mapper.map(lexeme) {
-                            self.print_lexeme(mapped_lexeme);
-                        }
-                    } else {
-                        self.print_lexeme(lexeme);
-                    }
-                }
+            // Move along until we've hit visible content.
+            if self.before_visible_content() {
+                continue;
             }
 
-            self.set_cursor();
+            // Stop the machine after we've printed all visible content.
+            if self.after_visible_content() {
+                break 'print;
+            }
+
+            // We're in a visible area.
+            if let Token::Lexeme(lexeme) = token {
+                if let Some(ref mut mapper) = lexeme_mapper {
+                    for mapped_lexeme in mapper.map(lexeme) {
+                        self.print_lexeme(mapped_lexeme);
+                    }
+                } else {
+                    self.print_lexeme(lexeme);
+                }
+            }
         }
+
+        self.set_cursor();
 
         // One last call to this for the last line.
         self.print_rest_of_line();
@@ -260,7 +261,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         // Return the cursor location. If it occurred somewhere in the buffer, it
         // will be shown at the right location. If not, it will be None and will
         // be hidden.
-        self.cursor_position
+        Ok(self.cursor_position)
     }
 
     fn print_line_number(&mut self) {

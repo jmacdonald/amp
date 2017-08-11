@@ -75,7 +75,7 @@ impl View {
             &mut *self.terminal.borrow_mut(),
             theme,
             &self.preferences.borrow()
-        ).render();
+        ).render()?;
 
         self.cursor_position = cursor_position;
 

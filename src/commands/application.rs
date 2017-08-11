@@ -91,11 +91,10 @@ pub fn switch_to_command_mode(app: &mut Application) -> Result {
 
 pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
     if let Some(buf) = app.workspace.current_buffer() {
-        if let Some(token_set) = buf.tokens() {
-            app.mode = Mode::SymbolJump(SymbolJumpMode::new(token_set));
-        } else {
-            bail!("No tokens available for the current buffer");
-        }
+        let token_set = buf.tokens()
+            .chain_err(|| "No tokens available for the current buffer")?;
+
+        app.mode = Mode::SymbolJump(SymbolJumpMode::new(token_set));
     } else {
         bail!(BUFFER_MISSING);
     }
