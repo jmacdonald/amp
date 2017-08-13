@@ -1,5 +1,5 @@
 use errors::*;
-use app_dirs::{app_root, get_app_root, AppDataType, AppInfo};
+use app_dirs::{app_dir, app_root, get_app_root, AppDataType, AppInfo};
 use scribe::Buffer;
 use std::fs::OpenOptions;
 use std::io::Read;
@@ -11,6 +11,7 @@ const APP_INFO: AppInfo = AppInfo {
     name: "amp",
     author: "Jordan MacDonald",
 };
+const SYNTAX_PATH: &'static str = "syntaxes";
 const TYPES_KEY: &'static str = "types";
 const THEME_KEY: &'static str = "theme";
 const TAB_WIDTH_KEY: &'static str = "tab_width";
@@ -41,6 +42,11 @@ impl Preferences {
     /// Loads preferences from disk, returning any filesystem or parse errors.
     pub fn load() -> Result<Preferences> {
         Ok(Preferences { data: load_document()?, theme: None })
+    }
+
+    pub fn syntax_path() -> Result<PathBuf> {
+        app_dir(AppDataType::UserConfig, &APP_INFO, SYNTAX_PATH)
+            .chain_err(|| "Couldn't create syntax directory or build a path to it.")
     }
 
     /// Returns the preference file loaded into a buffer for editing.
