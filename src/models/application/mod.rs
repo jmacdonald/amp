@@ -58,6 +58,13 @@ impl Application {
         // Set up a workspace in the current directory.
         let mut workspace = Workspace::new(&current_dir)?;
 
+        // Add user syntax definitions.
+        // TODO: Use chain_err once syntect errors implement Error trait.
+        let syntax_path = Preferences::syntax_path()?;
+        if let Err(e) = workspace.syntax_set.load_syntaxes(syntax_path, true) {
+            bail!("Failed to load user syntaxes: {:?}", e);
+        }
+
         // Try to open the specified file.
         // TODO: Handle non-existent files as new empty buffers.
         for path_arg in env::args().skip(1) {
