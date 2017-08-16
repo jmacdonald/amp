@@ -108,3 +108,13 @@ You can also use wildcards in key bindings. More specific key bindings will over
     _: "buffer::insert_char"
     s: "buffer::save"
 ```
+
+## Format/Language Support
+
+Most popular formats/languages have syntax highlighting and symbol support out of the box. If you're editing a file that doesn't, you can extend the built-in set with a custom syntax definition. Amp uses Sublime Text's [`.sublime-syntax`](https://www.sublimetext.com/docs/3/syntax.html) files, which can be placed in Amp's `syntaxes` configuration subdirectory.
+
+!!! tip
+    If you're not sure where to look, run the `preferences::edit` command.
+    The preferences will load into a new buffer for editing, and its path
+    will be shown at the bottom of the screen; the `syntaxes` subdirectory is in
+    the same directory as that file.
