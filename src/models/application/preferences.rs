@@ -44,6 +44,11 @@ impl Preferences {
         Ok(Preferences { data: load_document()?, theme: None })
     }
 
+    pub fn directory() -> Result<PathBuf> {
+        app_root(AppDataType::UserConfig, &APP_INFO)
+            .chain_err(|| "Couldn't create preferences directory or build a path to it.")
+    }
+
     pub fn syntax_path() -> Result<PathBuf> {
         app_dir(AppDataType::UserConfig, &APP_INFO, SYNTAX_PATH)
             .chain_err(|| "Couldn't create syntax directory or build a path to it.")
