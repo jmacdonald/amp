@@ -3,6 +3,7 @@ mod displayable_command;
 use fragment;
 use helpers::SelectableSet;
 use std::collections::HashMap;
+use std::fmt;
 use std::slice::Iter;
 use models::application::modes::{SearchSelectMode, MAX_SEARCH_SELECT_RESULTS};
 use commands::{self, Command};
@@ -23,6 +24,12 @@ impl CommandMode {
             commands: commands::hash_map(),
             results: SelectableSet::new(Vec::new()),
         }
+    }
+}
+
+impl fmt::Display for CommandMode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "COMMAND")
     }
 }
 

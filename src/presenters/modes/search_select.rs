@@ -20,7 +20,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
         // Draw the status line.
         view.draw_status_line(&vec![
             StatusLineData {
-                content: " OPEN ".to_string(),
+                content: format!(" {} ", mode),
                 style: Style::Default,
                 colors: Colors::Inverted,
             },

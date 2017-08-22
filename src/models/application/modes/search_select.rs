@@ -3,7 +3,7 @@ use std::slice::Iter;
 
 /// This trait will become vastly simpler if/when fields are added to traits.
 /// See: https://github.com/rust-lang/rfcs/pull/1546
-pub trait SearchSelectMode<T: Display> {
+pub trait SearchSelectMode<T: Display>: Display {
 
     fn query(&mut self) -> &mut String;
     fn search(&mut self);
@@ -41,6 +41,7 @@ pub trait SearchSelectMode<T: Display> {
 
 #[cfg(test)]
 mod tests {
+    use std::fmt;
     use std::slice::Iter;
     use super::SearchSelectMode;
 
@@ -48,6 +49,12 @@ mod tests {
         input: String,
         selection: String,
         results: Vec<String>,
+    }
+
+    impl fmt::Display for TestMode {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            write!(f, "TEST")
+        }
     }
 
     impl SearchSelectMode<String> for TestMode {

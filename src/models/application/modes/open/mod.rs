@@ -1,5 +1,6 @@
 mod displayable_path;
 
+use std::fmt;
 use std::path::PathBuf;
 use std::slice::Iter;
 use helpers::SelectableSet;
@@ -26,6 +27,12 @@ impl OpenMode {
             index: index,
             results: SelectableSet::new(Vec::new()),
         }
+    }
+}
+
+impl fmt::Display for OpenMode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "OPEN")
     }
 }
 

@@ -51,6 +51,12 @@ impl SymbolJumpMode {
     }
 }
 
+impl fmt::Display for SymbolJumpMode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "SYMBOL")
+    }
+}
+
 impl SearchSelectMode<Symbol> for SymbolJumpMode {
     fn search(&mut self) {
         // Find the symbols we're looking for using the query.
