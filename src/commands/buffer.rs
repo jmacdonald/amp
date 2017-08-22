@@ -240,8 +240,7 @@ pub fn backspace(app: &mut Application) -> Result {
         commands::buffer::outdent_line(app)?;
     }
     commands::view::scroll_to_cursor(app)?;
-
-    Ok(())
+    commands::application::switch_to_insert_mode(app)
 }
 
 pub fn insert_char(app: &mut Application) -> Result {
