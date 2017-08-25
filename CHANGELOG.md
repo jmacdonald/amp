@@ -1,3 +1,16 @@
+### 0.3.0
+
+* Switched to Rust stable release channel
+* New command mode (run any built-in commands through a search/select UI)
+* User-defined preferences, syntaxes, and keymaps
+* New confirm mode, applied primarily to closing or reloading buffers
+* New command to view syntax scope at cursor
+* Extracted all logic from input handlers
+* Migrated input handling to simple key => command mappings
+* New select_all command
+* Updated native clipboard library
+
+
 ### 0.2.0
 
 * Added theme selection mode
