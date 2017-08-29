@@ -3,6 +3,7 @@
 name = "amp"
 version = "0.3.0"
 authors = ["Jordan MacDonald <jordan@wastedintelligence.com>"]
+license = "GPL-3.0"
 
 [build-dependencies]
 syntex_syntax = "0.58.1"
