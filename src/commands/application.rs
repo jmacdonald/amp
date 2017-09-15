@@ -144,6 +144,22 @@ pub fn switch_to_search_insert_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
+pub fn display_available_commands(app: &mut Application) -> Result {
+    commands::workspace::new_buffer(app)?;
+
+    if let Some(mut buffer) = app.workspace.current_buffer() {
+        let command_hash = commands::hash_map();
+        let mut command_keys = command_hash.keys().collect::<Vec<&&str>>();
+        command_keys.sort();
+        command_keys.reverse();
+        for key in command_keys {
+            buffer.insert(format!("{}\n", key));
+        }
+    }
+
+    Ok(())
+}
+
 pub fn suspend(app: &mut Application) -> Result {
     // The view can't be running when the process stops or we'll lock the screen.
     // We need to clear the cursor or it won't render properly on resume.
@@ -166,4 +182,27 @@ pub fn exit(app: &mut Application) -> Result {
     app.mode = Mode::Exit;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn display_available_commands_creates_a_new_buffer() {
+        let mut app = super::Application::new().unwrap();
+        super::display_available_commands(&mut app);
+
+        assert!(app.workspace.current_buffer().is_some());
+    }
+
+    #[test]
+    fn display_available_commands_populates_new_buffer_with_alphabetic_command_names() {
+        let mut app = super::Application::new().unwrap();
+        super::display_available_commands(&mut app);
+
+        let buffer_data = app.workspace.current_buffer().unwrap().data();
+        let mut lines = buffer_data.lines();
+        assert_eq!(lines.nth(0), Some("application::display_available_commands"));
+        assert_eq!(lines.last(), Some("workspace::next_buffer"));
+    }
 }
