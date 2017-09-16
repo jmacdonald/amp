@@ -82,10 +82,10 @@ To start a text selection range, use `v`. Move the cursor using [movement keys](
 
 ## Running Commands
 
-All of Amp's functionality is controlled by _commands_, which are typically associated with keys and triggered at runtime. You can search for and run commands directly via `0`, which will bring up the command prompt.
+Under the hood, all of Amp's functionality happens through the use of _commands_. You don't see this upfront, but the UI is controlled entirely by a simple keystroke --> command map. You can run these from command mode by pressing `0` in normal mode, which will bring up a search prompt.
 
 !!! tip
-    Command mode is handy when customizing Amp's [key bindings](configuration.md#key-bindings), as well as a means of triggering infrequently-used functionality that would be awkward to associate with a keystroke.
+    Command mode is handy as a means of triggering infrequently-used functionality that would be excessive to associate with a keystroke and remember (e.g. converting tabs to spaces).
 
 ## Search
 

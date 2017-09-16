@@ -73,7 +73,7 @@ types:
 
 ## Key Bindings
 
-In Amp, key bindings are simple key/command associations, targeted for a specific mode. You can define custom key bindings by defining a keymap in your preferences file:
+In Amp, key bindings are simple key/command associations, scoped to a specific mode. You can define custom key bindings by defining a keymap in your preferences file:
 
 ```yaml
 keymap:
@@ -81,7 +81,8 @@ keymap:
     j: "cursor::move_down"
 ```
 
-Amp has quite a few built-in commands.
+!!! tip
+    Wondering where to find command names? You can view the full list in a new buffer by running the `application::display_available_commands` using [command mode](usage.md#running-commands).
 
 ### Modifiers
 
