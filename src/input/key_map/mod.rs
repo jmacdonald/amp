@@ -1,13 +1,14 @@
 use commands::{self, Command};
 use errors::*;
 use input::Key;
+use smallvec::SmallVec;
 use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 use std::convert::Into;
 use yaml::{Yaml, YamlLoader};
 
 /// Nested HashMap newtype that provides a more ergonomic interface.
-pub struct KeyMap(HashMap<String, HashMap<Key, Command>>);
+pub struct KeyMap(HashMap<String, HashMap<Key, SmallVec<[Command; 4]>>>);
 
 impl KeyMap {
     /// Parses a Yaml tree of modes and their keybindings into a complete keymap.
@@ -45,7 +46,7 @@ impl KeyMap {
     /// Character keys will fall back to wildcard character bindings
     /// if the specific character binding cannot be found.
     ///
-    pub fn command_for(&self, mode: &str, key: &Key) -> Option<Command> {
+    pub fn commands_for(&self, mode: &str, key: &Key) -> Option<SmallVec<[Command; 4]>> {
         self.0.get(mode).and_then(|mode_keymap| {
             if let &Key::Char(_) = key {
                 // Look for a command for this specific character, falling
@@ -54,7 +55,7 @@ impl KeyMap {
             } else {
                 mode_keymap.get(key)
             }
-        }).map(|command| *command)
+        }).map(|commands| (*commands).clone())
     }
 
     /// Loads the default keymap from a static
@@ -112,9 +113,9 @@ impl KeyMap {
 ///
 /// becomes this HashMap entry:
 ///
-///   Key::Char('k') => commands::cursor::move_up
+///   Key::Char('k') => [commands::cursor::move_up]
 ///
-fn parse_mode_key_bindings(mode: &Yaml, commands: &HashMap<&str, Command>) -> Result<HashMap<Key, Command>> {
+fn parse_mode_key_bindings(mode: &Yaml, commands: &HashMap<&str, Command>) -> Result<HashMap<Key, SmallVec<[Command; 4]>>> {
     let mode_key_bindings = mode.as_hash().ok_or(
         "Keymap mode config didn't return a hash of key bindings",
     )?;
@@ -126,17 +127,21 @@ fn parse_mode_key_bindings(mode: &Yaml, commands: &HashMap<&str, Command>) -> Re
             "A keymap key couldn't be parsed as a string"
         ))?)?;
 
+        let mut key_commands = SmallVec::new();
+
         // Parse and find command reference from command component.
         let command_string = yaml_command.as_str().ok_or(format!(
             "A keymap command couldn't be parsed as a string"
         ))?;
-        let command = commands.get(command_string).ok_or(format!(
-            "Keymap command \"{}\" doesn't exist",
-            command_string
-        ))?;
+        key_commands.push(
+            *commands.get(command_string).ok_or(format!(
+                "Keymap command \"{}\" doesn't exist",
+                command_string
+            ))?
+        );
 
         // Add a key/command entry to the mapping.
-        key_bindings.insert(key, *command);
+        key_bindings.insert(key, key_commands);
     }
 
     Ok(key_bindings)
@@ -196,21 +201,21 @@ fn parse_key(data: &str) -> Result<Key> {
 }
 
 impl Deref for KeyMap {
-    type Target = HashMap<String, HashMap<Key, Command>>;
+    type Target = HashMap<String, HashMap<Key, SmallVec<[Command; 4]>>>;
 
-    fn deref(&self) -> &HashMap<String, HashMap<Key, Command>> {
+    fn deref(&self) -> &HashMap<String, HashMap<Key, SmallVec<[Command; 4]>>> {
         &self.0
     }
 }
 
 impl DerefMut for KeyMap {
-    fn deref_mut(&mut self) -> &mut HashMap<String, HashMap<Key, Command>> {
+    fn deref_mut(&mut self) -> &mut HashMap<String, HashMap<Key, SmallVec<[Command; 4]>>> {
         &mut self.0
     }
 }
 
-impl Into<HashMap<String, HashMap<Key, Command>>> for KeyMap {
-    fn into(self) -> HashMap<String, HashMap<Key, Command>> {
+impl Into<HashMap<String, HashMap<Key, SmallVec<[Command; 4]>>>> for KeyMap {
+    fn into(self) -> HashMap<String, HashMap<Key, SmallVec<[Command; 4]>>> {
         self.0
     }
 }
@@ -229,7 +234,7 @@ mod tests {
         let yaml = YamlLoader::load_from_str(yaml_data).unwrap();
         let keymap = KeyMap::from(&yaml[0]).unwrap();
 
-        let command = keymap.command_for("normal", &Key::Char('k')).expect(
+        let command = keymap.commands_for("normal", &Key::Char('k')).expect(
             "Keymap doesn't contain command",
         );
         assert_eq!(
@@ -247,7 +252,7 @@ mod tests {
 
         let characters = vec!['a', 'b', 'c'];
         for c in characters.into_iter() {
-            let command = keymap.command_for("normal", &Key::Char(c)).expect(
+            let command = keymap.commands_for("normal", &Key::Char(c)).expect(
                 "Keymap doesn't contain command",
             );
             assert_eq!(
@@ -264,14 +269,14 @@ mod tests {
         let yaml = YamlLoader::load_from_str(yaml_data).unwrap();
         let keymap = KeyMap::from(&yaml[0]).unwrap();
 
-        let char_command = keymap.command_for("normal", &Key::Char('j')).expect(
+        let char_command = keymap.commands_for("normal", &Key::Char('j')).expect(
             "Keymap doesn't contain command",
         );
         assert_eq!(
             (char_command as *const usize),
             (commands::cursor::move_down as *const usize)
         );
-        let wildcard_command = keymap.command_for("normal", &Key::Char('a')).expect(
+        let wildcard_command = keymap.commands_for("normal", &Key::Char('a')).expect(
             "Keymap doesn't contain command",
         );
         assert_eq!(
@@ -287,7 +292,7 @@ mod tests {
         let yaml = YamlLoader::load_from_str(yaml_data).unwrap();
         let keymap = KeyMap::from(&yaml[0]).unwrap();
 
-        let command = keymap.command_for("normal", &Key::Ctrl('r')).expect(
+        let command = keymap.commands_for("normal", &Key::Ctrl('r')).expect(
             "Keymap doesn't contain command",
         );
         assert_eq!(
@@ -321,7 +326,7 @@ mod tests {
             let yaml = YamlLoader::load_from_str(binding).unwrap();
             let keymap = KeyMap::from(&yaml[0]).unwrap();
 
-            let parsed_command = keymap.command_for("normal", &key).expect("Keymap doesn't contain command");
+            let parsed_command = keymap.commands_for("normal", &key).expect("Keymap doesn't contain command");
             assert_eq!((parsed_command as *const usize), (command as *const usize));
         }
     }
@@ -331,7 +336,7 @@ mod tests {
         // Build the keymap
         let keymap = KeyMap::default().unwrap();
 
-        let command = keymap.command_for("normal", &Key::Char('k')).expect(
+        let command = keymap.commands_for("normal", &Key::Char('k')).expect(
             "Keymap doesn't contain command",
         );
         assert_eq!(
@@ -352,7 +357,7 @@ mod tests {
 
         keymap.merge(other_keymap);
 
-        let mut command = keymap.command_for("normal", &Key::Char('j')).expect(
+        let mut command = keymap.commands_for("normal", &Key::Char('j')).expect(
             "Keymap doesn't contain original command",
         );
         assert_eq!(
@@ -360,7 +365,7 @@ mod tests {
             (commands::cursor::move_down as *const usize)
         );
 
-        command = keymap.command_for("normal", &Key::Char('k')).expect(
+        command = keymap.commands_for("normal", &Key::Char('k')).expect(
             "Keymap doesn't contain overlapping command",
         );
         assert_eq!(
@@ -368,7 +373,7 @@ mod tests {
             (commands::cursor::move_left as *const usize)
         );
 
-        command = keymap.command_for("normal", &Key::Char('l')).expect(
+        command = keymap.commands_for("normal", &Key::Char('l')).expect(
             "Keymap doesn't contain other command",
         );
         assert_eq!(

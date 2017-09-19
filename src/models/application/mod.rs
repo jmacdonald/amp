@@ -193,16 +193,17 @@ impl Application {
             }
 
             // Listen for and respond to user input.
-            let command = self.view.listen().and_then(|key| {
-
+            let commands = self.view.listen().and_then(|key| {
                 self.mode_str().and_then(|mode| {
-                    self.key_map.command_for(&mode, &key)
+                    self.key_map.commands_for(&mode, &key)
                 })
             });
 
-            if let Some(com) = command {
+            if let Some(coms) = commands {
                 // Run the command and store its error output.
-                self.error = com(self).err();
+                if let Some(com) = coms.last() {
+                    self.error = com(self).err();
+                }
             }
 
             // Check if the command resulted in an exit, before

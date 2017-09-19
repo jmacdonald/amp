@@ -1,5 +1,7 @@
 use errors;
 use models::application::Application;
+use smallvec::SmallVec;
+use std::clone::Clone;
 use std::collections::HashMap;
 
 pub mod application;
@@ -22,3 +24,4 @@ pub type Result = errors::Result<()>;
 pub fn hash_map() -> HashMap<&'static str, Command> {
     include!("hash_map")
 }
+
