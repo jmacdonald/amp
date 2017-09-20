@@ -238,7 +238,7 @@ mod tests {
             "Keymap doesn't contain command",
         );
         assert_eq!(
-            (command as *const usize),
+            (command[0] as *const usize),
             (commands::cursor::move_up as *const usize)
         );
     }
@@ -256,7 +256,7 @@ mod tests {
                 "Keymap doesn't contain command",
             );
             assert_eq!(
-                (command as *const usize),
+                (command[0] as *const usize),
                 (commands::cursor::move_up as *const usize)
             );
         }
@@ -273,14 +273,14 @@ mod tests {
             "Keymap doesn't contain command",
         );
         assert_eq!(
-            (char_command as *const usize),
+            (char_command[0] as *const usize),
             (commands::cursor::move_down as *const usize)
         );
         let wildcard_command = keymap.commands_for("normal", &Key::Char('a')).expect(
             "Keymap doesn't contain command",
         );
         assert_eq!(
-            (wildcard_command as *const usize),
+            (wildcard_command[0] as *const usize),
             (commands::cursor::move_up as *const usize)
         );
     }
@@ -296,7 +296,7 @@ mod tests {
             "Keymap doesn't contain command",
         );
         assert_eq!(
-            (command as *const usize),
+            (command[0] as *const usize),
             (commands::cursor::move_up as *const usize)
         );
     }
@@ -327,7 +327,7 @@ mod tests {
             let keymap = KeyMap::from(&yaml[0]).unwrap();
 
             let parsed_command = keymap.commands_for("normal", &key).expect("Keymap doesn't contain command");
-            assert_eq!((parsed_command as *const usize), (command as *const usize));
+            assert_eq!((parsed_command[0] as *const usize), (command as *const usize));
         }
     }
 
@@ -340,7 +340,7 @@ mod tests {
             "Keymap doesn't contain command",
         );
         assert_eq!(
-            (command as *const usize),
+            (command[0] as *const usize),
             (commands::cursor::move_up as *const usize)
         );
     }
@@ -361,7 +361,7 @@ mod tests {
             "Keymap doesn't contain original command",
         );
         assert_eq!(
-            (command as *const usize),
+            (command[0] as *const usize),
             (commands::cursor::move_down as *const usize)
         );
 
@@ -369,7 +369,7 @@ mod tests {
             "Keymap doesn't contain overlapping command",
         );
         assert_eq!(
-            (command as *const usize),
+            (command[0] as *const usize),
             (commands::cursor::move_left as *const usize)
         );
 
@@ -377,7 +377,7 @@ mod tests {
             "Keymap doesn't contain other command",
         );
         assert_eq!(
-            (command as *const usize),
+            (command[0] as *const usize),
             (commands::cursor::move_right as *const usize)
         );
     }
