@@ -1,5 +1,5 @@
 language: rust
-rust: stable
+rust: nightly
 
 branches:
   only:
