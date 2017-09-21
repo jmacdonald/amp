@@ -130,15 +130,31 @@ fn parse_mode_key_bindings(mode: &Yaml, commands: &HashMap<&str, Command>) -> Re
         let mut key_commands = SmallVec::new();
 
         // Parse and find command reference from command component.
-        let command_string = yaml_command.as_str().ok_or(format!(
-            "A keymap command couldn't be parsed as a string"
-        ))?;
-        key_commands.push(
-            *commands.get(command_string).ok_or(format!(
-                "Keymap command \"{}\" doesn't exist",
-                command_string
-            ))?
-        );
+        match yaml_command {
+            &Yaml::String(ref command) => {
+                let command_string = command.as_str();
+
+                key_commands.push(
+                    *commands.get(&command_string).ok_or(format!(
+                        "Keymap command \"{}\" doesn't exist",
+                        command_string
+                    ))?
+                );
+            },
+            &Yaml::Array(ref command_array) => {
+                for command in command_array {
+                    let command_string = command.as_str().ok_or(format!("Keymap command \"{:?}\" couldn't be parsed as a string", command))?;
+
+                    key_commands.push(
+                        *commands.get(command_string).ok_or(format!(
+                            "Keymap command \"{}\" doesn't exist",
+                            command_string
+                        ))?
+                    );
+                }
+            },
+            _ => bail!(format!("Keymap command \"{:?}\" couldn't be parsed", yaml_command))
+        }
 
         // Add a key/command entry to the mapping.
         key_bindings.insert(key, key_commands);
@@ -379,6 +395,26 @@ mod tests {
         assert_eq!(
             (command[0] as *const usize),
             (commands::cursor::move_right as *const usize)
+        );
+    }
+
+    #[test]
+    fn keymap_correctly_parses_multiple_yaml_keybindings() {
+        // Build the keymap
+        let yaml_data = "normal:\n  ctrl-r:\n    - cursor::move_up\n    - cursor::move_down";
+        let yaml = YamlLoader::load_from_str(yaml_data).unwrap();
+        let keymap = KeyMap::from(&yaml[0]).unwrap();
+
+        let command = keymap.commands_for("normal", &Key::Ctrl('r')).expect(
+            "Keymap doesn't contain command",
+        );
+        assert_eq!(
+            (command[0] as *const usize),
+            (commands::cursor::move_up as *const usize)
+        );
+        assert_eq!(
+            (command[1] as *const usize),
+            (commands::cursor::move_down as *const usize)
         );
     }
 }
