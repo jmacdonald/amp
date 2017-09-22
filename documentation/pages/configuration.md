@@ -110,6 +110,18 @@ You can also use wildcards in key bindings. More specific key bindings will over
     s: "buffer::save"
 ```
 
+### Multiple Commands
+
+```yaml
+keymap:
+  normal:
+    v:
+      - "application::switch_to_select_mode"
+      - "application::switch_to_jump_mode"
+```
+
+You can also pass a collection of commands to run. Amp will run all of the commands in order, stopping if/when any errors occur.
+
 ## Format/Language Support
 
 Most popular formats/languages have syntax highlighting and symbol support out of the box. If you're editing a file that doesn't, you can extend the built-in set with a custom syntax definition. Amp uses Sublime Text's [`.sublime-syntax`](https://www.sublimetext.com/docs/3/syntax.html) files, which can be placed in Amp's `syntaxes` configuration subdirectory.

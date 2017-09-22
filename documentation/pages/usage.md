@@ -82,7 +82,7 @@ To start a text selection range, use `v`. Move the cursor using [movement keys](
 
 ## Running Commands
 
-Under the hood, all of Amp's functionality happens through the use of _commands_. You don't see this upfront, but the UI is controlled entirely by a simple keystroke --> command map. You can run these from command mode by pressing `0` in normal mode, which will bring up a search prompt.
+Under the hood, all of Amp's functionality happens through the use of _commands_. You don't see this upfront, but the UI is controlled entirely by a simple `key` --> `command` map. You can run these from command mode by pressing `0` in normal mode, which will bring up a search prompt.
 
 !!! tip
     Command mode is handy as a means of triggering infrequently-used functionality that would be excessive to associate with a keystroke and remember (e.g. converting tabs to spaces).
