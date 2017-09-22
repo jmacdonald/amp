@@ -44,10 +44,6 @@ impl View {
     pub fn new(preferences: Rc<RefCell<Preferences>>) -> Result<View> {
         let terminal = build_terminal();
         let theme_set = build_theme_set();
-        let theme = theme_set.themes
-            .get(preferences.borrow().theme())
-            .ok_or(format!("Couldn't find \"{}\" theme", preferences.borrow().theme()))?
-            .clone();
 
         Ok(View {
             terminal: terminal,

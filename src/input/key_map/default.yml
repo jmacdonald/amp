@@ -29,7 +29,9 @@ normal:
   s: buffer::save
   i: application::switch_to_insert_mode
   f: application::switch_to_second_stage_jump_mode
-  v: application::switch_to_select_mode
+  v:
+    - application::switch_to_select_mode
+    - application::switch_to_jump_mode
   V: application::switch_to_select_line_mode
   g: application::switch_to_line_jump_mode
   t: application::switch_to_theme_mode

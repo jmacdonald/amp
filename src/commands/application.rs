@@ -147,7 +147,7 @@ pub fn switch_to_search_insert_mode(app: &mut Application) -> Result {
 pub fn display_available_commands(app: &mut Application) -> Result {
     commands::workspace::new_buffer(app)?;
 
-    if let Some(mut buffer) = app.workspace.current_buffer() {
+    if let Some(buffer) = app.workspace.current_buffer() {
         let command_hash = commands::hash_map();
         let mut command_keys = command_hash.keys().collect::<Vec<&&str>>();
         command_keys.sort();

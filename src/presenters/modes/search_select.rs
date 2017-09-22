@@ -1,6 +1,6 @@
 use std::cmp;
 use std::fmt::Display;
-use models::application::modes::{SearchSelectMode, ThemeMode, MAX_SEARCH_SELECT_RESULTS};
+use models::application::modes::{SearchSelectMode, MAX_SEARCH_SELECT_RESULTS};
 use pad::PadStr;
 use presenters::current_buffer_status_line_data;
 use scribe::Workspace;

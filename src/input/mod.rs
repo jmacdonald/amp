@@ -1,8 +1,3 @@
-use std::clone::Clone;
-use std::fmt::Debug;
-use std::cmp::PartialEq;
-use std::hash::Hash;
-
 pub use self::key_map::KeyMap;
 
 mod key_map;

@@ -20,7 +20,7 @@ pub trait SearchSelectMode<T: Display>: Display {
     }
 
     fn pop_search_token(&mut self) {
-        let mut query = self.query();
+        let query = self.query();
 
         // Find the last word boundary (transition to/from whitespace), using
         // using fold to carry the previous character's type forward.

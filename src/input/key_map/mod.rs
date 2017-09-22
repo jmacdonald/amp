@@ -96,7 +96,7 @@ impl KeyMap {
         // Step through the specified key map's modes.
         for (mode, other_key_bindings) in key_map.iter_mut() {
             // Fetch the current key bindings for the specified mode.
-            if let Some(mut key_bindings) = self.get_mut(mode) {
+            if let Some(key_bindings) = self.get_mut(mode) {
                 for (key, command) in other_key_bindings.drain() {
                     key_bindings.insert(key, command);
                 }

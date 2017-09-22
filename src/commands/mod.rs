@@ -1,7 +1,5 @@
 use errors;
 use models::application::Application;
-use smallvec::SmallVec;
-use std::clone::Clone;
 use std::collections::HashMap;
 
 pub mod application;

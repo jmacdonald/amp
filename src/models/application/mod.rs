@@ -11,7 +11,7 @@ use std::env;
 use std::path::Path;
 use std::cell::RefCell;
 use std::rc::Rc;
-use input::{self, KeyMap};
+use input::KeyMap;
 use presenters;
 use self::modes::*;
 use scribe::{Buffer, Workspace};
