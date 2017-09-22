@@ -200,9 +200,11 @@ impl Application {
             });
 
             if let Some(coms) = commands {
-                // Run the command and store its error output.
-                if let Some(com) = coms.last() {
+                // Run all commands, stopping at the first error encountered, if any.
+                for com in coms {
                     self.error = com(self).err();
+
+                    if self.error.is_some() { break; }
                 }
             }
 
