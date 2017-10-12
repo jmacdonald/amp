@@ -49,6 +49,7 @@ normal:
   z: application::suspend
   Q: application::exit
   B: workspace::new_buffer
+  E: application::display_last_error
   "'": application::switch_to_jump_mode
   "0": application::switch_to_command_mode
   "/": application::switch_to_search_insert_mode

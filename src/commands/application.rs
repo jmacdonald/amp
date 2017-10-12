@@ -2,6 +2,7 @@ extern crate libc;
 
 use errors::*;
 use commands::{self, Result};
+use scribe::Buffer;
 use std::mem;
 use models::application::{Application, Mode};
 use models::application::modes::*;
@@ -156,6 +157,29 @@ pub fn display_available_commands(app: &mut Application) -> Result {
             buffer.insert(format!("{}\n", key));
         }
     }
+
+    Ok(())
+}
+
+pub fn display_last_error(app: &mut Application) -> Result {
+    let error = app.error.as_ref().ok_or("No error to display")?;
+    let scope_display_buffer = {
+        let mut error_buffer = Buffer::new();
+        // Add the proximate/contextual error.
+        error_buffer.insert(
+            format!("{}\n", error)
+        );
+
+        // Print the chain of other errors that led to the proximate error.
+        for err in error.iter().skip(1) {
+            error_buffer.insert(
+                format!("caused by: {}", err)
+            );
+        }
+
+        error_buffer
+    };
+    app.workspace.add_buffer(scope_display_buffer);
 
     Ok(())
 }
