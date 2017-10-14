@@ -292,20 +292,6 @@ mod tests {
     use std::rc::Rc;
 
     #[test]
-    fn view_constructor_handles_unknown_theme_names() {
-        let data = YamlLoader::load_from_str("theme: \"unknown\"").unwrap().into_iter().nth(0).unwrap();
-        let result = View::new(Rc::new(RefCell::new(Preferences::new(Some(data)))));
-
-        assert!(result.is_err());
-        if let Result::Err(error) = result {
-            assert_eq!(
-                error.description().to_string(),
-                "Couldn't find \"unknown\" theme"
-            );
-        }
-    }
-
-    #[test]
     fn scroll_down_prevents_scrolling_completely_beyond_buffer() {
         let mut view = View::new(Rc::new(RefCell::new(Preferences::new(None)))).unwrap();
 
