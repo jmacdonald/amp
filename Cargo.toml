@@ -10,7 +10,7 @@ syntex_syntax = "0.58.1"
 
 [dependencies]
 app_dirs = "1.1.1"
-scribe = "0.5.8"
+scribe = "0.5.9"
 pad = "0.1.4"
 bloodhound = "0.3.0"
 luthor = "0.1.7"
