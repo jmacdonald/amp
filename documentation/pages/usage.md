@@ -8,7 +8,7 @@ Amp is a [modal text editor](http://wikipedia.org/Modal_Text_Editor), taking ins
 
 Unless you've specified file paths when running Amp, you'll be greeted with a splash screen. You can find and edit files in open mode, by hitting `Space`.
 
-### Open Mode
+### Searching for Files
 
 Amp's file finder is a little different than most. Rather than using a string fuzzing algorithm to match file paths against the query, it uses string fragments. Instead of typing full words, use fragments of the path name, separated by spaces:
 
@@ -19,7 +19,9 @@ Search terms _must_ occur in the path, which in practice tends to produce fewer,
 !!! note
     Hitting `backspace` will delete the entire last token, instead of the last character. The reasoning is, given the typical size of tokens, it's almost always easier to re-enter the last entry than to correct it.
 
-The file finder also has its own insert/normal modes. Hitting `esc` will grey out the input area and expose the following key bindings:
+### Selecting/Opening Files
+
+Once the file you're searching for is shown, you can select it using the `up` and `down` arrows, followed by `Enter`. The file finder also has its own insert/normal modes. Hitting `esc` will grey out the input area and expose the following key bindings:
 
 Key           | Action
 ------------- | ------
@@ -30,7 +32,11 @@ Key           | Action
 `esc`         | Leave open mode
 
 !!! tip
-    The open mode UI widget is re-used elsewhere, with the same fragment matching and insert/normal sub-mode behaviour. Take the time to get familiar with it; it'll pay dividends when using other features in Amp.
+    The search/select UI pattern used in open mode is re-used elsewhere, with the same fragment matching and insert/normal sub-mode behaviour. Take the time to get familiar with it; it'll pay dividends when using other features in Amp.
+
+### Excluding Files/Directories
+
+By default, Amp's open mode doesn't index `.git` directories. If you'd like to change that behaviour, [you can redefine the exclusion patterns](configuration.md#excluding-filesdirectories) in the application preferences.
 
 ## Movement
 

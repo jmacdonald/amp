@@ -1,5 +1,7 @@
-use errors::*;
 use app_dirs::{app_dir, app_root, get_app_root, AppDataType, AppInfo};
+use bloodhound::ExclusionPattern;
+use errors::*;
+use models::application::modes::open;
 use scribe::Buffer;
 use std::fs::OpenOptions;
 use std::io::Read;
@@ -179,6 +181,23 @@ impl Preferences {
     pub fn key_map(&self) -> Option<&Yaml> {
         self.data.as_ref().map(|data| &data["keymap"])
     }
+
+    pub fn open_mode_exclusions(&self) -> Result<Option<Vec<ExclusionPattern>>> {
+        if let Some(exclusion_data) = self.data.as_ref().map(|data| &data["open_mode"]["exclusions"]) {
+            match exclusion_data {
+                &Yaml::Array(ref exclusions) => {
+                    open::exclusions::parse(exclusions)
+                        .chain_err(|| "Failed to parse user-defined open mode exclusions")
+                        .map(|e| Some(e))
+                },
+                &Yaml::Boolean(_) => Ok(None),
+                _ => default_open_mode_exclusions(), // Preference is unset or invalid YAML
+            }
+        } else {
+            // No user preference data was provided.
+            default_open_mode_exclusions()
+        }
+    }
 }
 
 /// Loads the first YAML document in the user's config file.
@@ -212,9 +231,15 @@ fn path_extension(path: Option<&PathBuf>) -> Option<&str> {
     path.and_then(|p| p.extension()).and_then(|e| e.to_str())
 }
 
+fn default_open_mode_exclusions() -> Result<Option<Vec<ExclusionPattern>>> {
+    let default_pattern = ExclusionPattern::new("**/.git")
+        .chain_err(|| "Failed to parse default git directory exclusion pattern")?;
+    Ok(Some(vec![default_pattern]))
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{Preferences, YamlLoader};
+    use super::{ExclusionPattern, Preferences, YamlLoader};
     use std::path::PathBuf;
 
     #[test]
@@ -372,5 +397,36 @@ mod tests {
         let preferences = Preferences::new(data.into_iter().nth(0));
 
         assert_eq!(preferences.key_map().unwrap()["normal"].as_str(), Some("value"));
+    }
+
+    #[test]
+    fn open_mode_exclusions_returns_correct_defaults_when_no_data_provided() {
+        let preferences = Preferences::new(None);
+
+        assert_eq!(preferences.open_mode_exclusions().unwrap(), Some(vec![ExclusionPattern::new("**/.git").unwrap()]));
+    }
+
+    #[test]
+    fn open_mode_exclusions_returns_correct_defaults_when_exclusions_key_not_set() {
+        let data = YamlLoader::load_from_str("tab_width: 12").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.open_mode_exclusions().unwrap(), Some(vec![ExclusionPattern::new("**/.git").unwrap()]));
+    }
+
+    #[test]
+    fn open_mode_exclusions_returns_user_defined_values() {
+        let data = YamlLoader::load_from_str("open_mode:\n  exclusions:\n    - \".svn\"").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.open_mode_exclusions().unwrap(), Some(vec![ExclusionPattern::new(".svn").unwrap()]));
+    }
+
+    #[test]
+    fn open_mode_exclusions_returns_none_when_disabled() {
+        let data = YamlLoader::load_from_str("open_mode:\n  exclusions: false").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert!(preferences.open_mode_exclusions().unwrap().is_none());
     }
 }

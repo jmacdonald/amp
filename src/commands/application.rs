@@ -77,7 +77,8 @@ pub fn switch_to_line_jump_mode(app: &mut Application) -> Result {
 }
 
 pub fn switch_to_open_mode(app: &mut Application) -> Result {
-    app.mode = Mode::Open(OpenMode::new(app.workspace.path.clone()));
+    let exclusions = app.preferences.borrow().open_mode_exclusions()?;
+    app.mode = Mode::Open(OpenMode::new(app.workspace.path.clone(), exclusions));
     commands::search_select::search(app)?;
 
     Ok(())

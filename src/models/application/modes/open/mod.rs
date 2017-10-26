@@ -1,8 +1,10 @@
 mod displayable_path;
+pub mod exclusions;
 
 use std::fmt;
 use std::path::PathBuf;
 use std::slice::Iter;
+use bloodhound::ExclusionPattern;
 use helpers::SelectableSet;
 use models::application::modes::{SearchSelectMode, MAX_SEARCH_SELECT_RESULTS};
 use bloodhound::Index;
@@ -16,10 +18,10 @@ pub struct OpenMode {
 }
 
 impl OpenMode {
-    pub fn new(path: PathBuf) -> OpenMode {
+    pub fn new(path: PathBuf, exclusions: Option<Vec<ExclusionPattern>>) -> OpenMode {
         // Build and populate the index.
         let mut index = Index::new(path);
-        index.populate();
+        index.populate(exclusions);
 
         OpenMode {
             insert: true,

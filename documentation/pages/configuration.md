@@ -131,3 +131,23 @@ Most popular formats/languages have syntax highlighting and symbol support out o
     The preferences will load into a new buffer for editing, and its path
     will be shown at the bottom of the screen; the `syntaxes` subdirectory is in
     the same directory as that file.
+
+## Open Mode
+
+### Excluding Files/Directories
+
+Using Unix shell-style glob patterns, Amp's file finder can be configured to exclude files and directories:
+
+```yaml
+open_mode:
+  exclusions:
+    - "**/.git"
+    - "**/.svn"
+```
+
+You can also opt out of exclusions altogether by setting the value to `false`:
+
+```yaml
+open_mode:
+  exclusions: false
+```
