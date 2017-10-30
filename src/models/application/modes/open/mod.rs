@@ -21,7 +21,7 @@ impl OpenMode {
     pub fn new(path: PathBuf, exclusions: Option<Vec<ExclusionPattern>>) -> OpenMode {
         // Build and populate the index.
         let mut index = Index::new(path);
-        index.populate(exclusions);
+        index.populate(exclusions, false);
 
         OpenMode {
             insert: true,
@@ -42,8 +42,7 @@ impl SearchSelectMode<DisplayablePath> for OpenMode {
     fn search(&mut self) {
         let results = self.index.find(
             &self.input,
-            MAX_SEARCH_SELECT_RESULTS,
-            false
+            MAX_SEARCH_SELECT_RESULTS
         ).into_iter().map(|path| DisplayablePath(path)).collect();
         self.results = SelectableSet::new(results);
     }

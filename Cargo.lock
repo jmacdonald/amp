@@ -3,7 +3,7 @@ name = "amp"
 version = "0.3.0"
 dependencies = [
  "app_dirs 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "bloodhound 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bloodhound 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "clipboard 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "fragment 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -115,7 +115,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "bloodhound"
-version = "0.4.0"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "fragment 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -975,7 +975,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum bitflags 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)" = "4efd02e230a02e18f92fc2735f44597385ed02ad8f831e7c1c1156ee5e1ab3a5"
 "checksum bitflags 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "f5cde24d1b2e2216a726368b2363a273739c91f4e3eb4e0dd12d672d396ad989"
 "checksum block 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "0d8c1fef690941d3e7788d328517591fecc684c084084702d6ff1641e993699a"
-"checksum bloodhound 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "9e11c84fadaf04582181674c4a5113cd3050c0e7bdf44481dda12e90b0d34bfb"
+"checksum bloodhound 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "16bb2b630dc407aa09f42e9d9c10878dcd3e64954b7504df888fc456beb9b47b"
 "checksum byteorder 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ff81738b726f5d099632ceaffe7fb65b90212e8dce59d518729e7e8634032d3d"
 "checksum cc 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "2c674f0870e3dbd4105184ea035acb1c32c8ae69939c9e228d2b11bbfe29efad"
 "checksum cfg-if 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "d4c819a1287eb618df47cc647173c5c4c66ba19d888a6e50d605672aed3140de"
