@@ -1,10 +1,11 @@
+use errors::*;
 use models::application::modes::SelectMode;
 use scribe::Workspace;
 use scribe::buffer::Range;
 use presenters::current_buffer_status_line_data;
 use view::{Colors, StatusLineData, Style, View};
 
-pub fn display(workspace: &mut Workspace, mode: &SelectMode, view: &mut View) {
+pub fn display(workspace: &mut Workspace, mode: &SelectMode, view: &mut View) -> Result<()> {
     // Wipe the slate clean.
     view.clear();
 
@@ -14,7 +15,7 @@ pub fn display(workspace: &mut Workspace, mode: &SelectMode, view: &mut View) {
         let selected_range = Range::new(mode.anchor, *buf.cursor.clone());
 
         // Draw the visible set of tokens to the terminal.
-        view.draw_buffer(buf, Some(&selected_range), None);
+        view.draw_buffer(buf, Some(&selected_range), None)?;
 
         // Draw the status line.
         view.draw_status_line(&vec![
@@ -32,4 +33,6 @@ pub fn display(workspace: &mut Workspace, mode: &SelectMode, view: &mut View) {
 
     // Render the changes to the screen.
     view.present();
+
+    Ok(())
 }

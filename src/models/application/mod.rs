@@ -116,7 +116,7 @@ impl Application {
     pub fn run(&mut self) -> Result<()> {
         loop {
             // Present the application state to the view.
-            match self.mode {
+            let display_result = match self.mode {
                 Mode::Confirm(_) => {
                     presenters::modes::confirm::display(&mut self.workspace,
                                                         &mut self.view)
@@ -175,7 +175,20 @@ impl Application {
                                                               mode,
                                                               &mut self.view)
                 }
-                Mode::Exit => ()
+                Mode::Exit => Ok(())
+            };
+
+            if let Err(error) = display_result {
+                self
+                    .view
+                    .draw_status_line(
+                        &vec![StatusLineData{
+                            content: error.description().to_string(),
+                            style: view::Style::Bold,
+                            colors: view::Colors::Warning,
+                        }]
+                    );
+                self.view.present();
             }
 
             // Display an error from previous command invocation, if one exists.

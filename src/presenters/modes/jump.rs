@@ -1,9 +1,10 @@
+use errors::*;
 use presenters::current_buffer_status_line_data;
 use scribe::Workspace;
 use models::application::modes::JumpMode;
 use view::{Colors, StatusLineData, Style, View};
 
-pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) {
+pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) -> Result<()> {
     // Wipe the slate clean.
     view.clear();
 
@@ -13,7 +14,7 @@ pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) 
         mode.reset_display();
 
         // Draw the visible set of tokens to the terminal.
-        view.draw_buffer(buf, None, Some(mode));
+        view.draw_buffer(buf, None, Some(mode))?;
 
         // Draw the status line.
         view.draw_status_line(&vec![
@@ -32,4 +33,6 @@ pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) 
 
     // Render the changes to the screen.
     view.present();
+
+    Ok(())
 }

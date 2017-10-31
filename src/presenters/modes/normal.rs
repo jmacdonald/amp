@@ -1,9 +1,10 @@
+use errors::*;
 use scribe::Workspace;
 use presenters::{current_buffer_status_line_data, git_status_line_data};
 use git2::Repository;
 use view::{Colors, StatusLineData, Style, View};
 
-pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Repository>) {
+pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Repository>) -> Result<()> {
     // Wipe the slate clean.
     view.clear();
 
@@ -11,7 +12,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
 
     if let Some(buf) = workspace.current_buffer() {
         // Draw the visible set of tokens to the terminal.
-        view.draw_buffer(buf, None, None);
+        view.draw_buffer(buf, None, None)?;
 
         // Determine mode display color based on buffer modification status.
         let colors = if buf.modified() {
@@ -34,10 +35,12 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
         // Draw the status line.
         view.draw_status_line(&status_line_data);
     } else {
-        view.draw_splash_screen();
+        view.draw_splash_screen()?;
         view.set_cursor(None);
     }
 
     // Render the changes to the screen.
     view.present();
+
+    Ok(())
 }

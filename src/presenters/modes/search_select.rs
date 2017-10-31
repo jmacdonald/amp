@@ -1,3 +1,4 @@
+use errors::*;
 use std::cmp;
 use std::fmt::Display;
 use models::application::modes::{SearchSelectMode, MAX_SEARCH_SELECT_RESULTS};
@@ -8,14 +9,14 @@ use scribe::buffer::Position;
 use view::{Colors, StatusLineData, Style, View};
 use unicode_segmentation::UnicodeSegmentation;
 
-pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMode<T>, view: &mut View) {
+pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMode<T>, view: &mut View) -> Result<()> {
     // Wipe the slate clean.
     view.clear();
 
     let buffer_status = current_buffer_status_line_data(workspace);
 
     if let Some(buf) = workspace.current_buffer() {
-        view.draw_buffer(buf, None, None);
+        view.draw_buffer(buf, None, None)?;
 
         // Draw the status line.
         view.draw_status_line(&vec![
@@ -33,7 +34,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
         view.print(&Position{ line: 0, offset: 0 },
                    Style::Default,
                    Colors::Default,
-                   &"No matching entries found.".pad_to_width(view.width()));
+                   &"No matching entries found.".pad_to_width(view.width()))?;
      }
 
     // Draw the list of search results.
@@ -47,7 +48,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
         view.print(&Position{ line: line, offset: 0 },
                    Style::Default,
                    colors,
-                   &padded_content);
+                   &padded_content)?;
     }
 
     // Clear any remaining lines in the result display area.
@@ -55,7 +56,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
         view.print(&Position{ line: line, offset: 0 },
                    Style::Default,
                    Colors::Default,
-                   &String::new().pad_to_width(view.width()));
+                   &String::new().pad_to_width(view.width()))?;
     }
 
     // Draw the divider.
@@ -69,7 +70,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
     view.print(&Position{ line: line, offset: 0 },
                Style::Bold,
                colors,
-               &padded_content);
+               &padded_content)?;
 
     // Place the cursor on the search input line, right after its contents.
     view.set_cursor(Some(Position {
@@ -79,4 +80,6 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
 
     // Render the changes to the screen.
     view.present();
+
+    Ok(())
 }

@@ -1,8 +1,9 @@
+use errors::*;
 use presenters::current_buffer_status_line_data;
 use scribe::Workspace;
 use view::{Colors, StatusLineData, Style, View};
 
-pub fn display(workspace: &mut Workspace, view: &mut View) {
+pub fn display(workspace: &mut Workspace, view: &mut View) -> Result<()> {
     // Wipe the slate clean.
     view.clear();
 
@@ -10,7 +11,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View) {
 
     if let Some(buf) = workspace.current_buffer() {
         // Draw the visible set of tokens to the terminal.
-        view.draw_buffer(buf, None, None);
+        view.draw_buffer(buf, None, None)?;
 
         // Draw the status line.
         view.draw_status_line(&vec![
@@ -25,4 +26,6 @@ pub fn display(workspace: &mut Workspace, view: &mut View) {
 
     // Render the changes to the screen.
     view.present();
+
+    Ok(())
 }

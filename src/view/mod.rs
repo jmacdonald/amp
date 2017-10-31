@@ -79,7 +79,7 @@ impl View {
     }
 
     /// Renders the app name, version and copyright info to the screen.
-    pub fn draw_splash_screen(&mut self) {
+    pub fn draw_splash_screen(&mut self) -> Result<()> {
         let title = "Amp v0.2.0";
         let copyright = "© 2015-2017 Jordan MacDonald";
 
@@ -87,13 +87,15 @@ impl View {
             line: self.height() / 2 - 1,
             offset: self.width() / 2 - title.chars().count() / 2
         };
-        self.print(&position, Style::Default, Colors::Default, &title);
+        self.print(&position, Style::Default, Colors::Default, &title)?;
 
         position = Position{
             line: self.height() / 2,
             offset: self.width() / 2 - copyright.chars().count() / 2,
         };
-        self.print(&position, Style::Default, Colors::Default, &copyright);
+        self.print(&position, Style::Default, Colors::Default, &copyright)?;
+
+        Ok(())
     }
 
     pub fn draw_status_line(&self, data: &[StatusLineData]) {
@@ -123,7 +125,7 @@ impl View {
                 }
             };
 
-            self.print(&Position{ line: line, offset: offset},
+            let _ = self.print(&Position{ line: line, offset: offset},
                        element.style,
                        element.colors.clone(),
                        &content);
