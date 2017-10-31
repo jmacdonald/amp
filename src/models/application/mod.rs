@@ -178,31 +178,13 @@ impl Application {
                 Mode::Exit => Ok(())
             };
 
-            if let Err(error) = display_result {
-                self
-                    .view
-                    .draw_status_line(
-                        &vec![StatusLineData{
-                            content: error.description().to_string(),
-                            style: view::Style::Bold,
-                            colors: view::Colors::Warning,
-                        }]
-                    );
-                self.view.present();
-            }
-
-            // Display an error from previous command invocation, if one exists.
-            if let Some(ref error) = self.error {
-                self
-                    .view
-                    .draw_status_line(
-                        &vec![StatusLineData{
-                            content: error.description().to_string(),
-                            style: view::Style::Bold,
-                            colors: view::Colors::Warning,
-                        }]
-                    );
-                self.view.present();
+            if let Err(ref error) = display_result {
+                render_error(&mut self.view, error);
+            } else {
+                // Display an error from previous command invocation, if one exists.
+                if let Some(ref error) = self.error {
+                    render_error(&mut self.view, error);
+                }
             }
 
             // Listen for and respond to user input.
@@ -265,4 +247,16 @@ impl Application {
             Mode::Exit => None,
         }
     }
+}
+
+fn render_error(view: &mut View, error: &Error) {
+    view
+        .draw_status_line(
+            &vec![StatusLineData{
+                content: error.description().to_string(),
+                style: view::Style::Bold,
+                colors: view::Colors::Warning,
+            }]
+        );
+    view.present();
 }
