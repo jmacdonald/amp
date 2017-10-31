@@ -21,7 +21,7 @@ libc = "0.2.4"
 syntect = "1.7.1"
 rustbox = "0.9.0"
 termion = { git = "https://github.com/jmacdonald/termion", branch = "esc" }
-error-chain = "0.7.1"
+error-chain = "0.11.0"
 unicode-segmentation = "1.0.1"
 clipboard = "0.3.0"
 yaml-rust = "0.3.5"
