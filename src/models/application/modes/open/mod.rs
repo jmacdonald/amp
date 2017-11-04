@@ -43,7 +43,7 @@ impl SearchSelectMode<DisplayablePath> for OpenMode {
         let results = self.index.find(
             &self.input,
             MAX_SEARCH_SELECT_RESULTS
-        ).into_iter().map(|path| DisplayablePath(path)).collect();
+        ).into_iter().map(|path| DisplayablePath(path.to_path_buf())).collect();
         self.results = SelectableSet::new(results);
     }
 

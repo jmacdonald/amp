@@ -1,4 +1,5 @@
 use fragment;
+use fragment::matching::AsStr;
 use scribe::buffer::{Position, ScopeStack, Token, TokenSet};
 use helpers::SelectableSet;
 use std::fmt;
@@ -38,6 +39,12 @@ impl Clone for Symbol {
     }
 }
 
+impl<'a> AsStr for &'a Symbol {
+    fn as_str(&self) -> &str {
+        &self.token
+    }
+}
+
 impl SymbolJumpMode {
     pub fn new(tokens: TokenSet) -> SymbolJumpMode {
         let symbols = symbols(tokens.iter());
@@ -60,7 +67,7 @@ impl fmt::Display for SymbolJumpMode {
 impl SearchSelectMode<Symbol> for SymbolJumpMode {
     fn search(&mut self) {
         // Find the symbols we're looking for using the query.
-        let results = fragment::matching::find(&self.input, &self.symbols, MAX_SEARCH_SELECT_RESULTS, false);
+        let results = fragment::matching::find(&self.input, &self.symbols, MAX_SEARCH_SELECT_RESULTS);
 
         // We don't care about the result objects; we just want
         // the underlying symbols. Map the collection to get these.

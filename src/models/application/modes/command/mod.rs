@@ -35,12 +35,13 @@ impl fmt::Display for CommandMode {
 
 impl SearchSelectMode<DisplayableCommand> for CommandMode {
     fn search(&mut self) {
+        let commands: Vec<&'static str> = self.commands.keys().map(|k| *k).collect();
+
         // Find the commands we're looking for using the query.
         let results = fragment::matching::find(
             &self.input,
-            &self.commands.keys().collect(),
-            MAX_SEARCH_SELECT_RESULTS,
-            false
+            commands,
+            MAX_SEARCH_SELECT_RESULTS
         );
 
         // We don't care about the result objects; we just want

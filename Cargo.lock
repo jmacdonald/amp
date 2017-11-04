@@ -3,10 +3,10 @@ name = "amp"
 version = "0.3.0"
 dependencies = [
  "app_dirs 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "bloodhound 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bloodhound 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "clipboard 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "fragment 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fragment 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "git2 0.6.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.32 (registry+https://github.com/rust-lang/crates.io-index)",
  "luthor 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -115,10 +115,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "bloodhound"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "fragment 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fragment 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "glob 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "walkdir 2.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -237,7 +237,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "fragment"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -975,7 +975,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum bitflags 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)" = "4efd02e230a02e18f92fc2735f44597385ed02ad8f831e7c1c1156ee5e1ab3a5"
 "checksum bitflags 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "f5cde24d1b2e2216a726368b2363a273739c91f4e3eb4e0dd12d672d396ad989"
 "checksum block 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "0d8c1fef690941d3e7788d328517591fecc684c084084702d6ff1641e993699a"
-"checksum bloodhound 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "16bb2b630dc407aa09f42e9d9c10878dcd3e64954b7504df888fc456beb9b47b"
+"checksum bloodhound 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)" = "b9fc44e49525eb21f42c0ecee0b00bdf05d343141a9352b0eaf4f8cd44c82965"
 "checksum byteorder 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ff81738b726f5d099632ceaffe7fb65b90212e8dce59d518729e7e8634032d3d"
 "checksum cc 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "2c674f0870e3dbd4105184ea035acb1c32c8ae69939c9e228d2b11bbfe29efad"
 "checksum cfg-if 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "d4c819a1287eb618df47cc647173c5c4c66ba19d888a6e50d605672aed3140de"
@@ -990,7 +990,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum error-chain 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ff511d5dc435d703f4971bc399647c9bc38e20cb41452e3b9feb4765419ed3f3"
 "checksum flate2 0.2.20 (registry+https://github.com/rust-lang/crates.io-index)" = "e6234dd4468ae5d1e2dbb06fe2b058696fdc50a339c68a393aefbf00bc81e423"
 "checksum fnv 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)" = "6cc484842f1e2884faf56f529f960cc12ad8c71ce96cc7abba0a067c98fee344"
-"checksum fragment 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "920a4d2a5e9641184c7f9e499b9c48f61c1d7507a6056834f401a78e98cb918f"
+"checksum fragment 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "f0acd5ebd3b097f088f5a11a5c1bfc27d711a9993026d70ffbb0da66731158eb"
 "checksum fuchsia-zircon 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "f6c0581a4e363262e52b87f59ee2afe3415361c6ec35e665924eb08afe8ff159"
 "checksum fuchsia-zircon-sys 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "43f3795b4bae048dc6123a6b972cadde2e676f9ded08aef6bb77f5f157684a82"
 "checksum gag 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)" = "c606f5c0da18075916377e73de8aec7c140e1b6110a3cf26ae1f47873529b47e"

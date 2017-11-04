@@ -31,7 +31,7 @@ impl fmt::Display for ThemeMode {
 impl SearchSelectMode<String> for ThemeMode {
     fn search(&mut self) {
         // Find the themes we're looking for using the query.
-        let results = fragment::matching::find(&self.input, &self.themes, MAX_SEARCH_SELECT_RESULTS, false);
+        let results = fragment::matching::find(&self.input, &self.themes, MAX_SEARCH_SELECT_RESULTS);
 
         // We don't care about the result objects; we just want
         // the underlying symbols. Map the collection to get these.
