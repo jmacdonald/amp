@@ -1,10 +1,10 @@
 use errors::*;
 use scribe::Workspace;
 use scribe::buffer::Position;
-use models::application::modes::SearchInsertMode;
+use models::application::modes::SearchMode;
 use view::{Colors, StatusLineData, Style, View};
 
-pub fn display(workspace: &mut Workspace, mode: &SearchInsertMode, view: &mut View) -> Result<()> {
+pub fn display(workspace: &mut Workspace, mode: &SearchMode, view: &mut View) -> Result<()> {
     // Wipe the slate clean.
     view.clear();
 

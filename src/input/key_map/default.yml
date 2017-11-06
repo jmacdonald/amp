@@ -50,7 +50,7 @@ normal:
   E: application::display_last_error
   "'": application::switch_to_jump_mode
   "0": application::switch_to_command_mode
-  "/": application::switch_to_search_insert_mode
+  "/": application::switch_to_search_mode
   ",": view::scroll_up
   ">": buffer::indent_line
   "<": buffer::outdent_line
@@ -98,7 +98,7 @@ line_jump:
   ctrl-z: application::suspend
   ctrl-c: application::exit
 
-search_insert:
+search:
   _: search::push_search_char
   enter: search::accept_query
   backspace: search::pop_search_char

@@ -79,7 +79,7 @@ pub fn move_to_next_result(app: &mut Application) -> Result {
 
 pub fn accept_query(app: &mut Application) -> Result {
     let query = match app.mode {
-        Mode::SearchInsert(ref mode) => Some(mode.input.clone()),
+        Mode::Search(ref mode) => Some(mode.input.clone()),
         _ => None,
     }.ok_or("Can't accept search query outside of search mode")?;
 
@@ -94,7 +94,7 @@ pub fn push_search_char(app: &mut Application) -> Result {
     let key = app.view.last_key().as_ref().ok_or("View hasn't tracked a key press")?;
 
     if let &Key::Char(c) = key {
-        if let Mode::SearchInsert(ref mut mode) = app.mode {
+        if let Mode::Search(ref mut mode) = app.mode {
             mode.input.push(c)
         } else {
             bail!("Can't push search character outside of search insert mode")
@@ -107,7 +107,7 @@ pub fn push_search_char(app: &mut Application) -> Result {
 }
 
 pub fn pop_search_char(app: &mut Application) -> Result {
-    if let Mode::SearchInsert(ref mut mode) = app.mode {
+    if let Mode::Search(ref mut mode) = app.mode {
         mode.input.pop()
     } else {
         bail!("Can't pop search character outside of search insert mode")
@@ -233,9 +233,9 @@ mod tests {
         app.workspace.add_buffer(buffer);
 
         // Enter search mode and add a search value.
-        commands::application::switch_to_search_insert_mode(&mut app).unwrap();
+        commands::application::switch_to_search_mode(&mut app).unwrap();
         match app.mode {
-            Mode::SearchInsert(ref mut mode) => mode.input = "ed".to_string(),
+            Mode::Search(ref mut mode) => mode.input = "ed".to_string(),
             _ => (),
         };
         commands::search::accept_query(&mut app).unwrap();

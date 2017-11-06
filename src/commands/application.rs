@@ -136,9 +136,9 @@ pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn switch_to_search_insert_mode(app: &mut Application) -> Result {
+pub fn switch_to_search_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer().is_some() {
-        app.mode = Mode::SearchInsert(SearchInsertMode::new());
+        app.mode = Mode::Search(SearchMode::new());
     } else {
         bail!(BUFFER_MISSING);
     }

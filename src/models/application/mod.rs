@@ -30,7 +30,7 @@ pub enum Mode {
     Open(OpenMode),
     Select(SelectMode),
     SelectLine(SelectLineMode),
-    SearchInsert(SearchInsertMode),
+    Search(SearchMode),
     SymbolJump(SymbolJumpMode),
     Theme(ThemeMode),
 }
@@ -135,8 +135,8 @@ impl Application {
                                                               mode,
                                                               &mut self.view)
                 }
-                Mode::SearchInsert(ref mode) => {
-                    presenters::modes::search_insert::display(&mut self.workspace,
+                Mode::Search(ref mode) => {
+                    presenters::modes::search::display(&mut self.workspace,
                                                               mode,
                                                               &mut self.view)
                 }
@@ -243,7 +243,7 @@ impl Application {
             Mode::LineJump(_) => Some("line_jump"),
             Mode::Select(_) => Some("select"),
             Mode::SelectLine(_) => Some("select_line"),
-            Mode::SearchInsert(_) => Some("search_insert"),
+            Mode::Search(_) => Some("search"),
             Mode::Exit => None,
         }
     }
