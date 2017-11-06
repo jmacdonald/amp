@@ -19,7 +19,7 @@ pub struct BufferRenderer<'a, 'b> {
     buffer_position: Position,
     cursor_position: Option<Position>,
     gutter_width: usize,
-    highlight: Option<&'a Range>,
+    highlights: Option<Vec<&'a Range>>,
     stylist: Highlighter<'a>,
     current_style: ThemeStyle,
     lexeme_mapper: Option<&'b mut LexemeMapper>,
@@ -32,7 +32,7 @@ pub struct BufferRenderer<'a, 'b> {
 }
 
 impl<'a, 'b> BufferRenderer<'a, 'b> {
-    pub fn new(buffer: &'a Buffer, highlight: Option<&'a Range>,
+    pub fn new(buffer: &'a Buffer, highlights: Option<Vec<&'a Range>>,
     lexeme_mapper: Option<&'b mut LexemeMapper>, scroll_offset: usize,
     terminal: &'a mut Terminal, theme: &'a Theme, preferences: &'a Preferences) -> BufferRenderer<'a, 'b> {
         // Determine the gutter size based on the number of lines.
@@ -47,7 +47,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             buffer: buffer,
             cursor_position: None,
             gutter_width: line_number_width + 2,
-            highlight: highlight,
+            highlights: highlights,
             stylist: stylist,
             current_style: current_style,
             lexeme_mapper: lexeme_mapper,
@@ -122,11 +122,19 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     }
 
     fn current_char_style(&self, token_color: RGBColor) -> (Style, Colors) {
-        let (style, colors) = match self.highlight {
-            Some(highlight_range) => {
-                if highlight_range.includes(&self.buffer_position) {
-                    (Style::Inverted, Colors::Default)
-                } else if self.on_cursor_line() {
+        let (style, colors) = match self.highlights {
+            Some(ref highlight_ranges) => {
+                for range in highlight_ranges {
+                    if range.includes(&self.buffer_position) {
+                        // We're inside of one of the highlighted areas.
+                        // Return early with highlight colors.
+                        return (Style::Inverted, Colors::Default)
+                    }
+                }
+
+                // We aren't inside one of the highlighted areas.
+                // Fall back to other styling considerations.
+                if self.on_cursor_line() {
                     (Style::Default, Colors::CustomFocusedForeground(token_color))
                 } else {
                     (Style::Default, Colors::CustomForeground(token_color))

@@ -15,7 +15,7 @@ pub fn display(workspace: &mut Workspace, mode: &SelectMode, view: &mut View) ->
         let selected_range = Range::new(mode.anchor, *buf.cursor.clone());
 
         // Draw the visible set of tokens to the terminal.
-        view.draw_buffer(buf, Some(&selected_range), None)?;
+        view.draw_buffer(buf, Some(vec![&selected_range]), None)?;
 
         // Draw the status line.
         view.draw_status_line(&vec![
