@@ -243,7 +243,11 @@ impl Application {
             Mode::LineJump(_) => Some("line_jump"),
             Mode::Select(_) => Some("select"),
             Mode::SelectLine(_) => Some("select_line"),
-            Mode::Search(_) => Some("search"),
+            Mode::Search(ref mode) => if mode.insert_mode() {
+                Some("search_insert")
+            } else {
+                Some("search")
+            },
             Mode::Exit => None,
         }
     }
