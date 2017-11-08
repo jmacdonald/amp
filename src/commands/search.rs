@@ -24,7 +24,9 @@ pub fn move_to_previous_result(app: &mut Application) -> Result {
             if let Some(last_range) = mode.results.last() {
                 buffer.cursor.move_to(last_range.start());
             } else {
-                bail!(NO_SEARCH_RESULTS);
+                bail!(
+                    format!("No matches found for \"{}\"", mode.input)
+                );
             }
         }
     } else {
@@ -58,7 +60,9 @@ pub fn move_to_next_result(app: &mut Application) -> Result {
             if let Some(first_range) = mode.results.first() {
                 buffer.cursor.move_to(first_range.start());
             } else {
-                bail!(NO_SEARCH_RESULTS);
+                bail!(
+                    format!("No matches found for \"{}\"", mode.input)
+                );
             }
         }
     } else {
