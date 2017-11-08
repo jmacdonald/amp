@@ -30,6 +30,7 @@ impl SearchMode {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use scribe::buffer::{Buffer, Position, Range};
     use super::SearchMode;
