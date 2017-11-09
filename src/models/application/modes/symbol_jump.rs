@@ -39,7 +39,7 @@ impl Clone for Symbol {
     }
 }
 
-impl<'a> AsStr for &'a Symbol {
+impl AsStr for Symbol {
     fn as_str(&self) -> &str {
         &self.token
     }

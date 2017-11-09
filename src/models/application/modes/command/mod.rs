@@ -40,7 +40,7 @@ impl SearchSelectMode<DisplayableCommand> for CommandMode {
         // Find the commands we're looking for using the query.
         let results = fragment::matching::find(
             &self.input,
-            commands,
+            &commands,
             MAX_SEARCH_SELECT_RESULTS
         );
 
