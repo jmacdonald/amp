@@ -47,8 +47,7 @@ mod tests {
         let mut buffer = Buffer::new();
         buffer.insert("test\ntest");
 
-        let mut mode = SearchMode::new(None);
-        mode.input = "test".to_string();
+        let mut mode = SearchMode::new(String::from("test"));
         mode.search(&buffer);
 
         assert_eq!(

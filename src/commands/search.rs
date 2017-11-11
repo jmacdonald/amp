@@ -245,18 +245,15 @@ mod tests {
     }
 
     #[test]
-    fn accept_query_sets_application_search_query_disables_insert_sub_mode_and_moves_to_first_match() {
+    fn accept_query_disables_insert_sub_mode_and_moves_to_first_match() {
         let mut app = ::models::Application::new().unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp editor\nedit\nedit");
         app.workspace.add_buffer(buffer);
 
-        // Enter search mode and add a search value.
+        // Add a search query, enter search mode, and accept the query.
+        app.search_query = String::from("ed");
         commands::application::switch_to_search_mode(&mut app).unwrap();
-        match app.mode {
-            Mode::Search(ref mut mode) => mode.input = "ed".to_string(),
-            _ => (),
-        };
         commands::search::accept_query(&mut app).unwrap();
 
         // Ensure that we've disabled insert sub-mode.
@@ -266,7 +263,7 @@ mod tests {
         });
 
         // Ensure that the search query is properly set.
-        assert_eq!(app.search_query, Some("ed".to_string()));
+        assert_eq!(app.search_query, "ed".to_string());
 
         // Ensure the buffer cursor is at the expected position.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
