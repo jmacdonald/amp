@@ -213,6 +213,7 @@ pub fn exit(app: &mut Application) -> Result {
 
 #[cfg(test)]
 mod tests {
+    use models::application::Mode;
 
     #[test]
     fn display_available_commands_creates_a_new_buffer() {
@@ -231,5 +232,17 @@ mod tests {
         let mut lines = buffer_data.lines();
         assert_eq!(lines.nth(0), Some("application::display_available_commands"));
         assert_eq!(lines.last(), Some("workspace::next_buffer"));
+    }
+
+    #[test]
+    fn switch_to_search_mode_sets_initial_search_query() {
+        let mut app = super::Application::new().unwrap();
+        app.search_query = String::from("query");
+        super::switch_to_search_mode(&mut app);
+
+        assert!(match app.mode {
+            Mode::Search(ref mode) => mode.input == "query",
+            _ => false,
+        });
     }
 }
