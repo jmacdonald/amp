@@ -37,8 +37,13 @@ normal:
   r: buffer::redo
   p: buffer::paste
   P: buffer::paste_above
-  n: search::move_to_next_result
-  N: search::move_to_previous_result
+  n:
+    - application::switch_to_search_mode
+    - search::accept_query
+  N:
+    - application::switch_to_search_mode
+    - search::accept_query
+    - search::move_to_previous_result
   m: view::scroll_down
   M: buffer::merge_next_line
   y: buffer::copy_current_line
