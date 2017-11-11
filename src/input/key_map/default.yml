@@ -104,6 +104,7 @@ line_jump:
   ctrl-c: application::exit
 
 search:
+  _: application::switch_to_normal_mode
   i: application::switch_to_search_mode
   n: search::move_to_next_result
   N: search::move_to_previous_result
