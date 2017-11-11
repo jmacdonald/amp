@@ -11,6 +11,7 @@ pub enum Colors {
     Inverted, // background/default
     Insert,   // white/green
     Warning,  // white/yellow
+    Search,   // white/blue
     Select,   // white/blue
     CustomForeground(RGBColor),
     CustomFocusedForeground(RGBColor),

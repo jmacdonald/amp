@@ -33,6 +33,7 @@ impl ColorMap for Theme {
             Colors::Inverted => Colors::Custom(bg, fg),
             Colors::Insert => Colors::Custom(RGBColor(255, 255, 255), RGBColor(50, 150, 50)),
             Colors::Warning => Colors::Custom(RGBColor(255, 255, 255), RGBColor(240, 140, 20)),
+            Colors::Search => Colors::Custom(RGBColor(255, 255, 255), RGBColor(120, 0, 120)),
             Colors::Select => Colors::Custom(RGBColor(255, 255, 255), RGBColor(0, 120, 160)),
             Colors::CustomForeground(f) => Colors::CustomForeground(f),
             Colors::CustomFocusedForeground(f) => Colors::Custom(f, alt_bg),
