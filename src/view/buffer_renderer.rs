@@ -128,7 +128,11 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
                     if range.includes(&self.buffer_position) {
                         // We're inside of one of the highlighted areas.
                         // Return early with highlight colors.
-                        return (Style::Inverted, Colors::Default)
+                        if range.includes(&self.buffer.cursor) {
+                            return (Style::Bold, Colors::Inverted)
+                        } else {
+                            return (Style::Inverted, Colors::Default)
+                        }
                     }
                 }
 
