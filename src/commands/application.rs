@@ -138,7 +138,9 @@ pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
 
 pub fn switch_to_search_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer().is_some() {
-        app.mode = Mode::Search(SearchMode::new());
+        app.mode = Mode::Search(
+            SearchMode::new(app.search_query.clone())
+        );
     } else {
         bail!(BUFFER_MISSING);
     }

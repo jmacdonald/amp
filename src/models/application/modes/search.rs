@@ -8,10 +8,10 @@ pub struct SearchMode {
 }
 
 impl SearchMode {
-    pub fn new() -> SearchMode {
+    pub fn new(query: Option<String>) -> SearchMode {
         SearchMode {
             insert: true,
-            input: String::new(),
+            input: query.unwrap_or(String::new()),
             results: Vec::new()
         }
     }
@@ -47,7 +47,7 @@ mod tests {
         let mut buffer = Buffer::new();
         buffer.insert("test\ntest");
 
-        let mut mode = SearchMode::new();
+        let mut mode = SearchMode::new(None);
         mode.input = "test".to_string();
         mode.search(&buffer);
 
