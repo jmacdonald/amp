@@ -1,3 +1,4 @@
+use std::fmt;
 use scribe::buffer::{Buffer, Distance, Range};
 
 pub struct SearchMode {
@@ -26,7 +27,13 @@ impl SearchMode {
 
         self.results = buffer.search(&self.input).into_iter().map(|start| {
             Range::new(start, start + distance)
-        }).collect()
+        }).collect();
+    }
+}
+
+impl fmt::Display for SearchMode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "SEARCH")
     }
 }
 
