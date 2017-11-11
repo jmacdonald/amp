@@ -98,6 +98,14 @@ line_jump:
   ctrl-z: application::suspend
   ctrl-c: application::exit
 
+search:
+  i: application::switch_to_search_mode
+  n: search::move_to_next_result
+  N: search::move_to_previous_result
+  escape: application::switch_to_normal_mode
+  ctrl-z: application::suspend
+  ctrl-c: application::exit
+
 search_insert:
   _: search::push_search_char
   enter: search::accept_query
