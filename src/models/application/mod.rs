@@ -38,7 +38,7 @@ pub enum Mode {
 pub struct Application {
     pub mode: Mode,
     pub workspace: Workspace,
-    pub search_query: Option<String>,
+    pub search_query: String,
     pub view: View,
     pub clipboard: Clipboard,
     pub repository: Option<Repository>,
@@ -103,7 +103,7 @@ impl Application {
         Ok(Application {
                mode: Mode::Normal,
                workspace: workspace,
-               search_query: None,
+               search_query: String::new(),
                view: view,
                clipboard: clipboard,
                repository: Repository::discover(&current_dir).ok(),

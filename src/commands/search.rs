@@ -76,21 +76,17 @@ pub fn move_to_next_result(app: &mut Application) -> Result {
 }
 
 pub fn accept_query(app: &mut Application) -> Result {
-    let query = match app.mode {
-        Mode::Search(ref mut mode) => {
-            // Search the buffer.
-            let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
-            mode.search(&buffer);
+    if let Mode::Search(ref mut mode) = app.mode {
+        // Search the buffer.
+        let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+        mode.search(&buffer);
 
-            // Disable insert sub-mode.
-            mode.insert = false;
+        // Disable insert sub-mode.
+        mode.insert = false;
+    } else {
+        bail!("Can't accept search query outside of search mode");
+    }
 
-            Some(mode.input.clone())
-        },
-        _ => None,
-    }.ok_or("Can't accept search query outside of search mode")?;
-
-    app.search_query = Some(query);
     move_to_next_result(app)?;
 
     Ok(())
@@ -101,9 +97,10 @@ pub fn push_search_char(app: &mut Application) -> Result {
 
     if let &Key::Char(c) = key {
         if let Mode::Search(ref mut mode) = app.mode {
-            mode.input.push(c)
+            mode.input.push(c);
+            app.search_query.push(c);
         } else {
-            bail!("Can't push search character outside of search insert mode")
+            bail!("Can't push search character outside of search insert mode");
         }
     } else {
         bail!("Last key press wasn't a character")
@@ -114,9 +111,10 @@ pub fn push_search_char(app: &mut Application) -> Result {
 
 pub fn pop_search_char(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
-        mode.input.pop()
+        mode.input.pop();
+        app.search_query.pop();
     } else {
-        bail!("Can't pop search character outside of search insert mode")
+        bail!("Can't pop search character outside of search insert mode");
     };
 
     Ok(())

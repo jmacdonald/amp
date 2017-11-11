@@ -8,10 +8,10 @@ pub struct SearchMode {
 }
 
 impl SearchMode {
-    pub fn new(query: Option<String>) -> SearchMode {
+    pub fn new(query: String) -> SearchMode {
         SearchMode {
             insert: true,
-            input: query.unwrap_or(String::new()),
+            input: query,
             results: Vec::new()
         }
     }
