@@ -9,10 +9,9 @@ pub fn display(workspace: &mut Workspace, mode: &SearchMode, view: &mut View) ->
     // Wipe the slate clean.
     view.clear();
 
-    if let Some(buf) = workspace.current_buffer() {
-        // Draw the visible set of tokens to the terminal.
-        view.draw_buffer(buf, None, None)?;
-    }
+    // Draw the visible set of tokens to the terminal.
+    let buffer = workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+    view.draw_buffer(buffer, Some(&mode.results), None)?;
 
     let mode_display = format!(" {} ", mode);
     let search_input = format!(" {}", mode.input);
