@@ -104,18 +104,15 @@ line_jump:
   ctrl-c: application::exit
 
 search:
-  _: application::switch_to_normal_mode
-  i: application::switch_to_search_mode
+  _:
+    - application::switch_to_normal_mode
+    - application::handle_input
+  escape: application::switch_to_normal_mode
   /: application::switch_to_search_mode
-  Q: application::exit
   m: view::scroll_down
   ",": view::scroll_up
-  f: application::switch_to_second_stage_jump_mode
   n: search::move_to_next_result
   N: search::move_to_previous_result
-  escape: application::switch_to_normal_mode
-  ctrl-z: application::suspend
-  ctrl-c: application::exit
 
 search_insert:
   _: search::push_search_char
