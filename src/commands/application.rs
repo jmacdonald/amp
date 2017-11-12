@@ -7,6 +7,24 @@ use std::mem;
 use models::application::{Application, Mode};
 use models::application::modes::*;
 
+pub fn handle_input(app: &mut Application) -> Result {
+    // Listen for and respond to user input.
+    let commands = app.view.last_key().as_ref().and_then(|key| {
+        app.mode_str().and_then(|mode| {
+            app.key_map.commands_for(&mode, &key)
+        })
+    });
+
+    if let Some(coms) = commands {
+        // Run all commands, stopping at the first error encountered, if any.
+        for com in coms {
+            com(app)?;
+        }
+    }
+
+    Ok(())
+}
+
 pub fn switch_to_normal_mode(app: &mut Application) -> Result {
     let _ = commands::buffer::end_command_group(app);
     app.mode = Mode::Normal;

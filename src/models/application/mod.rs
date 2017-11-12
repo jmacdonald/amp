@@ -6,6 +6,7 @@ mod preferences;
 pub use self::clipboard::ClipboardContent;
 pub use self::preferences::Preferences;
 
+use commands;
 use errors::*;
 use std::env;
 use std::path::Path;
@@ -44,7 +45,7 @@ pub struct Application {
     pub repository: Option<Repository>,
     pub error: Option<Error>,
     pub preferences: Rc<RefCell<Preferences>>,
-    key_map: KeyMap,
+    pub key_map: KeyMap,
 }
 
 impl Application {
@@ -188,20 +189,8 @@ impl Application {
             }
 
             // Listen for and respond to user input.
-            let commands = self.view.listen().and_then(|key| {
-                self.mode_str().and_then(|mode| {
-                    self.key_map.commands_for(&mode, &key)
-                })
-            });
-
-            if let Some(coms) = commands {
-                // Run all commands, stopping at the first error encountered, if any.
-                for com in coms {
-                    self.error = com(self).err();
-
-                    if self.error.is_some() { break; }
-                }
-            }
+            self.view.listen();
+            self.error = commands::application::handle_input(self).err();
 
             // Check if the command resulted in an exit, before
             // looping again and asking for input we won't use.
@@ -214,7 +203,7 @@ impl Application {
         Ok(())
     }
 
-    fn mode_str(&self) -> Option<&'static str> {
+    pub fn mode_str(&self) -> Option<&'static str> {
         match self.mode {
             Mode::Command(ref mode) => if mode.insert_mode() {
                 Some("search_select_insert")
