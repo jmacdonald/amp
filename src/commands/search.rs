@@ -96,6 +96,17 @@ pub fn accept_query(app: &mut Application) -> Result {
     Ok(())
 }
 
+pub fn clear_query(app: &mut Application) -> Result {
+    if let Mode::Search(ref mut mode) = app.mode {
+        mode.input = None;
+        app.search_query = None;
+    } else {
+        bail!("Can't clear search outside of search mode");
+    };
+
+    Ok(())
+}
+
 pub fn push_search_char(app: &mut Application) -> Result {
     let key = app.view.last_key().as_ref().ok_or("View hasn't tracked a key press")?;
 

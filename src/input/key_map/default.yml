@@ -55,7 +55,9 @@ normal:
   E: application::display_last_error
   "'": application::switch_to_jump_mode
   "0": application::switch_to_command_mode
-  "/": application::switch_to_search_mode
+  /:
+    - application::switch_to_search_mode
+    - search::clear_query
   ",": view::scroll_up
   ">": buffer::indent_line
   "<": buffer::outdent_line
@@ -108,7 +110,9 @@ search:
     - application::switch_to_normal_mode
     - application::handle_input
   escape: application::switch_to_normal_mode
-  /: application::switch_to_search_mode
+  /:
+    - application::switch_to_search_mode
+    - search::clear_query
   m: view::scroll_down
   ",": view::scroll_up
   n: search::move_to_next_result
