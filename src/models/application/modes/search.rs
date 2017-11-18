@@ -1,18 +1,19 @@
+use errors::*;
 use std::fmt;
 use scribe::buffer::{Buffer, Distance, Range};
 
 pub struct SearchMode {
     pub insert: bool,
-    pub input: String,
-    pub results: Vec<Range>,
+    pub input: Option<String>,
+    pub results: Option<Vec<Range>>,
 }
 
 impl SearchMode {
-    pub fn new(query: String) -> SearchMode {
+    pub fn new(query: Option<String>) -> SearchMode {
         SearchMode {
             insert: true,
             input: query,
-            results: Vec::new()
+            results: None,
         }
     }
 
@@ -22,12 +23,15 @@ impl SearchMode {
 
     // Searches the specified buffer for the input string
     // and stores the result as a collection of ranges.
-    pub fn search(&mut self, buffer: &Buffer) {
-        let distance = Distance::from_str(&self.input);
+    pub fn search(&mut self, buffer: &Buffer) -> Result<()> {
+        let query = self.input.as_ref().ok_or(SEARCH_QUERY_MISSING)?;
+        let distance = Distance::from_str(&query);
 
-        self.results = buffer.search(&self.input).into_iter().map(|start| {
+        self.results = Some(buffer.search(&query).into_iter().map(|start| {
             Range::new(start, start + distance)
-        }).collect();
+        }).collect());
+
+        Ok(())
     }
 }
 
@@ -47,12 +51,12 @@ mod tests {
         let mut buffer = Buffer::new();
         buffer.insert("test\ntest");
 
-        let mut mode = SearchMode::new(String::from("test"));
+        let mut mode = SearchMode::new(Some(String::from("test")));
         mode.search(&buffer);
 
         assert_eq!(
             mode.results,
-            vec![
+            Some(vec![
                 Range::new(
                     Position{ line: 0, offset: 0 },
                     Position{ line: 0, offset: 4 },
@@ -61,7 +65,7 @@ mod tests {
                     Position{ line: 1, offset: 0 },
                     Position{ line: 1, offset: 4 },
                 ),
-            ]
+            ])
         );
     }
 }

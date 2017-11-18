@@ -5,11 +5,13 @@ use models::application::{Application, Mode};
 
 pub fn move_to_previous_result(app: &mut Application) -> Result {
     if let Mode::Search(ref mode) = app.mode {
+        let query = mode.input.as_ref().ok_or(SEARCH_QUERY_MISSING)?;
+        let results = mode.results.as_ref().ok_or(NO_SEARCH_RESULTS)?;
         let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
         let initial_position = *buffer.cursor;
 
         // Try to find and move to a result before the cursor.
-        for range in mode.results.iter().rev() {
+        for range in results.iter().rev() {
             if range.start() < *buffer.cursor {
                 buffer.cursor.move_to(range.start());
 
@@ -21,11 +23,11 @@ pub fn move_to_previous_result(app: &mut Application) -> Result {
         if buffer.cursor.position == initial_position {
             // There's nothing before the cursor, so wrap
             // to the last match, if there are any at all.
-            if let Some(last_range) = mode.results.last() {
+            if let Some(last_range) = results.last() {
                 buffer.cursor.move_to(last_range.start());
             } else {
                 bail!(
-                    format!("No matches found for \"{}\"", mode.input)
+                    format!("No matches found for \"{}\"", &query)
                 );
             }
         }
@@ -41,11 +43,13 @@ pub fn move_to_previous_result(app: &mut Application) -> Result {
 
 pub fn move_to_next_result(app: &mut Application) -> Result {
     if let Mode::Search(ref mode) = app.mode {
+        let query = mode.input.as_ref().ok_or(SEARCH_QUERY_MISSING)?;
+        let results = mode.results.as_ref().ok_or(NO_SEARCH_RESULTS)?;
         let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
         let initial_position = *buffer.cursor;
 
         // Try to find and move to a result after the cursor.
-        for range in &mode.results {
+        for range in results {
             if range.start() > *buffer.cursor {
                 buffer.cursor.move_to(range.start());
 
@@ -57,11 +61,11 @@ pub fn move_to_next_result(app: &mut Application) -> Result {
         if buffer.cursor.position == initial_position {
             // We haven't found anything after the cursor, so wrap
             // to the first match, if there are any matches at all.
-            if let Some(first_range) = mode.results.first() {
+            if let Some(first_range) = results.first() {
                 buffer.cursor.move_to(first_range.start());
             } else {
                 bail!(
-                    format!("No matches found for \"{}\"", mode.input)
+                    format!("No matches found for \"{}\"", &query)
                 );
             }
         }
@@ -79,7 +83,7 @@ pub fn accept_query(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
         // Search the buffer.
         let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
-        mode.search(&buffer);
+        mode.search(&buffer)?;
 
         // Disable insert sub-mode.
         mode.insert = false;
@@ -97,10 +101,11 @@ pub fn push_search_char(app: &mut Application) -> Result {
 
     if let &Key::Char(c) = key {
         if let Mode::Search(ref mut mode) = app.mode {
-            mode.input.push(c);
-            app.search_query.push(c);
+            let mut query = mode.input.get_or_insert(String::new());
+            query.push(c);
+            app.search_query = Some(query.clone());
         } else {
-            bail!("Can't push search character outside of search insert mode");
+            bail!("Can't push search character outside of search mode");
         }
     } else {
         bail!("Last key press wasn't a character")
@@ -111,10 +116,12 @@ pub fn push_search_char(app: &mut Application) -> Result {
 
 pub fn pop_search_char(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
-        mode.input.pop();
-        app.search_query.pop();
+        let query = mode.input.as_mut().ok_or(SEARCH_QUERY_MISSING)?;
+
+        query.pop();
+        app.search_query = Some(query.clone());
     } else {
-        bail!("Can't pop search character outside of search insert mode");
+        bail!("Can't pop search character outside of search mode");
     };
 
     Ok(())
@@ -139,7 +146,7 @@ mod tests {
         // Enter search mode and accept a query.
         commands::application::switch_to_search_mode(&mut app).unwrap();
         if let Mode::Search(ref mut mode) = app.mode {
-            mode.input = String::from("ed");
+            mode.input = Some(String::from("ed"));
         }
         commands::search::accept_query(&mut app).unwrap();
 
@@ -171,7 +178,7 @@ mod tests {
         // Enter search mode and accept a query.
         commands::application::switch_to_search_mode(&mut app).unwrap();
         if let Mode::Search(ref mut mode) = app.mode {
-            mode.input = String::from("ed");
+            mode.input = Some(String::from("ed"));
         }
         commands::search::accept_query(&mut app).unwrap();
 
@@ -197,7 +204,7 @@ mod tests {
         // Enter search mode and accept a query.
         commands::application::switch_to_search_mode(&mut app).unwrap();
         if let Mode::Search(ref mut mode) = app.mode {
-            mode.input = String::from("ed");
+            mode.input = Some(String::from("ed"));
         }
         commands::search::accept_query(&mut app).unwrap();
 
@@ -223,7 +230,7 @@ mod tests {
         // Enter search mode and accept a query.
         commands::application::switch_to_search_mode(&mut app).unwrap();
         if let Mode::Search(ref mut mode) = app.mode {
-            mode.input = String::from("ed");
+            mode.input = Some(String::from("ed"));
         }
         commands::search::accept_query(&mut app).unwrap();
 
@@ -252,7 +259,7 @@ mod tests {
         app.workspace.add_buffer(buffer);
 
         // Add a search query, enter search mode, and accept the query.
-        app.search_query = String::from("ed");
+        app.search_query = Some(String::from("ed"));
         commands::application::switch_to_search_mode(&mut app).unwrap();
         commands::search::accept_query(&mut app).unwrap();
 
@@ -263,7 +270,7 @@ mod tests {
         });
 
         // Ensure that the search query is properly set.
-        assert_eq!(app.search_query, "ed".to_string());
+        assert_eq!(app.search_query, Some("ed".to_string()));
 
         // Ensure the buffer cursor is at the expected position.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,

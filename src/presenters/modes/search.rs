@@ -11,10 +11,13 @@ pub fn display(workspace: &mut Workspace, mode: &SearchMode, view: &mut View) ->
 
     // Draw the visible set of tokens to the terminal.
     let buffer = workspace.current_buffer().ok_or(BUFFER_MISSING)?;
-    view.draw_buffer(buffer, Some(&mode.results), None)?;
+    view.draw_buffer(buffer, &mode.results, None)?;
 
     let mode_display = format!(" {} ", mode);
-    let search_input = format!(" {}", mode.input);
+    let search_input = match mode.input {
+        Some(ref query) => format!(" {}", query),
+        None => String::new(),
+    };
     let cursor_offset =
         mode_display.graphemes(true).count() +
         search_input.graphemes(true).count();

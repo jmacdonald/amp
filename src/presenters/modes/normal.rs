@@ -12,7 +12,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
 
     if let Some(buf) = workspace.current_buffer() {
         // Draw the visible set of tokens to the terminal.
-        view.draw_buffer(buf, None, None)?;
+        view.draw_buffer(buf, &None, None)?;
 
         // Determine mode display color based on buffer modification status.
         let colors = if buf.modified() {

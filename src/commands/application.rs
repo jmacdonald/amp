@@ -255,12 +255,16 @@ mod tests {
     #[test]
     fn switch_to_search_mode_sets_initial_search_query() {
         let mut app = super::Application::new().unwrap();
-        app.search_query = String::from("query");
+        app.search_query = Some(String::from("query"));
         super::switch_to_search_mode(&mut app);
 
-        assert!(match app.mode {
-            Mode::Search(ref mode) => mode.input == "query",
-            _ => false,
-        });
+        let mode_query = match app.mode {
+            Mode::Search(mode) => mode.input,
+            _ => None,
+        };
+        assert_eq!(
+            mode_query,
+            Some(String::from("query"))
+        );
     }
 }
