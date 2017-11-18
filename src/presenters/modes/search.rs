@@ -14,10 +14,10 @@ pub fn display(workspace: &mut Workspace, mode: &SearchMode, view: &mut View) ->
     view.draw_buffer(buffer, &mode.results, None)?;
 
     let mode_display = format!(" {} ", mode);
-    let search_input = match mode.input {
-        Some(ref query) => format!(" {}", query),
-        None => String::new(),
-    };
+    let search_input = format!(
+        " {}",
+        mode.input.as_ref().unwrap_or(&String::new())
+    );
     let cursor_offset =
         mode_display.graphemes(true).count() +
         search_input.graphemes(true).count();
