@@ -89,7 +89,7 @@ impl LexemeMapper for JumpMode {
                 );
 
                 // Advance beyond this subtoken.
-                self.current_position.add(&distance);
+                self.current_position += distance;
             } else {
                 let tag = if self.first_phase {
                     if self.current_position.line >= self.cursor_line {
@@ -120,10 +120,10 @@ impl LexemeMapper for JumpMode {
                         self.tag_positions.insert(tag, self.current_position);
 
                         // Advance beyond this tag.
-                        self.current_position.add(&Distance{
+                        self.current_position += Distance{
                             lines: 0,
                             offset: tag_len
-                        });
+                        };
 
                         let suffix: String =
                             subtoken
@@ -143,10 +143,10 @@ impl LexemeMapper for JumpMode {
                             );
 
                             // Advance beyond this suffix.
-                            self.current_position.add(&Distance{
+                            self.current_position += Distance{
                                 lines: 0,
                                 offset: suffix_len
-                            });
+                            };
                         }
                     }
                     None => {
@@ -161,7 +161,7 @@ impl LexemeMapper for JumpMode {
                         );
 
                         // Advance beyond this subtoken.
-                        self.current_position.add(&distance);
+                        self.current_position += distance;
                     }
                 }
             }
