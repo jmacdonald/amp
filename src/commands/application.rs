@@ -231,11 +231,12 @@ pub fn exit(app: &mut Application) -> Result {
 
 #[cfg(test)]
 mod tests {
+    use models::Application;
     use models::application::Mode;
 
     #[test]
     fn display_available_commands_creates_a_new_buffer() {
-        let mut app = super::Application::new().unwrap();
+        let mut app = Application::new().unwrap();
         super::display_available_commands(&mut app);
 
         assert!(app.workspace.current_buffer().is_some());
@@ -243,7 +244,7 @@ mod tests {
 
     #[test]
     fn display_available_commands_populates_new_buffer_with_alphabetic_command_names() {
-        let mut app = super::Application::new().unwrap();
+        let mut app = Application::new().unwrap();
         super::display_available_commands(&mut app);
 
         let buffer_data = app.workspace.current_buffer().unwrap().data();
@@ -254,7 +255,8 @@ mod tests {
 
     #[test]
     fn switch_to_search_mode_sets_initial_search_query() {
-        let mut app = super::Application::new().unwrap();
+        let mut app = Application::new().unwrap();
+
         app.search_query = Some(String::from("query"));
         super::switch_to_search_mode(&mut app);
 
