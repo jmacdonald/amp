@@ -18,6 +18,19 @@ pub fn display(workspace: &mut Workspace, mode: &SearchMode, view: &mut View) ->
         " {}",
         mode.input.as_ref().unwrap_or(&String::new())
     );
+    let result_count = mode.results.as_ref().map(|r| r.len());
+    let result_display = if mode.insert {
+        String::new()
+    } else {
+        result_count.map(|c| {
+            if c == 1 {
+                format!("{} match", c)
+            } else {
+                format!("{} matches", c)
+            }
+        }).unwrap_or(String::new())
+    };
+
     let cursor_offset =
         mode_display.graphemes(true).count() +
         search_input.graphemes(true).count();
@@ -32,7 +45,12 @@ pub fn display(workspace: &mut Workspace, mode: &SearchMode, view: &mut View) ->
             content: search_input,
             style: Style::Default,
             colors: Colors::Focused,
-        }
+        },
+        StatusLineData {
+            content: result_display,
+            style: Style::Default,
+            colors: Colors::Focused,
+        },
     ]);
 
     // Move the cursor to the end of the search query input.
