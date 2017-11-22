@@ -231,6 +231,7 @@ pub fn exit(app: &mut Application) -> Result {
 
 #[cfg(test)]
 mod tests {
+    use scribe::Buffer;
     use models::Application;
     use models::application::Mode;
 
@@ -256,6 +257,10 @@ mod tests {
     #[test]
     fn switch_to_search_mode_sets_initial_search_query() {
         let mut app = Application::new().unwrap();
+
+        // A buffer needs to be open to switch to search mode.
+        let buffer = Buffer::new();
+        app.workspace.add_buffer(buffer);
 
         app.search_query = Some(String::from("query"));
         super::switch_to_search_mode(&mut app);
