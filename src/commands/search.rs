@@ -112,7 +112,7 @@ pub fn push_search_char(app: &mut Application) -> Result {
 
     if let &Key::Char(c) = key {
         if let Mode::Search(ref mut mode) = app.mode {
-            let mut query = mode.input.get_or_insert(String::new());
+            let query = mode.input.get_or_insert(String::new());
             query.push(c);
             app.search_query = Some(query.clone());
         } else {
