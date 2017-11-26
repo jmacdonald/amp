@@ -11,7 +11,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View) -> Result<()> {
 
     if let Some(buf) = workspace.current_buffer() {
         // Draw the visible set of tokens to the terminal.
-        view.draw_buffer(buf, &None, None)?;
+        view.draw_buffer(buf, None, None)?;
 
         // Draw the status line.
         view.draw_status_line(&vec![

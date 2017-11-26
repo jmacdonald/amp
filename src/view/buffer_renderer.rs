@@ -19,7 +19,7 @@ pub struct BufferRenderer<'a, 'b> {
     buffer_position: Position,
     cursor_position: Option<Position>,
     gutter_width: usize,
-    highlights: &'a Option<Vec<Range>>,
+    highlights: Option<&'a Vec<Range>>,
     stylist: Highlighter<'a>,
     current_style: ThemeStyle,
     lexeme_mapper: Option<&'b mut LexemeMapper>,
@@ -32,7 +32,7 @@ pub struct BufferRenderer<'a, 'b> {
 }
 
 impl<'a, 'b> BufferRenderer<'a, 'b> {
-    pub fn new(buffer: &'a Buffer, highlights: &'a Option<Vec<Range>>,
+    pub fn new(buffer: &'a Buffer, highlights: Option<&'a Vec<Range>>,
     lexeme_mapper: Option<&'b mut LexemeMapper>, scroll_offset: usize,
     terminal: &'a mut Terminal, theme: &'a Theme, preferences: &'a Preferences) -> BufferRenderer<'a, 'b> {
         // Determine the gutter size based on the number of lines.
@@ -123,7 +123,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
     fn current_char_style(&self, token_color: RGBColor) -> (Style, Colors) {
         let (style, colors) = match self.highlights {
-            &Some(ref highlight_ranges) => {
+            Some(highlight_ranges) => {
                 for range in highlight_ranges {
                     if range.includes(&self.buffer_position) {
                         // We're inside of one of the highlighted areas.
@@ -144,7 +144,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
                     (Style::Default, Colors::CustomForeground(token_color))
                 }
             }
-            &None => {
+            None => {
                 if self.on_cursor_line() {
                     (Style::Default, Colors::CustomFocusedForeground(token_color))
                 } else {
@@ -349,7 +349,7 @@ mod tests {
 
         BufferRenderer::new(
             workspace.current_buffer().unwrap(),
-            &None,
+            None,
             None,
             0,
             &mut terminal,
@@ -376,7 +376,7 @@ mod tests {
 
         BufferRenderer::new(
             workspace.current_buffer().unwrap(),
-            &None,
+            None,
             None,
             0,
             &mut terminal,
@@ -406,7 +406,7 @@ mod tests {
 
         BufferRenderer::new(
             workspace.current_buffer().unwrap(),
-            &None,
+            None,
             None,
             0,
             &mut terminal,
@@ -433,7 +433,7 @@ mod tests {
 
         BufferRenderer::new(
             workspace.current_buffer().unwrap(),
-            &None,
+            None,
             None,
             0,
             &mut terminal,
@@ -473,7 +473,7 @@ mod tests {
 
         BufferRenderer::new(
             workspace.current_buffer().unwrap(),
-            &None,
+            None,
             Some(&mut TestMapper{}),
             0,
             &mut terminal,

@@ -14,7 +14,7 @@ pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) 
         mode.reset_display();
 
         // Draw the visible set of tokens to the terminal.
-        view.draw_buffer(buf, &None, Some(mode))?;
+        view.draw_buffer(buf, None, Some(mode))?;
 
         // Draw the status line.
         view.draw_status_line(&vec![
