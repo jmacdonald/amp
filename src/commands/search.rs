@@ -4,71 +4,39 @@ use commands::{self, Result};
 use models::application::{Application, Mode};
 
 pub fn move_to_previous_result(app: &mut Application) -> Result {
-    if let Mode::Search(ref mode) = app.mode {
-        let query = mode.input.as_ref().ok_or(SEARCH_QUERY_MISSING)?;
-        let results = mode.results.as_ref().ok_or(NO_SEARCH_RESULTS)?;
-        let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
-        let initial_position = *buffer.cursor;
-
-        // Try to find and move to a result before the cursor.
-        for range in results.iter().rev() {
-            if range.start() < *buffer.cursor {
-                buffer.cursor.move_to(range.start());
-
-                // We've found one; stop looking.
-                break;
-            }
-        }
-
-        if buffer.cursor.position == initial_position {
-            // There's nothing before the cursor, so wrap
-            // to the last match, if there are any at all.
-            if let Some(last_range) = results.last() {
-                buffer.cursor.move_to(last_range.start());
-            } else {
-                bail!(
-                    format!("No matches found for \"{}\"", &query)
-                );
-            }
-        }
+    if let Mode::Search(ref mut mode) = app.mode {
+        mode.results.as_mut().ok_or(NO_SEARCH_RESULTS)?.select_previous();
     } else {
         bail!("Can't move to search result outside of search mode");
     }
 
     commands::view::scroll_cursor_to_center(app)
         .chain_err(|| SCROLL_TO_CURSOR_FAILED)?;
-
-    Ok(())
+    move_to_current_result(app)
 }
 
 pub fn move_to_next_result(app: &mut Application) -> Result {
-    if let Mode::Search(ref mode) = app.mode {
-        let query = mode.input.as_ref().ok_or(SEARCH_QUERY_MISSING)?;
-        let results = mode.results.as_ref().ok_or(NO_SEARCH_RESULTS)?;
+    if let Mode::Search(ref mut mode) = app.mode {
+        mode.results.as_mut().ok_or(NO_SEARCH_RESULTS)?.select_next();
+    } else {
+        bail!("Can't move to search result outside of search mode");
+    }
+
+    commands::view::scroll_cursor_to_center(app)
+        .chain_err(|| SCROLL_TO_CURSOR_FAILED)?;
+    move_to_current_result(app)
+}
+
+pub fn move_to_current_result(app: &mut Application) -> Result {
+    if let Mode::Search(ref mut mode) = app.mode {
         let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
-        let initial_position = *buffer.cursor;
-
-        // Try to find and move to a result after the cursor.
-        for range in results.iter() {
-            if range.start() > *buffer.cursor {
-                buffer.cursor.move_to(range.start());
-
-                // We've found one; stop looking.
-                break;
-            }
-        }
-
-        if buffer.cursor.position == initial_position {
-            // We haven't found anything after the cursor, so wrap
-            // to the first match, if there are any matches at all.
-            if let Some(first_range) = results.first() {
-                buffer.cursor.move_to(first_range.start());
-            } else {
-                bail!(
-                    format!("No matches found for \"{}\"", &query)
-                );
-            }
-        }
+        let query = mode.input.as_ref().ok_or(SEARCH_QUERY_MISSING)?;
+        let result = mode.results
+            .as_mut()
+            .ok_or(NO_SEARCH_RESULTS)?
+            .selection()
+            .ok_or(format!("No matches found for \"{}\"", query))?;
+        buffer.cursor.move_to(result.start());
     } else {
         bail!("Can't move to search result outside of search mode");
     }
