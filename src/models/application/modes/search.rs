@@ -28,6 +28,9 @@ impl SearchMode {
         let query = self.input.as_ref().ok_or(SEARCH_QUERY_MISSING)?;
         let distance = Distance::from_str(&query);
 
+        // Buffer search returns match starting positions, but we'd like ranges.
+        // This maps the positions to ranges using the search query distance
+        // before storing them.
         self.results = Some(
             SelectableSet::new(
                 buffer.search(&query)
