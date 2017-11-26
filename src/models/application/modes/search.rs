@@ -1,11 +1,12 @@
 use errors::*;
+use helpers::SelectableSet;
 use std::fmt;
 use scribe::buffer::{Buffer, Distance, Range};
 
 pub struct SearchMode {
     pub insert: bool,
     pub input: Option<String>,
-    pub results: Option<Vec<Range>>,
+    pub results: Option<SelectableSet<Range>>,
 }
 
 impl SearchMode {
@@ -27,9 +28,14 @@ impl SearchMode {
         let query = self.input.as_ref().ok_or(SEARCH_QUERY_MISSING)?;
         let distance = Distance::from_str(&query);
 
-        self.results = Some(buffer.search(&query).into_iter().map(|start| {
-            Range::new(start, start + distance)
-        }).collect());
+        self.results = Some(
+            SelectableSet::new(
+                buffer.search(&query)
+                    .into_iter()
+                    .map(|start| Range::new(start, start + distance))
+                    .collect()
+            )
+        );
 
         Ok(())
     }
@@ -55,8 +61,8 @@ mod tests {
         mode.search(&buffer);
 
         assert_eq!(
-            mode.results,
-            Some(vec![
+            *mode.results.unwrap(),
+            vec![
                 Range::new(
                     Position{ line: 0, offset: 0 },
                     Position{ line: 0, offset: 4 },
@@ -65,7 +71,7 @@ mod tests {
                     Position{ line: 1, offset: 0 },
                     Position{ line: 1, offset: 4 },
                 ),
-            ])
+            ]
         );
     }
 }

@@ -49,7 +49,7 @@ pub fn move_to_next_result(app: &mut Application) -> Result {
         let initial_position = *buffer.cursor;
 
         // Try to find and move to a result after the cursor.
-        for range in results {
+        for range in results.iter() {
             if range.start() > *buffer.cursor {
                 buffer.cursor.move_to(range.start());
 
