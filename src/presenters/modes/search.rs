@@ -18,17 +18,18 @@ pub fn display(workspace: &mut Workspace, mode: &SearchMode, view: &mut View) ->
         " {}",
         mode.input.as_ref().unwrap_or(&String::new())
     );
-    let result_count = mode.results.as_ref().map(|r| r.len());
     let result_display = if mode.insert {
         String::new()
     } else {
-        result_count.map(|c| {
-            if c == 1 {
-                format!("{} match", c)
+        if let Some(ref results) = mode.results {
+            if results.len() == 1 {
+                String::from("1 match")
             } else {
-                format!("{} matches", c)
+                format!("{} of {} matches", results.selected_index() + 1, results.len())
             }
-        }).unwrap_or(String::new())
+        } else {
+            String::new()
+        }
     };
 
     let cursor_offset =
