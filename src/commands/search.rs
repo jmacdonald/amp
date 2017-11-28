@@ -139,6 +139,10 @@ mod tests {
         let mut app = Application::new().unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp editor\nedit\nedit");
+
+        // Move to a location just before, but not at the
+        // last result before adding it to the workspace.
+        buffer.cursor.move_to(Position{ line: 1, offset: 3 });
         app.workspace.add_buffer(buffer);
 
         // Enter search mode and accept a query.
@@ -147,12 +151,6 @@ mod tests {
             mode.input = Some(String::from("ed"));
         }
         commands::search::accept_query(&mut app).unwrap();
-
-        // Move beyond the second result.
-        app.workspace.current_buffer().unwrap().cursor.move_to(Position {
-            line: 2,
-            offset: 0,
-        });
 
         // Reverse to the second result.
         commands::search::move_to_previous_result(&mut app).unwrap();
@@ -223,22 +221,21 @@ mod tests {
         let mut app = Application::new().unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp editor\nedit\nedit");
+
+        // Move to a location just before, but not at the
+        // last result before adding it to the workspace.
+        buffer.cursor.move_to(Position{ line: 1, offset: 3 });
         app.workspace.add_buffer(buffer);
 
-        // Enter search mode and accept a query.
+        // Enter search mode and accept a query. As we've moved the cursor
+        // to just before the last match, this will select the last match.
         commands::application::switch_to_search_mode(&mut app).unwrap();
         if let Mode::Search(ref mut mode) = app.mode {
             mode.input = Some(String::from("ed"));
         }
         commands::search::accept_query(&mut app).unwrap();
 
-        // Move to the end of the document.
-        app.workspace.current_buffer().unwrap().cursor.move_to(Position {
-            line: 2,
-            offset: 0,
-        });
-
-        // Advance to the next result, forcing the wrap.
+        // Advance beyond the last result, forcing the wrap.
         commands::search::move_to_next_result(&mut app).unwrap();
 
         // Ensure the buffer cursor is at the expected position.
