@@ -55,7 +55,7 @@ pub fn select_initial_result(app: &mut Application) -> Result {
         // Skip over previous entries.
         let skip_count = results
             .iter()
-            .filter(|r| r.start() < *buffer.cursor)
+            .filter(|r| r.start() <= *buffer.cursor)
             .count();
         for _ in 0..skip_count {
             results.select_next();
@@ -247,10 +247,14 @@ mod tests {
     }
 
     #[test]
-    fn accept_query_disables_insert_sub_mode_and_moves_to_first_match() {
+    fn accept_query_disables_insert_sub_mode_and_moves_to_next_match() {
         let mut app = ::models::Application::new().unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp editor\nedit\nedit");
+
+        // Move to a location just at the first
+        // result before adding it to the workspace.
+        buffer.cursor.move_to(Position{ line: 0, offset: 4 });
         app.workspace.add_buffer(buffer);
 
         // Add a search query, enter search mode, and accept the query.
@@ -270,8 +274,8 @@ mod tests {
         // Ensure the buffer cursor is at the expected position.
         assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
                    Position {
-                       line: 0,
-                       offset: 4,
+                       line: 1,
+                       offset: 0,
                    });
     }
 }
