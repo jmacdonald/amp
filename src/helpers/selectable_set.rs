@@ -24,12 +24,16 @@ impl<T> SelectableSet<T> {
     pub fn select_previous(&mut self) {
         if self.selected_index > 0 {
             self.selected_index -= 1;
+        } else {
+            self.selected_index = self.set.len() - 1;
         }
     }
 
     pub fn select_next(&mut self) {
         if self.selected_index < self.set.len() - 1 {
             self.selected_index += 1;
+        } else {
+            self.selected_index = 0;
         }
     }
 }
@@ -60,17 +64,17 @@ mod tests {
     }
 
     #[test]
-    fn select_next_stops_at_end_of_set() {
+    fn select_next_wraps_at_end_of_set() {
         let mut selectable_set: SelectableSet<usize> = SelectableSet::new(vec![0, 1]);
         selectable_set.select_next();
         selectable_set.select_next();
-        assert_eq!(selectable_set.selection(), Some(&1));
+        assert_eq!(selectable_set.selection(), Some(&0));
     }
 
     #[test]
-    fn select_previous_stops_at_start_of_set() {
+    fn select_previous_wraps_at_start_of_set() {
         let mut selectable_set: SelectableSet<usize> = SelectableSet::new(vec![0, 1]);
         selectable_set.select_previous();
-        assert_eq!(selectable_set.selection(), Some(&0));
+        assert_eq!(selectable_set.selection(), Some(&1));
     }
 }
