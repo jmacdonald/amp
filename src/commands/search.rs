@@ -47,6 +47,24 @@ pub fn move_to_current_result(app: &mut Application) -> Result {
     Ok(())
 }
 
+pub fn select_initial_result(app: &mut Application) -> Result {
+    if let Mode::Search(ref mut mode) = app.mode {
+        let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+        let results = mode.results.as_mut().ok_or(NO_SEARCH_RESULTS)?;
+
+        // Skip over previous entries.
+        let skip_count = results
+            .iter()
+            .filter(|r| r.start() < *buffer.cursor)
+            .count();
+        for _ in 0..skip_count {
+            results.select_next();
+        }
+    }
+
+    Ok(())
+}
+
 pub fn accept_query(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
         // Search the buffer.
@@ -59,7 +77,8 @@ pub fn accept_query(app: &mut Application) -> Result {
         bail!("Can't accept search query outside of search mode");
     }
 
-    move_to_next_result(app)?;
+    select_initial_result(app)?;
+    move_to_current_result(app)?;
 
     Ok(())
 }
