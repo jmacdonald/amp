@@ -5,7 +5,7 @@ use std::fmt;
 use std::path::PathBuf;
 use std::slice::Iter;
 use bloodhound::ExclusionPattern;
-use helpers::SelectableSet;
+use helpers::SelectableVec;
 use models::application::modes::{SearchSelectMode, MAX_SEARCH_SELECT_RESULTS};
 use bloodhound::Index;
 pub use self::displayable_path::DisplayablePath;
@@ -14,7 +14,7 @@ pub struct OpenMode {
     pub insert: bool,
     pub input: String,
     index: Index,
-    pub results: SelectableSet<DisplayablePath>,
+    pub results: SelectableVec<DisplayablePath>,
 }
 
 impl OpenMode {
@@ -27,7 +27,7 @@ impl OpenMode {
             insert: true,
             input: String::new(),
             index: index,
-            results: SelectableSet::new(Vec::new()),
+            results: SelectableVec::new(Vec::new()),
         }
     }
 }
@@ -44,7 +44,7 @@ impl SearchSelectMode<DisplayablePath> for OpenMode {
             &self.input,
             MAX_SEARCH_SELECT_RESULTS
         ).into_iter().map(|path| DisplayablePath(path.to_path_buf())).collect();
-        self.results = SelectableSet::new(results);
+        self.results = SelectableVec::new(results);
     }
 
     fn query(&mut self) -> &mut String {

@@ -1,7 +1,7 @@
 use fragment;
 use fragment::matching::AsStr;
 use scribe::buffer::{Position, ScopeStack, Token, TokenSet};
-use helpers::SelectableSet;
+use helpers::SelectableVec;
 use std::fmt;
 use std::iter::Iterator;
 use std::clone::Clone;
@@ -13,7 +13,7 @@ pub struct SymbolJumpMode {
     insert: bool,
     input: String,
     symbols: Vec<Symbol>,
-    results: SelectableSet<Symbol>,
+    results: SelectableVec<Symbol>,
 }
 
 #[derive(PartialEq, Debug)]
@@ -53,7 +53,7 @@ impl SymbolJumpMode {
             insert: true,
             input: String::new(),
             symbols: symbols,
-            results: SelectableSet::new(Vec::new()),
+            results: SelectableVec::new(Vec::new()),
         }
     }
 }
@@ -71,7 +71,7 @@ impl SearchSelectMode<Symbol> for SymbolJumpMode {
 
         // We don't care about the result objects; we just want
         // the underlying symbols. Map the collection to get these.
-        self.results = SelectableSet::new(results.into_iter().map(|r| r.clone()).collect());
+        self.results = SelectableVec::new(results.into_iter().map(|r| r.clone()).collect());
     }
 
     fn query(&mut self) -> &mut String {

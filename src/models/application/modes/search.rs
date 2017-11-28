@@ -1,12 +1,12 @@
 use errors::*;
-use helpers::SelectableSet;
+use helpers::SelectableVec;
 use std::fmt;
 use scribe::buffer::{Buffer, Distance, Range};
 
 pub struct SearchMode {
     pub insert: bool,
     pub input: Option<String>,
-    pub results: Option<SelectableSet<Range>>,
+    pub results: Option<SelectableVec<Range>>,
 }
 
 impl SearchMode {
@@ -32,7 +32,7 @@ impl SearchMode {
         // This maps the positions to ranges using the search query distance
         // before storing them.
         self.results = Some(
-            SelectableSet::new(
+            SelectableVec::new(
                 buffer.search(&query)
                     .into_iter()
                     .map(|start| Range::new(start, start + distance))

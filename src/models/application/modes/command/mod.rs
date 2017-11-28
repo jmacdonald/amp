@@ -1,7 +1,7 @@
 mod displayable_command;
 
 use fragment;
-use helpers::SelectableSet;
+use helpers::SelectableVec;
 use std::collections::HashMap;
 use std::fmt;
 use std::slice::Iter;
@@ -13,7 +13,7 @@ pub struct CommandMode {
     insert: bool,
     input: String,
     commands: HashMap<&'static str, Command>,
-    results: SelectableSet<DisplayableCommand>,
+    results: SelectableVec<DisplayableCommand>,
 }
 
 impl CommandMode {
@@ -22,7 +22,7 @@ impl CommandMode {
             insert: true,
             input: String::new(),
             commands: commands::hash_map(),
-            results: SelectableSet::new(Vec::new()),
+            results: SelectableVec::new(Vec::new()),
         }
     }
 }
@@ -46,7 +46,7 @@ impl SearchSelectMode<DisplayableCommand> for CommandMode {
 
         // We don't care about the result objects; we just want
         // the underlying commands. Map the collection to get these.
-        self.results = SelectableSet::new(
+        self.results = SelectableVec::new(
             results
             .into_iter()
             .filter_map(|result| {

@@ -1,5 +1,5 @@
 use fragment;
-use helpers::SelectableSet;
+use helpers::SelectableVec;
 use std::fmt;
 use std::slice::Iter;
 use models::application::modes::{SearchSelectMode, MAX_SEARCH_SELECT_RESULTS};
@@ -8,7 +8,7 @@ pub struct ThemeMode {
     insert: bool,
     input: String,
     themes: Vec<String>,
-    results: SelectableSet<String>,
+    results: SelectableVec<String>,
 }
 
 impl ThemeMode {
@@ -17,7 +17,7 @@ impl ThemeMode {
             insert: true,
             input: String::new(),
             themes: themes,
-            results: SelectableSet::new(Vec::new()),
+            results: SelectableVec::new(Vec::new()),
         }
     }
 }
@@ -35,7 +35,7 @@ impl SearchSelectMode<String> for ThemeMode {
 
         // We don't care about the result objects; we just want
         // the underlying symbols. Map the collection to get these.
-        self.results = SelectableSet::new(
+        self.results = SelectableVec::new(
             results
             .into_iter()
             .map(|r| r.clone())
