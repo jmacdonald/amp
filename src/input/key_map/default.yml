@@ -117,6 +117,11 @@ search:
   ",": view::scroll_up
   n: search::move_to_next_result
   N: search::move_to_previous_result
+  c: selection::change
+  d:
+    - selection::copy_and_delete
+    - search::run
+    - view::scroll_to_cursor
 
 search_insert:
   _: search::push_search_char
