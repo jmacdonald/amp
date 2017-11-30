@@ -122,6 +122,10 @@ search:
     - selection::copy_and_delete
     - search::run
     - view::scroll_to_cursor
+  p:
+    - buffer::paste
+    - search::run
+    - view::scroll_to_cursor
 
 search_insert:
   _: search::push_search_char

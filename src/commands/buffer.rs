@@ -497,7 +497,7 @@ pub fn redo(app: &mut Application) -> Result {
 
 pub fn paste(app: &mut Application) -> Result {
     let insert_below = match app.mode {
-        Mode::Select(_) | Mode::SelectLine(_) => {
+        Mode::Select(_) | Mode::SelectLine(_) | Mode::Search(_) => {
             commands::selection::delete(app).chain_err(|| {
                 "Couldn't delete selection prior to pasting."
             })?;
