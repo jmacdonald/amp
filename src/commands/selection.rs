@@ -95,6 +95,7 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
 
 #[cfg(test)]
 mod tests {
+    use commands;
     use models::application::{Application, Mode};
     use scribe::Buffer;
     use scribe::buffer::Position;
@@ -131,4 +132,56 @@ mod tests {
         assert_eq!(app.workspace.current_buffer().unwrap().cursor.line, 2);
     }
 
+    #[test]
+    fn delete_removes_the_selection_in_select_mode() {
+        let mut app = Application::new().unwrap();
+        let mut buffer = Buffer::new();
+
+        // Insert data with indentation and move to the end of the line.
+        buffer.insert("amp\neditor\nbuffer");
+        let position = Position {
+            line: 1,
+            offset: 0,
+        };
+        buffer.cursor.move_to(position);
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_mode(&mut app).unwrap();
+        commands::cursor::move_right(&mut app).unwrap();
+        commands::selection::delete(&mut app).unwrap();
+
+        // Ensure that the cursor is moved to the last line of the buffer.
+        assert_eq!(
+            app.workspace.current_buffer().unwrap().data(),
+            String::from("amp\nditor\nbuffer")
+        )
+    }
+
+    #[test]
+    fn delete_removes_the_selected_line_in_select_line_mode() {
+        let mut app = Application::new().unwrap();
+        let mut buffer = Buffer::new();
+
+        // Insert data with indentation and move to the end of the line.
+        buffer.insert("amp\neditor\nbuffer");
+        let position = Position {
+            line: 1,
+            offset: 0,
+        };
+        buffer.cursor.move_to(position);
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+        commands::selection::delete(&mut app).unwrap();
+
+        // Ensure that the cursor is moved to the last line of the buffer.
+        assert_eq!(
+            app.workspace.current_buffer().unwrap().data(),
+            String::from("amp\nbuffer")
+        )
+    }
 }
