@@ -32,8 +32,7 @@ pub fn delete(app: &mut Application) -> Result {
         bail!(BUFFER_MISSING);
     }
 
-    application::switch_to_normal_mode(app)?;
-    commands::view::scroll_to_cursor(app)
+    Ok(())
 }
 
 pub fn copy_and_delete(app: &mut Application) -> Result {
@@ -44,7 +43,8 @@ pub fn copy_and_delete(app: &mut Application) -> Result {
 pub fn change(app: &mut Application) -> Result {
     let _ = copy_to_clipboard(app);
     delete(app)?;
-    application::switch_to_insert_mode(app)
+    application::switch_to_insert_mode(app)?;
+    commands::view::scroll_to_cursor(app)
 }
 
 pub fn copy(app: &mut Application) -> Result {

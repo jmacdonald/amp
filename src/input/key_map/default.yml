@@ -167,7 +167,10 @@ select:
   b: cursor::move_to_start_of_previous_token
   w: cursor::move_to_start_of_next_token
   e: cursor::move_to_end_of_current_token
-  d: selection::copy_and_delete
+  d:
+    - selection::copy_and_delete
+    - application::switch_to_normal_mode
+    - view::scroll_to_cursor
   c: selection::change
   y: selection::copy
   p: buffer::paste
@@ -199,7 +202,10 @@ select_line:
   b: cursor::move_to_start_of_previous_token
   w: cursor::move_to_start_of_next_token
   e: cursor::move_to_end_of_current_token
-  d: selection::copy_and_delete
+  d:
+    - selection::copy_and_delete
+    - application::switch_to_normal_mode
+    - view::scroll_to_cursor
   c: selection::change
   y: selection::copy
   p: buffer::paste
