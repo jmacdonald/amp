@@ -47,7 +47,7 @@ pub fn move_to_current_result(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn select_initial_result(app: &mut Application) -> Result {
+pub fn select_closest_result(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
         let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
         let results = mode.results.as_mut().ok_or(NO_SEARCH_RESULTS)?;
@@ -77,7 +77,7 @@ pub fn accept_query(app: &mut Application) -> Result {
         bail!("Can't accept search query outside of search mode");
     }
 
-    select_initial_result(app)?;
+    select_closest_result(app)?;
     move_to_current_result(app)?;
 
     Ok(())
