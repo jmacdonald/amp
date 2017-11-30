@@ -49,18 +49,12 @@ pub fn move_to_current_result(app: &mut Application) -> Result {
 
 pub fn accept_query(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
-        // Search the buffer.
-        let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
-        mode.search(&buffer)?;
-
         // Disable insert sub-mode.
         mode.insert = false;
     } else {
         bail!("Can't accept search query outside of search mode");
     }
-
-    select_closest_result(app)?;
-    move_to_current_result(app)?;
+    run(app)?;
 
     Ok(())
 }
@@ -105,6 +99,19 @@ pub fn pop_search_char(app: &mut Application) -> Result {
     };
 
     Ok(())
+}
+
+pub fn run(app: &mut Application) -> Result {
+    if let Mode::Search(ref mut mode) = app.mode {
+        // Search the buffer.
+        let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+        mode.search(&buffer)?;
+    } else {
+        bail!("Can't run search outside of search mode");
+    }
+
+    select_closest_result(app)?;
+    move_to_current_result(app)
 }
 
 fn select_closest_result(app: &mut Application) -> Result {
