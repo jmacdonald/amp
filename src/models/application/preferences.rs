@@ -40,7 +40,11 @@ pub struct Preferences {
 impl Preferences {
     /// Builds a new in-memory instance with default values.
     pub fn new(data: Option<Yaml>) -> Preferences {
-        Preferences { data: data, keymap: KeyMap::default().unwrap(), theme: None }
+        Preferences {
+            data: data,
+            keymap: KeyMap::default().expect("Failed to load default keymap!"),
+            theme: None
+        }
     }
 
     /// Loads preferences from disk, returning any filesystem or parse errors.
