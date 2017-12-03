@@ -83,14 +83,6 @@ impl Preferences {
         })
     }
 
-    /// Reloads preferences from disk, discarding any updated in-memory values.
-    pub fn reload(&mut self) -> Result<()> {
-        self.data = load_document()?;
-        self.theme = None;
-
-        Ok(())
-    }
-
     /// If set, returns the in-memory theme, falling back to the value set via
     /// the configuration file, and then the default value.
     pub fn theme(&self) -> &str {
@@ -274,20 +266,6 @@ mod tests {
         preferences.set_theme("new_in_memory_theme");
 
         assert_eq!(preferences.theme(), "new_in_memory_theme");
-    }
-
-    #[test]
-    fn reload_clears_in_memory_value() {
-        // Write an empty preferences file so we can reload without error.
-        Preferences::edit().unwrap().save().unwrap();
-
-        // Load the preferences and modify their in-memory state.
-        let mut preferences = Preferences::load().unwrap();
-        preferences.set_theme("new_in_memory_theme");
-
-        // Reload the preferences and verify that we're no longer using in-memory value.
-        preferences.reload().unwrap();
-        assert_eq!(preferences.theme(), super::THEME_DEFAULT);
     }
 
     #[test]
