@@ -51,8 +51,11 @@ impl Application {
         let current_dir = env::current_dir()?;
 
         // TODO: Log errors to disk.
-        let preferences =
-            Rc::new(RefCell::new(Preferences::load().unwrap_or_else(|_| Preferences::new(None))));
+        let preferences = Rc::new(
+            RefCell::new(
+                Preferences::load().unwrap_or(Preferences::new(None))
+            )
+        );
 
         // Set up a workspace in the current directory.
         let mut workspace = Workspace::new(&current_dir)?;

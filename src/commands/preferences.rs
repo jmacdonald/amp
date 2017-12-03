@@ -13,7 +13,7 @@ pub fn edit(app: &mut Application) -> Result {
 pub fn reload(app: &mut Application) -> Result {
     app.preferences = Rc::new(
         RefCell::new(
-            Preferences::load().unwrap_or_else(|_| Preferences::new(None))
+            Preferences::load().unwrap_or(Preferences::new(None))
         )
     );
 
