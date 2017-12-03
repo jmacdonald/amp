@@ -1,6 +1,7 @@
 use app_dirs::{app_dir, app_root, get_app_root, AppDataType, AppInfo};
 use bloodhound::ExclusionPattern;
 use errors::*;
+use input::KeyMap;
 use models::application::modes::open;
 use scribe::Buffer;
 use std::fs::OpenOptions;
@@ -32,18 +33,24 @@ const SOFT_TABS_DEFAULT: bool = true;
 /// expicit setter methods (e.g. `theme`).
 pub struct Preferences {
     data: Option<Yaml>,
+    pub keymap: KeyMap,
     theme: Option<String>,
 }
 
 impl Preferences {
     /// Builds a new in-memory instance with default values.
     pub fn new(data: Option<Yaml>) -> Preferences {
-        Preferences { data: data, theme: None }
+        Preferences { data: data, keymap: KeyMap::default().unwrap(), theme: None }
     }
 
     /// Loads preferences from disk, returning any filesystem or parse errors.
     pub fn load() -> Result<Preferences> {
-        Ok(Preferences { data: load_document()?, theme: None })
+        let data = load_document()?;
+        let keymap = load_keymap(
+            data.as_ref().map(|data| &data["keymap"])
+        )?;
+
+        Ok(Preferences { data: data, keymap: keymap, theme: None })
     }
 
     pub fn directory() -> Result<PathBuf> {
@@ -224,6 +231,17 @@ fn load_document() -> Result<Option<Yaml>> {
     let parsed_data = YamlLoader::load_from_str(&data)
         .chain_err(|| "Couldn't parse config file")?;
     Ok(parsed_data.into_iter().nth(0))
+}
+
+fn load_keymap(keymap_overrides: Option<&Yaml>) -> Result<KeyMap> {
+    let mut keymap = KeyMap::default()?;
+
+    // Merge user-defined keymaps into defaults.
+    if let Some(keymap_data) = keymap_overrides {
+        KeyMap::from(keymap_data).map(|data| keymap.merge(data) )?;
+    }
+
+    Ok(keymap)
 }
 
 /// Maps a path to its file extension.
