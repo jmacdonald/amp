@@ -33,7 +33,7 @@ const SOFT_TABS_DEFAULT: bool = true;
 /// expicit setter methods (e.g. `theme`).
 pub struct Preferences {
     data: Option<Yaml>,
-    pub keymap: KeyMap,
+    keymap: KeyMap,
     theme: Option<String>,
 }
 
@@ -55,6 +55,10 @@ impl Preferences {
         )?;
 
         Ok(Preferences { data: data, keymap: keymap, theme: None })
+    }
+
+    pub fn keymap(&self) -> &KeyMap {
+        &self.keymap
     }
 
     pub fn directory() -> Result<PathBuf> {
