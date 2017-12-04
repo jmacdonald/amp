@@ -1,7 +1,5 @@
 use commands::Result;
 use models::application::{Application, Preferences};
-use std::cell::RefCell;
-use std::rc::Rc;
 
 pub fn edit(app: &mut Application) -> Result {
     let preference_buffer = Preferences::edit()?;
@@ -11,11 +9,5 @@ pub fn edit(app: &mut Application) -> Result {
 }
 
 pub fn reload(app: &mut Application) -> Result {
-    app.preferences = Rc::new(
-        RefCell::new(
-            Preferences::load().unwrap_or(Preferences::new(None))
-        )
-    );
-
-    Ok(())
+    app.preferences.borrow_mut().reload()
 }
