@@ -5,7 +5,7 @@ use smallvec::SmallVec;
 use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 use std::convert::Into;
-use yaml::{Yaml, YamlLoader};
+use yaml::yaml::{Hash, Yaml, YamlLoader};
 
 /// Nested HashMap newtype that provides a more ergonomic interface.
 pub struct KeyMap(HashMap<String, HashMap<Key, SmallVec<[Command; 4]>>>);
@@ -22,14 +22,11 @@ impl KeyMap {
     ///
     ///   "normal" => { Key::Char('k') => commands::cursor::move_up }
     ///
-    pub fn from(keymap_data: &Yaml) -> Result<KeyMap> {
-        let modes = keymap_data.as_hash().ok_or(
-            "Keymap config didn't return a hash of modes",
-        )?;
+    pub fn from(keymap_data: &Hash) -> Result<KeyMap> {
         let mut keymap = HashMap::new();
         let commands = commands::hash_map();
 
-        for (yaml_mode, yaml_key_bindings) in modes {
+        for (yaml_mode, yaml_key_bindings) in keymap_data {
             let mode = yaml_mode.as_str().ok_or(format!(
                 "A mode key couldn't be parsed as a string"
             ))?;
@@ -67,7 +64,7 @@ impl KeyMap {
             .nth(0)
             .ok_or("Couldn't locate a document in the default keymap")?;
 
-        KeyMap::from(&default_keymap_data)
+        KeyMap::from(&default_keymap_data.as_hash().unwrap())
     }
 
     /// Merges each of the passed key map's modes, consuming them in the process.
@@ -248,7 +245,7 @@ mod tests {
         // Build the keymap
         let yaml_data = "normal:\n  k: cursor::move_up";
         let yaml = YamlLoader::load_from_str(yaml_data).unwrap();
-        let keymap = KeyMap::from(&yaml[0]).unwrap();
+        let keymap = KeyMap::from(&yaml[0].as_hash().unwrap()).unwrap();
 
         let command = keymap.commands_for("normal", &Key::Char('k')).expect(
             "Keymap doesn't contain command",
@@ -264,7 +261,7 @@ mod tests {
         // Build the keymap
         let yaml_data = "normal:\n  _: cursor::move_up";
         let yaml = YamlLoader::load_from_str(yaml_data).unwrap();
-        let keymap = KeyMap::from(&yaml[0]).unwrap();
+        let keymap = KeyMap::from(&yaml[0].as_hash().unwrap()).unwrap();
 
         let characters = vec!['a', 'b', 'c'];
         for c in characters.into_iter() {
@@ -283,7 +280,7 @@ mod tests {
         // Build the keymap
         let yaml_data = "normal:\n  j: cursor::move_down\n  _: cursor::move_up";
         let yaml = YamlLoader::load_from_str(yaml_data).unwrap();
-        let keymap = KeyMap::from(&yaml[0]).unwrap();
+        let keymap = KeyMap::from(&yaml[0].as_hash().unwrap()).unwrap();
 
         let char_command = keymap.commands_for("normal", &Key::Char('j')).expect(
             "Keymap doesn't contain command",
@@ -306,7 +303,7 @@ mod tests {
         // Build the keymap
         let yaml_data = "normal:\n  ctrl-r: cursor::move_up";
         let yaml = YamlLoader::load_from_str(yaml_data).unwrap();
-        let keymap = KeyMap::from(&yaml[0]).unwrap();
+        let keymap = KeyMap::from(&yaml[0].as_hash().unwrap()).unwrap();
 
         let command = keymap.commands_for("normal", &Key::Ctrl('r')).expect(
             "Keymap doesn't contain command",
@@ -340,7 +337,7 @@ mod tests {
         for (binding, key, command) in mappings {
             // Build the keymap
             let yaml = YamlLoader::load_from_str(binding).unwrap();
-            let keymap = KeyMap::from(&yaml[0]).unwrap();
+            let keymap = KeyMap::from(&yaml[0].as_hash().unwrap()).unwrap();
 
             let parsed_command = keymap.commands_for("normal", &key).expect("Keymap doesn't contain command");
             assert_eq!((parsed_command[0] as *const usize), (command as *const usize));
@@ -365,11 +362,11 @@ mod tests {
     fn keymap_correctly_merges_keybindings() {
         let yaml_data = "normal:\n  k: cursor::move_up\n  j: cursor::move_down";
         let yaml = YamlLoader::load_from_str(yaml_data).unwrap();
-        let mut keymap = KeyMap::from(&yaml[0]).unwrap();
+        let mut keymap = KeyMap::from(&yaml[0].as_hash().unwrap()).unwrap();
 
         let other_yaml_data = "normal:\n  k: cursor::move_left\n  l: cursor::move_right";
         let other_yaml = YamlLoader::load_from_str(other_yaml_data).unwrap();
-        let other_keymap = KeyMap::from(&other_yaml[0]).unwrap();
+        let other_keymap = KeyMap::from(&other_yaml[0].as_hash().unwrap()).unwrap();
 
         keymap.merge(other_keymap);
 
@@ -403,7 +400,7 @@ mod tests {
         // Build the keymap
         let yaml_data = "normal:\n  ctrl-r:\n    - cursor::move_up\n    - cursor::move_down";
         let yaml = YamlLoader::load_from_str(yaml_data).unwrap();
-        let keymap = KeyMap::from(&yaml[0]).unwrap();
+        let keymap = KeyMap::from(&yaml[0].as_hash().unwrap()).unwrap();
 
         let command = keymap.commands_for("normal", &Key::Ctrl('r')).expect(
             "Keymap doesn't contain command",

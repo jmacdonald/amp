@@ -7,7 +7,7 @@ use scribe::Buffer;
 use std::fs::OpenOptions;
 use std::io::Read;
 use std::path::PathBuf;
-use yaml::yaml::{Yaml, YamlLoader};
+use yaml::yaml::{Hash, Yaml, YamlLoader};
 
 const FILE_NAME: &'static str = "config.yml";
 const APP_INFO: AppInfo = AppInfo {
@@ -51,7 +51,7 @@ impl Preferences {
     pub fn load() -> Result<Preferences> {
         let data = load_document()?;
         let keymap = load_keymap(
-            data.as_ref().map(|data| &data["keymap"])
+            data.as_ref().and_then(|data| data["keymap"].as_hash())
         )?;
 
         Ok(Preferences { data: data, keymap: keymap, theme: None })
@@ -229,12 +229,12 @@ fn load_document() -> Result<Option<Yaml>> {
     Ok(parsed_data.into_iter().nth(0))
 }
 
-fn load_keymap(keymap_overrides: Option<&Yaml>) -> Result<KeyMap> {
+fn load_keymap(keymap_overrides: Option<&Hash>) -> Result<KeyMap> {
     let mut keymap = KeyMap::default()?;
 
     // Merge user-defined keymaps into defaults.
     if let Some(keymap_data) = keymap_overrides {
-        KeyMap::from(keymap_data).map(|data| keymap.merge(data) )?;
+        KeyMap::from(keymap_data).map(|data| keymap.merge(data))?;
     }
 
     Ok(keymap)

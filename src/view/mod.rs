@@ -289,7 +289,6 @@ mod tests {
     use super::View;
     use input::Key;
     use models::application::Preferences;
-    use yaml::yaml::YamlLoader;
     use std::cell::RefCell;
     use std::rc::Rc;
 
