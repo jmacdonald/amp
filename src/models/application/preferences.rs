@@ -57,6 +57,19 @@ impl Preferences {
         Ok(Preferences { data: data, keymap: keymap, theme: None })
     }
 
+    pub fn reload(&mut self) -> Result<()> {
+        let data = load_document()?;
+        let keymap = load_keymap(
+            data.as_ref().and_then(|data| data["keymap"].as_hash())
+        )?;
+
+        self.data = data;
+        self.keymap = keymap;
+        self.theme = None;
+
+        Ok(())
+    }
+
     pub fn keymap(&self) -> &KeyMap {
         &self.keymap
     }
@@ -255,6 +268,8 @@ fn default_open_mode_exclusions() -> Result<Option<Vec<ExclusionPattern>>> {
 mod tests {
     use super::{ExclusionPattern, Preferences, YamlLoader};
     use std::path::PathBuf;
+    use input::KeyMap;
+    use yaml::yaml::Hash;
 
     #[test]
     fn preferences_returns_user_defined_theme_name() {
@@ -420,5 +435,30 @@ mod tests {
         let preferences = Preferences::new(data.into_iter().nth(0));
 
         assert!(preferences.open_mode_exclusions().unwrap().is_none());
+    }
+
+    #[test]
+    fn reload_clears_in_memory_theme() {
+        // Instantiate preferences and modify their in-memory theme.
+        let mut preferences = Preferences::new(None);
+        preferences.set_theme("new_in_memory_theme");
+
+        // Reload preferences and verify that we're no longer using the in-memory theme.
+        preferences.reload().unwrap();
+        assert_eq!(preferences.theme(), super::THEME_DEFAULT);
+    }
+
+    #[test]
+    fn reload_refreshes_in_memory_keymap() {
+        // Build a preferences instance with an empty keymap.
+        let mut preferences = Preferences{
+            data: None,
+            keymap: KeyMap::from(&Hash::new()).unwrap(),
+            theme: None
+        };
+
+        // Reload the preferences, ensuring that it refreshes the keymap.
+        preferences.reload().unwrap();
+        assert!(preferences.keymap().get("normal").is_some());
     }
 }
