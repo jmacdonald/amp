@@ -444,6 +444,11 @@ mod tests {
 
     #[test]
     fn reload_clears_in_memory_theme() {
+        // Create an on-disk preferences file first, if one doesn't already exist.
+        if Preferences::load().is_err() {
+            Preferences::edit().unwrap().save();
+        }
+
         // Instantiate preferences and modify their in-memory theme.
         let mut preferences = Preferences::new(None);
         preferences.set_theme("new_in_memory_theme");
@@ -455,6 +460,11 @@ mod tests {
 
     #[test]
     fn reload_refreshes_in_memory_keymap() {
+        // Create an on-disk preferences file first, if one doesn't already exist.
+        if Preferences::load().is_err() {
+            Preferences::edit().unwrap().save();
+        }
+
         // Build a preferences instance with an empty keymap.
         let mut preferences = Preferences{
             data: None,
