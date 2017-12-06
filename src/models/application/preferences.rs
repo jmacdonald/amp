@@ -57,6 +57,7 @@ impl Preferences {
         Ok(Preferences { data: data, keymap: keymap, theme: None })
     }
 
+    /// Reloads all user preferences from disk and merges them with defaults.
     pub fn reload(&mut self) -> Result<()> {
         let data = load_document()?;
         let keymap = load_keymap(
@@ -70,15 +71,18 @@ impl Preferences {
         Ok(())
     }
 
+    /// Read-only keymap accessor method.
     pub fn keymap(&self) -> &KeyMap {
         &self.keymap
     }
 
+    /// A path pointing to the user preferences directory.
     pub fn directory() -> Result<PathBuf> {
         app_root(AppDataType::UserConfig, &APP_INFO)
             .chain_err(|| "Couldn't create preferences directory or build a path to it.")
     }
 
+    /// A path pointing to the user syntax definition directory.
     pub fn syntax_path() -> Result<PathBuf> {
         app_dir(AppDataType::UserConfig, &APP_INFO, SYNTAX_PATH)
             .chain_err(|| "Couldn't create syntax directory or build a path to it.")
@@ -242,6 +246,7 @@ fn load_document() -> Result<Option<Yaml>> {
     Ok(parsed_data.into_iter().nth(0))
 }
 
+/// Loads default keymaps, merging in the provided overrides.
 fn load_keymap(keymap_overrides: Option<&Hash>) -> Result<KeyMap> {
     let mut keymap = KeyMap::default()?;
 
