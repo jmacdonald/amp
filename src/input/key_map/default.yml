@@ -182,7 +182,9 @@ select:
     - view::scroll_to_cursor
   c: selection::change
   y: selection::copy
-  p: buffer::paste
+  p:
+    - buffer::paste
+    - application::switch_to_normal_mode
   R: git::copy_remote_url
   m: view::scroll_down
   f: application::switch_to_second_stage_jump_mode
@@ -217,7 +219,9 @@ select_line:
     - view::scroll_to_cursor
   c: selection::change
   y: selection::copy
-  p: buffer::paste
+  p:
+    - buffer::paste
+    - application::switch_to_normal_mode
   R: git::copy_remote_url
   m: view::scroll_down
   f: application::switch_to_second_stage_jump_mode
