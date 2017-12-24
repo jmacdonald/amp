@@ -66,6 +66,7 @@ impl Application {
         if let Err(e) = workspace.syntax_set.load_syntaxes(syntax_path, true) {
             bail!("Failed to load user syntaxes: {:?}", e);
         }
+        workspace.syntax_set.link_syntaxes();
 
         // Try to open the specified file.
         // TODO: Handle non-existent files as new empty buffers.
