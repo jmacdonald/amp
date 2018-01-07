@@ -86,15 +86,17 @@ keymap:
 
 ### Modifiers
 
+Amp supports qualifying key bindings with a `ctrl` modifier:
+
 ```yaml
 keymap:
   normal:
     ctrl-s: "buffer::save"
 ```
 
-Amp supports qualifying key bindings with a `ctrl` modifier.
-
 ### Wildcards
+
+You can also use wildcards in key bindings:
 
 ```yaml
 keymap:
@@ -102,7 +104,7 @@ keymap:
     _: "buffer::insert_char"
 ```
 
-You can also use wildcards in key bindings. More specific key bindings will override wildcard values, making them useful as a fallback value:
+More specific key bindings will override wildcard values, making them useful as a fallback value:
 
 ```
    ...
@@ -112,6 +114,8 @@ You can also use wildcards in key bindings. More specific key bindings will over
 
 ### Multiple Commands
 
+You can also pass a collection of commands to run. Amp will run all of the commands in order, stopping if/when any errors occur:
+
 ```yaml
 keymap:
   normal:
@@ -119,8 +123,6 @@ keymap:
       - "application::switch_to_select_mode"
       - "application::switch_to_jump_mode"
 ```
-
-You can also pass a collection of commands to run. Amp will run all of the commands in order, stopping if/when any errors occur.
 
 ## Format/Language Support
 
