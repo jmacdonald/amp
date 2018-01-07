@@ -5,6 +5,7 @@ repo_name: 'jmacdonald/amp'
 repo_url: 'https://github.com/jmacdonald/amp'
 pages:
   - 'index.md'
+  - 'installation.md'
   - 'usage.md'
   - 'configuration.md'
 extra:
