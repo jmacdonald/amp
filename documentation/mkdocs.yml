@@ -1,6 +1,8 @@
 site_name: Amp
 docs_dir: 'pages'
-theme_dir: 'themes/mkdocs-material/material'
+theme:
+  name: null
+  custom_dir: 'themes/mkdocs-material/material'
 repo_name: 'jmacdonald/amp'
 repo_url: 'https://github.com/jmacdonald/amp'
 pages:
@@ -16,5 +18,3 @@ markdown_extensions:
   - admonition
   - codehilite(guess_lang=false)
   - toc(permalink=true)
-  - pymdownx.smartsymbols
-  - pymdownx.superfences
