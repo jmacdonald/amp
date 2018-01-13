@@ -2,7 +2,13 @@
 
 `amp [file1 file2 ...]`
 
-Amp is a [modal text editor](http://wikipedia.org/Modal_Text_Editor), taking inspiration from [Vim](https://vim.org).
+## Exiting
+
+Before launching Amp, it's always a good idea to know how to quit. Type `Q`
+to quit from normal mode. Please note, Amp **will** close modified buffers
+without warning. Given that, it's recommended to close buffers beforehand using
+`q` (which _will_ prompt before closing modified buffers) until the workspace is
+empty.
 
 ## Opening Files
 
@@ -99,3 +105,9 @@ You can search using `/` to enter a query. If matches are found, the cursor will
 
 !!! warning
     Amp doesn't currently support advanced search options (regular expressions, case sensitivity,  recursive file search, etc.), nor does it provide the ability to replace matches. This isn't intentional; these features will eventually be added.
+
+## Suspend
+
+It can be handy to temporarily leave Amp, interact with your shell, and then
+resume editing. Hit `z` in normal mode to suspend Amp and return to your shell,
+and run `fg` to resume it when you're ready to edit again.
