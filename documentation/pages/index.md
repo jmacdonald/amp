@@ -2,7 +2,7 @@
 
 Amp is inspired by [Vim](https://vim.sourceforge.io)'s modal approach to
 text editing, which is reflected in several of its default key bindings.
-That similarity aside, there are several philosophical differences.
+That similarity aside, there are several key differences.
 
 Above all else, Amp aims to _keep things as simple as possible_. There are
 already plenty of highly-configurable editors available. At its core, Amp aims
@@ -14,7 +14,7 @@ differentiate it from other options.
 
 Like Vim, Amp is a modal editor: keystrokes perform different functions based
 on the current mode. Many familiar modes (insert, normal, select, etc.) are
-available, in addition to new ones providing additional functionality.
+available, as well as several new ones providing additional functionality.
 
 ### Essential Features
 
@@ -22,7 +22,7 @@ Amp's primary audience is _developers_.
 
 Syntax highlighting, a fuzzy file finder, local symbol jump, and basic Git
 integration are available without additional configuration or external
-dependencies (e.g. ctags, external indexing binaries).
+dependencies (e.g. plug-ins, ctags, external indexing binaries).
 
 ### Configuration
 
@@ -33,21 +33,27 @@ easily edit this file without having to leave the application.
 ### Considerations
 
 Although still in its infancy, Amp is suitable for day-to-day use, with a few
-workflow-specific exceptions. There are shortcomings and features not yet in
-place; some are planed, others are not.
+exceptions. There are features not yet in place; some are planed, others are not.
 
 ##### Encoding
 
 Amp only supports UTF-8 (and by proxy, ASCII). Supporting other encoding types
 is not planned. Windows line endings (CRLF) are also currently unsupported.
 
+##### Split Panes
+
+Unlike Vim, Amp doesn't provide split panes, and support isn't planned. It's
+recommended to use [tmux](https://github.com/tmux/tmux/wiki) instead, which
+provides this (and much more) for your shell, text editor, and any other
+terminal-based applications you may use.
+
 ##### Plug-ins
 
-_Planned._ Amp aims to include the essentials. Many editors allow users to
-extend and change much of their behaviour. This is not a goal for Amp. However,
-an avenue for extended language, framework, and workflow support is necessary.
-Features like "go to definition" require non-trivial language or runtime
-support, and are great candidates for plug-ins.
+Many editors allow users to extend and change much of their behaviour through
+the use of plug-ins. This is not a goal for Amp. However, in spite of its focus
+on being "complete" from the start, an avenue for extended language, framework,
+and workflow support is necessary. Features like "go to definition" require
+non-trivial language support, and are great candidates for plug-ins.
 
-Amp will eventually include a runtime providing the ability to define new
-commands with access to a plug-in API.
+As a result, _Amp will eventually include a runtime and plug-in API_, providing
+the ability to define new commands.
