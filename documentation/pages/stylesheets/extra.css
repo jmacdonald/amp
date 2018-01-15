@@ -1,0 +1,7 @@
+.md-logo img {
+  width: 48px;
+}
+
+[data-md-component="title"] > span:first-child {
+  display: none;
+}

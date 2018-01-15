@@ -1,6 +1,7 @@
 site_name: Amp
 docs_dir: 'pages'
 theme:
+  logo: 'images/logo.svg'
   name: 'material'
 repo_name: 'jmacdonald/amp'
 repo_url: 'https://github.com/jmacdonald/amp'
@@ -17,3 +18,5 @@ markdown_extensions:
   - admonition
   - codehilite(guess_lang=false)
   - toc(permalink=true)
+extra_css:
+  - 'stylesheets/extra.css'
