@@ -110,6 +110,9 @@ search:
     - application::switch_to_normal_mode
     - application::handle_input
   escape: application::switch_to_normal_mode
+  backspace:
+    - selection::delete
+    - search::run
   /:
     - application::switch_to_search_mode
     - search::clear_query
