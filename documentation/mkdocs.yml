@@ -3,6 +3,9 @@ docs_dir: 'pages'
 theme:
   logo: 'images/logo.svg'
   name: 'material'
+  palette:
+    primary: 'blue grey'
+    accent: 'red'
 repo_name: 'jmacdonald/amp'
 repo_url: 'https://github.com/jmacdonald/amp'
 pages:
@@ -20,3 +23,4 @@ markdown_extensions:
   - toc(permalink=true)
 extra_css:
   - 'stylesheets/extra.css'
+copyright: 'Copyright &copy; 2015 - 2018 Jordan MacDonald'
