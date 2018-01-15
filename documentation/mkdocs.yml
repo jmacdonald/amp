@@ -1,8 +1,7 @@
 site_name: Amp
 docs_dir: 'pages'
 theme:
-  name: null
-  custom_dir: 'themes/mkdocs-material/material'
+  name: 'material'
 repo_name: 'jmacdonald/amp'
 repo_url: 'https://github.com/jmacdonald/amp'
 pages:
