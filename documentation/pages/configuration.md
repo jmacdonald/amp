@@ -124,6 +124,10 @@ keymap:
       - "application::switch_to_jump_mode"
 ```
 
+!!! tip
+    It may not be readily apparent, but chaining commands like this is powerful. A significant portion of Amp's functionality is
+    built by composing multiple commands into larger, more complex ones.
+
 ## Format/Language Support
 
 Most popular formats/languages have syntax highlighting and symbol support out of the box. If you're editing a file that doesn't, you can extend the built-in set with a custom syntax definition. Amp uses Sublime Text's [`.sublime-syntax`](https://www.sublimetext.com/docs/3/syntax.html) files, which can be placed in Amp's `syntaxes` configuration subdirectory.
