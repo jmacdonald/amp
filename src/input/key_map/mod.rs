@@ -58,13 +58,18 @@ impl KeyMap {
     /// Loads the default keymap from a static
     /// YAML document injected during the build.
     pub fn default() -> Result<KeyMap> {
-        let default_keymap_data = YamlLoader::load_from_str(include_str!("default.yml"))
+        let default_keymap_data = YamlLoader::load_from_str(KeyMap::default_data())
             .chain_err(|| "Couldn't parse default keymap")?
             .into_iter()
             .nth(0)
             .ok_or("Couldn't locate a document in the default keymap")?;
 
         KeyMap::from(&default_keymap_data.as_hash().unwrap())
+    }
+
+    /// Returns the default YAML keymap data as a string.
+    pub fn default_data() -> &'static str {
+        include_str!("default.yml")
     }
 
     /// Merges each of the passed key map's modes, consuming them in the process.

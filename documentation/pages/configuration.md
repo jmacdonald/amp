@@ -82,7 +82,7 @@ keymap:
 ```
 
 !!! tip
-    Wondering where to find command names? You can view the full list in a new buffer by running the `application::display_available_commands` using [command mode](usage.md#running-commands).
+    Wondering where to find command names? You can view the full list in a new buffer by running `application::display_available_commands` using [command mode](usage.md#running-commands). You can also view Amp's default key bindings by running `application::display_default_keymap`.
 
 ### Modifiers
 

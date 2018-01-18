@@ -2,6 +2,7 @@ extern crate libc;
 
 use errors::*;
 use commands::{self, Result};
+use input::KeyMap;
 use scribe::Buffer;
 use std::mem;
 use models::application::{Application, Mode};
@@ -161,6 +162,16 @@ pub fn switch_to_search_mode(app: &mut Application) -> Result {
         );
     } else {
         bail!(BUFFER_MISSING);
+    }
+
+    Ok(())
+}
+
+pub fn display_default_keymap(app: &mut Application) -> Result {
+    commands::workspace::new_buffer(app)?;
+
+    if let Some(buffer) = app.workspace.current_buffer() {
+        buffer.insert(KeyMap::default_data());
     }
 
     Ok(())
