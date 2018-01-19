@@ -4,11 +4,13 @@
 
 ## Exiting
 
-Before launching Amp, it's always a good idea to know how to quit. Type `Q`
-to quit from normal mode. Please note, Amp **will** close modified buffers
-without warning. Given that, it's recommended to close buffers beforehand using
-`q` (which _will_ prompt before closing modified buffers) until the workspace is
-empty.
+Before launching Amp, it's always a good idea to know how to quit. Type `Q (Shift+q)` to quit when in normal mode.
+
+!!! note
+    **Amp will happily close modified buffers without warning when quitting**.
+    _Sharp tools_, folks. Given that, you'll more often opt to close buffers
+    beforehand using `q` (which _will_ prompt if the buffer is modified) until
+    the workspace is empty.
 
 ## Opening Files
 
@@ -94,10 +96,17 @@ To start a text selection range, use `v`. Move the cursor using [movement keys](
 
 ## Running Commands
 
-Under the hood, all of Amp's functionality happens through the use of _commands_. You don't see this upfront, but the UI is controlled entirely by a simple `key` --> `command` map. You can run these from command mode by pressing `0` in normal mode, which will bring up a search prompt.
+Under the hood, _all of Amp's functionality is exposed through a set of
+**commands**_; the UI is driven entirely by a simple `key` --> `command` map.
+You can run any of these directly by switching to command mode (`0` from normal
+mode), which will bring up a search prompt. If you'd rather browse the full list
+of commands, you can run the `application::display_available_commands` command
+to open the complete set in a new buffer.
 
 !!! tip
-    Command mode is handy as a means of triggering infrequently-used functionality that would be excessive to associate with a keystroke and remember (e.g. converting tabs to spaces).
+    Command mode itself isn't really about discovery; it's a handy means of
+    triggering infrequently-used functionality that doesn't merit a dedicated
+    key binding (think converting tabs to spaces).
 
 ## Search
 
