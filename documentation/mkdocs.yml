@@ -22,6 +22,7 @@ markdown_extensions:
   - admonition
   - codehilite(guess_lang=false)
   - toc(permalink=true)
+  - pymdownx.smartsymbols
 extra_css:
   - 'stylesheets/extra.css'
 copyright: 'Copyright &copy; 2015 - 2018 Jordan MacDonald'
