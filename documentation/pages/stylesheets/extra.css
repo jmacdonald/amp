@@ -5,3 +5,11 @@
 [data-md-component="title"] > span:first-child {
   display: none;
 }
+
+@media (max-width: 1219px) {
+  label.md-nav__title[for="drawer"] {
+    font-size: 0px;
+    height: 80px;
+    line-height: 0px;
+  }
+}
