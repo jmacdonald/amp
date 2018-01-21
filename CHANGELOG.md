@@ -1,3 +1,11 @@
+### 0.3.1
+
+* Bumped copyright year to 2018
+* Updated CI config to run on stable release channel
+* Documentation site and content updates
+* Added `application::display_default_keymap` command
+* Added ability to delete current result in search mode
+
 ### 0.3.0
 
 * Switched to Rust stable release channel
