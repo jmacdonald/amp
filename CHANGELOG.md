@@ -1,3 +1,9 @@
+### 0.3.2
+
+* Fix case-insensitive open mode search with uppercase characters
+* Add class and struct identifiers to symbol mode whitelist
+* Documentation and README updates
+
 ### 0.3.1
 
 * Bumped copyright year to 2018
