@@ -42,17 +42,9 @@ brew tap jmacdonald/amp && brew install amp
 ### Building
 
 1. Install Rust, either through your system's package manager or using [Rust's `rustup` toolchain management utility](https://www.rust-lang.org/en-US/install.html).
-2. Ensure the aforementioned dependencies are installed.
-2. Clone the repository:
+2. Install both the regular and build dependencies listed above.
+3. Build:
+
     ```bash
-    git clone https://github.com/jmacdonald/amp.git
-    ```
-3. Build
-    ```bash
-    cd amp
-    cargo build --release
-    ```
-4. Add the `amp` release build directory to your path (use `~/.bashenv` if using `bash`):
-    ```bash
-    echo "export PATH=\"$(pwd)/target/release:\$PATH\"" >> ~/.zshenv
+    cargo install --git https://github.com/jmacdonald/amp/ --tag 0.3.2
     ```
