@@ -33,7 +33,7 @@ easily edit this file without having to leave the application.
 ### Considerations
 
 Although still in its infancy, Amp is suitable for day-to-day use, with a few
-exceptions. There are features not yet in place; some are planed, others are not.
+exceptions. There are features not yet in place; some are planned, others are not.
 
 ##### Encoding
 
