@@ -1,6 +1,7 @@
 use fragment;
 use fragment::matching::AsStr;
-use scribe::buffer::{Position, ScopeStack, Token, TokenSet};
+use scribe::buffer::{Position, Token, TokenSet};
+use syntect::highlighting::ScopeSelectors;
 use helpers::SelectableVec;
 use std::fmt;
 use std::iter::Iterator;
@@ -108,10 +109,13 @@ impl SearchSelectMode<Symbol> for SymbolJumpMode {
 }
 
 fn symbols<'a, T>(tokens: T) -> Vec<Symbol> where T: Iterator<Item=Token<'a>> {
+    let eligible_scopes = ScopeSelectors::from_str(
+        "entity.name.function, entity.name.class, entity.name.struct"
+    ).unwrap();
     tokens.filter_map(|token| {
           if let Token::Lexeme(lexeme) = token {
               // Build a symbol, provided it's of the right type.
-              if ScopeStack::from_str("entity.name.function").unwrap().does_match(lexeme.scope.as_slice()).is_some() {
+              if eligible_scopes.does_match(lexeme.scope.as_slice()).is_some() {
                   return Some(Symbol {
                       token: lexeme.value.to_string(),
                       position: lexeme.position,
