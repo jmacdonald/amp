@@ -41,7 +41,7 @@ impl fmt::Display for OpenMode {
 impl SearchSelectMode<DisplayablePath> for OpenMode {
     fn search(&mut self) {
         let results = self.index.find(
-            &self.input,
+            &self.input.to_lowercase(),
             MAX_SEARCH_SELECT_RESULTS
         ).into_iter().map(|path| DisplayablePath(path.to_path_buf())).collect();
         self.results = SelectableVec::new(results);
