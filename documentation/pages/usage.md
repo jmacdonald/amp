@@ -56,7 +56,7 @@ For cursor movement, the usual `h,j,k,l` movement commands are there, along with
 
 Press `f` to switch to jump mode. Elements on-screen will be prefixed with a two character jump token. Type the characters to jump to the associated element.
 
-![jump mode](../images/jump_mode.gif)
+![jump mode](images/jump_mode.gif)
 
 !!! tip
     Jump mode won't target one-character elements. You can use `'` to switch to a single-character version instead. The scope is much more restricted; it's ideally suited for jumping to smaller, nearby elements.
