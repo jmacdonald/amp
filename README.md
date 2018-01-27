@@ -12,3 +12,9 @@ For a full overview, along with documentation and installation instructions, vis
 
 
 ![Amp screenshot](screenshot.png?raw=true "Amp")
+
+# Installation
+If you have Cargo installed:
+```
+cargo install --git https://github.com/jmacdonald/amp/
+```
