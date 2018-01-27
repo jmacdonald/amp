@@ -86,6 +86,8 @@ addons:
   apt:
     packages:
       - libxmu-dev
+      - openssl
+      - zlibc
 
 notifications:
   email:
