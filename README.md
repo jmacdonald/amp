@@ -9,3 +9,12 @@ editor.
 Written with :heart: in [Rust](http://rust-lang.org).
 
 For a full overview, along with documentation and installation instructions, visit [amp.rs](https://amp.rs).
+
+
+![Amp screenshot](screenshot.png?raw=true "Amp")
+
+# Installation
+If you have Cargo installed:
+```
+cargo install --git https://github.com/jmacdonald/amp/
+```
