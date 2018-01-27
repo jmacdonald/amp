@@ -32,6 +32,8 @@ brew tap jmacdonald/amp && brew install amp
 
 * `git`
 * `libxcb` (X11 clipboard support)
+* `openssl`
+* `zlib`
 
 ### Build Dependencies
 
