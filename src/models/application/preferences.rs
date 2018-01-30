@@ -125,8 +125,7 @@ impl Preferences {
             .unwrap_or(THEME_DEFAULT)
     }
 
-    /// If set, returns the in-memory theme, falling back to the value set via
-    /// the configuration file, and then the default value.
+    // returns the theme path, making sure the directory exists
     pub fn theme_path(&self) -> Option<PathBuf> {
         app_dir(AppDataType::UserConfig, &APP_INFO, THEME_PATH).ok()
     }
