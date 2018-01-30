@@ -22,6 +22,8 @@ use pad::PadStr;
 use std::cmp;
 use std::collections::{BTreeMap, HashMap};
 use std::io::{BufReader, Cursor};
+use std::fs::File;
+use std::path::PathBuf;
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::fmt::Display;
@@ -43,7 +45,8 @@ pub struct View {
 impl View {
     pub fn new(preferences: Rc<RefCell<Preferences>>) -> Result<View> {
         let terminal = build_terminal();
-        let theme_set = build_theme_set();
+        let theme_path = preferences.borrow().theme_path();
+        let theme_set = build_theme_set(theme_path);
 
         Ok(View {
             terminal: terminal,
@@ -254,7 +257,7 @@ fn buffer_key(buffer: &Buffer) -> usize {
     buffer.id.unwrap_or(0)
 }
 
-fn build_theme_set() -> ThemeSet {
+fn build_theme_set(theme_path: Option<PathBuf>) -> ThemeSet {
     let mut themes: BTreeMap<String, Theme> = BTreeMap::new();
     let built_in_themes = vec![
         ("solarized_dark", include_str!("../themes/solarized_dark.tmTheme")),
@@ -269,7 +272,27 @@ fn build_theme_set() -> ThemeSet {
         );
     }
 
-    ThemeSet{ themes: themes }
+    if let Some(themes_path) = theme_path {
+        for theme_path in themes_path.read_dir().unwrap()
+            .filter_map(|dir| dir.ok())
+            .map(|theme| theme.path())
+            .filter(|path| path.is_file())
+            .filter(|path| path.extension().unwrap() == "tmTheme") {
+                if let Ok(theme) = File::open(&theme_path) {
+                    if let Some(file_stem) = theme_path.file_stem() {
+                        if let Some(theme_name) = file_stem.to_str() {
+                            let mut reader = BufReader::new(theme);
+                            themes.insert(
+                                String::from(theme_name),
+                                ThemeSet::load_from_reader(&mut reader).unwrap()
+                             );
+                         }
+                    }
+                }
+            }
+    }
+
+    ThemeSet { themes: themes }
 }
 
 #[cfg(not(test))]
