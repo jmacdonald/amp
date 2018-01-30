@@ -12,9 +12,11 @@ Before launching Amp, it's always a good idea to know how to quit. Type `Q (Shif
     beforehand using `q` (which _will_ prompt if the buffer is modified) until
     the workspace is empty.
 
-## Opening Files
+## Opening / Closing Files
 
 Unless you've specified file paths when running Amp, you'll be greeted with a splash screen. You can find and edit files in open mode, by hitting `Space`.
+
+To close the current opened file, go to normal mode then press `q` to close it.
 
 ## Saving Files
 
