@@ -16,6 +16,10 @@ Before launching Amp, it's always a good idea to know how to quit. Type `Q (Shif
 
 Unless you've specified file paths when running Amp, you'll be greeted with a splash screen. You can find and edit files in open mode, by hitting `Space`.
 
+## Saving Files
+
+After editing your file before saving your mode indicator will turn orange. Press `s` to save and it will turn grey.
+
 ### Searching for Files
 
 Amp's file finder is a little different than most. Rather than using a string fuzzing algorithm to match file paths against the query, it uses string fragments. Instead of typing full words, use fragments of the path name, separated by spaces:
