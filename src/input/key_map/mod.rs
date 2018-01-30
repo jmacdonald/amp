@@ -31,7 +31,7 @@ impl KeyMap {
                 "A mode key couldn't be parsed as a string"
             ))?;
             let key_bindings = parse_mode_key_bindings(yaml_key_bindings, &commands).
-                chain_err(|| "Failed to parse keymaps for \"{}\" mode")?;
+                chain_err(|| format!("Failed to parse keymaps for \"{}\" mode", mode))?;
 
             keymap.insert(mode.to_string(), key_bindings);
         }
