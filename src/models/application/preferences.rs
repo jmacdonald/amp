@@ -128,11 +128,7 @@ impl Preferences {
     /// If set, returns the in-memory theme, falling back to the value set via
     /// the configuration file, and then the default value.
     pub fn theme_path(&self) -> Option<PathBuf> {
-        if let Ok(dir) = app_dir(AppDataType::UserConfig, &APP_INFO, THEME_PATH) {
-          Some(dir)
-        } else {
-          None
-        }
+        app_dir(AppDataType::UserConfig, &APP_INFO, THEME_PATH).ok()
     }
 
     /// Updates the in-memory theme value.

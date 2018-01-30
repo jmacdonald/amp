@@ -22,6 +22,7 @@ use pad::PadStr;
 use std::cmp;
 use std::collections::{BTreeMap, HashMap};
 use std::io::{BufReader, Cursor};
+use std::ffi::OsStr;
 use std::fs::File;
 use std::path::PathBuf;
 use std::rc::Rc;
@@ -273,23 +274,25 @@ fn build_theme_set(theme_path: Option<PathBuf>) -> ThemeSet {
     }
 
     if let Some(themes_path) = theme_path {
-        for theme_path in themes_path.read_dir().unwrap()
-            .filter_map(|dir| dir.ok())
-            .map(|theme| theme.path())
-            .filter(|path| path.is_file())
-            .filter(|path| path.extension().unwrap() == "tmTheme") {
-                if let Ok(theme) = File::open(&theme_path) {
-                    if let Some(file_stem) = theme_path.file_stem() {
-                        if let Some(theme_name) = file_stem.to_str() {
-                            let mut reader = BufReader::new(theme);
-                            themes.insert(
-                                String::from(theme_name),
-                                ThemeSet::load_from_reader(&mut reader).unwrap()
-                             );
-                         }
+        if let Ok(themes_dir) = themes_path.read_dir() {
+            for theme_path in themes_dir
+                .filter_map(|dir| dir.ok())
+                .map(|theme| theme.path())
+                .filter(|path| path.is_file())
+                .filter(|path| path.extension() == Some(OsStr::new("tmTheme"))) {
+                    if let Ok(theme) = File::open(&theme_path) {
+                        if let Some(file_stem) = theme_path.file_stem() {
+                            if let Some(theme_name) = file_stem.to_str() {
+                                let mut reader = BufReader::new(theme);
+                                themes.insert(
+                                    String::from(theme_name),
+                                    ThemeSet::load_from_reader(&mut reader).unwrap()
+                                 );
+                             }
+                        }
                     }
                 }
-            }
+        }
     }
 
     ThemeSet { themes: themes }
