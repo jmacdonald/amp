@@ -51,6 +51,6 @@ brew tap jmacdonald/amp && brew install amp
 2. Install both the regular and build dependencies listed above.
 3. Build:
 
-    ```bash
+    ```
     cargo install --git https://github.com/jmacdonald/amp/ --tag 0.3.2
     ```
