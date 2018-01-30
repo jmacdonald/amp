@@ -20,7 +20,7 @@ To close the current opened file, go to normal mode then press `q` to close it.
 
 ## Saving Files
 
-After editing your file before saving your mode indicator will turn orange. Press `s` to save and it will turn grey.
+After editing your file, before saving, your mode indicator will turn orange. Press `s` to save and it will turn grey.
 
 ### Searching for Files
 
