@@ -134,3 +134,29 @@ You can search using `/` to enter a query. If matches are found, the cursor will
 It can be handy to temporarily leave Amp, interact with your shell, and then
 resume editing. Hit `z` in normal mode to suspend Amp and return to your shell,
 and run `fg` to resume it when you're ready to edit again.
+
+## Git
+
+Amp provides basic [Git](https://git-scm.com) integration. The lower-right
+portion of the status bar displays the current buffer's status. The options are:
+
+* `[untracked]`: the file has never been added to the repository
+* `[ok]`: the file is unmodified (matches the repository version)
+* `[modified]`: the file has local modifications
+* `[staged]`: the file has local modifications, all of which are staged for commit
+* `[partially staged]`: the file has local modifications, _some_ of which are staged for commit
+
+### Staging changes
+
+You can use the `=` key to stage the current file. This _doesn't_ support staging
+line ranges, _yet_.
+
+### Copying a GitHub URL
+
+When collaborating with others, it can be handy to share a link to a file you're
+working on. The `R` key can be used to copy the current file's GitHub URL. If in
+select-line mode, the selected line range will also be included in the URL.
+
+!!! note
+    This feature makes one assumption: that the GitHub remote is configured as
+    `origin`.
