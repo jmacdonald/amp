@@ -67,7 +67,9 @@ normal:
   space: application::switch_to_open_mode
   tab: workspace::next_buffer
   enter: application::switch_to_symbol_jump_mode
-  backspace: buffer::backspace
+  backspace:
+    - buffer::backspace
+    - application::switch_to_insert_mode
   ctrl-a: selection::select_all
   ctrl-r: buffer::reload
   ctrl-z: application::suspend

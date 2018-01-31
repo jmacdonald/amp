@@ -241,8 +241,7 @@ pub fn backspace(app: &mut Application) -> Result {
     if outdent {
         commands::buffer::outdent_line(app)?;
     }
-    commands::view::scroll_to_cursor(app)?;
-    commands::application::switch_to_insert_mode(app)
+    commands::view::scroll_to_cursor(app)
 }
 
 pub fn insert_char(app: &mut Application) -> Result {
