@@ -25,7 +25,10 @@ To close the current opened file, go to normal mode then press `q` to close it.
 
 ## Saving Files
 
-After editing your file, before saving, your mode indicator will turn orange. Press `s` to save and it will turn grey.
+Press `s` to save the current buffer. The UI will indicate when a buffer has
+unsaved modifications: their path will be rendered in bold, with an asterisk,
+and the normal mode indicator will be orange. These are cleared on save (or if
+the buffer is rolled back to an unmodified state with `undo` or `reload`).
 
 ### Searching for Files
 
