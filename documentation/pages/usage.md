@@ -21,14 +21,9 @@ Before launching Amp, it's always a good idea to know how to quit. Type `Q (Shif
 
 Unless you've specified file paths when running Amp, you'll be greeted with a splash screen. You can find and edit files in open mode, by hitting `Space`.
 
-To close the current opened file, go to normal mode then press `q` to close it.
-
-## Saving Files
-
-Press `s` to save the current buffer. The UI will indicate when a buffer has
-unsaved modifications: their path will be rendered in bold, with an asterisk,
-and the normal mode indicator will be orange. These are cleared on save (or if
-the buffer is rolled back to an unmodified state with `undo` or `reload`).
+!!! warning
+    This will **recursively index the current directory and all subdirectories.**
+    It's meant to be used in project directories; don't use it from paths like `/` or `~`.
 
 ### Searching for Files
 
@@ -59,6 +54,17 @@ Key           | Action
 ### Excluding Files/Directories
 
 By default, Amp's open mode doesn't index `.git` directories. If you'd like to change that behaviour, [you can redefine the exclusion patterns](configuration.md#excluding-filesdirectories) in the application preferences.
+
+## Closing Files
+
+From normal mode press `q` to close the current buffer.
+
+## Saving Files
+
+Press `s` to save the current buffer. The UI will indicate when a buffer has
+unsaved modifications: their path will be rendered in bold, with an asterisk,
+and the normal mode indicator will be orange. These are cleared on save (or if
+the buffer is rolled back to an unmodified state with `undo` or `reload`).
 
 ## Movement
 
