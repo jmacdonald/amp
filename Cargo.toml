@@ -1,7 +1,7 @@
 [package]
 
 name = "amp"
-version = "0.3.2"
+version = "0.3.3"
 authors = ["Jordan MacDonald <jordan@wastedintelligence.com>"]
 description = "A complete text editor for your terminal."
 homepage = "https://amp.rs"

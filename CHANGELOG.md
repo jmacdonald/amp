@@ -1,3 +1,10 @@
+### 0.3.3
+
+* Documentation updates
+* buffer::backspace command no longer switches to insert mode
+  (this is relegated to the default keymap)
+* Invalid keymap configurations now display the offending mode
+
 ### 0.3.2
 
 * Fix case-insensitive open mode search with uppercase characters

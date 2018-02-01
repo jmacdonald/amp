@@ -8,7 +8,7 @@ dependencies = [
 
 [[package]]
 name = "amp"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "app_dirs 1.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "bloodhound 0.5.3 (registry+https://github.com/rust-lang/crates.io-index)",
