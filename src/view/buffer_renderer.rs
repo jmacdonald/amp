@@ -159,11 +159,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     // Uses the lexeme's scopes to update the current
     // style, so that print calls will use the right color.
     fn update_current_style(&mut self, lexeme: &Lexeme) {
-        self.current_style = self.current_style.apply(
-            self.stylist.get_style(
-                lexeme.scope.as_slice()
-            )
-        );
+        self.current_style = self.stylist.style_for_stack(lexeme.scope.as_slice())
     }
 
     pub fn print_lexeme(&mut self, lexeme: Lexeme) {
