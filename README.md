@@ -19,5 +19,5 @@ For a full overview, along with documentation and installation instructions, vis
 # Installation
 If you have Cargo installed:
 ```
-cargo install --git https://github.com/jmacdonald/amp/
+cargo install amp
 ```

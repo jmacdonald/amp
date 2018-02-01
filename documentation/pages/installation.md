@@ -49,8 +49,8 @@ brew tap jmacdonald/amp && brew install amp
 
 1. Install Rust, either through your system's package manager or using [Rust's `rustup` toolchain management utility](https://www.rust-lang.org/en-US/install.html).
 2. Install both the regular and build dependencies listed above.
-3. Build:
+3. Build and install:
 
     ```
-    cargo install --git https://github.com/jmacdonald/amp/ --tag 0.3.2
+    cargo install amp
     ```
