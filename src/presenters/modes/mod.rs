@@ -2,6 +2,7 @@ pub mod confirm;
 pub mod insert;
 pub mod jump;
 pub mod line_jump;
+pub mod name_buffer;
 pub mod normal;
 pub mod search;
 pub mod search_select;
