@@ -4,15 +4,23 @@ use std::mem;
 use input::Key;
 use helpers::token::{Direction, adjacent_token_position};
 use models::application::{Application, ClipboardContent, Mode};
-use models::application::modes::ConfirmMode;
+use models::application::modes::{ConfirmMode, NameBuffer};
 use scribe::buffer::{Buffer, Position, Range};
 
 pub fn save(app: &mut Application) -> Result {
     remove_trailing_whitespace(app)?;
     ensure_trailing_newline(app)?;
-    app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.save().chain_err(|| {
-        "Unable to save buffer."
-    })
+    let mut default_file_name = String::from(app.workspace.path.to_string_lossy());
+    default_file_name.push('/');
+    let buffer: &mut Buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+    if let &Some(_) = &buffer.path {
+        buffer.save().chain_err(|| {
+            "Unable to save buffer."
+        })
+    } else {
+        app.mode = Mode::NameBuffer(NameBuffer::new(default_file_name));
+        Ok(())
+    }
 }
 
 pub fn reload(app: &mut Application) -> Result {
