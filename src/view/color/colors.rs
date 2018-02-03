@@ -10,7 +10,7 @@ pub enum Colors {
     Focused,   // default/alt background
     Inverted,  // background/default
     Insert,    // white/green
-    NameBuffer,// white/blue
+    Path,// white/blue
     Warning,   // white/yellow
     Search,    // white/blue
     Select,    // white/blue

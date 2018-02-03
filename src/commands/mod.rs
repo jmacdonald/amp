@@ -9,7 +9,7 @@ pub mod cursor;
 pub mod git;
 pub mod jump;
 pub mod line_jump;
-pub mod name_buffer;
+pub mod path;
 pub mod preferences;
 pub mod search;
 pub mod selection;

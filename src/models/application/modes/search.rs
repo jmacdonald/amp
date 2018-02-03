@@ -61,7 +61,7 @@ mod tests {
         buffer.insert("test\ntest");
 
         let mut mode = SearchMode::new(Some(String::from("test")));
-        mode.search(&buffer);
+        mode.search(&buffer).unwrap();
 
         assert_eq!(
             *mode.results.unwrap(),

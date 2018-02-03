@@ -355,7 +355,7 @@ mod tests {
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences
-        ).render();
+        ).render().unwrap();
     }
 
     #[test]
@@ -382,7 +382,7 @@ mod tests {
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences
-        ).render();
+        ).render().unwrap();
 
         // Both tabs should fully expand.
         assert_eq!(terminal.data(), " 1      xy");
@@ -412,7 +412,7 @@ mod tests {
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences
-        ).render();
+        ).render().unwrap();
 
         // The space between the tabs should just eat into the second tab's width.
         assert_eq!(terminal.data(), " 1      xy");
@@ -439,7 +439,7 @@ mod tests {
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences
-        ).render();
+        ).render().unwrap();
 
         assert_eq!(
             terminal.data(),
@@ -479,7 +479,7 @@ mod tests {
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences
-        ).render();
+        ).render().unwrap();
 
         assert_eq!(terminal.data(), " 1  mapped");
     }

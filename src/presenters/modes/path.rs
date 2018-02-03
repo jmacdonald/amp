@@ -1,11 +1,11 @@
 use errors::*;
 use scribe::Workspace;
 use scribe::buffer::Position;
-use models::application::modes::NameBuffer;
+use models::application::modes::PathMode;
 use unicode_segmentation::UnicodeSegmentation;
 use view::{Colors, StatusLineData, Style, View};
 
-pub fn display(workspace: &mut Workspace, mode: &NameBuffer, view: &mut View) -> Result<()> {
+pub fn display(workspace: &mut Workspace, mode: &PathMode, view: &mut View) -> Result<()> {
     // Wipe the slate clean.
     view.clear();
 
@@ -27,7 +27,7 @@ pub fn display(workspace: &mut Workspace, mode: &NameBuffer, view: &mut View) ->
         StatusLineData {
             content: mode_display,
             style: Style::Default,
-            colors: Colors::NameBuffer,
+            colors: Colors::Path,
         },
         StatusLineData {
             content: search_input,

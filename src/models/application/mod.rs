@@ -26,7 +26,7 @@ pub enum Mode {
     Insert,
     Jump(JumpMode),
     LineJump(LineJumpMode),
-    NameBuffer(NameBuffer),
+    Path(PathMode),
     Normal,
     Open(OpenMode),
     Select(SelectMode),
@@ -145,8 +145,8 @@ impl Application {
                                                           mode,
                                                           &mut self.view)
                 }
-                Mode::NameBuffer(ref mode) => {
-                    presenters::modes::name_buffer::display(&mut self.workspace,
+                Mode::Path(ref mode) => {
+                    presenters::modes::path::display(&mut self.workspace,
                                                           mode,
                                                           &mut self.view)
                 }
@@ -225,7 +225,7 @@ impl Application {
                 Some("search_select")
             },
             Mode::Normal => Some("normal"),
-            Mode::NameBuffer(_) => Some("name_buffer"),
+            Mode::Path(_) => Some("path"),
             Mode::Confirm(_) => Some("confirm"),
             Mode::Insert => Some("insert"),
             Mode::Jump(_) => Some("jump"),

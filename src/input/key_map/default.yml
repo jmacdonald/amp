@@ -140,10 +140,10 @@ search_insert:
   ctrl-z: application::suspend
   ctrl-c: application::exit
 
-name_buffer:
-  _: name_buffer::push_char
-  enter: name_buffer::accept
-  backspace: name_buffer::pop_char
+path:
+  _: path::push_char
+  enter: path::accept_path
+  backspace: path::pop_char
   escape: application::switch_to_normal_mode
   ctrl-z: application::suspend
   ctrl-c: application::exit

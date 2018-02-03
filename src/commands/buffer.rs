@@ -4,21 +4,35 @@ use std::mem;
 use input::Key;
 use helpers::token::{Direction, adjacent_token_position};
 use models::application::{Application, ClipboardContent, Mode};
-use models::application::modes::{ConfirmMode, NameBuffer};
+use models::application::modes::ConfirmMode;
 use scribe::buffer::{Buffer, Position, Range};
 
 pub fn save(app: &mut Application) -> Result {
     remove_trailing_whitespace(app)?;
     ensure_trailing_newline(app)?;
-    let mut default_file_name = String::from(app.workspace.path.to_string_lossy());
-    default_file_name.push('/');
-    let buffer: &mut Buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
-    if let &Some(_) = &buffer.path {
-        buffer.save().chain_err(|| {
-            "Unable to save buffer."
-        })
+
+    // Slight duplication here, but we need to check for a buffer path without
+    // borrowing the buffer for the full scope of this save command. That will
+    // allow us to hand the application object to the switch_to_path_mode
+    // command, if necessary.
+    let path_set = app
+        .workspace
+        .current_buffer()
+        .ok_or(BUFFER_MISSING)?
+        .path.is_some();
+
+    if path_set {
+        app.workspace
+            .current_buffer()
+            .ok_or(BUFFER_MISSING)?
+            .save()
+            .chain_err(|| "Unable to save buffer")
     } else {
-        app.mode = Mode::NameBuffer(NameBuffer::new(default_file_name));
+        commands::application::switch_to_path_mode(app)?;
+        if let Mode::Path(ref mut mode) = app.mode {
+            mode.save_on_accept = true;
+        }
+
         Ok(())
     }
 }
@@ -1100,6 +1114,41 @@ mod tests {
         // Ensure that trailing whitespace is removed.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
                    "amp\neditor\n");
+    }
+
+    #[test]
+    fn save_switches_to_path_mode_when_path_is_missing() {
+        let mut app = ::models::Application::new().unwrap();
+        let buffer = Buffer::new();
+
+        // Now that we've set up the buffer, add it
+        // to the application, and save it.
+        app.workspace.add_buffer(buffer);
+        super::save(&mut app).ok();
+
+        // Ensure that we've switched to path mode.
+        if let Mode::Path(_) = app.mode {
+        } else {
+            panic!("Failed to switch to path mode");
+        }
+    }
+
+    #[test]
+    fn save_sets_save_on_accept_when_switching_to_path_mode() {
+        let mut app = ::models::Application::new().unwrap();
+        let buffer = Buffer::new();
+
+        // Now that we've set up the buffer, add it
+        // to the application, and save it.
+        app.workspace.add_buffer(buffer);
+        super::save(&mut app).ok();
+
+        // Ensure that we've set the save_on_accept flag.
+        if let Mode::Path(mode) = app.mode {
+            assert!(mode.save_on_accept)
+        } else {
+            panic!("Failed to switch to path mode");
+        }
     }
 
     #[test]

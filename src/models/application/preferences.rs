@@ -446,7 +446,7 @@ mod tests {
     fn reload_clears_in_memory_theme() {
         // Create an on-disk preferences file first, if one doesn't already exist.
         if Preferences::load().is_err() {
-            Preferences::edit().unwrap().save();
+            Preferences::edit().unwrap().save().unwrap();
         }
 
         // Instantiate preferences and modify their in-memory theme.
@@ -462,7 +462,7 @@ mod tests {
     fn reload_refreshes_in_memory_keymap() {
         // Create an on-disk preferences file first, if one doesn't already exist.
         if Preferences::load().is_err() {
-            Preferences::edit().unwrap().save();
+            Preferences::edit().unwrap().save().unwrap();
         }
 
         // Build a preferences instance with an empty keymap.

@@ -167,6 +167,24 @@ pub fn switch_to_search_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
+pub fn switch_to_path_mode(app: &mut Application) -> Result {
+    let path = app.workspace
+        .current_buffer()
+        .ok_or(BUFFER_MISSING)?
+        .path.as_ref().map(|p|
+            // The buffer has a path; use it.
+            p.to_string_lossy().into_owned()
+        ).unwrap_or(
+            // Default to the workspace directory.
+            format!("{}/", app.workspace.path.to_string_lossy())
+        );
+    app.mode = Mode::Path(
+        PathMode::new(path)
+    );
+
+    Ok(())
+}
+
 pub fn display_default_keymap(app: &mut Application) -> Result {
     commands::workspace::new_buffer(app)?;
 
@@ -242,14 +260,15 @@ pub fn exit(app: &mut Application) -> Result {
 
 #[cfg(test)]
 mod tests {
-    use scribe::Buffer;
     use models::Application;
     use models::application::Mode;
+    use scribe::Buffer;
+    use std::path::PathBuf;
 
     #[test]
     fn display_available_commands_creates_a_new_buffer() {
         let mut app = Application::new().unwrap();
-        super::display_available_commands(&mut app);
+        super::display_available_commands(&mut app).unwrap();
 
         assert!(app.workspace.current_buffer().is_some());
     }
@@ -257,7 +276,7 @@ mod tests {
     #[test]
     fn display_available_commands_populates_new_buffer_with_alphabetic_command_names() {
         let mut app = Application::new().unwrap();
-        super::display_available_commands(&mut app);
+        super::display_available_commands(&mut app).unwrap();
 
         let buffer_data = app.workspace.current_buffer().unwrap().data();
         let mut lines = buffer_data.lines();
@@ -274,7 +293,7 @@ mod tests {
         app.workspace.add_buffer(buffer);
 
         app.search_query = Some(String::from("query"));
-        super::switch_to_search_mode(&mut app);
+        super::switch_to_search_mode(&mut app).unwrap();
 
         let mode_query = match app.mode {
             Mode::Search(mode) => mode.input,
@@ -284,5 +303,54 @@ mod tests {
             mode_query,
             Some(String::from("query"))
         );
+    }
+
+    #[test]
+    fn switch_to_path_mode_inserts_workspace_directory_as_default() {
+        let mut app = Application::new().unwrap();
+
+        let buffer = Buffer::new();
+        app.workspace.add_buffer(buffer);
+
+        super::switch_to_path_mode(&mut app).unwrap();
+        let mode_input = match app.mode {
+            Mode::Path(mode) => Some(mode.input),
+            _ => None,
+        };
+        assert_eq!(
+            mode_input,
+            Some(format!("{}/", app.workspace.path.to_string_lossy()))
+        );
+    }
+
+    #[test]
+    fn switch_to_path_mode_inserts_buffer_path_if_one_exists() {
+        let mut app = Application::new().unwrap();
+
+        let mut buffer = Buffer::new();
+        let absolute_path = format!("{}/test", app.workspace.path.to_string_lossy());
+        buffer.path = Some(PathBuf::from(absolute_path.clone()));
+        app.workspace.add_buffer(buffer);
+
+        super::switch_to_path_mode(&mut app).unwrap();
+        let mode_input = match app.mode {
+            Mode::Path(mode) => Some(mode.input),
+            _ => None,
+        };
+        assert_eq!(
+            mode_input,
+            Some(absolute_path)
+        );
+    }
+
+    #[test]
+    fn switch_to_path_mode_raises_error_if_no_buffer_is_open() {
+        let mut app = Application::new().unwrap();
+
+        // The application type picks up on test run
+        // arguments and will open empty buffers for each.
+        app.workspace.close_current_buffer();
+
+        assert!(super::switch_to_path_mode(&mut app).is_err());
     }
 }
