@@ -27,7 +27,7 @@ pub fn display(workspace: &mut Workspace, mode: &PathMode, view: &mut View) -> R
         StatusLineData {
             content: mode_display,
             style: Style::Default,
-            colors: Colors::Path,
+            colors: Colors::PathMode,
         },
         StatusLineData {
             content: search_input,

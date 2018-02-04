@@ -22,7 +22,7 @@ pub fn display(workspace: &mut Workspace, mode: &SelectLineMode, view: &mut View
             StatusLineData {
                 content: " SELECT LINE ".to_string(),
                 style: Style::Default,
-                colors: Colors::Select,
+                colors: Colors::SelectMode,
             },
             buffer_status
         ]);

@@ -40,7 +40,7 @@ pub fn display(workspace: &mut Workspace, mode: &SearchMode, view: &mut View) ->
         StatusLineData {
             content: mode_display,
             style: Style::Default,
-            colors: Colors::Search,
+            colors: Colors::SearchMode,
         },
         StatusLineData {
             content: search_input,

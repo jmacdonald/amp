@@ -129,7 +129,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
                         // We're inside of one of the highlighted areas.
                         // Return early with highlight colors.
                         if range.includes(&self.buffer.cursor) {
-                            return (Style::Bold, self.theme.map_colors(Colors::Select))
+                            return (Style::Bold, self.theme.map_colors(Colors::SelectMode))
                         } else {
                             return (Style::Inverted, self.theme.map_colors(Colors::Default))
                         }
