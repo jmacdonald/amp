@@ -15,6 +15,7 @@ const APP_INFO: AppInfo = AppInfo {
     author: "Jordan MacDonald",
 };
 const SYNTAX_PATH: &'static str = "syntaxes";
+const THEME_PATH: &'static str = "themes";
 const TYPES_KEY: &'static str = "types";
 const THEME_KEY: &'static str = "theme";
 const TAB_WIDTH_KEY: &'static str = "tab_width";
@@ -122,6 +123,11 @@ impl Preferences {
                           None
                       })
             .unwrap_or(THEME_DEFAULT)
+    }
+
+    // returns the theme path, making sure the directory exists
+    pub fn theme_path(&self) -> Option<PathBuf> {
+        app_dir(AppDataType::UserConfig, &APP_INFO, THEME_PATH).ok()
     }
 
     /// Updates the in-memory theme value.
