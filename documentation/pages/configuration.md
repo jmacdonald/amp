@@ -138,6 +138,16 @@ Most popular formats/languages have syntax highlighting and symbol support out o
     will be shown at the bottom of the screen; the `syntaxes` subdirectory is in
     the same directory as that file.
 
+## Themes
+
+Amp includes [Solarized](http://ethanschoonover.com/solarized) dark and light themes by default. You can extend the built-in set with custom themes of your own. Amp uses Text Mate's `.tmTheme` format, many of which can be found [here](http://wiki.macromates.com/Themes/UserSubmittedThemes). They should be placed in Amp's `themes` configuration subdirectory.
+
+!!! tip
+    If you're not sure where to look, run the `preferences::edit` command.
+    The preferences will load into a new buffer for editing, and its path
+    will be shown at the bottom of the screen; the `themes` subdirectory is in
+    the same directory as that file.
+
 ## Open Mode
 
 ### Excluding Files/Directories
