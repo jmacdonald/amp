@@ -4,6 +4,7 @@ pub mod color;
 mod buffer_renderer;
 mod data;
 mod style;
+mod theme_loader;
 
 // Published API
 pub use self::data::StatusLineData;
@@ -20,16 +21,13 @@ use self::buffer_renderer::BufferRenderer;
 use scribe::buffer::{Buffer, Position, Range};
 use pad::PadStr;
 use std::cmp;
-use std::collections::{BTreeMap, HashMap};
-use std::io::{BufReader, Cursor};
-use std::ffi::OsStr;
-use std::fs::File;
-use std::path::PathBuf;
+use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::fmt::Display;
 use self::scrollable_region::ScrollableRegion;
-use syntect::highlighting::{Theme, ThemeSet};
+use self::theme_loader::ThemeLoader;
+use syntect::highlighting::ThemeSet;
 
 #[cfg(not(test))]
 use self::terminal::RustboxTerminal;
@@ -46,8 +44,8 @@ pub struct View {
 impl View {
     pub fn new(preferences: Rc<RefCell<Preferences>>) -> Result<View> {
         let terminal = build_terminal();
-        let theme_path = preferences.borrow().theme_path();
-        let theme_set = build_theme_set(theme_path);
+        let theme_path = preferences.borrow().theme_path()?;
+        let theme_set = ThemeLoader::new(theme_path).load()?;
 
         Ok(View {
             terminal: terminal,
@@ -256,46 +254,6 @@ impl View {
 
 fn buffer_key(buffer: &Buffer) -> usize {
     buffer.id.unwrap_or(0)
-}
-
-fn build_theme_set(theme_path: Option<PathBuf>) -> ThemeSet {
-    let mut themes: BTreeMap<String, Theme> = BTreeMap::new();
-    let built_in_themes = vec![
-        ("solarized_dark", include_str!("../themes/solarized_dark.tmTheme")),
-        ("solarized_light", include_str!("../themes/solarized_light.tmTheme")),
-    ];
-
-    for (key, data) in built_in_themes {
-        let mut reader = BufReader::new(Cursor::new(data));
-        themes.insert(
-            String::from(key),
-            ThemeSet::load_from_reader(&mut reader).unwrap()
-        );
-    }
-
-    if let Some(themes_path) = theme_path {
-        if let Ok(themes_dir) = themes_path.read_dir() {
-            for theme_path in themes_dir
-                .filter_map(|dir| dir.ok())
-                .map(|theme| theme.path())
-                .filter(|path| path.is_file())
-                .filter(|path| path.extension() == Some(OsStr::new("tmTheme"))) {
-                    if let Ok(theme) = File::open(&theme_path) {
-                        if let Some(file_stem) = theme_path.file_stem() {
-                            if let Some(theme_name) = file_stem.to_str() {
-                                let mut reader = BufReader::new(theme);
-                                themes.insert(
-                                    String::from(theme_name),
-                                    ThemeSet::load_from_reader(&mut reader).unwrap()
-                                 );
-                             }
-                        }
-                    }
-                }
-        }
-    }
-
-    ThemeSet { themes: themes }
 }
 
 #[cfg(not(test))]
