@@ -125,9 +125,10 @@ impl Preferences {
             .unwrap_or(THEME_DEFAULT)
     }
 
-    // returns the theme path, making sure the directory exists
-    pub fn theme_path(&self) -> Option<PathBuf> {
-        app_dir(AppDataType::UserConfig, &APP_INFO, THEME_PATH).ok()
+    /// Returns the theme path, making sure the directory exists.
+    pub fn theme_path(&self) -> Result<PathBuf> {
+        app_dir(AppDataType::UserConfig, &APP_INFO, THEME_PATH)
+            .chain_err(|| "Couldn't create themes directory or build a path to it.")
     }
 
     /// Updates the in-memory theme value.
