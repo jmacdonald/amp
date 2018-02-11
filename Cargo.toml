@@ -32,3 +32,6 @@ unicode-segmentation = "1.0.1"
 clipboard = "0.3.0"
 yaml-rust = "0.3.5"
 smallvec = "0.4.3"
+
+[dev-dependencies]
+criterion = "0.2.0"
