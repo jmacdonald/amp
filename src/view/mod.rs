@@ -27,10 +27,8 @@ use std::cell::RefCell;
 use std::fmt::Display;
 use self::scrollable_region::ScrollableRegion;
 use self::theme_loader::ThemeLoader;
-use syntect::highlighting::ThemeSet;
-
-#[cfg(not(test))]
 use self::terminal::RustboxTerminal;
+use syntect::highlighting::ThemeSet;
 
 pub struct View {
     terminal: Rc<RefCell<Terminal>>,
@@ -256,12 +254,12 @@ fn buffer_key(buffer: &Buffer) -> usize {
     buffer.id.unwrap_or(0)
 }
 
-#[cfg(not(test))]
+#[cfg(not(any(test, feature = "bench")))]
 fn build_terminal() -> Rc<RefCell<Terminal>> {
     Rc::new(RefCell::new(RustboxTerminal::new()))
 }
 
-#[cfg(test)]
+#[cfg(any(test, feature = "bench"))]
 fn build_terminal() -> Rc<RefCell<Terminal>> {
     // Use a headless terminal if we're in test mode.
     Rc::new(RefCell::new(terminal::test_terminal::TestTerminal::new()))

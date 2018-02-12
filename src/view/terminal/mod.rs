@@ -21,5 +21,5 @@ pub trait Terminal {
     fn stop(&mut self);
 }
 
-#[cfg(test)]
+#[cfg(any(test, feature = "bench"))]
 pub mod test_terminal;

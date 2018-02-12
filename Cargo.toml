@@ -36,6 +36,9 @@ smallvec = "0.4.3"
 [dev-dependencies]
 criterion = "0.2.0"
 
+[features]
+bench = []
+
 [[bench]]
 name = "draw_buffer"
 path = "benches/view/draw_buffer.rs"
