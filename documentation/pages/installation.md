@@ -38,7 +38,7 @@ brew tap jmacdonald/amp && brew install amp
 ### Build Dependencies
 
 * `cmake`
-* `python`
+* `python3`
 * `rust`
 
 ### Building
