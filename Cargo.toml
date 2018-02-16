@@ -29,7 +29,7 @@ rustbox = "0.9.0"
 termion = "1.5.1"
 error-chain = "0.11.0"
 unicode-segmentation = "1.0.1"
-clipboard = "0.3.0"
+clipboard = "0.4.4"
 yaml-rust = "0.3.5"
 smallvec = "0.4.3"
 
