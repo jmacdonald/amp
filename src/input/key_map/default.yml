@@ -230,6 +230,10 @@ select_line:
     - selection::copy_and_delete
     - application::switch_to_normal_mode
     - view::scroll_to_cursor
+  ;:
+    - selection::copy_and_delete
+    - application::switch_to_normal_mode
+    - view::scroll_to_cursor
   c: selection::change
   y: selection::copy
   p:
