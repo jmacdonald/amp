@@ -132,8 +132,19 @@ to open the complete set in a new buffer.
 
 You can search using `/` to enter a query. If matches are found, the cursor will be moved ahead to the first match (relative to its current position). You can navigate to the next/previous match using `n` and `N`, respectively. Searches will wrap once the EOF is reached.
 
+Most of the keybindings you'd expect will work: `c` to change the selected content, `d` to delete it, `p` to paste the buffer contents.
+
+### Replace
+
+Amp doesn't have a proper search and replace workflow _yet_; you can't specify a replacement value after searching. That being said, you can accomplish this with a little workaround:
+
+1. Replace the first occurrence manually (`c` to replace the current result)
+2. Copy the updated content (`v` to enter select mode, `y` to copy selected content)
+3. Start the search again (`n` to find the next result)
+4. Paste to replace the content (`p`)
+
 !!! warning
-    Amp doesn't currently support advanced search options (regular expressions, case sensitivity,  recursive file search, etc.), nor does it provide the ability to replace matches. This isn't intentional; these features will eventually be added.
+    Amp doesn't currently support advanced search options (regular expressions, case sensitivity,  recursive file search, etc.). This isn't intentional; these features will eventually be added.
 
 ## Suspend
 
