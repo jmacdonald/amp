@@ -1,3 +1,14 @@
+### 0.3.4
+
+* Documentation updates
+* Added the ability to save new buffers without paths (created in normal mode
+  using the `B` key binding); a new "path" mode prompts before saving.
+* Added the ability to load user/custom themes from the `themes` configuration
+  sub-directory
+* Added a benchmark for buffer rendering
+* Bumped native clipboard library dependency
+* Added semi-colon delete key binding to select line mode
+
 ### 0.3.3
 
 * Documentation updates
