@@ -1,5 +1,3 @@
-extern crate libc;
-
 use errors::*;
 use commands::{self, Result};
 use input::KeyMap;
@@ -238,16 +236,7 @@ pub fn suspend(app: &mut Application) -> Result {
     // The view can't be running when the process stops or we'll lock the screen.
     // We need to clear the cursor or it won't render properly on resume.
     app.view.set_cursor(None);
-    app.view.stop();
-
-    unsafe {
-        // Stop the amp process.
-        libc::raise(libc::SIGSTOP);
-    }
-
-    // When the shell sends SIGCONT to the amp process,
-    // we'll want to take over the screen again.
-    app.view.start();
+    app.view.suspend();
 
     Ok(())
 }

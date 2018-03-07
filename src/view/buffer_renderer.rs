@@ -27,14 +27,14 @@ pub struct BufferRenderer<'a, 'b> {
     preferences: &'a Preferences,
     screen_position: Position,
     scroll_offset: usize,
-    terminal: &'a mut Terminal,
+    terminal: &'a Terminal,
     theme: &'a Theme,
 }
 
 impl<'a, 'b> BufferRenderer<'a, 'b> {
     pub fn new(buffer: &'a Buffer, highlights: Option<&'a Vec<Range>>,
     lexeme_mapper: Option<&'b mut LexemeMapper>, scroll_offset: usize,
-    terminal: &'a mut Terminal, theme: &'a Theme, preferences: &'a Preferences) -> BufferRenderer<'a, 'b> {
+    terminal: &'a Terminal, theme: &'a Theme, preferences: &'a Preferences) -> BufferRenderer<'a, 'b> {
         // Determine the gutter size based on the number of lines.
         let line_number_width = buffer.line_count().to_string().len() + 1;
 

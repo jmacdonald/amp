@@ -1,12 +1,15 @@
 extern crate rustbox;
+extern crate libc;
 
 use input::Key;
 use scribe::buffer::Position;
 use self::rustbox::{OutputMode, RustBox};
 use self::rustbox::Color as RustboxColor;
 use self::rustbox::Key as RustboxKey;
+use std::sync::Mutex;
 use super::Terminal;
 use std::fmt::Display;
+use std::time::Duration;
 use view::{Colors, Style};
 use view::color::RGBColor;
 
@@ -15,108 +18,103 @@ use view::color::RGBColor;
 /// are discarded and dimension queries are stubbed with static values.
 #[cfg_attr(test, allow(dead_code))]
 pub struct RustboxTerminal {
-    rustbox: Option<RustBox>,
-    cursor: Option<Position>,
+    rustbox: RustBox,
+    cursor: Mutex<Option<Position>>,
+    timeout: Duration,
 }
 
 impl RustboxTerminal {
     #[cfg(not(test))]
     pub fn new() -> RustboxTerminal {
         RustboxTerminal {
-            rustbox: Some(create_rustbox_instance()),
-            cursor: None
+            rustbox: create_rustbox_instance(),
+            cursor: Mutex::new(None),
+            timeout: Duration::from_millis(100),
         }
     }
 }
 
 
 impl Terminal for RustboxTerminal {
-    fn listen(&mut self) -> Option<Key> {
-        self.rustbox.as_ref().and_then(|r| {
-            match r.poll_event(false) {
-                Ok(rustbox::Event::KeyEvent(key)) => {
-                    match key {
-                        RustboxKey::Tab => Some(Key::Tab),
-                        RustboxKey::Enter => Some(Key::Enter),
-                        RustboxKey::Esc => Some(Key::Esc),
-                        RustboxKey::Backspace => Some(Key::Backspace),
-                        RustboxKey::Right => Some(Key::Right),
-                        RustboxKey::Left => Some(Key::Left),
-                        RustboxKey::Up => Some(Key::Up),
-                        RustboxKey::Down => Some(Key::Down),
-                        RustboxKey::Delete => Some(Key::Delete),
-                        RustboxKey::Insert => Some(Key::Insert),
-                        RustboxKey::Home => Some(Key::Home),
-                        RustboxKey::End => Some(Key::End),
-                        RustboxKey::PageUp => Some(Key::PageUp),
-                        RustboxKey::PageDown => Some(Key::PageDown),
-                        RustboxKey::Char(c) => Some(Key::Char(c)),
-                        RustboxKey::Ctrl(c) => Some(Key::Ctrl(c)),
-                        _ => None,
-                    }
-                },
-                _ => None,
-            }
-        })
+    fn listen(&self) -> Option<Key> {
+        match self.rustbox.peek_event(self.timeout, false) {
+            Ok(rustbox::Event::KeyEvent(key)) => {
+                match key {
+                    RustboxKey::Tab => Some(Key::Tab),
+                    RustboxKey::Enter => Some(Key::Enter),
+                    RustboxKey::Esc => Some(Key::Esc),
+                    RustboxKey::Backspace => Some(Key::Backspace),
+                    RustboxKey::Right => Some(Key::Right),
+                    RustboxKey::Left => Some(Key::Left),
+                    RustboxKey::Up => Some(Key::Up),
+                    RustboxKey::Down => Some(Key::Down),
+                    RustboxKey::Delete => Some(Key::Delete),
+                    RustboxKey::Insert => Some(Key::Insert),
+                    RustboxKey::Home => Some(Key::Home),
+                    RustboxKey::End => Some(Key::End),
+                    RustboxKey::PageUp => Some(Key::PageUp),
+                    RustboxKey::PageDown => Some(Key::PageDown),
+                    RustboxKey::Char(c) => Some(Key::Char(c)),
+                    RustboxKey::Ctrl(c) => Some(Key::Ctrl(c)),
+                    _ => None,
+                }
+            },
+            _ => None,
+        }
     }
 
-    fn clear(&mut self) {
-        self.rustbox.as_ref().map(|r| r.clear());
+    fn clear(&self) {
+        self.rustbox.clear();
     }
 
-    fn present(&mut self) {
-        self.rustbox.as_ref().map(|r| r.present());
+    fn present(&self) {
+        self.rustbox.present();
     }
 
     fn width(&self) -> usize {
-        self.rustbox.as_ref().map(|r| r.width()).unwrap_or(0)
+        self.rustbox.width()
     }
 
     fn height(&self) -> usize {
-        self.rustbox.as_ref().map(|r| r.height()).unwrap_or(0)
+        self.rustbox.height()
     }
 
-    fn set_cursor(&mut self, position: Option<Position>) {
-        if let Some(ref r) = self.rustbox {
-            match position {
-                Some(pos) => r.set_cursor(pos.offset as isize, pos.line as isize),
-                None => r.set_cursor(-1, -1),
-            }
+    fn set_cursor(&self, position: Option<Position>) {
+        match position {
+            Some(pos) => self.rustbox.set_cursor(pos.offset as isize, pos.line as isize),
+            None => self.rustbox.set_cursor(-1, -1),
         }
 
         // Store the cursor location so that we
         // can restore it after a stop/start.
-        self.cursor = position;
+        *self.cursor.lock().unwrap() = position;
     }
 
-    fn print(&mut self, position: &Position, style: Style, colors: Colors, content: &Display) {
+    fn print(&self, position: &Position, style: Style, colors: Colors, content: &Display) {
         let (fg, bg) = map_colors(colors);
-        self.rustbox.as_ref().map(|r| r.print(
+        self.rustbox.print(
             position.offset,
             position.line,
             map_style(&style),
             fg,
             bg,
             &format!("{}", content)
-        ));
+        );
     }
 
-    fn stop(&mut self) {
-        // RustBox destructor cleans up for us.
-        self.rustbox = None;
-    }
+    fn suspend(&self) {
+        self.rustbox.suspend(|| {
+            unsafe {
+                // Stop the amp process.
+                libc::raise(libc::SIGSTOP);
+            }
+        });
 
-    fn start(&mut self) {
-        // We don't want to create two instance of RustBox.
-        if self.rustbox.is_none() {
-            self.rustbox = Some(create_rustbox_instance());
-
-            // A little idiosyncrasy of suspending and resuming is that
-            // the cursor isn't shown without clearing and resetting it.
-            let cursor = self.cursor;
-            self.set_cursor(None);
-            self.set_cursor(cursor);
-        }
+        // A little idiosyncrasy of suspending and resuming is that
+        // the cursor isn't shown without clearing and resetting it.
+        let cursor = self.cursor.lock().unwrap().take();
+        self.set_cursor(None);
+        self.set_cursor(cursor);
     }
 }
 

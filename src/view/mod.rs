@@ -3,6 +3,7 @@ pub mod terminal;
 pub mod color;
 mod buffer_renderer;
 mod data;
+mod input_listener;
 mod style;
 mod theme_loader;
 
@@ -14,10 +15,11 @@ pub use self::color::{Colors, RGBColor};
 
 use errors::*;
 use input::Key;
-use models::application::Preferences;
+use models::application::{Event, Preferences};
 use self::color::ColorMap;
 use self::terminal::Terminal;
 use self::buffer_renderer::BufferRenderer;
+use self::input_listener::InputListener;
 use scribe::buffer::{Buffer, Position, Range};
 use pad::PadStr;
 use std::cmp;
@@ -25,25 +27,29 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::fmt::Display;
+use std::sync::mpsc::Sender;
+use std::sync::Arc;
 use self::scrollable_region::ScrollableRegion;
 use self::theme_loader::ThemeLoader;
 use self::terminal::RustboxTerminal;
 use syntect::highlighting::ThemeSet;
 
 pub struct View {
-    terminal: Rc<RefCell<Terminal>>,
+    terminal: Arc<Terminal + Sync + Send>,
     cursor_position: Option<Position>,
     scrollable_regions: HashMap<usize, ScrollableRegion>,
     pub theme_set: ThemeSet,
     preferences: Rc<RefCell<Preferences>>,
-    last_key: Option<Key>,
+    pub last_key: Option<Key>,
 }
 
 impl View {
-    pub fn new(preferences: Rc<RefCell<Preferences>>) -> Result<View> {
+    pub fn new(preferences: Rc<RefCell<Preferences>>, event_channel: Sender<Event>) -> Result<View> {
         let terminal = build_terminal();
         let theme_path = preferences.borrow().theme_path()?;
         let theme_set = ThemeLoader::new(theme_path).load()?;
+
+        InputListener::start(terminal.clone(), event_channel);
 
         Ok(View {
             terminal: terminal,
@@ -51,7 +57,7 @@ impl View {
             last_key: None,
             preferences: preferences,
             scrollable_regions: HashMap::new(),
-            theme_set: theme_set,
+            theme_set: theme_set
         })
     }
 
@@ -68,7 +74,7 @@ impl View {
             highlights,
             lexeme_mapper,
             scroll_offset,
-            &mut *self.terminal.borrow_mut(),
+            &*self.terminal,
             theme,
             &self.preferences.borrow()
         ).render()?;
@@ -154,7 +160,7 @@ impl View {
     pub fn scroll_down(&mut self, buffer: &Buffer, amount: usize) {
         let current_offset = self.get_region(buffer).line_offset();
         let line_count = buffer.line_count();
-        let half_screen_height = self.terminal.borrow().height() / 2;
+        let half_screen_height = self.terminal.height() / 2;
 
         // Limit scrolling to 50% of the screen beyond the end of the buffer.
         let max = if line_count > half_screen_height {
@@ -204,25 +210,20 @@ impl View {
     }
 
     pub fn width(&self) -> usize {
-        self.terminal.borrow().width()
+        self.terminal.width()
     }
 
     pub fn height(&self) -> usize {
-        self.terminal.borrow().height()
-    }
-
-    pub fn listen(&mut self) -> Option<Key> {
-        self.last_key = self.terminal.borrow_mut().listen();
-        self.last_key.clone()
+        self.terminal.height()
     }
 
     pub fn clear(&mut self) {
-        self.terminal.borrow_mut().clear()
+        self.terminal.clear()
     }
 
     pub fn present(&mut self) {
-        self.terminal.borrow_mut().set_cursor(self.cursor_position);
-        self.terminal.borrow_mut().present();
+        self.terminal.set_cursor(self.cursor_position);
+        self.terminal.present();
     }
 
     pub fn print(&self, position: &Position, style: Style, colors: Colors, content: &Display) -> Result<()> {
@@ -232,17 +233,13 @@ impl View {
             .get(theme_name)
             .ok_or(format!("Couldn't find \"{}\" theme", theme_name))?;
         let mapped_colors = theme.map_colors(colors);
-        self.terminal.borrow_mut().print(position, style, mapped_colors, content);
+        self.terminal.print(position, style, mapped_colors, content);
 
         Ok(())
     }
 
-    pub fn stop(&mut self) {
-        self.terminal.borrow_mut().stop();
-    }
-
-    pub fn start(&mut self) {
-        self.terminal.borrow_mut().start();
+    pub fn suspend(&mut self) {
+        self.terminal.suspend();
     }
 
     pub fn last_key(&self) -> &Option<Key> {
@@ -255,14 +252,14 @@ fn buffer_key(buffer: &Buffer) -> usize {
 }
 
 #[cfg(not(any(test, feature = "bench")))]
-fn build_terminal() -> Rc<RefCell<Terminal>> {
-    Rc::new(RefCell::new(RustboxTerminal::new()))
+fn build_terminal() -> Arc<Terminal + Sync + Send> {
+    Arc::new(RustboxTerminal::new())
 }
 
 #[cfg(any(test, feature = "bench"))]
-fn build_terminal() -> Rc<RefCell<Terminal>> {
+fn build_terminal() -> Arc<Terminal + Sync + Send> {
     // Use a headless terminal if we're in test mode.
-    Rc::new(RefCell::new(terminal::test_terminal::TestTerminal::new()))
+    Arc::new(terminal::test_terminal::TestTerminal::new())
 }
 
 #[cfg(test)]
@@ -273,10 +270,12 @@ mod tests {
     use models::application::Preferences;
     use std::cell::RefCell;
     use std::rc::Rc;
+    use std::sync::mpsc;
 
     #[test]
     fn scroll_down_prevents_scrolling_completely_beyond_buffer() {
-        let mut view = View::new(Rc::new(RefCell::new(Preferences::new(None)))).unwrap();
+        let (tx, _) = mpsc::channel();
+        let mut view = View::new(Rc::new(RefCell::new(Preferences::new(None))), tx).unwrap();
 
         // Build a 10-line buffer.
         let mut buffer = Buffer::new();
@@ -297,7 +296,8 @@ mod tests {
 
     #[test]
     fn scroll_down_prevents_scrolling_when_buffer_is_smaller_than_top_half() {
-        let mut view = View::new(Rc::new(RefCell::new(Preferences::new(None)))).unwrap();
+        let (tx, _) = mpsc::channel();
+        let mut view = View::new(Rc::new(RefCell::new(Preferences::new(None))), tx).unwrap();
 
         // Build a 2-line buffer and try to scroll it.
         let mut buffer = Buffer::new();
@@ -306,15 +306,6 @@ mod tests {
 
         // The view should not be scrolled.
         assert_eq!(view.visible_region(&buffer).line_offset(), 0);
-    }
-
-    #[test]
-    fn listen_stores_last_key() {
-        let mut view = View::new(Rc::new(RefCell::new(Preferences::new(None)))).unwrap();
-
-        assert!(view.last_key().is_none());
-        view.listen();
-        assert_eq!(*view.last_key(), Some(Key::Char('A')));
     }
 }
 

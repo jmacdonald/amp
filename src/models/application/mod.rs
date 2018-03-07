@@ -1,10 +1,12 @@
 pub mod modes;
 mod clipboard;
+mod event;
 mod preferences;
 
 // Published API
 pub use self::clipboard::ClipboardContent;
 pub use self::preferences::Preferences;
+pub use self::event::Event;
 
 use commands;
 use errors::*;
@@ -18,6 +20,7 @@ use scribe::{Buffer, Workspace};
 use view::{self, StatusLineData, View};
 use self::clipboard::Clipboard;
 use git2::Repository;
+use std::sync::mpsc::{self, Receiver, Sender};
 
 pub enum Mode {
     Confirm(ConfirmMode),
@@ -45,6 +48,8 @@ pub struct Application {
     pub repository: Option<Repository>,
     pub error: Option<Error>,
     pub preferences: Rc<RefCell<Preferences>>,
+    event_channel: Sender<Event>,
+    events: Receiver<Event>,
 }
 
 impl Application {
@@ -93,7 +98,8 @@ impl Application {
             workspace.add_buffer(argument_buffer);
         }
 
-        let view = View::new(preferences.clone())?;
+        let (event_channel, events) = mpsc::channel();
+        let view = View::new(preferences.clone(), event_channel.clone())?;
         let clipboard = Clipboard::new();
 
         Ok(Application {
@@ -105,6 +111,8 @@ impl Application {
                repository: Repository::discover(&current_dir).ok(),
                error: None,
                preferences: preferences,
+               event_channel: event_channel,
+               events: events,
            })
     }
 
@@ -187,9 +195,11 @@ impl Application {
                 }
             }
 
-            // Listen for and respond to user input.
-            self.view.listen();
-            self.error = commands::application::handle_input(self).err();
+            // Wait for events.
+            if let Ok(Event::Key(key)) = self.events.recv() {
+                self.view.last_key = Some(key);
+                self.error = commands::application::handle_input(self).err();
+            }
 
             // Check if the command resulted in an exit, before
             // looping again and asking for input we won't use.
