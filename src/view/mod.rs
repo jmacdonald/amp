@@ -27,6 +27,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::fmt::Display;
+use std::ops::Drop;
 use std::sync::mpsc::{self, Sender, SyncSender};
 use std::sync::Arc;
 use self::scrollable_region::ScrollableRegion;
@@ -253,6 +254,12 @@ impl View {
 
     pub fn last_key(&self) -> &Option<Key> {
         &self.last_key
+    }
+}
+
+impl Drop for View {
+    fn drop(&mut self) {
+        self.input_listener_killswitch.send(());
     }
 }
 
