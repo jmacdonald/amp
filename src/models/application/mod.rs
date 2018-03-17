@@ -11,6 +11,7 @@ pub use self::event::Event;
 use commands;
 use errors::*;
 use std::env;
+use std::ops::Drop;
 use std::path::Path;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -118,94 +119,94 @@ impl Application {
 
     pub fn run(&mut self) -> Result<()> {
         loop {
-            // Present the application state to the view.
-            let display_result = match self.mode {
-                Mode::Confirm(_) => {
-                    presenters::modes::confirm::display(&mut self.workspace,
-                                                        &mut self.view)
-                },
-                Mode::Command(ref mut mode) => {
-                    presenters::modes::search_select::display(&mut self.workspace,
-                                                              mode,
-                                                              &mut self.view)
-                }
-                Mode::Insert => {
-                    presenters::modes::insert::display(&mut self.workspace,
-                                                       &mut self.view)
-                }
-                Mode::Open(ref mut mode) => {
-                    presenters::modes::search_select::display(&mut self.workspace,
-                                                              mode,
-                                                              &mut self.view)
-                }
-                Mode::Search(ref mode) => {
-                    presenters::modes::search::display(&mut self.workspace,
-                                                              mode,
-                                                              &mut self.view)
-                }
-                Mode::Jump(ref mut mode) => {
-                    presenters::modes::jump::display(&mut self.workspace,
-                                                     mode,
-                                                     &mut self.view)
-                }
-                Mode::LineJump(ref mode) => {
-                    presenters::modes::line_jump::display(&mut self.workspace,
-                                                          mode,
-                                                          &mut self.view)
-                }
-                Mode::Path(ref mode) => {
-                    presenters::modes::path::display(&mut self.workspace,
-                                                          mode,
-                                                          &mut self.view)
-                }
-                Mode::SymbolJump(ref mut mode) => {
-                    presenters::modes::search_select::display(&mut self.workspace,
-                                                              mode,
-                                                              &mut self.view)
-                }
-                Mode::Select(ref mode) => {
-                    presenters::modes::select::display(&mut self.workspace,
-                                                       mode,
-                                                       &mut self.view)
-                }
-                Mode::SelectLine(ref mode) => {
-                    presenters::modes::select_line::display(&mut self.workspace,
-                                                            mode,
-                                                            &mut self.view)
-                }
-                Mode::Normal => {
-                    presenters::modes::normal::display(&mut self.workspace,
-                                                       &mut self.view,
-                                                       &self.repository)
-                }
-                Mode::Theme(ref mut mode) => {
-                    presenters::modes::search_select::display(&mut self.workspace,
-                                                              mode,
-                                                              &mut self.view)
-                }
-                Mode::Exit => Ok(())
-            };
-
-            if let Err(ref error) = display_result {
-                render_error(&mut self.view, error);
-            } else {
-                // Display an error from previous command invocation, if one exists.
-                if let Some(ref error) = self.error {
-                    render_error(&mut self.view, error);
-                }
-            }
-
+            self.render();
             self.wait_for_event();
 
-            // Check if the command resulted in an exit, before
-            // looping again and asking for input we won't use.
             if let Mode::Exit = self.mode {
-                self.view.clear();
                 break
             }
         }
 
         Ok(())
+    }
+
+    fn render(&mut self) {
+        // Present the application state to the view.
+        if let Err(error) = self.present() {
+            render_error(&mut self.view, &error);
+        } else if let Some(ref error) = self.error {
+            // Display an error from previous command invocation, if one exists.
+            render_error(&mut self.view, error);
+        }
+    }
+
+    fn present(&mut self) -> Result<()> {
+        match self.mode {
+            Mode::Confirm(_) => {
+                presenters::modes::confirm::display(&mut self.workspace,
+                                                    &mut self.view)
+            },
+            Mode::Command(ref mut mode) => {
+                presenters::modes::search_select::display(&mut self.workspace,
+                                                          mode,
+                                                          &mut self.view)
+            }
+            Mode::Insert => {
+                presenters::modes::insert::display(&mut self.workspace,
+                                                   &mut self.view)
+            }
+            Mode::Open(ref mut mode) => {
+                presenters::modes::search_select::display(&mut self.workspace,
+                                                          mode,
+                                                          &mut self.view)
+            }
+            Mode::Search(ref mode) => {
+                presenters::modes::search::display(&mut self.workspace,
+                                                          mode,
+                                                          &mut self.view)
+            }
+            Mode::Jump(ref mut mode) => {
+                presenters::modes::jump::display(&mut self.workspace,
+                                                 mode,
+                                                 &mut self.view)
+            }
+            Mode::LineJump(ref mode) => {
+                presenters::modes::line_jump::display(&mut self.workspace,
+                                                      mode,
+                                                      &mut self.view)
+            }
+            Mode::Path(ref mode) => {
+                presenters::modes::path::display(&mut self.workspace,
+                                                      mode,
+                                                      &mut self.view)
+            }
+            Mode::SymbolJump(ref mut mode) => {
+                presenters::modes::search_select::display(&mut self.workspace,
+                                                          mode,
+                                                          &mut self.view)
+            }
+            Mode::Select(ref mode) => {
+                presenters::modes::select::display(&mut self.workspace,
+                                                   mode,
+                                                   &mut self.view)
+            }
+            Mode::SelectLine(ref mode) => {
+                presenters::modes::select_line::display(&mut self.workspace,
+                                                        mode,
+                                                        &mut self.view)
+            }
+            Mode::Normal => {
+                presenters::modes::normal::display(&mut self.workspace,
+                                                   &mut self.view,
+                                                   &self.repository)
+            }
+            Mode::Theme(ref mut mode) => {
+                presenters::modes::search_select::display(&mut self.workspace,
+                                                          mode,
+                                                          &mut self.view)
+            }
+            Mode::Exit => Ok(())
+        }
     }
 
     fn wait_for_event(&mut self) {
@@ -252,6 +253,12 @@ impl Application {
             },
             Mode::Exit => None,
         }
+    }
+}
+
+impl Drop for Application {
+    fn drop(&mut self) {
+        self.view.clear();
     }
 }
 
