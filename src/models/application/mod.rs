@@ -195,11 +195,7 @@ impl Application {
                 }
             }
 
-            // Wait for events.
-            if let Ok(Event::Key(key)) = self.events.recv() {
-                self.view.last_key = Some(key);
-                self.error = commands::application::handle_input(self).err();
-            }
+            self.wait_for_event();
 
             // Check if the command resulted in an exit, before
             // looping again and asking for input we won't use.
@@ -210,6 +206,13 @@ impl Application {
         }
 
         Ok(())
+    }
+
+    fn wait_for_event(&mut self) {
+        if let Ok(Event::Key(key)) = self.events.recv() {
+            self.view.last_key = Some(key);
+            self.error = commands::application::handle_input(self).err();
+        }
     }
 
     pub fn mode_str(&self) -> Option<&'static str> {
