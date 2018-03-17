@@ -27,7 +27,7 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::fmt::Display;
-use std::sync::mpsc::Sender;
+use std::sync::mpsc::{self, Sender, SyncSender};
 use std::sync::Arc;
 use self::scrollable_region::ScrollableRegion;
 use self::theme_loader::ThemeLoader;
@@ -41,6 +41,8 @@ pub struct View {
     pub theme_set: ThemeSet,
     preferences: Rc<RefCell<Preferences>>,
     pub last_key: Option<Key>,
+    event_channel: Sender<Event>,
+    input_listener_killswitch: SyncSender<()>
 }
 
 impl View {
@@ -49,7 +51,8 @@ impl View {
         let theme_path = preferences.borrow().theme_path()?;
         let theme_set = ThemeLoader::new(theme_path).load()?;
 
-        InputListener::start(terminal.clone(), event_channel);
+        let (killswitch_tx, killswitch_rx) = mpsc::sync_channel(0);
+        InputListener::start(terminal.clone(), event_channel.clone(), killswitch_rx);
 
         Ok(View {
             terminal: terminal,
@@ -57,7 +60,9 @@ impl View {
             last_key: None,
             preferences: preferences,
             scrollable_regions: HashMap::new(),
-            theme_set: theme_set
+            theme_set: theme_set,
+            event_channel: event_channel,
+            input_listener_killswitch: killswitch_tx
         })
     }
 
@@ -239,7 +244,11 @@ impl View {
     }
 
     pub fn suspend(&mut self) {
+        self.input_listener_killswitch.send(());
         self.terminal.suspend();
+        let (killswitch_tx, killswitch_rx) = mpsc::sync_channel(0);
+        InputListener::start(self.terminal.clone(), self.event_channel.clone(), killswitch_rx);
+        self.input_listener_killswitch = killswitch_tx;
     }
 
     pub fn last_key(&self) -> &Option<Key> {
