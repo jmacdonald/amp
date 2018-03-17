@@ -76,7 +76,6 @@ impl Application {
         workspace.syntax_set.link_syntaxes();
 
         // Try to open the specified file.
-        // TODO: Handle non-existent files as new empty buffers.
         for path_arg in env::args().skip(1) {
             let path = Path::new(&path_arg);
 
@@ -131,7 +130,6 @@ impl Application {
     }
 
     fn render(&mut self) {
-        // Present the application state to the view.
         if let Err(error) = self.present() {
             render_error(&mut self.view, &error);
         } else if let Some(ref error) = self.error {

@@ -233,7 +233,6 @@ pub fn display_last_error(app: &mut Application) -> Result {
 }
 
 pub fn suspend(app: &mut Application) -> Result {
-    // The view can't be running when the process stops or we'll lock the screen.
     // We need to clear the cursor or it won't render properly on resume.
     app.view.set_cursor(None);
     app.view.suspend();
