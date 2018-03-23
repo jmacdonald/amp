@@ -13,11 +13,11 @@ pub trait SearchSelectMode<T: Display>: Display {
     fn selected_index(&self) -> usize;
     fn select_previous(&mut self);
     fn select_next(&mut self);
-    fn message(&mut self) -> Option<&'static str> {
+    fn message(&mut self) -> Option<String> {
         if self.query().is_empty() {
-            Some("Enter a search query to start.")
+            Some(String::from("Enter a search query to start."))
         } else if self.results().count() == 0 {
-            Some("No matching entries found.")
+            Some(String::from("No matching entries found."))
         } else {
             None
         }

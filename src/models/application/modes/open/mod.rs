@@ -16,7 +16,7 @@ pub use self::displayable_path::DisplayablePath;
 #[derive(PartialEq)]
 pub enum OpenModeIndex {
     Complete(Index),
-    Indexing
+    Indexing(PathBuf)
 }
 
 pub struct OpenMode {
@@ -29,8 +29,9 @@ pub struct OpenMode {
 impl OpenMode {
     pub fn new(path: PathBuf, exclusions: Option<Vec<ExclusionPattern>>, events: Sender<Event>) -> OpenMode {
         // Build and populate the index in a separate thread.
+        let index_path = path.clone();
         thread::spawn(move || {
-            let mut index = Index::new(path);
+            let mut index = Index::new(index_path);
             index.populate(exclusions, false);
             events.send(
                 Event::OpenModeIndexComplete(index)
@@ -40,7 +41,7 @@ impl OpenMode {
         OpenMode {
             insert: true,
             input: String::new(),
-            index: OpenModeIndex::Indexing,
+            index: OpenModeIndex::Indexing(path),
             results: SelectableVec::new(Vec::new()),
         }
     }
@@ -105,13 +106,13 @@ impl SearchSelectMode<DisplayablePath> for OpenMode {
         self.results.select_next();
     }
 
-    fn message(&mut self) -> Option<&'static str> {
-        if self.index == OpenModeIndex::Indexing {
-            Some("Indexing...")
+    fn message(&mut self) -> Option<String> {
+        if let OpenModeIndex::Indexing(ref path) = self.index {
+            Some(format!("Indexing {}", path.to_string_lossy()))
         } else if self.query().is_empty() {
-            Some("Enter a search query to start.")
+            Some(String::from("Enter a search query to start."))
         } else if self.results().count() == 0 {
-            Some("No matching entries found.")
+            Some(String::from("No matching entries found."))
         } else {
             None
         }
