@@ -14,7 +14,7 @@ pub use self::displayable_path::DisplayablePath;
 
 pub enum OpenModeIndex {
     Complete(Index),
-    Indexing(Receiver<Index>)
+    Indexing
 }
 
 pub struct OpenMode {
@@ -37,7 +37,7 @@ impl OpenMode {
         OpenMode {
             insert: true,
             input: String::new(),
-            index: OpenModeIndex::Indexing(rx),
+            index: OpenModeIndex::Indexing,
             results: SelectableVec::new(Vec::new()),
         }
     }
