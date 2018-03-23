@@ -29,26 +29,25 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
         ]);
     }
 
-    // Display an empty result set message.
-    if mode.results().count() == 0 {
+    if let Some(message) = mode.message() {
         view.print(&Position{ line: 0, offset: 0 },
                    Style::Default,
                    Colors::Default,
-                   &"No matching entries found.".pad_to_width(view.width()))?;
-     }
-
-    // Draw the list of search results.
-    for (line, result) in mode.results().enumerate() {
-        let colors = if line == mode.selected_index() {
-            Colors::Focused
-        } else {
-            Colors::Default
-        };
-        let padded_content = format!("{}", result).pad_to_width(view.width());
-        view.print(&Position{ line: line, offset: 0 },
-                   Style::Default,
-                   colors,
-                   &padded_content)?;
+                   &message.pad_to_width(view.width()))?;
+    } else {
+        // Draw the list of search results.
+        for (line, result) in mode.results().enumerate() {
+            let colors = if line == mode.selected_index() {
+                Colors::Focused
+            } else {
+                Colors::Default
+            };
+            let padded_content = format!("{}", result).pad_to_width(view.width());
+            view.print(&Position{ line: line, offset: 0 },
+                       Style::Default,
+                       colors,
+                       &padded_content)?;
+        }
     }
 
     // Clear any remaining lines in the result display area.

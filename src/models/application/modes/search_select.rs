@@ -4,7 +4,6 @@ use std::slice::Iter;
 /// This trait will become vastly simpler if/when fields are added to traits.
 /// See: https://github.com/rust-lang/rfcs/pull/1546
 pub trait SearchSelectMode<T: Display>: Display {
-
     fn query(&mut self) -> &mut String;
     fn search(&mut self);
     fn insert_mode(&self) -> bool;
@@ -14,6 +13,15 @@ pub trait SearchSelectMode<T: Display>: Display {
     fn selected_index(&self) -> usize;
     fn select_previous(&mut self);
     fn select_next(&mut self);
+    fn message(&mut self) -> Option<&'static str> {
+        if self.query().is_empty() {
+            Some("Enter a search query to start.")
+        } else if self.results().count() == 0 {
+            Some("No matching entries found.")
+        } else {
+            None
+        }
+    }
 
     fn push_search_char(&mut self, c: char) {
         self.query().push(c);
