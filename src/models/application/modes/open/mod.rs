@@ -7,7 +7,8 @@ use std::slice::Iter;
 use bloodhound::ExclusionPattern;
 use helpers::SelectableVec;
 use models::application::modes::{SearchSelectMode, MAX_SEARCH_SELECT_RESULTS};
-use std::sync::mpsc::{self, Receiver};
+use models::application::Event;
+use std::sync::mpsc::Sender;
 use std::thread;
 pub use bloodhound::Index;
 pub use self::displayable_path::DisplayablePath;
@@ -25,13 +26,14 @@ pub struct OpenMode {
 }
 
 impl OpenMode {
-    pub fn new(path: PathBuf, exclusions: Option<Vec<ExclusionPattern>>) -> OpenMode {
+    pub fn new(path: PathBuf, exclusions: Option<Vec<ExclusionPattern>>, events: Sender<Event>) -> OpenMode {
         // Build and populate the index in a separate thread.
-        let (tx, rx) = mpsc::channel();
         thread::spawn(move || {
             let mut index = Index::new(path);
             index.populate(exclusions, false);
-            tx.send(index);
+            events.send(
+                Event::OpenModeIndexComplete(index)
+            );
         });
 
         OpenMode {

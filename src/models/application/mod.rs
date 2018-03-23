@@ -49,7 +49,7 @@ pub struct Application {
     pub repository: Option<Repository>,
     pub error: Option<Error>,
     pub preferences: Rc<RefCell<Preferences>>,
-    event_channel: Sender<Event>,
+    pub event_channel: Sender<Event>,
     events: Receiver<Event>,
 }
 
