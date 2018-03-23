@@ -207,11 +207,24 @@ impl Application {
         }
     }
 
-    fn wait_for_event(&mut self) {
-        if let Ok(Event::Key(key)) = self.events.recv() {
-            self.view.last_key = Some(key);
-            self.error = commands::application::handle_input(self).err();
+    fn wait_for_event(&mut self) -> Result<()> {
+        let event = self.
+            events.
+            recv().
+            chain_err(|| "Error receiving application event")?;
+        match event {
+            Event::Key(key) => {
+                self.view.last_key = Some(key);
+                self.error = commands::application::handle_input(self).err();
+            },
+            Event::OpenModeIndexComplete(index) => {
+                if let Mode::Open(ref mut open_mode) = self.mode {
+                    open_mode.set_index(index);
+                }
+            },
         }
+
+        Ok(())
     }
 
     pub fn mode_str(&self) -> Option<&'static str> {

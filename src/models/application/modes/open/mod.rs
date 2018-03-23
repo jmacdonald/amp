@@ -43,6 +43,10 @@ impl OpenMode {
             results: SelectableVec::new(Vec::new()),
         }
     }
+
+    pub fn set_index(&mut self, index: Index) {
+        self.index = OpenModeIndex::Complete(index)
+    }
 }
 
 impl fmt::Display for OpenMode {
