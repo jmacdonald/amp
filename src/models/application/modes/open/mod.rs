@@ -13,6 +13,7 @@ use std::thread;
 pub use bloodhound::Index;
 pub use self::displayable_path::DisplayablePath;
 
+#[derive(PartialEq)]
 pub enum OpenModeIndex {
     Complete(Index),
     Indexing
@@ -102,5 +103,17 @@ impl SearchSelectMode<DisplayablePath> for OpenMode {
 
     fn select_next(&mut self) {
         self.results.select_next();
+    }
+
+    fn message(&mut self) -> Option<&'static str> {
+        if self.index == OpenModeIndex::Indexing {
+            Some("Indexing...")
+        } else if self.query().is_empty() {
+            Some("Enter a search query to start.")
+        } else if self.results().count() == 0 {
+            Some("No matching entries found.")
+        } else {
+            None
+        }
     }
 }
