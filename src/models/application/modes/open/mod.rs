@@ -7,9 +7,9 @@ use std::slice::Iter;
 use bloodhound::ExclusionPattern;
 use helpers::SelectableVec;
 use models::application::modes::{SearchSelectMode, MAX_SEARCH_SELECT_RESULTS};
-use bloodhound::Index;
 use std::sync::mpsc::{self, Receiver};
 use std::thread;
+pub use bloodhound::Index;
 pub use self::displayable_path::DisplayablePath;
 
 pub enum OpenModeIndex {
