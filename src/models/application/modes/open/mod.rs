@@ -33,7 +33,7 @@ impl OpenMode {
         thread::spawn(move || {
             let mut index = Index::new(index_path);
             index.populate(exclusions, false);
-            events.send(
+            let _ = events.send(
                 Event::OpenModeIndexComplete(index)
             );
         });

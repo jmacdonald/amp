@@ -245,7 +245,7 @@ impl View {
     }
 
     pub fn suspend(&mut self) {
-        self.input_listener_killswitch.send(());
+        let _ = self.input_listener_killswitch.send(());
         self.terminal.suspend();
         let (killswitch_tx, killswitch_rx) = mpsc::sync_channel(0);
         InputListener::start(self.terminal.clone(), self.event_channel.clone(), killswitch_rx);
@@ -259,7 +259,7 @@ impl View {
 
 impl Drop for View {
     fn drop(&mut self) {
-        self.input_listener_killswitch.send(());
+        let _ = self.input_listener_killswitch.send(());
     }
 }
 

@@ -119,7 +119,7 @@ impl Application {
     pub fn run(&mut self) -> Result<()> {
         loop {
             self.render();
-            self.wait_for_event();
+            self.wait_for_event()?;
 
             if let Mode::Exit = self.mode {
                 break
