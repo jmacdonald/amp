@@ -1144,7 +1144,7 @@ mod tests {
         super::save(&mut app).ok();
 
         // Ensure that we've set the save_on_accept flag.
-        if let Mode::Path(mode) = app.mode {
+        if let Mode::Path(ref mode) = app.mode {
             assert!(mode.save_on_accept)
         } else {
             panic!("Failed to switch to path mode");

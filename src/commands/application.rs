@@ -284,7 +284,7 @@ mod tests {
         super::switch_to_search_mode(&mut app).unwrap();
 
         let mode_query = match app.mode {
-            Mode::Search(mode) => mode.input,
+            Mode::Search(ref mode) => mode.input.clone(),
             _ => None,
         };
         assert_eq!(
@@ -302,7 +302,7 @@ mod tests {
 
         super::switch_to_path_mode(&mut app).unwrap();
         let mode_input = match app.mode {
-            Mode::Path(mode) => Some(mode.input),
+            Mode::Path(ref mode) => Some(mode.input.clone()),
             _ => None,
         };
         assert_eq!(
@@ -322,7 +322,7 @@ mod tests {
 
         super::switch_to_path_mode(&mut app).unwrap();
         let mode_input = match app.mode {
-            Mode::Path(mode) => Some(mode.input),
+            Mode::Path(ref mode) => Some(mode.input.clone()),
             _ => None,
         };
         assert_eq!(

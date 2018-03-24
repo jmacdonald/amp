@@ -129,7 +129,7 @@ mod tests {
         // and that its anchor position is on the first line
         // of the buffer.
         match app.mode {
-            Mode::SelectLine(mode) => {
+            Mode::SelectLine(ref mode) => {
                 assert_eq!(mode.anchor, 0);
             },
             _ => panic!("Application isn't in select line mode.")

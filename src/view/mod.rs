@@ -282,7 +282,6 @@ fn build_terminal() -> Arc<Terminal + Sync + Send> {
 mod tests {
     use scribe::Buffer;
     use super::View;
-    use input::Key;
     use models::application::Preferences;
     use std::cell::RefCell;
     use std::rc::Rc;

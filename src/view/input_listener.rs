@@ -47,7 +47,7 @@ mod tests {
     fn start_listens_for_and_sends_key_events_from_terminal() {
         let terminal = Arc::new(TestTerminal::new());
         let (event_tx, event_rx) = mpsc::channel();
-        let (killswitch_tx, killswitch_rx) = mpsc::sync_channel();
+        let (_, killswitch_rx) = mpsc::sync_channel(0);
         InputListener::start(terminal.clone(), event_tx, killswitch_rx);
         let event = event_rx.recv().unwrap();
 
