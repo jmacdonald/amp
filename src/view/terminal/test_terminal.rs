@@ -13,13 +13,15 @@ const HEIGHT: usize = 10;
 pub struct TestTerminal {
     data: Mutex<[[Option<char>; WIDTH]; HEIGHT]>, // 2D array of chars to represent screen
     cursor: Mutex<Option<Position>>,
+    key_sent: Mutex<bool>
 }
 
 impl TestTerminal {
     pub fn new() -> TestTerminal {
         TestTerminal {
             data: Mutex::new([[None; WIDTH]; HEIGHT]),
-            cursor: Mutex::new(None)
+            cursor: Mutex::new(None),
+            key_sent: Mutex::new(false)
         }
     }
 
@@ -59,7 +61,19 @@ impl TestTerminal {
 }
 
 impl Terminal for TestTerminal {
-    fn listen(&self) -> Option<Key> { Some(Key::Char('A')) }
+    fn listen(&self) -> Option<Key> {
+        // This implementation will return a key once, followed by nothing.
+        // This allows us to test both scenarios, the latter being crucial
+        // to stopping the application in test mode; the input listener only
+        // checks for kill signals when the terminal returns no input.
+        let mut key_sent = self.key_sent.lock().unwrap();
+        if *key_sent {
+            None
+        } else {
+            *key_sent = true;
+            Some(Key::Char('A'))
+        }
+    }
     fn clear(&self) {
         for row in self.data.lock().unwrap().iter_mut() {
             *row = [None; WIDTH];
