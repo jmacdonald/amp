@@ -25,7 +25,7 @@ fragment = "0.3.1"
 regex = "^0.1"
 libc = "0.2.4"
 syntect = "1.7.1"
-rustbox = { git = "https://github.com/jmacdonald/rustbox", branch = "suspend" }
+rustbox = "0.11.0"
 termion = "1.5.1"
 error-chain = "0.11.0"
 unicode-segmentation = "1.0.1"

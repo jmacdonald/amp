@@ -29,7 +29,7 @@ dependencies = [
  "luthor 0.1.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "pad 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 0.1.80 (registry+https://github.com/rust-lang/crates.io-index)",
- "rustbox 0.10.0 (git+https://github.com/jmacdonald/rustbox?branch=suspend)",
+ "rustbox 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "scribe 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "smallvec 0.4.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "syntect 1.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -800,8 +800,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "rustbox"
-version = "0.10.0"
-source = "git+https://github.com/jmacdonald/rustbox?branch=suspend#9258c6ce507078729725b0ca9a33f94504ff474f"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "bitflags 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "gag 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1331,7 +1331,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum regex 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)" = "5be5347bde0c48cfd8c3fdc0766cdfe9d8a755ef84d620d6794c778c91de8b2b"
 "checksum regex-syntax 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)" = "f9ec002c35e86791825ed294b50008eea9ddfc8def4420124fbc6b08db834957"
 "checksum regex-syntax 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)" = "8e931c58b93d86f080c734bfd2bce7dd0079ae2331235818133c8be7f422e20e"
-"checksum rustbox 0.10.0 (git+https://github.com/jmacdonald/rustbox?branch=suspend)" = "<none>"
+"checksum rustbox 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)" = "8efd06a5d2faf705b3257e8ce1a039b82d777f84ea203e93dfbcc9c86cf750b1"
 "checksum rustc-demangle 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)" = "aee45432acc62f7b9a108cc054142dac51f979e69e71ddce7d6fc7adf29e817e"
 "checksum rustc-serialize 0.3.24 (registry+https://github.com/rust-lang/crates.io-index)" = "dcf128d1287d2ea9d80910b5f1120d0b8eede3fbf1abe91c40d39ea7d51e6fda"
 "checksum safemem 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e27a8b19b835f7aea908818e871f5cc3a5a186550c30773be987e155e8163d8f"
