@@ -1,6 +1,7 @@
 use models::application::Preferences;
 use scribe::buffer::{Buffer, Lexeme, Position, Range, Token};
 use view::buffer::LexemeMapper;
+use view::buffer::line_numbers::*;
 use view::{Colors, RGBColor, Style};
 use view::color::ColorMap;
 use view::color::to_rgb_color;
@@ -20,7 +21,7 @@ pub struct BufferRenderer<'a, 'b> {
     stylist: Highlighter<'a>,
     current_style: ThemeStyle,
     lexeme_mapper: Option<&'b mut LexemeMapper>,
-    line_number_width: usize,
+    line_numbers: LineNumbers,
     preferences: &'a Preferences,
     screen_position: Position,
     scroll_offset: usize,
@@ -32,8 +33,8 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     pub fn new(buffer: &'a Buffer, highlights: Option<&'a Vec<Range>>,
     lexeme_mapper: Option<&'b mut LexemeMapper>, scroll_offset: usize,
     terminal: &'a Terminal, theme: &'a Theme, preferences: &'a Preferences) -> BufferRenderer<'a, 'b> {
-        // Determine the gutter size based on the number of lines.
-        let line_number_width = buffer.line_count().to_string().len() + 1;
+        let line_numbers = LineNumbers::new(&buffer, Some(scroll_offset));
+        let gutter_width = line_numbers.width() + 1;
 
         // Build an initial style to start with,
         // which we'll modify as we highlight tokens.
@@ -43,12 +44,12 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         BufferRenderer{
             buffer: buffer,
             cursor_position: None,
-            gutter_width: line_number_width + 2,
+            gutter_width: gutter_width,
             highlights: highlights,
             stylist: stylist,
             current_style: current_style,
             lexeme_mapper: lexeme_mapper,
-            line_number_width: line_number_width,
+            line_numbers: line_numbers,
             buffer_position: Position{ line: 0, offset: 0 },
             preferences: preferences,
             screen_position: Position{ line: 0, offset: 0 },
@@ -276,42 +277,32 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     fn print_line_number(&mut self) {
         if !self.inside_visible_content() { return };
 
-        let mut offset = 0;
+        let line_number = self.line_numbers.next().unwrap();
 
-        // Get left-padded string-based line number.
-        let formatted_line_number = format!(
-            "{:>width$}  ",
-            self.buffer_position.line + 1,
-            width = self.line_number_width
+        // Cursor line number is emboldened.
+        let weight = if self.on_cursor_line() {
+            Style::Bold
+        } else {
+            Style::Default
+        };
+
+        self.terminal.print(
+            &Position{ line: self.screen_position.line, offset: 0 },
+            weight,
+            self.theme.map_colors(Colors::Focused),
+            &line_number
         );
 
-        // Print numbers.
-        for number in formatted_line_number.chars() {
-            // Numbers (and their leading spaces) have background
-            // color, but the right-hand side gutter gap does not.
-            let color = if offset > self.line_number_width && !self.on_cursor_line() {
-                Colors::Default
-            } else {
-                Colors::Focused
-            };
-
-            // Cursor line number is emboldened.
-            let weight = if self.on_cursor_line() {
-                Style::Bold
-            } else {
-                Style::Default
-            };
-
-            let position = Position{
-                line: self.screen_position.line,
-                offset: offset
-            };
-            self.terminal.print(&position, weight, self.theme.map_colors(color), &number);
-
-            offset += 1;
+        // Leave a one-column gap between line numbers and buffer content.
+        if self.on_cursor_line() {
+            self.terminal.print(
+                &Position{ line: self.screen_position.line, offset: self.line_numbers.width() },
+                weight,
+                self.theme.map_colors(Colors::Focused),
+                &line_number
+            );
         }
-
-        self.screen_position.offset = offset;
+        self.screen_position.offset = self.line_numbers.width() + 1;
     }
 
     fn next_tab_stop(&self, offset: usize) -> usize {

@@ -1,5 +1,6 @@
 mod buffer_renderer;
 mod lexeme_mapper;
+mod line_numbers;
 mod scrollable_region;
 
 pub use self::buffer_renderer::BufferRenderer;
