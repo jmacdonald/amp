@@ -1,6 +1,7 @@
 use models::application::Preferences;
 use scribe::buffer::{Buffer, Lexeme, Position, Range, Token};
 use view::buffer::LexemeMapper;
+use view::buffer::line_numbers::*;
 use view::{Colors, RGBColor, Style};
 use view::color::ColorMap;
 use view::color::to_rgb_color;
@@ -33,7 +34,11 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     lexeme_mapper: Option<&'b mut LexemeMapper>, scroll_offset: usize,
     terminal: &'a Terminal, theme: &'a Theme, preferences: &'a Preferences) -> BufferRenderer<'a, 'b> {
         // Determine the gutter size based on the number of lines.
-        let line_number_width = buffer.line_count().to_string().len() + 1;
+        let line_number_width = line_number_width(&buffer);
+        let gutter_width =
+            line_number_width +
+            LINE_NUMBER_GUTTER_PADDING +
+            LINE_NUMBER_GUTTER_MARGIN;
 
         // Build an initial style to start with,
         // which we'll modify as we highlight tokens.
@@ -43,7 +48,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         BufferRenderer{
             buffer: buffer,
             cursor_position: None,
-            gutter_width: line_number_width + 2,
+            gutter_width: gutter_width,
             highlights: highlights,
             stylist: stylist,
             current_style: current_style,
@@ -278,22 +283,26 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
         let mut offset = 0;
 
-        // Get left-padded string-based line number.
+        // Pad line number. Line numbers are right-aligned, so left padding is
+        // dynamic, and is conscious of the total number of lines in the buffer.
         let formatted_line_number = format!(
-            "{:>width$}  ",
+            "{:>line_number_width_with_left_padding$}  ",
             self.buffer_position.line + 1,
-            width = self.line_number_width
+            line_number_width_with_left_padding = self.line_number_width + 1
         );
 
         // Print numbers.
         for number in formatted_line_number.chars() {
             // Numbers (and their leading spaces) have background
             // color, but the right-hand side gutter gap does not.
-            let color = if offset > self.line_number_width && !self.on_cursor_line() {
-                Colors::Default
-            } else {
-                Colors::Focused
-            };
+            let line_number_gutter_colored_width = self.line_number_width +
+                LINE_NUMBER_GUTTER_PADDING;
+            let color =
+                if offset >= line_number_gutter_colored_width && !self.on_cursor_line() {
+                    Colors::Default
+                } else {
+                    Colors::Focused
+                };
 
             // Cursor line number is emboldened.
             let weight = if self.on_cursor_line() {
