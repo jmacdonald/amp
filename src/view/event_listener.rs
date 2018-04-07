@@ -4,18 +4,18 @@ use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
 use view::Terminal;
 
-pub struct InputListener {
+pub struct EventListener {
     terminal: Arc<Terminal + Sync + Send>,
     events: Sender<Event>,
     killswitch: Receiver<()>
 }
 
-impl InputListener {
-    /// Spins up a thread that loops forever, waiting on input from the user
-    /// and forwarding key presses to the application event channel.
+impl EventListener {
+    /// Spins up a thread that loops forever, waiting on terminal events
+    /// and forwarding those to the application event channel.
     pub fn start(terminal: Arc<Terminal + Sync + Send>, events: Sender<Event>, killswitch: Receiver<()>) {
         thread::spawn(move || {
-            InputListener {
+            EventListener {
                 terminal: terminal,
                 events: events,
                 killswitch: killswitch
@@ -40,7 +40,7 @@ mod tests {
     use models::application::Event;
     use std::sync::Arc;
     use std::sync::mpsc;
-    use super::InputListener;
+    use super::EventListener;
     use view::terminal::test_terminal::TestTerminal;
 
     #[test]
@@ -48,7 +48,7 @@ mod tests {
         let terminal = Arc::new(TestTerminal::new());
         let (event_tx, event_rx) = mpsc::channel();
         let (_, killswitch_rx) = mpsc::sync_channel(0);
-        InputListener::start(terminal.clone(), event_tx, killswitch_rx);
+        EventListener::start(terminal.clone(), event_tx, killswitch_rx);
         let event = event_rx.recv().unwrap();
 
         assert_eq!(event, Event::Key(Key::Char('A')));

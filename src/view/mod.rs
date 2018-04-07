@@ -3,7 +3,7 @@ pub mod terminal;
 pub mod color;
 mod buffer_renderer;
 mod data;
-mod input_listener;
+mod event_listener;
 mod style;
 mod theme_loader;
 
@@ -19,7 +19,7 @@ use models::application::{Event, Preferences};
 use self::color::ColorMap;
 use self::terminal::Terminal;
 use self::buffer_renderer::BufferRenderer;
-use self::input_listener::InputListener;
+use self::event_listener::EventListener;
 use scribe::buffer::{Buffer, Position, Range};
 use pad::PadStr;
 use std::cmp;
@@ -43,7 +43,7 @@ pub struct View {
     preferences: Rc<RefCell<Preferences>>,
     pub last_key: Option<Key>,
     event_channel: Sender<Event>,
-    input_listener_killswitch: SyncSender<()>
+    event_listener_killswitch: SyncSender<()>
 }
 
 impl View {
@@ -53,7 +53,7 @@ impl View {
         let theme_set = ThemeLoader::new(theme_path).load()?;
 
         let (killswitch_tx, killswitch_rx) = mpsc::sync_channel(0);
-        InputListener::start(terminal.clone(), event_channel.clone(), killswitch_rx);
+        EventListener::start(terminal.clone(), event_channel.clone(), killswitch_rx);
 
         Ok(View {
             terminal: terminal,
@@ -63,7 +63,7 @@ impl View {
             scrollable_regions: HashMap::new(),
             theme_set: theme_set,
             event_channel: event_channel,
-            input_listener_killswitch: killswitch_tx
+            event_listener_killswitch: killswitch_tx
         })
     }
 
@@ -245,11 +245,11 @@ impl View {
     }
 
     pub fn suspend(&mut self) {
-        let _ = self.input_listener_killswitch.send(());
+        let _ = self.event_listener_killswitch.send(());
         self.terminal.suspend();
         let (killswitch_tx, killswitch_rx) = mpsc::sync_channel(0);
-        InputListener::start(self.terminal.clone(), self.event_channel.clone(), killswitch_rx);
-        self.input_listener_killswitch = killswitch_tx;
+        EventListener::start(self.terminal.clone(), self.event_channel.clone(), killswitch_rx);
+        self.event_listener_killswitch = killswitch_tx;
     }
 
     pub fn last_key(&self) -> &Option<Key> {
@@ -259,7 +259,7 @@ impl View {
 
 impl Drop for View {
     fn drop(&mut self) {
-        let _ = self.input_listener_killswitch.send(());
+        let _ = self.event_listener_killswitch.send(());
     }
 }
 
