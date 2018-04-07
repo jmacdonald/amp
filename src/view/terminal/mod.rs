@@ -1,14 +1,14 @@
 mod rustbox_terminal;
 
+use models::application::Event;
 use scribe::buffer::Position;
-use view::{Colors, Style};
-use input::Key;
 use std::fmt::Display;
+use view::{Colors, Style};
 
 pub use self::rustbox_terminal::RustboxTerminal;
 
 pub trait Terminal {
-    fn listen(&self) -> Option<Key>;
+    fn listen(&self) -> Option<Event>;
     fn clear(&self);
     fn present(&self);
     fn width(&self) -> usize;

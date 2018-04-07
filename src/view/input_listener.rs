@@ -25,8 +25,8 @@ impl InputListener {
 
     fn listen(&mut self) {
         loop {
-            if let Some(key) = self.terminal.listen() {
-                self.events.send(Event::Key(key)).ok();
+            if let Some(event) = self.terminal.listen() {
+                self.events.send(event).ok();
             } else if self.killswitch.try_recv().is_ok() {
                 break;
             }

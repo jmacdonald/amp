@@ -14,6 +14,7 @@ use view::{Colors, Style};
 
 use self::termion::event::Key as TermionKey;
 use input::Key;
+use models::application::Event;
 
 pub struct TermionTerminal {
     input: Option<Keys<Stdin>>,
@@ -83,27 +84,27 @@ impl TermionTerminal {
 }
 
 impl Terminal for TermionTerminal {
-    fn listen(&mut self) -> Option<Key> {
+    fn listen(&mut self) -> Option<Event> {
         self.input.as_mut().and_then(|i| {
             i.next().and_then(|k| {
                 k.ok().and_then(|k| {
                     match k {
-                        TermionKey::Backspace => Some(Key::Backspace),
-                        TermionKey::Left => Some(Key::Left),
-                        TermionKey::Right => Some(Key::Right),
-                        TermionKey::Up => Some(Key::Up),
-                        TermionKey::Down => Some(Key::Down),
-                        TermionKey::Home => Some(Key::Home),
-                        TermionKey::End => Some(Key::End),
-                        TermionKey::PageUp => Some(Key::PageUp),
-                        TermionKey::PageDown => Some(Key::PageDown),
-                        TermionKey::Delete => Some(Key::Delete),
-                        TermionKey::Insert => Some(Key::Insert),
-                        TermionKey::Esc => Some(Key::Esc),
-                        TermionKey::Char('\n') => Some(Key::Enter),
-                        TermionKey::Char('\t') => Some(Key::Tab),
-                        TermionKey::Char(c) => Some(Key::Char(c)),
-                        TermionKey::Ctrl(c) => Some(Key::Ctrl(c)),
+                        TermionKey::Backspace => Some(Event::Key(Key::Backspace)),
+                        TermionKey::Left => Some(Event::Key(Key::Left)),
+                        TermionKey::Right => Some(Event::Key(Key::Right)),
+                        TermionKey::Up => Some(Event::Key(Key::Up)),
+                        TermionKey::Down => Some(Event::Key(Key::Down)),
+                        TermionKey::Home => Some(Event::Key(Key::Home)),
+                        TermionKey::End => Some(Event::Key(Key::End)),
+                        TermionKey::PageUp => Some(Event::Key(Key::PageUp)),
+                        TermionKey::PageDown => Some(Event::Key(Key::PageDown)),
+                        TermionKey::Delete => Some(Event::Key(Key::Delete)),
+                        TermionKey::Insert => Some(Event::Key(Key::Insert)),
+                        TermionKey::Esc => Some(Event::Key(Key::Esc)),
+                        TermionKey::Char('\n') => Some(Event::Key(Key::Enter)),
+                        TermionKey::Char('\t') => Some(Event::Key(Key::Tab)),
+                        TermionKey::Char(c) => Some(Event::Key(Key::Char(c))),
+                        TermionKey::Ctrl(c) => Some(Event::Key(Key::Ctrl(c))),
                         _ => None,
                     }
                 })

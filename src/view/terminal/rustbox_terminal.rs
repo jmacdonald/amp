@@ -2,6 +2,7 @@ extern crate rustbox;
 extern crate libc;
 
 use input::Key;
+use models::application::Event;
 use scribe::buffer::Position;
 use self::rustbox::{OutputMode, RustBox};
 use self::rustbox::Color as RustboxColor;
@@ -36,29 +37,30 @@ impl RustboxTerminal {
 
 
 impl Terminal for RustboxTerminal {
-    fn listen(&self) -> Option<Key> {
+    fn listen(&self) -> Option<Event> {
         match self.rustbox.peek_event(self.timeout, false) {
             Ok(rustbox::Event::KeyEvent(key)) => {
                 match key {
-                    RustboxKey::Tab => Some(Key::Tab),
-                    RustboxKey::Enter => Some(Key::Enter),
-                    RustboxKey::Esc => Some(Key::Esc),
-                    RustboxKey::Backspace => Some(Key::Backspace),
-                    RustboxKey::Right => Some(Key::Right),
-                    RustboxKey::Left => Some(Key::Left),
-                    RustboxKey::Up => Some(Key::Up),
-                    RustboxKey::Down => Some(Key::Down),
-                    RustboxKey::Delete => Some(Key::Delete),
-                    RustboxKey::Insert => Some(Key::Insert),
-                    RustboxKey::Home => Some(Key::Home),
-                    RustboxKey::End => Some(Key::End),
-                    RustboxKey::PageUp => Some(Key::PageUp),
-                    RustboxKey::PageDown => Some(Key::PageDown),
-                    RustboxKey::Char(c) => Some(Key::Char(c)),
-                    RustboxKey::Ctrl(c) => Some(Key::Ctrl(c)),
+                    RustboxKey::Tab => Some(Event::Key(Key::Tab)),
+                    RustboxKey::Enter => Some(Event::Key(Key::Enter)),
+                    RustboxKey::Esc => Some(Event::Key(Key::Esc)),
+                    RustboxKey::Backspace => Some(Event::Key(Key::Backspace)),
+                    RustboxKey::Right => Some(Event::Key(Key::Right)),
+                    RustboxKey::Left => Some(Event::Key(Key::Left)),
+                    RustboxKey::Up => Some(Event::Key(Key::Up)),
+                    RustboxKey::Down => Some(Event::Key(Key::Down)),
+                    RustboxKey::Delete => Some(Event::Key(Key::Delete)),
+                    RustboxKey::Insert => Some(Event::Key(Key::Insert)),
+                    RustboxKey::Home => Some(Event::Key(Key::Home)),
+                    RustboxKey::End => Some(Event::Key(Key::End)),
+                    RustboxKey::PageUp => Some(Event::Key(Key::PageUp)),
+                    RustboxKey::PageDown => Some(Event::Key(Key::PageDown)),
+                    RustboxKey::Char(c) => Some(Event::Key(Key::Char(c))),
+                    RustboxKey::Ctrl(c) => Some(Event::Key(Key::Ctrl(c))),
                     _ => None,
                 }
             },
+            Ok(rustbox::Event::ResizeEvent(_, _)) => { Some(Event::Resize) }
             _ => None,
         }
     }

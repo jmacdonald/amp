@@ -1,9 +1,10 @@
+use input::Key;
+use models::application::Event;
 use scribe::buffer::Position;
 use std::sync::Mutex;
 use std::fmt::Display;
 use super::Terminal;
 use view::{Colors, Style};
-use input::Key;
 
 const WIDTH: usize = 10;
 const HEIGHT: usize = 10;
@@ -61,7 +62,7 @@ impl TestTerminal {
 }
 
 impl Terminal for TestTerminal {
-    fn listen(&self) -> Option<Key> {
+    fn listen(&self) -> Option<Event> {
         // This implementation will return a key once, followed by nothing.
         // This allows us to test both scenarios, the latter being crucial
         // to stopping the application in test mode; the input listener only
@@ -71,7 +72,7 @@ impl Terminal for TestTerminal {
             None
         } else {
             *key_sent = true;
-            Some(Key::Char('A'))
+            Some(Event::Key(Key::Char('A')))
         }
     }
     fn clear(&self) {

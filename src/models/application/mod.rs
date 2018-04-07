@@ -217,6 +217,7 @@ impl Application {
                 self.view.last_key = Some(key);
                 self.error = commands::application::handle_input(self).err();
             },
+            Event::Resize => {},
             Event::OpenModeIndexComplete(index) => {
                 if let Mode::Open(ref mut open_mode) = self.mode {
                     open_mode.set_index(index);
