@@ -1,7 +1,7 @@
 pub mod scrollable_region;
 pub mod terminal;
 pub mod color;
-mod buffer_renderer;
+mod buffer;
 mod data;
 mod event_listener;
 mod style;
@@ -9,7 +9,7 @@ mod theme_loader;
 
 // Published API
 pub use self::data::StatusLineData;
-pub use self::buffer_renderer::LexemeMapper;
+pub use self::buffer::LexemeMapper;
 pub use self::style::Style;
 pub use self::color::{Colors, RGBColor};
 
@@ -18,7 +18,7 @@ use input::Key;
 use models::application::{Event, Preferences};
 use self::color::ColorMap;
 use self::terminal::Terminal;
-use self::buffer_renderer::BufferRenderer;
+use self::buffer::BufferRenderer;
 use self::event_listener::EventListener;
 use scribe::buffer::{Buffer, Position, Range};
 use pad::PadStr;

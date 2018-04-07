@@ -1,5 +1,6 @@
 use models::application::Preferences;
 use scribe::buffer::{Buffer, Lexeme, Position, Range, Token};
+use view::buffer::LexemeMapper;
 use view::{Colors, RGBColor, Style};
 use view::color::ColorMap;
 use view::color::to_rgb_color;
@@ -7,10 +8,6 @@ use view::terminal::Terminal;
 use syntect::highlighting::{Highlighter, Theme};
 use syntect::highlighting::Style as ThemeStyle;
 use errors::*;
-
-pub trait LexemeMapper {
-    fn map<'x, 'y>(&'x mut self, lexeme: Lexeme<'y>) -> Vec<Lexeme<'x>>;
-}
 
 /// A one-time-use type that encapsulates all of the
 /// details involved in rendering a buffer to the screen.
