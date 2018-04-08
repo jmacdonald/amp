@@ -5,12 +5,16 @@ pub const LINE_NUMBER_GUTTER_MARGIN: usize = 1;
 pub const LINE_NUMBER_GUTTER_PADDING: usize = 2;
 
 pub struct LineNumbers {
-    current_number: usize
+    current_number: usize,
+    buffer_line_count_width: usize,
 }
 
 impl LineNumbers {
-    pub fn new() -> LineNumbers {
-        LineNumbers{ current_number: 0 }
+    pub fn new(buffer: &Buffer) -> LineNumbers {
+        LineNumbers{
+            current_number: 0,
+            buffer_line_count_width: buffer.line_count().to_string().len()
+        }
     }
 }
 
@@ -20,7 +24,11 @@ impl Iterator for LineNumbers {
     fn next(&mut self) -> Option<String> {
         self.current_number += 1;
         Some(
-            format!("{}", self.current_number)
+            format!(
+                "{:>width$} ",
+                self.current_number,
+                width = self.buffer_line_count_width + 1
+            )
         )
     }
 }
@@ -46,16 +54,42 @@ mod tests {
 
     #[test]
     fn line_numbers_start_at_one() {
-        let mut line_numbers = LineNumbers::new();
-        let next_number: usize = line_numbers.next().unwrap().parse().unwrap();
+        let buffer = Buffer::new();
+        let mut line_numbers = LineNumbers::new(&buffer);
+        let next_number: usize = line_numbers
+            .next()
+            .unwrap()
+            .split_whitespace()
+            .last()
+            .unwrap()
+            .parse()
+            .unwrap();
         assert_eq!(next_number, 1);
     }
 
     #[test]
     fn line_numbers_increment_by_one() {
-        let mut line_numbers = LineNumbers::new();
+        let buffer = Buffer::new();
+        let mut line_numbers = LineNumbers::new(&buffer);
         line_numbers.next();
-        let next_number: usize = line_numbers.next().unwrap().parse().unwrap();
+        let next_number: usize = line_numbers
+            .next()
+            .unwrap()
+            .split_whitespace()
+            .last()
+            .unwrap()
+            .parse()
+            .unwrap();
         assert_eq!(next_number, 2);
+    }
+
+    #[test]
+    fn line_numbers_are_left_padded_based_on_buffer_line_count_width() {
+        let mut buffer = Buffer::new();
+        for _ in 0..101 {
+            buffer.insert("\n");
+        }
+        let mut line_numbers = LineNumbers::new(&buffer);
+        assert_eq!(line_numbers.next().unwrap(), "   1 ");
     }
 }
