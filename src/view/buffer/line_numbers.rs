@@ -15,11 +15,13 @@ impl LineNumbers {
 }
 
 impl Iterator for LineNumbers {
-    type Item = usize;
+    type Item = String;
 
-    fn next(&mut self) -> Option<usize> {
+    fn next(&mut self) -> Option<String> {
         self.current_number += 1;
-        Some(self.current_number)
+        Some(
+            format!("{}", self.current_number)
+        )
     }
 }
 
@@ -45,13 +47,15 @@ mod tests {
     #[test]
     fn line_numbers_start_at_one() {
         let mut line_numbers = LineNumbers::new();
-        assert_eq!(line_numbers.next(), Some(1));
+        let next_number: usize = line_numbers.next().unwrap().parse().unwrap();
+        assert_eq!(next_number, 1);
     }
 
     #[test]
     fn line_numbers_increment_by_one() {
         let mut line_numbers = LineNumbers::new();
         line_numbers.next();
-        assert_eq!(line_numbers.next(), Some(2));
+        let next_number: usize = line_numbers.next().unwrap().parse().unwrap();
+        assert_eq!(next_number, 2);
     }
 }
