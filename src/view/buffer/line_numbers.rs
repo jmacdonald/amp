@@ -10,9 +10,9 @@ pub struct LineNumbers {
 }
 
 impl LineNumbers {
-    pub fn new(buffer: &Buffer) -> LineNumbers {
+    pub fn new(buffer: &Buffer, offset: Option<usize>) -> LineNumbers {
         LineNumbers{
-            current_number: 0,
+            current_number: offset.unwrap_or(0),
             buffer_line_count_width: buffer.line_count().to_string().len()
         }
     }
@@ -53,9 +53,9 @@ mod tests {
     }
 
     #[test]
-    fn line_numbers_start_at_one() {
+    fn line_numbers_without_offset_start_at_one() {
         let buffer = Buffer::new();
-        let mut line_numbers = LineNumbers::new(&buffer);
+        let mut line_numbers = LineNumbers::new(&buffer, None);
         let next_number: usize = line_numbers
             .next()
             .unwrap()
@@ -68,9 +68,25 @@ mod tests {
     }
 
     #[test]
+    fn line_numbers_with_offset_start_at_offset_plus_one() {
+        let buffer = Buffer::new();
+        let offset = 10;
+        let mut line_numbers = LineNumbers::new(&buffer, Some(offset));
+        let next_number: usize = line_numbers
+            .next()
+            .unwrap()
+            .split_whitespace()
+            .last()
+            .unwrap()
+            .parse()
+            .unwrap();
+        assert_eq!(next_number, offset + 1);
+    }
+
+    #[test]
     fn line_numbers_increment_by_one() {
         let buffer = Buffer::new();
-        let mut line_numbers = LineNumbers::new(&buffer);
+        let mut line_numbers = LineNumbers::new(&buffer, None);
         line_numbers.next();
         let next_number: usize = line_numbers
             .next()
@@ -89,7 +105,7 @@ mod tests {
         for _ in 0..101 {
             buffer.insert("\n");
         }
-        let mut line_numbers = LineNumbers::new(&buffer);
+        let mut line_numbers = LineNumbers::new(&buffer, None);
         assert_eq!(line_numbers.next().unwrap(), "   1 ");
     }
 }
