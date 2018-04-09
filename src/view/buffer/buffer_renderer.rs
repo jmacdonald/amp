@@ -21,7 +21,7 @@ pub struct BufferRenderer<'a, 'b> {
     stylist: Highlighter<'a>,
     current_style: ThemeStyle,
     lexeme_mapper: Option<&'b mut LexemeMapper>,
-    line_number_width: usize,
+    line_numbers: LineNumbers,
     preferences: &'a Preferences,
     screen_position: Position,
     scroll_offset: usize,
@@ -53,7 +53,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             stylist: stylist,
             current_style: current_style,
             lexeme_mapper: lexeme_mapper,
-            line_number_width: line_number_width,
+            line_numbers: LineNumbers::new(&buffer, Some(scroll_offset)),
             buffer_position: Position{ line: 0, offset: 0 },
             preferences: preferences,
             screen_position: Position{ line: 0, offset: 0 },
@@ -283,27 +283,8 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
         let mut offset = 0;
 
-        // Pad line number. Line numbers are right-aligned, so left padding is
-        // dynamic, and is conscious of the total number of lines in the buffer.
-        let formatted_line_number = format!(
-            "{:>line_number_width_with_left_padding$}  ",
-            self.buffer_position.line + 1,
-            line_number_width_with_left_padding = self.line_number_width + 1
-        );
-
         // Print numbers.
-        for number in formatted_line_number.chars() {
-            // Numbers (and their leading spaces) have background
-            // color, but the right-hand side gutter gap does not.
-            let line_number_gutter_colored_width = self.line_number_width +
-                LINE_NUMBER_GUTTER_PADDING;
-            let color =
-                if offset >= line_number_gutter_colored_width && !self.on_cursor_line() {
-                    Colors::Default
-                } else {
-                    Colors::Focused
-                };
-
+        for number in self.line_numbers.next().unwrap().chars() {
             // Cursor line number is emboldened.
             let weight = if self.on_cursor_line() {
                 Style::Bold
@@ -311,16 +292,18 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
                 Style::Default
             };
 
-            let position = Position{
-                line: self.screen_position.line,
-                offset: offset
-            };
-            self.terminal.print(&position, weight, self.theme.map_colors(color), &number);
+            self.terminal.print(
+                &Position{ line: self.screen_position.line, offset: offset },
+                weight,
+                self.theme.map_colors(Colors::Focused),
+                &number
+            );
 
             offset += 1;
         }
 
-        self.screen_position.offset = offset;
+        // Leave a one-column gap between line numbers and buffer content.
+        self.screen_position.offset = offset + 1;
     }
 
     fn next_tab_stop(&self, offset: usize) -> usize {
