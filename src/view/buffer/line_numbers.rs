@@ -1,8 +1,7 @@
 use scribe::Buffer;
 use std::iter::Iterator;
 
-pub const LINE_NUMBER_GUTTER_MARGIN: usize = 1;
-pub const LINE_NUMBER_GUTTER_PADDING: usize = 2;
+pub const PADDING_WIDTH: usize = 2;
 
 pub struct LineNumbers {
     current_number: usize,
@@ -16,6 +15,10 @@ impl LineNumbers {
             buffer_line_count_width: buffer.line_count().to_string().len()
         }
     }
+
+    pub fn width(&self) -> usize {
+        self.buffer_line_count_width + PADDING_WIDTH
+    }
 }
 
 impl Iterator for LineNumbers {
@@ -25,16 +28,12 @@ impl Iterator for LineNumbers {
         self.current_number += 1;
         Some(
             format!(
-                "{:>width$} ",
+                " {:>width$} ",
                 self.current_number,
-                width = self.buffer_line_count_width + 1
+                width = self.buffer_line_count_width
             )
         )
     }
-}
-
-pub fn line_number_width(buffer: &Buffer) -> usize {
-    buffer.line_count().to_string().len()
 }
 
 #[cfg(test)]
@@ -43,13 +42,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn line_number_width_considers_buffer_line_count() {
+    fn width_considers_buffer_line_count_and_padding() {
         let mut buffer = Buffer::new();
         for _ in 0..101 {
             buffer.insert("\n");
         }
+        let line_numbers = LineNumbers::new(&buffer, None);
 
-        assert_eq!(line_number_width(&buffer), 3);
+        assert_eq!(line_numbers.width(), 5);
     }
 
     #[test]

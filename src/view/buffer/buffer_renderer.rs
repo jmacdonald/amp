@@ -33,12 +33,8 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     pub fn new(buffer: &'a Buffer, highlights: Option<&'a Vec<Range>>,
     lexeme_mapper: Option<&'b mut LexemeMapper>, scroll_offset: usize,
     terminal: &'a Terminal, theme: &'a Theme, preferences: &'a Preferences) -> BufferRenderer<'a, 'b> {
-        // Determine the gutter size based on the number of lines.
-        let line_number_width = line_number_width(&buffer);
-        let gutter_width =
-            line_number_width +
-            LINE_NUMBER_GUTTER_PADDING +
-            LINE_NUMBER_GUTTER_MARGIN;
+        let line_numbers = LineNumbers::new(&buffer, Some(scroll_offset));
+        let gutter_width = line_numbers.width() + 1;
 
         // Build an initial style to start with,
         // which we'll modify as we highlight tokens.
@@ -53,7 +49,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             stylist: stylist,
             current_style: current_style,
             lexeme_mapper: lexeme_mapper,
-            line_numbers: LineNumbers::new(&buffer, Some(scroll_offset)),
+            line_numbers: line_numbers,
             buffer_position: Position{ line: 0, offset: 0 },
             preferences: preferences,
             screen_position: Position{ line: 0, offset: 0 },
