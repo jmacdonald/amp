@@ -277,29 +277,22 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     fn print_line_number(&mut self) {
         if !self.inside_visible_content() { return };
 
-        let mut offset = 0;
+        // Cursor line number is emboldened.
+        let weight = if self.on_cursor_line() {
+            Style::Bold
+        } else {
+            Style::Default
+        };
 
-        // Print numbers.
-        for number in self.line_numbers.next().unwrap().chars() {
-            // Cursor line number is emboldened.
-            let weight = if self.on_cursor_line() {
-                Style::Bold
-            } else {
-                Style::Default
-            };
-
-            self.terminal.print(
-                &Position{ line: self.screen_position.line, offset: offset },
-                weight,
-                self.theme.map_colors(Colors::Focused),
-                &number
-            );
-
-            offset += 1;
-        }
+        self.terminal.print(
+            &Position{ line: self.screen_position.line, offset: 0 },
+            weight,
+            self.theme.map_colors(Colors::Focused),
+            &self.line_numbers.next().unwrap()
+        );
 
         // Leave a one-column gap between line numbers and buffer content.
-        self.screen_position.offset = offset + 1;
+        self.screen_position.offset = self.line_numbers.width() + 1;
     }
 
     fn next_tab_stop(&self, offset: usize) -> usize {
