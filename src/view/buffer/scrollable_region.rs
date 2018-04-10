@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use scribe::buffer::LineRange;
+use scribe::buffer::{Buffer, LineRange};
 use view::terminal::Terminal;
 
 /// Abstract representation of a fixed-height section of the screen.
@@ -21,18 +21,18 @@ impl ScrollableRegion {
     /// If necessary, moves the line offset such that the specified line is
     /// visible, using previous state to determine whether said line is at
     /// the top or bottom of the new visible range.
-    pub fn scroll_into_view(&mut self, line: usize) {
+    pub fn scroll_into_view(&mut self, buffer: &Buffer) {
         let range = self.visible_range();
-        if line < range.start() {
-            self.line_offset = line;
-        } else if line >= range.end() {
-            self.line_offset = line - self.height() + 1;
+        if buffer.cursor.line < range.start() {
+            self.line_offset = buffer.cursor.line;
+        } else if buffer.cursor.line >= range.end() {
+            self.line_offset = buffer.cursor.line - self.height() + 1;
         }
     }
 
     /// Moves the line offset such that the specified line is centered vertically.
-    pub fn scroll_to_center(&mut self, line: usize) {
-        self.line_offset = line.checked_sub(self.height() / 2).unwrap_or(0);
+    pub fn scroll_to_center(&mut self, buffer: &Buffer) {
+        self.line_offset = buffer.cursor.line.checked_sub(self.height() / 2).unwrap_or(0);
     }
 
     /// The number of lines the region has scrolled over.
@@ -69,14 +69,19 @@ mod tests {
     use std::sync::Arc;
     use super::ScrollableRegion;
     use view::terminal::test_terminal::TestTerminal;
-    use scribe::buffer::LineRange;
+    use scribe::buffer::{Buffer, LineRange, Position};
 
     #[test]
     fn scroll_into_view_advances_region_if_line_after_current_range() {
         let terminal = Arc::new(TestTerminal::new());
+        let mut buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_down(10);
-        region.scroll_into_view(40);
+        for _ in 0..40 {
+            buffer.insert("\n");
+        }
+        buffer.cursor.move_to(Position{ line: 40, offset: 0 });
+        region.scroll_into_view(&buffer);
         let range = region.visible_range();
         assert_eq!(range.start(), 32);
         assert_eq!(range.end(), 41);
@@ -85,19 +90,33 @@ mod tests {
     #[test]
     fn scroll_into_view_recedes_region_if_line_before_current_range() {
         let terminal = Arc::new(TestTerminal::new());
+        let mut buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_down(10);
-        region.scroll_into_view(5);
+        for _ in 0..5 {
+            buffer.insert("\n");
+        }
+        buffer.cursor.move_to(Position{ line: 5, offset: 0 });
+        region.scroll_into_view(&buffer);
         let range = region.visible_range();
         assert_eq!(range.start(), 5);
         assert_eq!(range.end(), 14);
     }
 
     #[test]
+    fn scroll_into_view_considers_line_wrapping() {
+    }
+
+    #[test]
     fn scroll_to_center_sets_correct_line_offset() {
         let terminal = Arc::new(TestTerminal::new());
+        let mut buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
-        region.scroll_to_center(20);
+        for _ in 0..20 {
+            buffer.insert("\n");
+        }
+        buffer.cursor.move_to(Position{ line: 20, offset: 0 });
+        region.scroll_to_center(&buffer);
         let range = region.visible_range();
         assert_eq!(range.start(), 16);
         assert_eq!(range.end(), 25);
@@ -106,11 +125,16 @@ mod tests {
     #[test]
     fn scroll_to_center_does_not_set_negative_offset() {
         let terminal = Arc::new(TestTerminal::new());
+        let buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
-        region.scroll_to_center(0);
+        region.scroll_to_center(&buffer);
         let range = region.visible_range();
         assert_eq!(range.start(), 0);
         assert_eq!(range.end(), 9);
+    }
+
+    #[test]
+    fn scroll_to_center_considers_line_wrapping() {
     }
 
     #[test]
