@@ -1,5 +1,7 @@
 use std::sync::Arc;
-use scribe::buffer::{Buffer, LineRange};
+use scribe::buffer::Buffer;
+use unicode_segmentation::UnicodeSegmentation;
+use view::buffer::LineNumbers;
 use view::terminal::Terminal;
 
 /// Abstract representation of a fixed-height section of the screen.
@@ -22,11 +24,49 @@ impl ScrollableRegion {
     /// visible, using previous state to determine whether said line is at
     /// the top or bottom of the new visible range.
     pub fn scroll_into_view(&mut self, buffer: &Buffer) {
-        let range = self.visible_range();
-        if buffer.cursor.line < range.start() {
+        if buffer.cursor.line <= self.line_offset {
+            // Cursor is above visible range.
             self.line_offset = buffer.cursor.line;
-        } else if buffer.cursor.line >= range.end() {
-            self.line_offset = buffer.cursor.line - self.height() + 1;
+        } else {
+            // The buffer renderer adds a single-column margin
+            // to the right-hand side of the line number columns.
+            let gutter_width = LineNumbers::new(&buffer, None).width() + 1;
+
+            let end = buffer.cursor.line + 1;
+            let start = end.checked_sub(self.height()).unwrap_or(0);
+            let visual_line_counts: Vec<usize> = buffer
+                .data()
+                .lines()
+                .skip(start)
+                .take(end - start)
+                .map(|line| {
+                    (
+                        line.graphemes(true).count().max(1) as f32 /
+                        (self.terminal.width() - gutter_width) as f32
+                    ).ceil() as usize
+                })
+                .collect();
+
+            // Figure out how many lines we can fit
+            // without exceeding the terminal's height.
+            let mut preceding_lines = visual_line_counts.iter().rev();
+            let mut preceding_line_count = 0;
+            let mut consumed_height = *preceding_lines.next().unwrap_or(&0);
+            for height in preceding_lines {
+                consumed_height += height;
+
+                if consumed_height > self.height() {
+                    break;
+                }
+                preceding_line_count += 1;
+            }
+
+            // Calculate and apply the absolute line
+            // offset based on the cursor location.
+            let starting_line = (buffer.cursor.line).checked_sub(preceding_line_count).unwrap_or(0);
+            if starting_line > self.line_offset {
+                self.line_offset = starting_line;
+            }
         }
     }
 
@@ -57,11 +97,6 @@ impl ScrollableRegion {
     fn height(&self) -> usize {
         self.terminal.height() - 1
     }
-
-    // Determines the visible lines based on the current line offset and height.
-    fn visible_range(&self) -> LineRange {
-        LineRange::new(self.line_offset, self.height() + self.line_offset)
-    }
 }
 
 #[cfg(test)]
@@ -69,22 +104,19 @@ mod tests {
     use std::sync::Arc;
     use super::ScrollableRegion;
     use view::terminal::test_terminal::TestTerminal;
-    use scribe::buffer::{Buffer, LineRange, Position};
+    use scribe::buffer::{Buffer, Position};
 
     #[test]
     fn scroll_into_view_advances_region_if_line_after_current_range() {
         let terminal = Arc::new(TestTerminal::new());
         let mut buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
-        region.scroll_down(10);
-        for _ in 0..40 {
-            buffer.insert("\n");
+        for _ in 0..10 {
+            buffer.insert("word \n");
         }
-        buffer.cursor.move_to(Position{ line: 40, offset: 0 });
+        buffer.cursor.move_to(Position{ line: 9, offset: 0 });
         region.scroll_into_view(&buffer);
-        let range = region.visible_range();
-        assert_eq!(range.start(), 32);
-        assert_eq!(range.end(), 41);
+        assert_eq!(region.line_offset(), 1);
     }
 
     #[test]
@@ -98,13 +130,57 @@ mod tests {
         }
         buffer.cursor.move_to(Position{ line: 5, offset: 0 });
         region.scroll_into_view(&buffer);
-        let range = region.visible_range();
-        assert_eq!(range.start(), 5);
-        assert_eq!(range.end(), 14);
+        assert_eq!(region.line_offset(), 5);
     }
 
     #[test]
-    fn scroll_into_view_considers_line_wrapping() {
+    fn scroll_into_view_considers_empty_lines_when_deciding_to_advance_region() {
+        let terminal = Arc::new(TestTerminal::new());
+        let mut buffer = Buffer::new();
+        let mut region = ScrollableRegion::new(terminal);
+        for _ in 0..10 {
+            buffer.insert("\n");
+        }
+        buffer.cursor.move_to(Position{ line: 9, offset: 0 });
+        region.scroll_into_view(&buffer);
+        assert_eq!(region.line_offset(), 1);
+    }
+
+    #[test]
+    fn scroll_into_view_advances_line_offset_if_preceding_lines_wrap() {
+        let terminal = Arc::new(TestTerminal::new());
+        let mut buffer = Buffer::new();
+        let mut region = ScrollableRegion::new(terminal);
+        // Create a buffer with 10 lines when rendered to the screen,
+        // with the cursor on a single, non-wrapping line at the end.
+        buffer.insert("cursor");
+        for _ in 0..5 {
+            // Less than ten spaces to confirm that line numbers
+            // are considered, which eat into terminal space.
+            buffer.insert("       \n");
+        }
+
+        buffer.cursor.move_to(Position{ line: 5, offset: 0 });
+        region.scroll_into_view(&buffer);
+        assert_eq!(region.line_offset(), 1);
+    }
+
+    #[test]
+    fn scroll_into_view_advances_line_offset_if_cursor_line_and_preceding_lines_wrap() {
+        let terminal = Arc::new(TestTerminal::new());
+        let mut buffer = Buffer::new();
+        let mut region = ScrollableRegion::new(terminal);
+        // Create a buffer with 10 lines when rendered to the screen,
+        // with the cursor on a wrapped, double line at the end.
+        buffer.insert("cursor line\n");
+        for _ in 0..5 {
+            // Less than ten spaces to confirm that line numbers
+            // are considered, which eat into terminal space.
+            buffer.insert("       \n");
+        }
+        buffer.cursor.move_to(Position{ line: 5, offset: 0 });
+        region.scroll_into_view(&buffer);
+        assert_eq!(region.line_offset(), 2);
     }
 
     #[test]
@@ -117,9 +193,7 @@ mod tests {
         }
         buffer.cursor.move_to(Position{ line: 20, offset: 0 });
         region.scroll_to_center(&buffer);
-        let range = region.visible_range();
-        assert_eq!(range.start(), 16);
-        assert_eq!(range.end(), 25);
+        assert_eq!(region.line_offset(), 16);
     }
 
     #[test]
@@ -128,9 +202,7 @@ mod tests {
         let buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_to_center(&buffer);
-        let range = region.visible_range();
-        assert_eq!(range.start(), 0);
-        assert_eq!(range.end(), 9);
+        assert_eq!(region.line_offset(), 0);
     }
 
     #[test]
@@ -142,7 +214,7 @@ mod tests {
         let terminal = Arc::new(TestTerminal::new());
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_down(10);
-        assert_eq!(region.visible_range(), LineRange::new(10, 19));
+        assert_eq!(region.line_offset(), 10);
     }
 
     #[test]
@@ -151,7 +223,7 @@ mod tests {
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_down(10);
         region.scroll_up(5);
-        assert_eq!(region.visible_range(), LineRange::new(5, 14));
+        assert_eq!(region.line_offset(), 5);
     }
 
     #[test]
@@ -159,6 +231,6 @@ mod tests {
         let terminal = Arc::new(TestTerminal::new());
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_up(5);
-        assert_eq!(region.visible_range(), LineRange::new(0, 9));
+        assert_eq!(region.line_offset(), 0);
     }
 }
