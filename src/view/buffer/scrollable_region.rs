@@ -28,15 +28,16 @@ impl ScrollableRegion {
             // Cursor is above visible range.
             self.line_offset = buffer.cursor.line;
         } else {
-            let gutter_width = LineNumbers::new(&buffer, None).width();
+            // The buffer renderer adds a single-column margin
+            // to the right-hand side of the line number columns.
+            let gutter_width = LineNumbers::new(&buffer, None).width() + 1;
 
-            // Count the number of visual/rendered lines
-            // the preceding buffer lines consume on-screen.
+            let distance_to_cursor = (buffer.cursor.line + 1).checked_sub(self.line_offset).unwrap_or(0);
             let visual_line_counts: Vec<usize> = buffer
                 .data()
                 .lines()
-                .skip(buffer.cursor.line.checked_sub(self.height()).unwrap_or(0))
-                .take(self.height()-1)
+                .skip(self.line_offset)
+                .take(distance_to_cursor.max(self.height()))
                 .map(|line| {
                     (
                         line.graphemes(true).count().max(1) as f32 /
@@ -47,21 +48,21 @@ impl ScrollableRegion {
 
             // Figure out how many lines we can fit
             // without exceeding the terminal's height.
-            let mut lines = 0;
-            let mut visual_lines = 0;
-            for line_count in visual_line_counts.iter().rev() {
-                visual_lines += line_count;
+            let mut preceding_lines = visual_line_counts.iter().rev();
+            let mut preceding_line_count = 0;
+            let mut consumed_height = *preceding_lines.next().unwrap_or(&0);
+            for height in preceding_lines {
+                consumed_height += height;
 
-                if visual_lines > self.height() {
+                if consumed_height > self.height() {
                     break;
                 }
-
-                lines += 1;
+                preceding_line_count += 1;
             }
 
             // Calculate and apply the absolute line
             // offset based on the cursor location.
-            let starting_line = buffer.cursor.line.checked_sub(lines).unwrap_or(0);
+            let starting_line = (buffer.cursor.line).checked_sub(preceding_line_count).unwrap_or(0);
             if starting_line > self.line_offset {
                 self.line_offset = starting_line;
             }
@@ -109,13 +110,12 @@ mod tests {
         let terminal = Arc::new(TestTerminal::new());
         let mut buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
-        region.scroll_down(10);
-        for _ in 0..40 {
-            buffer.insert("\n");
+        for _ in 0..10 {
+            buffer.insert("word \n");
         }
-        buffer.cursor.move_to(Position{ line: 40, offset: 0 });
+        buffer.cursor.move_to(Position{ line: 9, offset: 0 });
         region.scroll_into_view(&buffer);
-        assert_eq!(region.line_offset(), 32);
+        assert_eq!(region.line_offset(), 1);
     }
 
     #[test]
