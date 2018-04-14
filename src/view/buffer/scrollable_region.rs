@@ -143,38 +143,40 @@ mod tests {
     }
 
     #[test]
-    fn scroll_into_view_considers_line_numbers_and_wrapping_when_scrolling_down() {
+    fn scroll_into_view_advances_line_offset_if_preceding_lines_wrap() {
         let terminal = Arc::new(TestTerminal::new());
         let mut buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
-        region.scroll_down(10);
-        for _ in 0..40 {
+        // Create a buffer with 10 lines when rendered to the screen,
+        // with the cursor on a single, non-wrapping line at the end.
+        buffer.insert("cursor");
+        for _ in 0..5 {
             // Less than ten spaces to confirm that line numbers
             // are considered, which eat into terminal space.
             buffer.insert("       \n");
         }
-        buffer.cursor.move_to(Position{ line: 40, offset: 0 });
+
+        buffer.cursor.move_to(Position{ line: 5, offset: 0 });
         region.scroll_into_view(&buffer);
-        let range = region.visible_range();
-        assert_eq!(range.start(), 36);
-        assert_eq!(range.end(), 45);
+        assert_eq!(region.line_offset(), 1);
     }
 
     #[test]
-    fn scroll_into_view_considers_line_numbers_and_wrapping_when_determining_if_cursor_is_off_screen() {
+    fn scroll_into_view_advances_line_offset_if_cursor_line_and_preceding_lines_wrap() {
         let terminal = Arc::new(TestTerminal::new());
         let mut buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
-        for _ in 0..40 {
+        // Create a buffer with 10 lines when rendered to the screen,
+        // with the cursor on a wrapped, double line at the end.
+        buffer.insert("cursor line\n");
+        for _ in 0..5 {
             // Less than ten spaces to confirm that line numbers
             // are considered, which eat into terminal space.
             buffer.insert("       \n");
         }
-        buffer.cursor.move_to(Position{ line: 6, offset: 0 });
+        buffer.cursor.move_to(Position{ line: 5, offset: 0 });
         region.scroll_into_view(&buffer);
-        let range = region.visible_range();
-        assert_eq!(range.start(), 2);
-        assert_eq!(range.end(), 11);
+        assert_eq!(region.line_offset(), 2);
     }
 
     #[test]
