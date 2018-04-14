@@ -40,7 +40,7 @@ impl ScrollableRegion {
                 .take(self.height()-1)
                 .map(|line| {
                     (
-                        line.graphemes(true).count() as f32 /
+                        line.graphemes(true).count().max(1) as f32 /
                         (self.terminal.width() - gutter_width) as f32
                     ).ceil() as usize
                 })
@@ -140,6 +140,19 @@ mod tests {
         let range = region.visible_range();
         assert_eq!(range.start(), 5);
         assert_eq!(range.end(), 14);
+    }
+
+    #[test]
+    fn scroll_into_view_considers_empty_lines_when_deciding_to_advance_region() {
+        let terminal = Arc::new(TestTerminal::new());
+        let mut buffer = Buffer::new();
+        let mut region = ScrollableRegion::new(terminal);
+        for _ in 0..10 {
+            buffer.insert("\n");
+        }
+        buffer.cursor.move_to(Position{ line: 9, offset: 0 });
+        region.scroll_into_view(&buffer);
+        assert_eq!(region.line_offset(), 1);
     }
 
     #[test]
