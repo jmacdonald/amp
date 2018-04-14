@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use scribe::buffer::{Buffer, LineRange};
+use scribe::buffer::Buffer;
 use unicode_segmentation::UnicodeSegmentation;
 use view::buffer::LineNumbers;
 use view::terminal::Terminal;
@@ -24,9 +24,8 @@ impl ScrollableRegion {
     /// visible, using previous state to determine whether said line is at
     /// the top or bottom of the new visible range.
     pub fn scroll_into_view(&mut self, buffer: &Buffer) {
-        let range = self.visible_range();
-
-        if buffer.cursor.line < range.start() {
+        if buffer.cursor.line <= self.line_offset {
+            // Cursor is above visible range.
             self.line_offset = buffer.cursor.line;
         } else {
             let gutter_width = LineNumbers::new(&buffer, None).width();
@@ -63,7 +62,7 @@ impl ScrollableRegion {
             // Calculate and apply the absolute line
             // offset based on the cursor location.
             let starting_line = buffer.cursor.line.checked_sub(lines).unwrap_or(0);
-            if starting_line > range.start() {
+            if starting_line > self.line_offset {
                 self.line_offset = starting_line;
             }
         }
@@ -96,11 +95,6 @@ impl ScrollableRegion {
     fn height(&self) -> usize {
         self.terminal.height() - 1
     }
-
-    // Determines the visible lines based on the current line offset and height.
-    fn visible_range(&self) -> LineRange {
-        LineRange::new(self.line_offset, self.height() + self.line_offset)
-    }
 }
 
 #[cfg(test)]
@@ -108,7 +102,7 @@ mod tests {
     use std::sync::Arc;
     use super::ScrollableRegion;
     use view::terminal::test_terminal::TestTerminal;
-    use scribe::buffer::{Buffer, LineRange, Position};
+    use scribe::buffer::{Buffer, Position};
 
     #[test]
     fn scroll_into_view_advances_region_if_line_after_current_range() {
@@ -121,9 +115,7 @@ mod tests {
         }
         buffer.cursor.move_to(Position{ line: 40, offset: 0 });
         region.scroll_into_view(&buffer);
-        let range = region.visible_range();
-        assert_eq!(range.start(), 32);
-        assert_eq!(range.end(), 41);
+        assert_eq!(region.line_offset(), 32);
     }
 
     #[test]
@@ -137,9 +129,7 @@ mod tests {
         }
         buffer.cursor.move_to(Position{ line: 5, offset: 0 });
         region.scroll_into_view(&buffer);
-        let range = region.visible_range();
-        assert_eq!(range.start(), 5);
-        assert_eq!(range.end(), 14);
+        assert_eq!(region.line_offset(), 5);
     }
 
     #[test]
@@ -202,9 +192,7 @@ mod tests {
         }
         buffer.cursor.move_to(Position{ line: 20, offset: 0 });
         region.scroll_to_center(&buffer);
-        let range = region.visible_range();
-        assert_eq!(range.start(), 16);
-        assert_eq!(range.end(), 25);
+        assert_eq!(region.line_offset(), 16);
     }
 
     #[test]
@@ -213,9 +201,7 @@ mod tests {
         let buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_to_center(&buffer);
-        let range = region.visible_range();
-        assert_eq!(range.start(), 0);
-        assert_eq!(range.end(), 9);
+        assert_eq!(region.line_offset(), 0);
     }
 
     #[test]
@@ -227,7 +213,7 @@ mod tests {
         let terminal = Arc::new(TestTerminal::new());
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_down(10);
-        assert_eq!(region.visible_range(), LineRange::new(10, 19));
+        assert_eq!(region.line_offset(), 10);
     }
 
     #[test]
@@ -236,7 +222,7 @@ mod tests {
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_down(10);
         region.scroll_up(5);
-        assert_eq!(region.visible_range(), LineRange::new(5, 14));
+        assert_eq!(region.line_offset(), 5);
     }
 
     #[test]
@@ -244,6 +230,6 @@ mod tests {
         let terminal = Arc::new(TestTerminal::new());
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_up(5);
-        assert_eq!(region.visible_range(), LineRange::new(0, 9));
+        assert_eq!(region.line_offset(), 0);
     }
 }
