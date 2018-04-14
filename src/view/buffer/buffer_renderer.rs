@@ -292,6 +292,14 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         );
 
         // Leave a one-column gap between line numbers and buffer content.
+        if self.on_cursor_line() {
+            self.terminal.print(
+                &Position{ line: self.screen_position.line, offset: self.line_numbers.width() },
+                weight,
+                self.theme.map_colors(Colors::Focused),
+                &self.line_numbers.next().unwrap()
+            );
+        }
         self.screen_position.offset = self.line_numbers.width() + 1;
     }
 
