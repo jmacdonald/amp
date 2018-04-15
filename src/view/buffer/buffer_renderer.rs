@@ -277,6 +277,8 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     fn print_line_number(&mut self) {
         if !self.inside_visible_content() { return };
 
+        let line_number = self.line_numbers.next().unwrap();
+
         // Cursor line number is emboldened.
         let weight = if self.on_cursor_line() {
             Style::Bold
@@ -288,7 +290,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             &Position{ line: self.screen_position.line, offset: 0 },
             weight,
             self.theme.map_colors(Colors::Focused),
-            &self.line_numbers.next().unwrap()
+            &line_number
         );
 
         // Leave a one-column gap between line numbers and buffer content.
@@ -297,7 +299,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
                 &Position{ line: self.screen_position.line, offset: self.line_numbers.width() },
                 weight,
                 self.theme.map_colors(Colors::Focused),
-                &self.line_numbers.next().unwrap()
+                &line_number
             );
         }
         self.screen_position.offset = self.line_numbers.width() + 1;
