@@ -32,12 +32,13 @@ impl ScrollableRegion {
             // to the right-hand side of the line number columns.
             let gutter_width = LineNumbers::new(&buffer, None).width() + 1;
 
-            let distance_to_cursor = (buffer.cursor.line + 1).checked_sub(self.line_offset).unwrap_or(0);
+            let end = buffer.cursor.line + 1;
+            let start = end.checked_sub(self.height()).unwrap_or(0);
             let visual_line_counts: Vec<usize> = buffer
                 .data()
                 .lines()
-                .skip(self.line_offset)
-                .take(distance_to_cursor.max(self.height()))
+                .skip(start)
+                .take(end - start)
                 .map(|line| {
                     (
                         line.graphemes(true).count().max(1) as f32 /
