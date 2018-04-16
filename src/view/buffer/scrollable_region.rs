@@ -43,7 +43,9 @@ impl ScrollableRegion {
 
     /// Moves the line offset such that the specified line is centered vertically.
     pub fn scroll_to_center(&mut self, buffer: &Buffer) {
-        self.line_offset = buffer.cursor.line.checked_sub(self.height() / 2).unwrap_or(0);
+        self.line_offset = buffer.cursor.line.checked_sub(
+            self.preceding_line_count(&buffer) / 2
+        ).unwrap_or(0);
     }
 
     /// The number of lines the region has scrolled over.
@@ -204,7 +206,7 @@ mod tests {
         }
         buffer.cursor.move_to(Position{ line: 20, offset: 0 });
         region.scroll_to_center(&buffer);
-        assert_eq!(region.line_offset(), 16);
+        assert_eq!(region.line_offset(), 17);
     }
 
     #[test]
@@ -217,7 +219,23 @@ mod tests {
     }
 
     #[test]
-    fn scroll_to_center_considers_line_wrapping() {
+    fn scroll_to_center_weighs_wrapping_lines_correctly() {
+        let terminal = Arc::new(TestTerminal::new());
+        let mut buffer = Buffer::new();
+        let mut region = ScrollableRegion::new(terminal);
+        // Insert wrapped lines at the top.
+        for _ in 0..4 {
+            // Less than ten spaces to confirm that line numbers
+            // are considered, which eat into terminal space.
+            buffer.insert("       \n");
+        }
+        // Insert non-wrapped lines below.
+        for _ in 0..6 {
+            buffer.insert("\n");
+        }
+        buffer.cursor.move_to(Position{ line: 4, offset: 0 });
+        region.scroll_to_center(&buffer);
+        assert_eq!(region.line_offset(), 2);
     }
 
     #[test]
