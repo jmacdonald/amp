@@ -71,6 +71,15 @@ types:
     soft_tabs: false
 ```
 
+For setting options for common files _without_ extensions, use a file name:
+
+```yaml
+types:
+  Makefile:
+    tab_width: 4
+    soft_tabs: false
+```
+
 ## Key Bindings
 
 In Amp, key bindings are simple key/command associations, scoped to a specific mode. You can define custom key bindings by defining a keymap in your preferences file:

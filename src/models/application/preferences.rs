@@ -267,7 +267,9 @@ fn load_keymap(keymap_overrides: Option<&Hash>) -> Result<KeyMap> {
 
 /// Maps a path to its file extension.
 fn path_extension(path: Option<&PathBuf>) -> Option<&str> {
-    path.and_then(|p| p.extension()).and_then(|e| e.to_str())
+    path
+        .and_then(|p| p.extension().or_else(|| p.as_path().file_name()))
+        .and_then(|e| e.to_str())
 }
 
 fn default_open_mode_exclusions() -> Result<Option<Vec<ExclusionPattern>>> {
@@ -348,6 +350,14 @@ mod tests {
         let preferences = Preferences::new(data.into_iter().nth(0));
 
         assert_eq!(preferences.soft_tabs(Some(PathBuf::from("preferences.rs")).as_ref()), false);
+    }
+
+    #[test]
+    fn non_extension_types_are_supported_for_type_specific_data() {
+        let data = YamlLoader::load_from_str("soft_tabs: true\ntypes:\n  Makefile:\n    soft_tabs: false").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.soft_tabs(Some(PathBuf::from("Makefile")).as_ref()), false);
     }
 
     #[test]
