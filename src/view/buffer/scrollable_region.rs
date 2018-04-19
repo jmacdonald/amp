@@ -28,7 +28,6 @@ impl ScrollableRegion {
             // Cursor is above visible range.
             self.line_offset = buffer.cursor.line;
         } else {
-
             // Calculate and apply the absolute line
             // offset based on the cursor location.
             let starting_line = (buffer.cursor.line).checked_sub(
@@ -75,29 +74,33 @@ impl ScrollableRegion {
     /// counts the number of preceding lines that can be fit above it
     /// on-screen, taking line wrapping into consideration.
     fn preceding_line_count(&self, buffer: &Buffer) -> usize {
+        let mut preceding_line_count = 0;
+
         // The buffer renderer adds a single-column margin
         // to the right-hand side of the line number columns.
         let gutter_width = LineNumbers::new(&buffer, None).width() + 1;
 
         let end = buffer.cursor.line + 1;
         let start = end.checked_sub(self.height()).unwrap_or(0);
+        let line_count = end - start;
+
         let visual_line_counts: Vec<usize> = buffer
             .data()
             .lines()
             .skip(start)
-            .take(end - start)
+            .take(line_count)
             .map(|line| {
-                (
-                    line.graphemes(true).count().max(1) as f32 /
-                    (self.terminal.width() - gutter_width) as f32
-                ).ceil() as usize
+                let grapheme_count = line.graphemes(true).count().max(1) as f32;
+                let buffer_content_width = (self.terminal.width() - gutter_width) as f32;
+                let wrapped_line_count = grapheme_count / buffer_content_width;
+
+                wrapped_line_count.ceil() as usize
             })
             .collect();
 
         // Figure out how many lines we can fit
         // without exceeding the terminal's height.
         let mut preceding_lines = visual_line_counts.iter().rev();
-        let mut preceding_line_count = 0;
         let mut consumed_height = *preceding_lines.next().unwrap_or(&0);
         for height in preceding_lines {
             consumed_height += height;
@@ -105,6 +108,13 @@ impl ScrollableRegion {
             if consumed_height > self.height() {
                 break;
             }
+            preceding_line_count += 1;
+        }
+
+        // The lines() iterator used above doesn't yield a final line
+        // for trailing newlines, but Amp considers there to be one.
+        // This adjustment accounts for that difference.
+        if visual_line_counts.len() < line_count && preceding_line_count < self.height() - 1 {
             preceding_line_count += 1;
         }
 
@@ -118,6 +128,30 @@ mod tests {
     use super::ScrollableRegion;
     use view::terminal::test_terminal::TestTerminal;
     use scribe::buffer::{Buffer, Position};
+
+    #[test]
+    fn scroll_into_view_correctly_handles_additonal_rendered_trailing_newline() {
+        let terminal = Arc::new(TestTerminal::new());
+        let mut buffer = Buffer::new();
+        let mut region = ScrollableRegion::new(terminal);
+        buffer.insert("\n\n");
+        buffer.cursor.move_to(Position{ line: 2, offset: 0 });
+        region.scroll_into_view(&buffer);
+        assert_eq!(region.line_offset(), 0);
+    }
+
+    #[test]
+    fn scroll_into_view_correctly_handles_additonal_rendered_trailing_newline_at_edge_of_region() {
+        let terminal = Arc::new(TestTerminal::new());
+        let mut buffer = Buffer::new();
+        let mut region = ScrollableRegion::new(terminal);
+        for _ in 0..10 {
+            buffer.insert("\n");
+        }
+        buffer.cursor.move_to(Position{ line: 10, offset: 0 });
+        region.scroll_into_view(&buffer);
+        assert_eq!(region.line_offset(), 2);
+    }
 
     #[test]
     fn scroll_into_view_advances_region_if_line_after_current_range() {
@@ -206,7 +240,7 @@ mod tests {
         }
         buffer.cursor.move_to(Position{ line: 20, offset: 0 });
         region.scroll_to_center(&buffer);
-        assert_eq!(region.line_offset(), 17);
+        assert_eq!(region.line_offset(), 16);
     }
 
     #[test]
