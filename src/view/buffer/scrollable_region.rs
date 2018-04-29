@@ -31,7 +31,7 @@ impl ScrollableRegion {
             // Calculate and apply the absolute line
             // offset based on the cursor location.
             let starting_line = (buffer.cursor.line).checked_sub(
-                self.preceding_line_count(&buffer)
+                self.preceding_line_count(&buffer, self.height())
             ).unwrap_or(0);
 
             if starting_line > self.line_offset {
@@ -43,7 +43,7 @@ impl ScrollableRegion {
     /// Moves the line offset such that the specified line is centered vertically.
     pub fn scroll_to_center(&mut self, buffer: &Buffer) {
         self.line_offset = buffer.cursor.line.checked_sub(
-            self.preceding_line_count(&buffer) / 2
+            self.preceding_line_count(&buffer, self.height()) / 2
         ).unwrap_or(0);
     }
 
@@ -73,7 +73,7 @@ impl ScrollableRegion {
     /// Assuming that the buffer cursor is at the bottom of the screen,
     /// counts the number of preceding lines that can be fit above it
     /// on-screen, taking line wrapping into consideration.
-    fn preceding_line_count(&self, buffer: &Buffer) -> usize {
+    fn preceding_line_count(&self, buffer: &Buffer, limit: usize) -> usize {
         let mut preceding_line_count = 0;
 
         // The buffer renderer adds a single-column margin
@@ -81,7 +81,7 @@ impl ScrollableRegion {
         let gutter_width = LineNumbers::new(&buffer, None).width() + 1;
 
         let end = buffer.cursor.line + 1;
-        let start = end.checked_sub(self.height()).unwrap_or(0);
+        let start = end.checked_sub(limit).unwrap_or(0);
         let line_count = end - start;
 
         let visual_line_counts: Vec<usize> = buffer
@@ -105,7 +105,7 @@ impl ScrollableRegion {
         for height in preceding_lines {
             consumed_height += height;
 
-            if consumed_height > self.height() {
+            if consumed_height > limit {
                 break;
             }
             preceding_line_count += 1;
@@ -114,7 +114,7 @@ impl ScrollableRegion {
         // The lines() iterator used above doesn't yield a final line
         // for trailing newlines, but Amp considers there to be one.
         // This adjustment accounts for that difference.
-        if visual_line_counts.len() < line_count && preceding_line_count < self.height() - 1 {
+        if visual_line_counts.len() < line_count && preceding_line_count < limit - 1 {
             preceding_line_count += 1;
         }
 
