@@ -62,6 +62,7 @@ normal:
   ">": buffer::indent_line
   "<": buffer::outdent_line
   "=": git::add
+  escape: view::scroll_cursor_to_center
   page_up: view::scroll_up
   page_down: view::scroll_down
   space: application::switch_to_open_mode
