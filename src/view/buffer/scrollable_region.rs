@@ -42,8 +42,10 @@ impl ScrollableRegion {
 
     /// Moves the line offset such that the specified line is centered vertically.
     pub fn scroll_to_center(&mut self, buffer: &Buffer) {
+        let limit = (self.height() as f32 / 2.0).ceil() as usize;
+
         self.line_offset = buffer.cursor.line.checked_sub(
-            self.preceding_line_count(&buffer, self.height()) / 2
+            self.preceding_line_count(&buffer, limit)
         ).unwrap_or(0);
     }
 
@@ -253,7 +255,7 @@ mod tests {
     }
 
     #[test]
-    fn scroll_to_center_weighs_wrapping_lines_correctly() {
+    fn scroll_to_center_weighs_wrapped_lines_correctly() {
         let terminal = Arc::new(TestTerminal::new());
         let mut buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
@@ -264,12 +266,25 @@ mod tests {
             buffer.insert("       \n");
         }
         // Insert non-wrapped lines below.
+        buffer.cursor.move_to(Position{ line: 4, offset: 0 });
         for _ in 0..6 {
             buffer.insert("\n");
         }
-        buffer.cursor.move_to(Position{ line: 4, offset: 0 });
         region.scroll_to_center(&buffer);
         assert_eq!(region.line_offset(), 2);
+    }
+
+    #[test]
+    fn scroll_to_center_considers_space_beyond_end_of_buffer() {
+        let terminal = Arc::new(TestTerminal::new());
+        let mut buffer = Buffer::new();
+        for _ in 0..6 {
+            buffer.insert("\n");
+        }
+        buffer.cursor.move_to(Position{ line: 5, offset: 0 });
+        let mut region = ScrollableRegion::new(terminal);
+        region.scroll_to_center(&buffer);
+        assert_eq!(region.line_offset(), 1);
     }
 
     #[test]
