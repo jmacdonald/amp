@@ -15,7 +15,7 @@ keywords = ["text", "editor", "terminal", "modal"]
 syntex_syntax = "0.58.1"
 
 [dependencies]
-app_dirs = "1.1.1"
+app_dirs = "1.2.1"
 scribe = "0.6.0"
 pad = "0.1.4"
 bloodhound = "0.5.4"
