@@ -1,3 +1,17 @@
+### 0.4.0
+
+* Application event loop is now threaded
+  * Most notably, open mode indexing is now run in a separate thread
+* Scrolling is now line wrap-aware
+* View now redraws when terminal is resized
+* Search/select modes now have empty state messages
+  * e.g. open mode will now display "Enter a query" rather than "No results" when no query is present
+* Open mode now displays its path when indexing
+* Escape in normal mode now scrolls cursor to center, via new default keybinding
+* app_dirs dependency bumped to a version that compiles on newer versions of Rust
+* Type-specific configuration now supports full filenames (e.g. "Makefile")
+* Various refactoring
+
 ### 0.3.4
 
 * Documentation updates
