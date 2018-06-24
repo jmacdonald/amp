@@ -1,13 +1,16 @@
 use models::application::Preferences;
-use scribe::buffer::{Buffer, Lexeme, Position, Range, Token};
-use view::buffer::LexemeMapper;
+use scribe::buffer::{Buffer, Position, Range};
+use scribe::util::LineIterator;
+use view::buffer::{LexemeMapper, MappedLexeme};
 use view::buffer::line_numbers::*;
 use view::{Colors, RGBColor, Style};
 use view::color::ColorMap;
 use view::color::to_rgb_color;
 use view::terminal::Terminal;
-use syntect::highlighting::{Highlighter, Theme};
+use std::str::FromStr;
+use syntect::highlighting::{Highlighter, HighlightIterator, HighlightState, Theme};
 use syntect::highlighting::Style as ThemeStyle;
+use syntect::parsing::{ParseState, ScopeStack};
 use errors::*;
 
 /// A one-time-use type that encapsulates all of the
@@ -59,13 +62,6 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         }
     }
 
-    fn update_positions(&mut self, token: &Token) {
-        match *token {
-            Token::Newline => self.advance_to_next_line(),
-            Token::Lexeme(ref lexeme) => self.buffer_position = lexeme.position,
-        }
-    }
-
     fn on_cursor_line(&self) -> bool {
         self.buffer_position.line == self.buffer.cursor.line
     }
@@ -94,6 +90,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
     fn advance_to_next_line(&mut self) {
         if self.inside_visible_content() {
+            self.set_cursor();
             self.print_rest_of_line();
 
             // It's important to only increase this once we've entered the
@@ -154,23 +151,9 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         (style, self.theme.map_colors(colors))
     }
 
-    // Uses the lexeme's scopes to update the current
-    // style, so that print calls will use the right color.
-    fn update_current_style(&mut self, lexeme: &Lexeme) {
-        self.current_style = self.current_style.apply(
-            self.stylist.get_style(
-                lexeme.scope.as_slice()
-            )
-        );
-    }
-
-    pub fn print_lexeme(&mut self, lexeme: Lexeme) {
-        // Use the lexeme to determine the current style/color.
-        self.update_current_style(&lexeme);
-
-        for character in lexeme.value.chars() {
-            // We should never run into newline
-            // characters, but if we do, ignore them.
+    pub fn print_lexeme(&mut self, lexeme: &str) {
+        for character in lexeme.chars() {
+            // Ignore newline characters.
             if character == '\n' { continue; }
 
             self.set_cursor();
@@ -235,31 +218,72 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         // renderer to be borrowed (which is required for printing methods).
         let mut lexeme_mapper = self.lexeme_mapper.take();
 
-        let tokens = self.buffer.tokens().chain_err(|| "No buffer tokens to render")?;
+        let buffer_data = self.buffer.data();
+        let lines = LineIterator::new(&buffer_data);
 
-        'print: for token in tokens.iter() {
-            self.update_positions(&token);
-            self.set_cursor();
+        let highlighter = Highlighter::new(&self.theme);
+        let mut highlight_state = HighlightState::new(&highlighter, ScopeStack::new());
+        let syntax_definition = self.buffer.syntax_definition.as_ref().ok_or("Buffer has no syntax definition")?;
+        let mut parser = ParseState::new(syntax_definition);
+        let focused_style = self
+            .stylist
+            .style_for_stack(
+                ScopeStack::from_str("keyword")
+                .unwrap_or(ScopeStack::new())
+                .as_slice()
+            );
+        let blurred_style = self
+            .stylist
+            .style_for_stack(
+                ScopeStack::from_str("comment")
+                .unwrap_or(ScopeStack::new())
+                .as_slice()
+            );
 
-            // Move along until we've hit visible content.
-            if self.before_visible_content() {
-                continue;
-            }
+        'print: for (_, line) in lines {
+            let events = parser.parse_line(line);
+            let styled_lexemes = HighlightIterator::new(
+                &mut highlight_state,
+                &events,
+                line,
+                &highlighter
+            );
 
-            // Stop the machine after we've printed all visible content.
-            if self.after_visible_content() {
-                break 'print;
-            }
+            for (style, lexeme) in styled_lexemes {
+                // Move along until we've hit visible content.
+                if self.before_visible_content() {
+                    continue;
+                }
 
-            // We're in a visible area.
-            if let Token::Lexeme(lexeme) = token {
+                // Stop the machine after we've printed all visible content.
+                if self.after_visible_content() {
+                    break 'print;
+                }
+
+                // We're in a visible area.
                 if let Some(ref mut mapper) = lexeme_mapper {
-                    for mapped_lexeme in mapper.map(lexeme) {
-                        self.print_lexeme(mapped_lexeme);
+                    let mapped_lexemes = mapper.map(lexeme, self.buffer_position);
+                    for mapped_lexeme in mapped_lexemes {
+                        match mapped_lexeme {
+                            MappedLexeme::Focused(value) => {
+                                self.current_style = focused_style;
+                                self.print_lexeme(value);
+                            },
+                            MappedLexeme::Blurred(value) => {
+                                self.current_style = blurred_style;
+                                self.print_lexeme(value);
+                            }
+                        }
+
                     }
                 } else {
+                    self.current_style = style;
                     self.print_lexeme(lexeme);
                 }
+            }
+
+            if has_trailing_newline(line) {
+                self.advance_to_next_line();
             }
         }
 
@@ -308,15 +332,23 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     fn next_tab_stop(&self, offset: usize) -> usize {
         (offset / self.preferences.tab_width(self.buffer.path.as_ref()) + 1) * self.preferences.tab_width(self.buffer.path.as_ref())
     }
+
+}
+
+fn has_trailing_newline(line: &str) -> bool {
+    line.chars()
+        .last()
+        .map(|c| c == '\n')
+        .unwrap_or(false)
 }
 
 #[cfg(test)]
 mod tests {
     use models::application::Preferences;
     use scribe::{Buffer, Workspace};
-    use scribe::buffer::Lexeme;
+    use scribe::buffer::Position;
     use std::path::Path;
-    use super::{BufferRenderer, LexemeMapper};
+    use super::{BufferRenderer, LexemeMapper, MappedLexeme};
     use syntect::highlighting::ThemeSet;
     use view::terminal::test_terminal::TestTerminal;
     use yaml::yaml::YamlLoader;
@@ -437,12 +469,8 @@ mod tests {
     // Used to test lexeme mapper usage.
     struct TestMapper {}
     impl LexemeMapper for TestMapper {
-        fn map<'a, 'b>(&'a mut self, lexeme: Lexeme<'b>) -> Vec<Lexeme<'a>> {
-            vec![Lexeme{
-                value: "mapped",
-                position: lexeme.position,
-                scope: lexeme.scope
-            }]
+        fn map<'a, 'b>(&'a mut self, _: &str, _: Position) -> Vec<MappedLexeme<'a>> {
+            vec![MappedLexeme::Focused("mapped")]
         }
     }
 
@@ -470,5 +498,31 @@ mod tests {
         ).render().unwrap();
 
         assert_eq!(terminal.data(), " 1  mapped");
+    }
+
+    #[test]
+    fn render_returns_cursor_position_when_at_the_start_of_an_empty_line() {
+        // Set up a workspace and buffer; the workspace will
+        // handle setting up the buffer's syntax definition.
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("\n");
+        workspace.add_buffer(buffer);
+
+        let mut terminal = TestTerminal::new();
+        let theme_set = ThemeSet::load_defaults();
+        let preferences = Preferences::new(None);
+
+        let cursor_position = BufferRenderer::new(
+            workspace.current_buffer().unwrap(),
+            None,
+            None,
+            0,
+            &mut terminal,
+            &theme_set.themes["base16-ocean.dark"],
+            &preferences
+        ).render().unwrap();
+
+        assert_eq!(cursor_position, Some(Position{ line: 0, offset: 4 }));
     }
 }

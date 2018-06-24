@@ -4,13 +4,12 @@ mod single_character_tag_generator;
 use luthor::token::Category;
 use helpers::movement_lexer;
 use std::collections::HashMap;
-use std::str::FromStr;
-use scribe::buffer::{Distance, Lexeme, Position, ScopeStack};
+use scribe::buffer::{Distance, Position};
 use models::application::modes::select::SelectMode;
 use models::application::modes::select_line::SelectLineMode;
 use self::tag_generator::TagGenerator;
 use self::single_character_tag_generator::SingleCharacterTagGenerator;
-use view::LexemeMapper;
+use view::{LexemeMapper, MappedLexeme};
 
 /// Used to compose select and jump modes, allowing jump mode
 /// to be used for cursor navigation (to select a range of text).
@@ -72,11 +71,11 @@ impl LexemeMapper for JumpMode {
     //
     // We also track jump tag locations so that tags can be
     // resolved to positions for performing the actual jump later on.
-    fn map<'a, 'b>(&'a mut self, lexeme: Lexeme<'b>) -> Vec<Lexeme<'a>> {
+    fn map<'a, 'b>(&'a mut self, lexeme: &'b str, position: Position) -> Vec<MappedLexeme<'a>> {
         self.mapped_lexeme_values = Vec::new();
-        self.current_position = lexeme.position;
+        self.current_position = position;
 
-        for subtoken in movement_lexer::lex(lexeme.value) {
+        for subtoken in movement_lexer::lex(lexeme) {
             if subtoken.category == Category::Whitespace {
                 let distance = Distance::from_str(&subtoken.lexeme);
 
@@ -169,16 +168,12 @@ impl LexemeMapper for JumpMode {
 
         self.mapped_lexeme_values.iter().map(|mapped_lexeme| {
             match *mapped_lexeme {
-                MappedLexemeValue::Tag((ref lexeme, ref position)) => Lexeme{
-                    value: lexeme.as_str(),
-                    scope: ScopeStack::from_str("keyword").unwrap(),
-                    position: *position,
+                MappedLexemeValue::Tag((ref lexeme, _)) => {
+                    MappedLexeme::Focused(lexeme.as_str())
                 },
-                MappedLexemeValue::Text((ref lexeme, ref position)) => Lexeme{
-                    value: lexeme.as_str(),
-                    scope: ScopeStack::from_str("comment").unwrap(),
-                    position: *position,
-                }
+                MappedLexemeValue::Text((ref lexeme, _)) => {
+                    MappedLexeme::Blurred(lexeme.as_str())
+                },
             }
         }).collect()
     }
@@ -186,54 +181,27 @@ impl LexemeMapper for JumpMode {
 
 #[cfg(test)]
 mod tests {
-    use view::LexemeMapper;
-    use scribe::buffer::{Lexeme, Position, ScopeStack};
-    use std::str::FromStr;
+    use view::{LexemeMapper, MappedLexeme};
+    use scribe::buffer::Position;
     use super::JumpMode;
 
     #[test]
     fn map_returns_the_correct_lexemes_in_first_phase() {
         let mut jump_mode = JumpMode::new(0);
 
-        let lexeme1 = Lexeme{
-            value: "amp",
-            scope: ScopeStack::from_str("entity").unwrap(),
-            position: Position{ line: 0, offset: 0 }
-        };
-
-        let lexeme2 = Lexeme{
-            value: "editor",
-            scope: ScopeStack::from_str("entity").unwrap(),
-            position: Position{ line: 0, offset: 3 }
-        };
-
         assert_eq!(
-            jump_mode.map(lexeme1),
+            jump_mode.map("amp", Position{ line: 0, offset: 0 }),
             vec![
-                Lexeme{
-                    value: "a",
-                    scope: ScopeStack::from_str("keyword").unwrap(),
-                    position: Position{ line: 0, offset: 0 }
-                }, Lexeme{
-                    value: "mp",
-                    scope: ScopeStack::from_str("comment").unwrap(),
-                    position: Position{ line: 0, offset: 1 }
-                }
+                MappedLexeme::Focused("a"),
+                MappedLexeme::Blurred("mp")
             ]
         );
 
         assert_eq!(
-            jump_mode.map(lexeme2),
+            jump_mode.map("editor", Position{ line: 0, offset: 3 }),
             vec![
-                Lexeme{
-                    value: "b",
-                    scope: ScopeStack::from_str("keyword").unwrap(),
-                    position: Position{ line: 0, offset: 3 }
-                }, Lexeme{
-                    value: "ditor",
-                    scope: ScopeStack::from_str("comment").unwrap(),
-                    position: Position{ line: 0, offset: 4 }
-                }
+                MappedLexeme::Focused("b"),
+                MappedLexeme::Blurred("ditor")
             ]
         );
     }
@@ -243,45 +211,19 @@ mod tests {
         let mut jump_mode = JumpMode::new(0);
         jump_mode.first_phase = false;
 
-        let lexeme1 = Lexeme{
-            value: "amp",
-            scope: ScopeStack::from_str("entity").unwrap(),
-            position: Position{ line: 0, offset: 0 }
-        };
-
-        let lexeme2 = Lexeme{
-            value: "editor",
-            scope: ScopeStack::from_str("entity").unwrap(),
-            position: Position{ line: 0, offset: 3 }
-        };
-
         assert_eq!(
-            jump_mode.map(lexeme1),
+            jump_mode.map("amp", Position{ line: 0, offset: 0 }),
             vec![
-                Lexeme{
-                    value: "aa",
-                    scope: ScopeStack::from_str("keyword").unwrap(),
-                    position: Position{ line: 0, offset: 0 }
-                }, Lexeme{
-                    value: "p",
-                    scope: ScopeStack::from_str("comment").unwrap(),
-                    position: Position{ line: 0, offset: 2 }
-                }
+                MappedLexeme::Focused("aa"),
+                MappedLexeme::Blurred("p")
             ]
         );
 
         assert_eq!(
-            jump_mode.map(lexeme2),
+            jump_mode.map("editor", Position{ line: 0, offset: 3 }),
             vec![
-                Lexeme{
-                    value: "ab",
-                    scope: ScopeStack::from_str("keyword").unwrap(),
-                    position: Position{ line: 0, offset: 3 }
-                }, Lexeme{
-                    value: "itor",
-                    scope: ScopeStack::from_str("comment").unwrap(),
-                    position: Position{ line: 0, offset: 5 }
-                }
+                MappedLexeme::Focused("ab"),
+                MappedLexeme::Blurred("itor")
             ]
         );
     }
@@ -291,40 +233,15 @@ mod tests {
         let mut jump_mode = JumpMode::new(0);
         jump_mode.first_phase = false;
 
-        let lexeme = Lexeme{
-            value: "do a test",
-            scope: ScopeStack::from_str("entity").unwrap(),
-            position: Position{ line: 0, offset: 0 }
-        };
-
         assert_eq!(
-            jump_mode.map(lexeme),
+            jump_mode.map("do a test", Position{ line: 0, offset: 0 }),
             vec![
-                Lexeme{
-                    value: "aa",
-                    scope: ScopeStack::from_str("keyword").unwrap(),
-                    position: Position{ line: 0, offset: 0 }
-                }, Lexeme{
-                    value: " ",
-                    scope: ScopeStack::from_str("comment").unwrap(),
-                    position: Position{ line: 0, offset: 2 }
-                }, Lexeme{
-                    value: "a",
-                    scope: ScopeStack::from_str("comment").unwrap(),
-                    position: Position{ line: 0, offset: 3 }
-                }, Lexeme{
-                    value: " ",
-                    scope: ScopeStack::from_str("comment").unwrap(),
-                    position: Position{ line: 0, offset: 4 }
-                }, Lexeme{
-                    value: "ab",
-                    scope: ScopeStack::from_str("keyword").unwrap(),
-                    position: Position{ line: 0, offset: 5 }
-                }, Lexeme{
-                    value: "st",
-                    scope: ScopeStack::from_str("comment").unwrap(),
-                    position: Position{ line: 0, offset: 7 }
-                }
+                MappedLexeme::Focused("aa"),
+                MappedLexeme::Blurred(" "),
+                MappedLexeme::Blurred("a"),
+                MappedLexeme::Blurred(" "),
+                MappedLexeme::Focused("ab"),
+                MappedLexeme::Blurred("st")
             ]
         )
     }
@@ -337,19 +254,8 @@ mod tests {
         // Adding space to a lexeme invokes sublexeme handling, since we split
         // based on whitespace. It's important to ensure the tracked positions
         // take this into account, too, which is why there's leading whitespace.
-        let lexeme1 = Lexeme{
-            value: "  amp",
-            scope: ScopeStack::from_str("entity").unwrap(),
-            position: Position{ line: 0, offset: 0 }
-        };
-
-        let lexeme2 = Lexeme{
-            value: "editor",
-            scope: ScopeStack::from_str("entity").unwrap(),
-            position: Position{ line: 0, offset: 5 }
-        };
-        jump_mode.map(lexeme1);
-        jump_mode.map(lexeme2);
+        jump_mode.map("  amp", Position{ line: 0, offset: 0 });
+        jump_mode.map("editor", Position{ line: 0, offset: 5 });
 
         assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(),
                    Position {
@@ -367,46 +273,20 @@ mod tests {
     fn reset_display_restarts_single_character_token_generator() {
         let mut jump_mode = JumpMode::new(0);
 
-        let lexeme1 = Lexeme{
-            value: "amp",
-            scope: ScopeStack::from_str("entity").unwrap(),
-            position: Position{ line: 0, offset: 0 }
-        };
-
-        let lexeme2 = Lexeme{
-            value: "editor",
-            scope: ScopeStack::from_str("entity").unwrap(),
-            position: Position{ line: 0, offset: 3 }
-        };
-
         assert_eq!(
-            jump_mode.map(lexeme1),
+            jump_mode.map("amp", Position{ line: 0, offset: 0 }),
             vec![
-                Lexeme{
-                    value: "a",
-                    scope: ScopeStack::from_str("keyword").unwrap(),
-                    position: Position{ line: 0, offset: 0 }
-                }, Lexeme{
-                    value: "mp",
-                    scope: ScopeStack::from_str("comment").unwrap(),
-                    position: Position{ line: 0, offset: 1 }
-                }
+                MappedLexeme::Focused("a"),
+                MappedLexeme::Blurred("mp")
             ]
         );
         jump_mode.reset_display();
 
         assert_eq!(
-            jump_mode.map(lexeme2),
+            jump_mode.map("editor", Position{ line: 0, offset: 3 }),
             vec![
-                Lexeme{
-                    value: "a",
-                    scope: ScopeStack::from_str("keyword").unwrap(),
-                    position: Position{ line: 0, offset: 3 }
-                }, Lexeme{
-                    value: "ditor",
-                    scope: ScopeStack::from_str("comment").unwrap(),
-                    position: Position{ line: 0, offset: 4 }
-                }
+                MappedLexeme::Focused("a"),
+                MappedLexeme::Blurred("ditor")
             ]
         );
     }
@@ -416,46 +296,20 @@ mod tests {
         let mut jump_mode = JumpMode::new(0);
         jump_mode.first_phase = false;
 
-        let lexeme1 = Lexeme{
-            value: "amp",
-            scope: ScopeStack::from_str("entity").unwrap(),
-            position: Position{ line: 0, offset: 0 }
-        };
-
-        let lexeme2 = Lexeme{
-            value: "editor",
-            scope: ScopeStack::from_str("entity").unwrap(),
-            position: Position{ line: 0, offset: 3 }
-        };
-
         assert_eq!(
-            jump_mode.map(lexeme1),
+            jump_mode.map("amp", Position{ line: 0, offset: 0 }),
             vec![
-                Lexeme{
-                    value: "aa",
-                    scope: ScopeStack::from_str("keyword").unwrap(),
-                    position: Position{ line: 0, offset: 0 }
-                }, Lexeme{
-                    value: "p",
-                    scope: ScopeStack::from_str("comment").unwrap(),
-                    position: Position{ line: 0, offset: 2 }
-                }
+                MappedLexeme::Focused("aa"),
+                MappedLexeme::Blurred("p")
             ]
         );
         jump_mode.reset_display();
 
         assert_eq!(
-            jump_mode.map(lexeme2),
+            jump_mode.map("editor", Position{ line: 0, offset: 3 }),
             vec![
-                Lexeme{
-                    value: "aa",
-                    scope: ScopeStack::from_str("keyword").unwrap(),
-                    position: Position{ line: 0, offset: 3 }
-                }, Lexeme{
-                    value: "itor",
-                    scope: ScopeStack::from_str("comment").unwrap(),
-                    position: Position{ line: 0, offset: 5 }
-                }
+                MappedLexeme::Focused("aa"),
+                MappedLexeme::Blurred("itor")
             ]
         );
     }
@@ -468,25 +322,11 @@ mod tests {
         // It's important to put the unicode character as the
         // second character to ensure splitting off the first
         // two characters would cause a panic.
-        let lexeme = Lexeme{
-            value: "eéditor",
-            scope: ScopeStack::from_str("entity").unwrap(),
-            position: Position{ line: 0, offset: 0 }
-        };
-
-        // This will panic and cause the test to fail.
         assert_eq!(
-            jump_mode.map(lexeme),
+            jump_mode.map("eéditor", Position{ line: 0, offset: 0 }),
             vec![
-                Lexeme{
-                    value: "aa",
-                    scope: ScopeStack::from_str("keyword").unwrap(),
-                    position: Position{ line: 0, offset: 0 }
-                }, Lexeme{
-                    value: "ditor",
-                    scope: ScopeStack::from_str("comment").unwrap(),
-                    position: Position{ line: 0, offset: 2 }
-                }
+                MappedLexeme::Focused("aa"),
+                MappedLexeme::Blurred("ditor")
             ]
         );
     }
@@ -496,19 +336,8 @@ mod tests {
         let mut jump_mode = JumpMode::new(0);
         jump_mode.first_phase = false;
 
-        let lexeme1 = Lexeme{
-            value: "amp",
-            scope: ScopeStack::from_str("entity").unwrap(),
-            position: Position{ line: 0, offset: 0 }
-        };
-
-        let lexeme2 = Lexeme{
-            value: "editor",
-            scope: ScopeStack::from_str("entity").unwrap(),
-            position: Position{ line: 1, offset: 3 }
-        };
-        jump_mode.map(lexeme1);
-        jump_mode.map(lexeme2);
+        jump_mode.map("amp", Position{ line: 0, offset: 0 });
+        jump_mode.map("editor", Position{ line: 1, offset: 3 });
         assert_eq!(jump_mode.map_tag("ab"),
                    Some(&Position {
                        line: 1,
@@ -522,35 +351,14 @@ mod tests {
         let mut jump_mode = JumpMode::new(0);
         jump_mode.first_phase = false;
 
-        let lexeme = Lexeme{
-            value: "amp_editor",
-            scope: ScopeStack::from_str("entity").unwrap(),
-            position: Position{ line: 0, offset: 0 }
-        };
         assert_eq!(
-            jump_mode.map(lexeme),
+            jump_mode.map("amp_editor", Position{ line: 0, offset: 0}),
             vec![
-                Lexeme{
-                    value: "aa",
-                    scope: ScopeStack::from_str("keyword").unwrap(),
-                    position: Position{ line: 0, offset: 0 }
-                }, Lexeme{
-                    value: "p",
-                    scope: ScopeStack::from_str("comment").unwrap(),
-                    position: Position{ line: 0, offset: 2 }
-                }, Lexeme{
-                    value: "_",
-                    scope: ScopeStack::from_str("comment").unwrap(),
-                    position: Position{ line: 0, offset: 3 }
-                }, Lexeme{
-                    value: "ab",
-                    scope: ScopeStack::from_str("keyword").unwrap(),
-                    position: Position{ line: 0, offset: 4 }
-                }, Lexeme{
-                    value: "itor",
-                    scope: ScopeStack::from_str("comment").unwrap(),
-                    position: Position{ line: 0, offset: 6 }
-                }
+                MappedLexeme::Focused("aa"),
+                MappedLexeme::Blurred("p"),
+                MappedLexeme::Blurred("_"),
+                MappedLexeme::Focused("ab"),
+                MappedLexeme::Blurred("itor")
             ]
         );
     }

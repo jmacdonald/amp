@@ -37,7 +37,7 @@ fn jump_to_tag(jump_mode: &mut JumpMode, workspace: &mut Workspace) -> Result {
     let buffer = workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
     if !buffer.cursor.move_to(*position) {
-        bail!("Couldn't move to the specified tag's position")
+        bail!("Couldn't move to the specified tag's position ({:?})", position)
     }
 
     Ok(())

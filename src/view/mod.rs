@@ -8,7 +8,7 @@ mod theme_loader;
 
 // Published API
 pub use self::data::StatusLineData;
-pub use self::buffer::LexemeMapper;
+pub use self::buffer::{LexemeMapper, MappedLexeme};
 pub use self::style::Style;
 pub use self::color::{Colors, RGBColor};
 
