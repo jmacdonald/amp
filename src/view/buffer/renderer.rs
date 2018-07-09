@@ -1,16 +1,16 @@
 use models::application::Preferences;
 use scribe::buffer::{Buffer, Position, Range};
 use scribe::util::LineIterator;
-use view::buffer::{LexemeMapper, MappedLexeme};
+use view::buffer::{LexemeMapper, MappedLexeme, RenderState};
 use view::buffer::line_numbers::*;
 use view::{Colors, RGBColor, Style};
 use view::color::ColorMap;
 use view::color::to_rgb_color;
 use view::terminal::Terminal;
 use std::str::FromStr;
-use syntect::highlighting::{Highlighter, HighlightIterator, HighlightState, Theme};
+use syntect::highlighting::{Highlighter, HighlightIterator, Theme};
 use syntect::highlighting::Style as ThemeStyle;
-use syntect::parsing::{ParseState, ScopeStack};
+use syntect::parsing::ScopeStack;
 use errors::*;
 
 /// A one-time-use type that encapsulates all of the
@@ -222,9 +222,8 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         let lines = LineIterator::new(&buffer_data);
 
         let highlighter = Highlighter::new(&self.theme);
-        let mut highlight_state = HighlightState::new(&highlighter, ScopeStack::new());
         let syntax_definition = self.buffer.syntax_definition.as_ref().ok_or("Buffer has no syntax definition")?;
-        let mut parser = ParseState::new(syntax_definition);
+        let mut state = RenderState::new(&highlighter, syntax_definition);
         let focused_style = self
             .stylist
             .style_for_stack(
@@ -241,9 +240,9 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             );
 
         'print: for (_, line) in lines {
-            let events = parser.parse_line(line);
+            let events = state.parse.parse_line(line);
             let styled_lexemes = HighlightIterator::new(
-                &mut highlight_state,
+                &mut state.highlight,
                 &events,
                 line,
                 &highlighter
