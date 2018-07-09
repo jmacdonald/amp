@@ -224,20 +224,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         let highlighter = Highlighter::new(&self.theme);
         let syntax_definition = self.buffer.syntax_definition.as_ref().ok_or("Buffer has no syntax definition")?;
         let mut state = RenderState::new(&highlighter, syntax_definition);
-        let focused_style = self
-            .stylist
-            .style_for_stack(
-                ScopeStack::from_str("keyword")
-                .unwrap_or(ScopeStack::new())
-                .as_slice()
-            );
-        let blurred_style = self
-            .stylist
-            .style_for_stack(
-                ScopeStack::from_str("comment")
-                .unwrap_or(ScopeStack::new())
-                .as_slice()
-            );
+        let (focused_style, blurred_style) = self.mapper_styles();
 
         'print: for (_, line) in lines {
             let events = state.parse.parse_line(line);
@@ -330,6 +317,25 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
     fn next_tab_stop(&self, offset: usize) -> usize {
         (offset / self.preferences.tab_width(self.buffer.path.as_ref()) + 1) * self.preferences.tab_width(self.buffer.path.as_ref())
+    }
+
+    fn mapper_styles(&self) -> (ThemeStyle, ThemeStyle) {
+        let focused_style = self
+            .stylist
+            .style_for_stack(
+                ScopeStack::from_str("keyword")
+                .unwrap_or(ScopeStack::new())
+                .as_slice()
+            );
+        let blurred_style = self
+            .stylist
+            .style_for_stack(
+                ScopeStack::from_str("comment")
+                .unwrap_or(ScopeStack::new())
+                .as_slice()
+            );
+
+        (focused_style, blurred_style)
     }
 
 }
