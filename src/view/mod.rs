@@ -17,7 +17,7 @@ use input::Key;
 use models::application::{Event, Preferences};
 use self::color::ColorMap;
 use self::terminal::Terminal;
-use self::buffer::BufferRenderer;
+use self::buffer::{BufferRenderer, RenderState};
 use self::buffer::ScrollableRegion;
 use self::event_listener::EventListener;
 use scribe::buffer::{Buffer, Position, Range};
@@ -34,10 +34,13 @@ use self::theme_loader::ThemeLoader;
 use self::terminal::RustboxTerminal;
 use syntect::highlighting::ThemeSet;
 
+const RENDER_CACHE_FREQUENCY: usize = 100;
+
 pub struct View {
     terminal: Arc<Terminal + Sync + Send>,
     cursor_position: Option<Position>,
     scrollable_regions: HashMap<usize, ScrollableRegion>,
+    render_caches: HashMap<usize, Rc<RefCell<HashMap<usize, RenderState>>>>,
     pub theme_set: ThemeSet,
     preferences: Rc<RefCell<Preferences>>,
     pub last_key: Option<Key>,
@@ -60,6 +63,7 @@ impl View {
             last_key: None,
             preferences: preferences,
             scrollable_regions: HashMap::new(),
+            render_caches: HashMap::new(),
             theme_set: theme_set,
             event_channel: event_channel,
             event_listener_killswitch: killswitch_tx
@@ -67,6 +71,7 @@ impl View {
     }
 
     pub fn draw_buffer(&mut self, buffer: &Buffer, highlights: Option<&Vec<Range>>, lexeme_mapper: Option<&mut LexemeMapper>) -> Result<()> {
+        self.populate_render_cache(buffer);
         let scroll_offset = self.visible_region(buffer).line_offset();
         let preferences = self.preferences.borrow();
         let theme_name = preferences.theme();
@@ -81,7 +86,8 @@ impl View {
             scroll_offset,
             &*self.terminal,
             theme,
-            &self.preferences.borrow()
+            &self.preferences.borrow(),
+            self.get_render_cache(buffer)?
         ).render()?;
 
         self.cursor_position = cursor_position;
@@ -188,12 +194,11 @@ impl View {
         self.get_region(buffer)
     }
 
-    /// Cleans up buffer-related view data. Since buffers are tracked
-    /// using their pointers, these settings can be incorrectly applied
-    /// to new buffers that reuse a previous address. This method should
-    /// be called whenever a buffer is closed.
+    /// Cleans up buffer-related view data. This method
+    /// should be called whenever a buffer is closed.
     pub fn forget_buffer(&mut self, buffer: &Buffer) {
         self.scrollable_regions.remove(&buffer_key(buffer));
+        self.render_caches.remove(&buffer_key(buffer));
     }
 
     // Tries to fetch a scrollable region for the specified buffer,
@@ -204,6 +209,22 @@ impl View {
             .or_insert(
                 ScrollableRegion::new(self.terminal.clone())
             )
+    }
+
+    fn populate_render_cache(&mut self, buffer: &Buffer) {
+        self.render_caches
+            .entry(buffer_key(buffer))
+            .or_insert(
+                Rc::new(RefCell::new(HashMap::new()))
+            );
+    }
+
+    fn get_render_cache(&self, buffer: &Buffer) -> Result<&Rc<RefCell<HashMap<usize, RenderState>>>> {
+        let cache = self.render_caches
+            .get(&buffer_key(buffer))
+            .ok_or("Buffer render cache not present.")?;
+
+        Ok(cache)
     }
 
     ///

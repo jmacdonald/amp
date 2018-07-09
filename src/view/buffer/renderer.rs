@@ -3,10 +3,13 @@ use scribe::buffer::{Buffer, Position, Range};
 use scribe::util::LineIterator;
 use view::buffer::{LexemeMapper, MappedLexeme, RenderState};
 use view::buffer::line_numbers::*;
-use view::{Colors, RGBColor, Style};
+use view::{Colors, RENDER_CACHE_FREQUENCY, RGBColor, Style};
 use view::color::ColorMap;
 use view::color::to_rgb_color;
 use view::terminal::Terminal;
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::rc::Rc;
 use std::str::FromStr;
 use syntect::highlighting::{Highlighter, HighlightIterator, Theme};
 use syntect::highlighting::Style as ThemeStyle;
@@ -26,6 +29,7 @@ pub struct BufferRenderer<'a, 'b> {
     lexeme_mapper: Option<&'b mut LexemeMapper>,
     line_numbers: LineNumbers,
     preferences: &'a Preferences,
+    render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>,
     screen_position: Position,
     scroll_offset: usize,
     terminal: &'a Terminal,
@@ -35,7 +39,8 @@ pub struct BufferRenderer<'a, 'b> {
 impl<'a, 'b> BufferRenderer<'a, 'b> {
     pub fn new(buffer: &'a Buffer, highlights: Option<&'a Vec<Range>>,
     lexeme_mapper: Option<&'b mut LexemeMapper>, scroll_offset: usize,
-    terminal: &'a Terminal, theme: &'a Theme, preferences: &'a Preferences) -> BufferRenderer<'a, 'b> {
+    terminal: &'a Terminal, theme: &'a Theme, preferences: &'a Preferences,
+    render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>) -> BufferRenderer<'a, 'b> {
         let line_numbers = LineNumbers::new(&buffer, Some(scroll_offset));
         let gutter_width = line_numbers.width() + 1;
 
@@ -55,6 +60,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             line_numbers: line_numbers,
             buffer_position: Position{ line: 0, offset: 0 },
             preferences: preferences,
+            render_cache: render_cache,
             screen_position: Position{ line: 0, offset: 0 },
             scroll_offset: scroll_offset,
             terminal: terminal,
@@ -223,48 +229,59 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
         let highlighter = Highlighter::new(&self.theme);
         let syntax_definition = self.buffer.syntax_definition.as_ref().ok_or("Buffer has no syntax definition")?;
-        let mut state = RenderState::new(&highlighter, syntax_definition);
+
+        // Start or resume state from a previous cache point, if available.
+        let (cached_line_no, mut state) = self
+            .cached_render_state()
+            .unwrap_or((0, RenderState::new(&highlighter, syntax_definition)));
         let (focused_style, blurred_style) = self.mapper_styles();
 
-        'print: for (_, line) in lines {
-            let events = state.parse.parse_line(line);
-            let styled_lexemes = HighlightIterator::new(
-                &mut state.highlight,
-                &events,
-                line,
-                &highlighter
-            );
-
-            for (style, lexeme) in styled_lexemes {
-                // Move along until we've hit visible content.
-                if self.before_visible_content() {
-                    continue;
+        'print: for (line_no, line) in lines {
+            // Skip past lines that precede the cached render state.
+            if line_no >= cached_line_no {
+                if line_no % RENDER_CACHE_FREQUENCY == 0 && line_no > 0 {
+                    self.render_cache.borrow_mut().insert(line_no, state.clone());
                 }
 
-                // Stop the machine after we've printed all visible content.
-                if self.after_visible_content() {
-                    break 'print;
-                }
+                let events = state.parse.parse_line(line);
+                let styled_lexemes = HighlightIterator::new(
+                    &mut state.highlight,
+                    &events,
+                    line,
+                    &highlighter
+                );
 
-                // We're in a visible area.
-                if let Some(ref mut mapper) = lexeme_mapper {
-                    let mapped_lexemes = mapper.map(lexeme, self.buffer_position);
-                    for mapped_lexeme in mapped_lexemes {
-                        match mapped_lexeme {
-                            MappedLexeme::Focused(value) => {
-                                self.current_style = focused_style;
-                                self.print_lexeme(value);
-                            },
-                            MappedLexeme::Blurred(value) => {
-                                self.current_style = blurred_style;
-                                self.print_lexeme(value);
-                            }
-                        }
-
+                for (style, lexeme) in styled_lexemes {
+                    // Move along until we've hit visible content.
+                    if self.before_visible_content() {
+                        continue;
                     }
-                } else {
-                    self.current_style = style;
-                    self.print_lexeme(lexeme);
+
+                    // Stop the machine after we've printed all visible content.
+                    if self.after_visible_content() {
+                        break 'print;
+                    }
+
+                    // We're in a visible area.
+                    if let Some(ref mut mapper) = lexeme_mapper {
+                        let mapped_lexemes = mapper.map(lexeme, self.buffer_position);
+                        for mapped_lexeme in mapped_lexemes {
+                            match mapped_lexeme {
+                                MappedLexeme::Focused(value) => {
+                                    self.current_style = focused_style;
+                                    self.print_lexeme(value);
+                                },
+                                MappedLexeme::Blurred(value) => {
+                                    self.current_style = blurred_style;
+                                    self.print_lexeme(value);
+                                }
+                            }
+
+                        }
+                    } else {
+                        self.current_style = style;
+                        self.print_lexeme(lexeme);
+                    }
                 }
             }
 
@@ -338,6 +355,17 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         (focused_style, blurred_style)
     }
 
+    /// Finds the closest cached render state, relative to the scrolled offset.
+    /// This reduces the amount of work the renderer has to do to "catch up" to
+    /// the visible area.
+    fn cached_render_state(&self) -> Option<(usize, RenderState)> {
+        self.render_cache
+            .borrow()
+            .iter()
+            .filter(|(k, _)| **k < self.scroll_offset)
+            .max_by(|(k1, _), (k2, _)| k1.cmp(k2))
+            .map(|(k, v)| (*k, v.clone()))
+    }
 }
 
 fn has_trailing_newline(line: &str) -> bool {
@@ -352,9 +380,14 @@ mod tests {
     use models::application::Preferences;
     use scribe::{Buffer, Workspace};
     use scribe::buffer::Position;
-    use std::path::Path;
+    use std::cell::RefCell;
+    use std::collections::HashMap;
+    use std::path::{Path, PathBuf};
+    use std::rc::Rc;
     use super::{BufferRenderer, LexemeMapper, MappedLexeme};
-    use syntect::highlighting::ThemeSet;
+    use syntect::highlighting::{Highlighter, ThemeSet};
+    use syntect::parsing::SyntaxDefinition;
+    use view::terminal::Terminal;
     use view::terminal::test_terminal::TestTerminal;
     use yaml::yaml::YamlLoader;
 
@@ -379,7 +412,8 @@ mod tests {
             0,
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
-            &preferences
+            &preferences,
+            &Rc::new(RefCell::new(HashMap::new()))
         ).render().unwrap();
     }
 
@@ -406,7 +440,8 @@ mod tests {
             0,
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
-            &preferences
+            &preferences,
+            &Rc::new(RefCell::new(HashMap::new()))
         ).render().unwrap();
 
         // Both tabs should fully expand.
@@ -436,7 +471,8 @@ mod tests {
             0,
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
-            &preferences
+            &preferences,
+            &Rc::new(RefCell::new(HashMap::new()))
         ).render().unwrap();
 
         // The space between the tabs should just eat into the second tab's width.
@@ -463,7 +499,8 @@ mod tests {
             0,
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
-            &preferences
+            &preferences,
+            &Rc::new(RefCell::new(HashMap::new()))
         ).render().unwrap();
 
         assert_eq!(
@@ -499,7 +536,8 @@ mod tests {
             0,
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
-            &preferences
+            &preferences,
+            &Rc::new(RefCell::new(HashMap::new()))
         ).render().unwrap();
 
         assert_eq!(terminal.data(), " 1  mapped");
@@ -525,9 +563,148 @@ mod tests {
             0,
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
-            &preferences
+            &preferences,
+            &Rc::new(RefCell::new(HashMap::new()))
         ).render().unwrap();
 
         assert_eq!(cursor_position, Some(Position{ line: 0, offset: 4 }));
+    }
+
+    #[test]
+    fn render_caches_state_using_correct_frequency_excluding_first_line() {
+        // Set up a workspace and buffer; the workspace will
+        // handle setting up the buffer's syntax definition.
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut buffer = Buffer::new();
+
+        for _ in 0..500 {
+            buffer.insert("line\n");
+        }
+        workspace.add_buffer(buffer);
+
+        let mut terminal = TestTerminal::new();
+        let theme_set = ThemeSet::load_defaults();
+        let preferences = Preferences::new(None);
+        let render_cache = Rc::new(RefCell::new(HashMap::new()));
+
+        BufferRenderer::new(
+            workspace.current_buffer().unwrap(),
+            None,
+            None,
+            495,
+            &mut terminal,
+            &theme_set.themes["base16-ocean.dark"],
+            &preferences,
+            &render_cache
+        ).render().unwrap();
+
+        assert_eq!(render_cache.borrow().keys().count(), 5);
+    }
+
+    #[test]
+    fn render_uses_cached_state() {
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.path = Some(PathBuf::from("test.rs"));
+
+        for _ in 0..500 {
+            buffer.insert("line\n");
+        }
+        workspace.add_buffer(buffer);
+
+        let mut terminal = TestTerminal::new();
+        let theme_set = ThemeSet::load_defaults();
+        let preferences = Preferences::new(None);
+        let render_cache = Rc::new(RefCell::new(HashMap::new()));
+
+        // Do an initial run to prime the cache with
+        // an initial state that'll affect the second run.
+        BufferRenderer::new(
+            workspace.current_buffer().unwrap(),
+            None,
+            None,
+            95,
+            &mut terminal,
+            &theme_set.themes["base16-ocean.dark"],
+            &preferences,
+            &render_cache
+        ).render().unwrap();
+
+        assert_eq!(render_cache.borrow().keys().count(), 1);
+        let initial_cache = render_cache.borrow().values().nth(0).unwrap().clone();
+
+        // This changes the classification of *all* of the
+        // text in the buffer; it's how we'll confirm that
+        // the cache is being used.
+        workspace.current_buffer().unwrap().insert("\"");
+
+        BufferRenderer::new(
+            workspace.current_buffer().unwrap(),
+            None,
+            None,
+            495,
+            &mut terminal,
+            &theme_set.themes["base16-ocean.dark"],
+            &preferences,
+            &render_cache
+        ).render().unwrap();
+
+        assert_eq!(render_cache.borrow().keys().count(), 5);
+        for value in render_cache.borrow().values() {
+            assert_eq!(value, &initial_cache);
+        }
+    }
+
+    #[test]
+    fn render_skips_lines_correctly_when_using_cached_state() {
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.path = Some(PathBuf::from("test.rs"));
+
+        for _ in 0..203 {
+            buffer.insert("line\n");
+        }
+        workspace.add_buffer(buffer);
+
+        let mut terminal = TestTerminal::new();
+        let theme_set = ThemeSet::load_defaults();
+        let preferences = Preferences::new(None);
+        let render_cache = Rc::new(RefCell::new(HashMap::new()));
+
+        // Do an initial run to prime the cache with
+        // an initial state that'll affect the second run.
+        BufferRenderer::new(
+            workspace.current_buffer().unwrap(),
+            None,
+            None,
+            95,
+            &mut terminal,
+            &theme_set.themes["base16-ocean.dark"],
+            &preferences,
+            &render_cache
+        ).render().unwrap();
+
+        assert_eq!(render_cache.borrow().keys().count(), 1);
+        terminal.clear();
+
+        // This changes the classification of *all* of the
+        // text in the buffer; it's how we'll confirm that
+        // the cache is being used.
+        workspace.current_buffer().unwrap().insert("\"");
+
+        BufferRenderer::new(
+            workspace.current_buffer().unwrap(),
+            None,
+            None,
+            200,
+            &mut terminal,
+            &theme_set.themes["base16-ocean.dark"],
+            &preferences,
+            &render_cache
+        ).render().unwrap();
+
+        assert_eq!(
+            terminal.data(),
+            " 201  line\n 202  line\n 203  line\n 204      ");
     }
 }
