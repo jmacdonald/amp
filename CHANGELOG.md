@@ -1,3 +1,9 @@
+### 0.4.1
+
+* Fixed syntax highlighting
+  * Scopes were bleeding into one another; we now defer to HighlightIterator
+  * See https://github.com/jmacdonald/amp/issues/22 for details
+
 ### 0.4.0
 
 * Application event loop is now threaded
