@@ -387,8 +387,7 @@ mod tests {
     use super::{BufferRenderer, LexemeMapper, MappedLexeme};
     use syntect::highlighting::{Highlighter, ThemeSet};
     use syntect::parsing::SyntaxDefinition;
-    use view::terminal::Terminal;
-    use view::terminal::test_terminal::TestTerminal;
+    use view::terminal::{Terminal, TestTerminal};
     use yaml::yaml::YamlLoader;
 
     #[test]

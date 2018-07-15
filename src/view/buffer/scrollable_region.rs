@@ -128,7 +128,7 @@ impl ScrollableRegion {
 mod tests {
     use std::sync::Arc;
     use super::ScrollableRegion;
-    use view::terminal::test_terminal::TestTerminal;
+    use view::terminal::TestTerminal;
     use scribe::buffer::{Buffer, Position};
 
     #[test]

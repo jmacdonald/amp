@@ -1,5 +1,5 @@
-pub mod terminal;
 pub mod color;
+pub mod terminal;
 mod buffer;
 mod data;
 mod event_listener;
@@ -295,7 +295,7 @@ fn build_terminal() -> Arc<Terminal + Sync + Send> {
 #[cfg(any(test, feature = "bench"))]
 fn build_terminal() -> Arc<Terminal + Sync + Send> {
     // Use a headless terminal if we're in test mode.
-    Arc::new(terminal::test_terminal::TestTerminal::new())
+    Arc::new(terminal::TestTerminal::new())
 }
 
 #[cfg(test)]

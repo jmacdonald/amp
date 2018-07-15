@@ -41,7 +41,7 @@ mod tests {
     use std::sync::Arc;
     use std::sync::mpsc;
     use super::EventListener;
-    use view::terminal::test_terminal::TestTerminal;
+    use view::terminal::TestTerminal;
 
     #[test]
     fn start_listens_for_and_sends_key_events_from_terminal() {
