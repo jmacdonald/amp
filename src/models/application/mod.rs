@@ -15,10 +15,12 @@ use std::ops::Drop;
 use std::path::Path;
 use std::cell::RefCell;
 use std::rc::Rc;
+use std::sync::Arc;
 use presenters;
 use self::modes::*;
 use scribe::{Buffer, Workspace};
 use view::{self, StatusLineData, View};
+use view::terminal::*;
 use self::clipboard::Clipboard;
 use git2::Repository;
 use std::sync::mpsc::{self, Receiver, Sender};
@@ -99,7 +101,7 @@ impl Application {
         }
 
         let (event_channel, events) = mpsc::channel();
-        let view = View::new(preferences.clone(), event_channel.clone())?;
+        let view = View::new(build_terminal(), preferences.clone(), event_channel.clone())?;
         let clipboard = Clipboard::new();
 
         Ok(Application {
@@ -284,4 +286,15 @@ fn render_error(view: &mut View, error: &Error) {
             }]
         );
     view.present();
+}
+
+#[cfg(not(any(test, feature = "bench")))]
+fn build_terminal() -> Arc<Terminal + Sync + Send> {
+    Arc::new(RustboxTerminal::new())
+}
+
+#[cfg(any(test, feature = "bench"))]
+fn build_terminal() -> Arc<Terminal + Sync + Send> {
+    // Use a headless terminal if we're in test mode.
+    Arc::new(TestTerminal::new())
 }

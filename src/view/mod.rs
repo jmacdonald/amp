@@ -16,7 +16,6 @@ use errors::*;
 use input::Key;
 use models::application::{Event, Preferences};
 use self::color::ColorMap;
-use self::terminal::Terminal;
 use self::buffer::{BufferRenderer, RenderState};
 use self::buffer::ScrollableRegion;
 use self::event_listener::EventListener;
@@ -31,7 +30,7 @@ use std::ops::Drop;
 use std::sync::mpsc::{self, Sender, SyncSender};
 use std::sync::Arc;
 use self::theme_loader::ThemeLoader;
-use self::terminal::RustboxTerminal;
+use self::terminal::Terminal;
 use syntect::highlighting::ThemeSet;
 
 const RENDER_CACHE_FREQUENCY: usize = 100;
@@ -49,8 +48,7 @@ pub struct View {
 }
 
 impl View {
-    pub fn new(preferences: Rc<RefCell<Preferences>>, event_channel: Sender<Event>) -> Result<View> {
-        let terminal = build_terminal();
+    pub fn new(terminal: Arc<Terminal + Sync + Send>, preferences: Rc<RefCell<Preferences>>, event_channel: Sender<Event>) -> Result<View> {
         let theme_path = preferences.borrow().theme_path()?;
         let theme_set = ThemeLoader::new(theme_path).load()?;
 
@@ -287,30 +285,22 @@ fn buffer_key(buffer: &Buffer) -> usize {
     buffer.id.unwrap_or(0)
 }
 
-#[cfg(not(any(test, feature = "bench")))]
-fn build_terminal() -> Arc<Terminal + Sync + Send> {
-    Arc::new(RustboxTerminal::new())
-}
-
-#[cfg(any(test, feature = "bench"))]
-fn build_terminal() -> Arc<Terminal + Sync + Send> {
-    // Use a headless terminal if we're in test mode.
-    Arc::new(terminal::TestTerminal::new())
-}
-
 #[cfg(test)]
 mod tests {
     use scribe::Buffer;
     use super::View;
+    use super::terminal::TestTerminal;
     use models::application::Preferences;
     use std::cell::RefCell;
     use std::rc::Rc;
-    use std::sync::mpsc;
+    use std::sync::{Arc, mpsc};
 
     #[test]
     fn scroll_down_prevents_scrolling_completely_beyond_buffer() {
+        let terminal = Arc::new(TestTerminal::new());
+        let preferences = Rc::new(RefCell::new(Preferences::new(None)));
         let (tx, _) = mpsc::channel();
-        let mut view = View::new(Rc::new(RefCell::new(Preferences::new(None))), tx).unwrap();
+        let mut view = View::new(terminal, preferences, tx).unwrap();
 
         // Build a 10-line buffer.
         let mut buffer = Buffer::new();
@@ -331,8 +321,10 @@ mod tests {
 
     #[test]
     fn scroll_down_prevents_scrolling_when_buffer_is_smaller_than_top_half() {
+        let terminal = Arc::new(TestTerminal::new());
+        let preferences = Rc::new(RefCell::new(Preferences::new(None)));
         let (tx, _) = mpsc::channel();
-        let mut view = View::new(Rc::new(RefCell::new(Preferences::new(None))), tx).unwrap();
+        let mut view = View::new(terminal, preferences, tx).unwrap();
 
         // Build a 2-line buffer and try to scroll it.
         let mut buffer = Buffer::new();
