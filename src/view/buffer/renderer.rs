@@ -385,8 +385,7 @@ mod tests {
     use std::path::{Path, PathBuf};
     use std::rc::Rc;
     use super::{BufferRenderer, LexemeMapper, MappedLexeme};
-    use syntect::highlighting::{Highlighter, ThemeSet};
-    use syntect::parsing::SyntaxDefinition;
+    use syntect::highlighting::ThemeSet;
     use view::terminal::{Terminal, TestTerminal};
     use yaml::yaml::YamlLoader;
 
