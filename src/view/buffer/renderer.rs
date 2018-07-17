@@ -443,7 +443,7 @@ mod tests {
         ).render().unwrap();
 
         // Both tabs should fully expand.
-        assert_eq!(terminal.data(), " 1      xy");
+        assert_eq!(terminal.content(), " 1      xy");
     }
 
     #[test]
@@ -474,7 +474,7 @@ mod tests {
         ).render().unwrap();
 
         // The space between the tabs should just eat into the second tab's width.
-        assert_eq!(terminal.data(), " 1      xy");
+        assert_eq!(terminal.content(), " 1      xy");
     }
 
     #[test]
@@ -502,7 +502,7 @@ mod tests {
         ).render().unwrap();
 
         assert_eq!(
-            terminal.data(),
+            terminal.content(),
             " 1  amp ed\n    itor  \n 2  second\n     line \n 3        ");
     }
 
@@ -538,7 +538,7 @@ mod tests {
             &Rc::new(RefCell::new(HashMap::new()))
         ).render().unwrap();
 
-        assert_eq!(terminal.data(), " 1  mapped");
+        assert_eq!(terminal.content(), " 1  mapped");
     }
 
     #[test]
@@ -702,7 +702,7 @@ mod tests {
         ).render().unwrap();
 
         assert_eq!(
-            terminal.data(),
+            terminal.content(),
             " 201  line\n 202  line\n 203  line\n 204      ");
     }
 }

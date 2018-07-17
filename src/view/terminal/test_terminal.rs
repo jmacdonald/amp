@@ -12,7 +12,7 @@ const HEIGHT: usize = 10;
 // A headless terminal that tracks printed data, which can be
 // returned as a String to test display logic of other types.
 pub struct TestTerminal {
-    data: Mutex<[[Option<char>; WIDTH]; HEIGHT]>, // 2D array of chars to represent screen
+    data: Mutex<[[Option<(char, Colors)>; WIDTH]; HEIGHT]>, // 2D array of chars to represent screen
     cursor: Mutex<Option<Position>>,
     key_sent: Mutex<bool>
 }
@@ -27,14 +27,14 @@ impl TestTerminal {
     }
 
     // Returns a String representation of the printed data.
-    pub fn data(&self) -> String {
+    pub fn content(&self) -> String {
         let mut data = String::new();
         let mut last_row_with_data = 0;
         let mut last_column_with_data = 0;
 
         for (y, row) in self.data.lock().unwrap().iter().enumerate() {
             for (x, cell) in row.iter().enumerate() {
-                if let Some(c) = *cell {
+                if let Some((c, _)) = *cell {
                     for _ in last_row_with_data..y {
                         data.push('\n');
                         last_column_with_data = 0;
@@ -58,6 +58,10 @@ impl TestTerminal {
         }
 
         data
+    }
+
+    pub fn data(&self) -> [[Option<(char, Colors)>; WIDTH]; HEIGHT] {
+        *self.data.lock().unwrap()
     }
 }
 
@@ -88,12 +92,12 @@ impl Terminal for TestTerminal {
         *cursor = position;
     }
     fn suspend(&self) { }
-    fn print(&self, position: &Position, _: Style, _: Colors, content: &Display) {
+    fn print(&self, position: &Position, _: Style, colors: Colors, content: &Display) {
         let mut data = self.data.lock().unwrap();
         let string_content = format!("{}", content);
 
         for (i, c) in string_content.chars().enumerate() {
-            data[position.line][i+position.offset] = Some(c);
+            data[position.line][i+position.offset] = Some((c, colors));
         }
     }
 }
@@ -110,7 +114,7 @@ mod tests {
         let terminal = TestTerminal::new();
         terminal.print(&Position{ line: 0, offset: 0 }, Style::Default, Colors::Default, &"data");
 
-        assert_eq!(terminal.data(), "data");
+        assert_eq!(terminal.content(), "data");
     }
 
     #[test]
@@ -121,6 +125,6 @@ mod tests {
         terminal.print(&Position{ line: 0, offset: 2 }, Style::Default, Colors::Default, &"some");
         terminal.print(&Position{ line: 2, offset: 5 }, Style::Default, Colors::Default, &"data");
 
-        assert_eq!(terminal.data(), "  some\n\n     data");
+        assert_eq!(terminal.content(), "  some\n\n     data");
     }
 }
