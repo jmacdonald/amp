@@ -287,11 +287,12 @@ fn buffer_key(buffer: &Buffer) -> usize {
 
 #[cfg(test)]
 mod tests {
-    use scribe::Buffer;
+    use scribe::{Buffer, Workspace};
     use super::View;
     use super::terminal::TestTerminal;
     use models::application::Preferences;
     use std::cell::RefCell;
+    use std::path::{Path, PathBuf};
     use std::rc::Rc;
     use std::sync::{Arc, mpsc};
 
@@ -333,6 +334,37 @@ mod tests {
 
         // The view should not be scrolled.
         assert_eq!(view.visible_region(&buffer).line_offset(), 0);
+    }
+
+    #[test]
+    fn draw_buffer_caches_render_states() {
+        let terminal = Arc::new(TestTerminal::new());
+        let preferences = Rc::new(RefCell::new(Preferences::new(None)));
+        let (tx, _) = mpsc::channel();
+        let mut view = View::new(terminal.clone(), preferences, tx).unwrap();
+
+        // Set up a Rust-categorized buffer.
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.path = Some(PathBuf::from("rust.rs"));
+        for _ in 0..200 {
+            buffer.insert("line\n");
+        }
+        workspace.add_buffer(buffer);
+
+        // Scroll down enough to trigger caching.
+        view.scroll_down(workspace.current_buffer().unwrap(), 105);
+
+        // Draw the buffer and capture the terminal data.
+        view.draw_buffer(workspace.current_buffer().unwrap(), None, None).unwrap();
+        let initial_data = terminal.data();
+
+        // By inserting a single quote, we'll change the color of the entire
+        // buffer. We'll then check the terminal to ensure the color hasn't
+        // actually changed, because of the cache.
+        workspace.current_buffer().unwrap().insert("\"");
+        view.draw_buffer(workspace.current_buffer().unwrap(), None, None).unwrap();
+        assert_eq!(terminal.data(), initial_data);
     }
 }
 
