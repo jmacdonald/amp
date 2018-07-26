@@ -16,7 +16,7 @@ use errors::*;
 use input::Key;
 use models::application::{Event, Preferences};
 use self::color::ColorMap;
-use self::buffer::{BufferRenderer, RenderState};
+use self::buffer::{BufferRenderer, RenderCache, RenderState};
 use self::buffer::ScrollableRegion;
 use self::event_listener::EventListener;
 use scribe::buffer::{Buffer, Position, Range};
