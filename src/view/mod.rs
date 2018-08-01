@@ -361,6 +361,11 @@ mod tests {
         for _ in 0..200 {
             buffer.insert("line\n");
         }
+
+        // Initialize the buffer's render cache, but get rid of the callback
+        // so that we can test the cache without it being invalidated.
+        view.initialize_buffer(&mut buffer);
+        buffer.change_callback = None;
         workspace.add_buffer(buffer);
 
         // Scroll down enough to trigger caching.
