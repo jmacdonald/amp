@@ -69,7 +69,6 @@ impl View {
     }
 
     pub fn draw_buffer(&mut self, buffer: &Buffer, highlights: Option<&Vec<Range>>, lexeme_mapper: Option<&mut LexemeMapper>) -> Result<()> {
-        self.populate_render_cache(buffer);
         let scroll_offset = self.visible_region(buffer).line_offset();
         let preferences = self.preferences.borrow();
         let theme_name = preferences.theme();
@@ -209,18 +208,10 @@ impl View {
             )
     }
 
-    fn populate_render_cache(&mut self, buffer: &Buffer) {
-        self.render_caches
-            .entry(buffer_key(buffer))
-            .or_insert(
-                Rc::new(RefCell::new(HashMap::new()))
-            );
-    }
-
     fn get_render_cache(&self, buffer: &Buffer) -> Result<&Rc<RefCell<HashMap<usize, RenderState>>>> {
         let cache = self.render_caches
             .get(&buffer_key(buffer))
-            .ok_or("Buffer render cache not present.")?;
+            .ok_or("Buffer not properly initialized (render cache not present).")?;
 
         Ok(cache)
     }
@@ -273,6 +264,23 @@ impl View {
     pub fn last_key(&self) -> &Option<Key> {
         &self.last_key
     }
+
+    /// Sets up new buffers with render caches and cache invalidation callbacks.
+    pub fn initialize_buffer(&mut self, buffer: &mut Buffer) {
+        // Build and store a new render cache for the buffer.
+        let render_cache = Rc::new(RefCell::new(HashMap::new()));
+        self.render_caches.insert(
+            buffer_key(buffer),
+            render_cache.clone()
+        );
+
+        // Wire up the buffer's change callback to invalidate the render cache.
+        buffer.change_callback = Some(
+            Box::new(move |change_position| {
+                render_cache.borrow_mut().invalidate_from(change_position.line);
+            })
+        );
+    }
 }
 
 impl Drop for View {
@@ -291,10 +299,13 @@ mod tests {
     use super::View;
     use super::terminal::TestTerminal;
     use models::application::Preferences;
+    use scribe::buffer::Position;
     use std::cell::RefCell;
     use std::path::{Path, PathBuf};
     use std::rc::Rc;
     use std::sync::{Arc, mpsc};
+    use syntect::highlighting::{Highlighter, ThemeSet};
+    use view::buffer::RenderState;
 
     #[test]
     fn scroll_down_prevents_scrolling_completely_beyond_buffer() {
@@ -365,6 +376,77 @@ mod tests {
         workspace.current_buffer().unwrap().insert("\"");
         view.draw_buffer(workspace.current_buffer().unwrap(), None, None).unwrap();
         assert_eq!(terminal.data(), initial_data);
+    }
+
+    #[test]
+    fn initialize_buffer_creates_render_cache_for_buffer() {
+        let terminal = Arc::new(TestTerminal::new());
+        let preferences = Rc::new(RefCell::new(Preferences::new(None)));
+        let (tx, _) = mpsc::channel();
+        let mut view = View::new(terminal.clone(), preferences, tx).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.id = Some(1);
+
+        assert!(view.render_caches.get(&buffer.id.unwrap()).is_none());
+        view.initialize_buffer(&mut buffer);
+        assert!(view.render_caches.get(&buffer.id.unwrap()).is_some());
+    }
+
+    #[test]
+    fn initialize_buffer_sets_change_callback_to_clear_render_cache() {
+        let terminal = Arc::new(TestTerminal::new());
+        let preferences = Rc::new(RefCell::new(Preferences::new(None)));
+        let (tx, _) = mpsc::channel();
+        let mut view = View::new(terminal.clone(), preferences, tx).unwrap();
+
+        // Set up a buffer with a syntax definition and id.
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut buf = Buffer::new();
+        buf.path = Some(PathBuf::from("rust.rs"));
+        workspace.add_buffer(buf);
+        let mut buffer = workspace.current_buffer().unwrap();
+
+        // Put some initial data in the buffer, and then initialize it.
+        for _ in 0..200 {
+            buffer.insert("line\n");
+        }
+        view.initialize_buffer(&mut buffer);
+
+        // Build a render state.
+        let theme_set = ThemeSet::load_defaults();
+        let highlighter = Highlighter::new(&theme_set.themes["base16-ocean.dark"]);
+        let render_state = RenderState::new(&highlighter, buffer.syntax_definition.as_ref().unwrap());
+
+        // Populate the render cache with some values.
+        view.render_caches
+            .get(&buffer.id.unwrap())
+            .unwrap()
+            .borrow_mut()
+            .insert(0, render_state.clone());
+        view.render_caches
+            .get(&buffer.id.unwrap())
+            .unwrap()
+            .borrow_mut()
+            .insert(100, render_state.clone());
+        view.render_caches
+            .get(&buffer.id.unwrap())
+            .unwrap()
+            .borrow_mut()
+            .insert(200, render_state.clone());
+
+        // Make a change that will invalidate all lines beyond 100.
+        buffer.cursor.move_to(Position{ line: 99, offset: 0 });
+        buffer.insert("\n");
+
+        assert_eq!(
+            view.render_caches
+                .get(&buffer.id.unwrap())
+                .unwrap()
+                .borrow()
+                .keys()
+                .collect::<Vec<&usize>>(),
+            vec![&0]
+        );
     }
 }
 
