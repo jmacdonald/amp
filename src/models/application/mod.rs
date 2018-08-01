@@ -77,11 +77,15 @@ impl Application {
         }
         workspace.syntax_set.link_syntaxes();
 
+        let (event_channel, events) = mpsc::channel();
+        let mut view = View::new(build_terminal(), preferences.clone(), event_channel.clone())?;
+        let clipboard = Clipboard::new();
+
         // Try to open the specified file.
         for path_arg in env::args().skip(1) {
             let path = Path::new(&path_arg);
 
-            let argument_buffer = if path.exists() {
+            let mut argument_buffer = if path.exists() {
                 // Load the buffer from disk.
                 Buffer::from_file(path)?
             } else {
@@ -98,11 +102,8 @@ impl Application {
                 buffer
             };
             workspace.add_buffer(argument_buffer);
+            view.initialize_buffer(workspace.current_buffer().unwrap());
         }
-
-        let (event_channel, events) = mpsc::channel();
-        let view = View::new(build_terminal(), preferences.clone(), event_channel.clone())?;
-        let clipboard = Clipboard::new();
 
         Ok(Application {
                mode: Mode::Normal,

@@ -4,6 +4,7 @@ pub mod movement_lexer;
 mod selectable_vec;
 pub mod token;
 
+use models::Application;
 use scribe::buffer::{Buffer, LineRange, Position, Range};
 
 /// Translates a line range to a regular range, including its last line.
@@ -45,6 +46,12 @@ pub fn inclusive_range(line_range: &LineRange, buffer: &mut Buffer) -> Range {
                    offset: 0,
                },
                end_position)
+}
+
+/// Convenience method to initialize and add a buffer to the workspace.
+pub fn add_buffer(buffer: Buffer, app: &mut Application) {
+    app.workspace.add_buffer(buffer);
+    app.view.initialize_buffer(app.workspace.current_buffer().unwrap());
 }
 
 #[cfg(test)]

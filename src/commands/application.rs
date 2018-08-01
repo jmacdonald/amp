@@ -5,6 +5,7 @@ use scribe::Buffer;
 use std::mem;
 use models::application::{Application, Mode};
 use models::application::modes::*;
+use util;
 
 pub fn handle_input(app: &mut Application) -> Result {
     // Listen for and respond to user input.
@@ -210,7 +211,7 @@ pub fn display_available_commands(app: &mut Application) -> Result {
 }
 
 pub fn display_last_error(app: &mut Application) -> Result {
-    let error = app.error.as_ref().ok_or("No error to display")?;
+    let error = app.error.take().ok_or("No error to display")?;
     let scope_display_buffer = {
         let mut error_buffer = Buffer::new();
         // Add the proximate/contextual error.
@@ -227,7 +228,7 @@ pub fn display_last_error(app: &mut Application) -> Result {
 
         error_buffer
     };
-    app.workspace.add_buffer(scope_display_buffer);
+    util::add_buffer(scope_display_buffer, app);
 
     Ok(())
 }

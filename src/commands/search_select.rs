@@ -27,6 +27,8 @@ pub fn accept(app: &mut Application) -> Result {
             app.workspace
                 .open_buffer(&path)
                 .chain_err(|| "Couldn't open a buffer for the specified path.")?;
+            app.view.initialize_buffer(app.workspace.current_buffer().unwrap());
+
         },
         Mode::Theme(ref mut mode) => {
             let theme_key = mode.selection().ok_or("No theme selected")?;

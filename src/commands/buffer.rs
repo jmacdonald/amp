@@ -2,6 +2,7 @@ use errors::*;
 use commands::{self, Result};
 use std::mem;
 use input::Key;
+use util;
 use util::token::{Direction, adjacent_token_position};
 use models::application::{Application, ClipboardContent, Mode};
 use models::application::modes::ConfirmMode;
@@ -296,7 +297,7 @@ pub fn display_current_scope(app: &mut Application) -> Result {
 
         scope_display_buffer
     };
-    app.workspace.add_buffer(scope_display_buffer);
+    util::add_buffer(scope_display_buffer, app);
 
     Ok(())
 }
