@@ -1,6 +1,6 @@
 use errors::*;
 use commands::{self, Result};
-use helpers::token::{Direction, adjacent_token_position};
+use util::token::{Direction, adjacent_token_position};
 use models::application::Application;
 use scribe::buffer::Position;
 use super::{application, buffer};

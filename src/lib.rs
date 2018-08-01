@@ -22,7 +22,7 @@ extern crate error_chain;
 // Private modules
 mod commands;
 mod errors;
-mod helpers;
+mod util;
 mod input;
 mod models;
 mod presenters;

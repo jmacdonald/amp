@@ -1,5 +1,5 @@
 use fragment;
-use helpers::SelectableVec;
+use util::SelectableVec;
 use std::fmt;
 use std::slice::Iter;
 use models::application::modes::{SearchSelectMode, MAX_SEARCH_SELECT_RESULTS};

@@ -1,4 +1,4 @@
-use helpers::movement_lexer;
+use util::movement_lexer;
 use scribe::buffer::{Buffer, Position};
 use luthor::token::Category;
 

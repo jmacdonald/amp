@@ -1,7 +1,7 @@
 mod displayable_command;
 
 use fragment;
-use helpers::SelectableVec;
+use util::SelectableVec;
 use std::collections::HashMap;
 use std::fmt;
 use std::slice::Iter;

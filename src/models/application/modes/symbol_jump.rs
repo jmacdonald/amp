@@ -2,7 +2,7 @@ use fragment;
 use fragment::matching::AsStr;
 use scribe::buffer::{Position, Token, TokenSet};
 use syntect::highlighting::ScopeSelectors;
-use helpers::SelectableVec;
+use util::SelectableVec;
 use std::fmt;
 use std::iter::Iterator;
 use std::clone::Clone;

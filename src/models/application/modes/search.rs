@@ -1,5 +1,5 @@
 use errors::*;
-use helpers::SelectableVec;
+use util::SelectableVec;
 use std::fmt;
 use scribe::buffer::{Buffer, Distance, Range};
 

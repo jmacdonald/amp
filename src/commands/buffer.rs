@@ -2,7 +2,7 @@ use errors::*;
 use commands::{self, Result};
 use std::mem;
 use input::Key;
-use helpers::token::{Direction, adjacent_token_position};
+use util::token::{Direction, adjacent_token_position};
 use models::application::{Application, ClipboardContent, Mode};
 use models::application::modes::ConfirmMode;
 use scribe::buffer::{Buffer, Position, Range};

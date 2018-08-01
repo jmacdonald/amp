@@ -3,7 +3,7 @@ use scribe::buffer::{LineRange, Range};
 use super::application;
 use errors::*;
 use commands::{self, Result};
-use helpers;
+use util;
 
 pub fn delete(app: &mut Application) -> Result {
     if let Some(buffer) = app.workspace.current_buffer() {
@@ -81,7 +81,7 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
             app.clipboard.set_content(ClipboardContent::Inline(data))?;
         }
         Mode::SelectLine(ref mode) => {
-            let selected_range = helpers::inclusive_range(
+            let selected_range = util::inclusive_range(
                 &LineRange::new(
                     mode.anchor,
                     buffer.cursor

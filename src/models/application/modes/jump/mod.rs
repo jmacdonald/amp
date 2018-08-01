@@ -2,7 +2,7 @@ mod tag_generator;
 mod single_character_tag_generator;
 
 use luthor::token::Category;
-use helpers::movement_lexer;
+use util::movement_lexer;
 use std::collections::HashMap;
 use scribe::buffer::{Distance, Position};
 use models::application::modes::select::SelectMode;

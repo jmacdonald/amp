@@ -5,7 +5,7 @@ use std::fmt;
 use std::path::PathBuf;
 use std::slice::Iter;
 use bloodhound::ExclusionPattern;
-use helpers::SelectableVec;
+use util::SelectableVec;
 use models::application::modes::{SearchSelectMode, MAX_SEARCH_SELECT_RESULTS};
 use models::application::Event;
 use std::sync::mpsc::Sender;
