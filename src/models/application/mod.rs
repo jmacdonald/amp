@@ -224,6 +224,10 @@ impl Application {
             Event::OpenModeIndexComplete(index) => {
                 if let Mode::Open(ref mut open_mode) = self.mode {
                     open_mode.set_index(index);
+
+                    // Trigger a search, in case a query was
+                    // entered while we were indexing.
+                    open_mode.search();
                 }
             },
         }
