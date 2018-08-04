@@ -102,7 +102,7 @@ impl Application {
                 buffer
             };
             workspace.add_buffer(argument_buffer);
-            view.initialize_buffer(workspace.current_buffer().unwrap());
+            view.initialize_buffer(workspace.current_buffer().unwrap())?;
         }
 
         Ok(Application {

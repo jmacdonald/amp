@@ -10,7 +10,5 @@ pub fn next_buffer(app: &mut Application) -> Result {
 }
 
 pub fn new_buffer(app: &mut Application) -> Result {
-    util::add_buffer(Buffer::new(), app);
-
-    Ok(())
+    util::add_buffer(Buffer::new(), app)
 }

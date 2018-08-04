@@ -228,9 +228,7 @@ pub fn display_last_error(app: &mut Application) -> Result {
 
         error_buffer
     };
-    util::add_buffer(scope_display_buffer, app);
-
-    Ok(())
+    util::add_buffer(scope_display_buffer, app)
 }
 
 pub fn suspend(app: &mut Application) -> Result {

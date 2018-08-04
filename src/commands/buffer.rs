@@ -169,7 +169,7 @@ pub fn close(app: &mut Application) -> Result {
         // Clean up view-related data for the buffer.
         app.view.forget_buffer(
             app.workspace.current_buffer().ok_or(BUFFER_MISSING)?
-        );
+        )?;
         app.workspace.close_current_buffer();
     } else {
         // Display a confirmation prompt before closing a modified buffer.
@@ -207,7 +207,7 @@ pub fn close_others(app: &mut Application) -> Result {
             } else if buf.modified() && !buf.data().is_empty() {
                 modified_buffer = true;
             } else {
-                app.view.forget_buffer(buf);
+                app.view.forget_buffer(buf)?;
             }
         }
 
@@ -228,7 +228,7 @@ pub fn close_others(app: &mut Application) -> Result {
 
 pub fn close_others_confirm(app: &mut Application) -> Result {
     if let Some(buf) = app.workspace.current_buffer() {
-        app.view.forget_buffer(buf);
+        app.view.forget_buffer(buf)?;
     }
     app.workspace.close_current_buffer();
     commands::application::switch_to_normal_mode(app)?;
@@ -297,9 +297,7 @@ pub fn display_current_scope(app: &mut Application) -> Result {
 
         scope_display_buffer
     };
-    util::add_buffer(scope_display_buffer, app);
-
-    Ok(())
+    util::add_buffer(scope_display_buffer, app)
 }
 
 /// Inserts a newline character at the current cursor position.
