@@ -6,19 +6,41 @@ use amp::Application;
 use criterion::Criterion;
 use std::path::PathBuf;
 
-fn criterion_benchmark(c: &mut Criterion) {
+fn buffer_rendering(c: &mut Criterion) {
     let mut app = Application::new().unwrap();
     app.workspace.open_buffer(
-        &PathBuf::from("benches/view/draw_buffer.rs")
-    );
-    c.bench_function("draw_buffer", move |b| b.iter(|| {
+        &PathBuf::from("src/commands/buffer.rs")
+    ).unwrap();
+    app.view.initialize_buffer(app.workspace.current_buffer().unwrap()).unwrap();
+
+    c.bench_function("buffer rendering", move |b| b.iter(|| {
         app.view.draw_buffer(
             app.workspace.current_buffer().unwrap(),
             None,
             None
-        )
+        ).unwrap()
     }));
 }
 
-criterion_group!(benches, criterion_benchmark);
+fn scrolled_buffer_rendering(c: &mut Criterion) {
+    let mut app = Application::new().unwrap();
+    app.workspace.open_buffer(
+        &PathBuf::from("src/commands/buffer.rs")
+    ).unwrap();
+    app.view.initialize_buffer(app.workspace.current_buffer().unwrap()).unwrap();
+
+    // Scroll to the bottom of the buffer.
+    app.workspace.current_buffer().unwrap().cursor.move_to_last_line();
+    app.view.scroll_to_cursor(app.workspace.current_buffer().unwrap()).unwrap();
+
+    c.bench_function("scrolled buffer rendering", move |b| b.iter(|| {
+        app.view.draw_buffer(
+            app.workspace.current_buffer().unwrap(),
+            None,
+            None
+        ).unwrap()
+    }));
+}
+
+criterion_group!(benches, buffer_rendering, scrolled_buffer_rendering);
 criterion_main!(benches);
