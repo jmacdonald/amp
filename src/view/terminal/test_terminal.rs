@@ -93,10 +93,16 @@ impl Terminal for TestTerminal {
     }
     fn suspend(&self) { }
     fn print(&self, position: &Position, _: Style, colors: Colors, content: &Display) {
+        // Ignore lines beyond visible height.
+        if position.line >= self.height() { return; }
+
         let mut data = self.data.lock().unwrap();
         let string_content = format!("{}", content);
 
         for (i, c) in string_content.chars().enumerate() {
+            // Ignore characters beyond visible width.
+            if i+position.offset >= 10 { break; }
+
             data[position.line][i+position.offset] = Some((c, colors));
         }
     }
