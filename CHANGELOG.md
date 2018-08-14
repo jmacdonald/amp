@@ -1,3 +1,8 @@
+### 0.5.0
+
+* Added caching to syntax highlighting, to improve performance for large buffers
+  * See https://medium.com/@jordan_98525/incremental-parsing-in-amp-ba5e8c3e85dc for details
+
 ### 0.4.1
 
 * Fixed syntax highlighting
