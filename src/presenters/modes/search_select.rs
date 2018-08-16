@@ -1,7 +1,7 @@
 use errors::*;
 use std::cmp;
 use std::fmt::Display;
-use models::application::modes::{SearchSelectMode, MAX_SEARCH_SELECT_RESULTS};
+use models::application::modes::{SearchSelectMode};
 use pad::PadStr;
 use presenters::current_buffer_status_line_data;
 use scribe::Workspace;
@@ -10,6 +10,8 @@ use view::{Colors, StatusLineData, Style, View};
 use unicode_segmentation::UnicodeSegmentation;
 
 pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMode<T>, view: &mut View) -> Result<()> {
+    let mode_config = mode.config().clone();
+
     // Wipe the slate clean.
     view.clear();
 
@@ -51,7 +53,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
     }
 
     // Clear any remaining lines in the result display area.
-    for line in cmp::max(mode.results().len(), 1)..5 {
+    for line in cmp::max(mode.results().len(), 1)..mode_config.max_results {
         view.print(&Position{ line: line, offset: 0 },
                    Style::Default,
                    Colors::Default,
@@ -59,7 +61,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
     }
 
     // Draw the divider.
-    let line = MAX_SEARCH_SELECT_RESULTS;
+    let line = mode_config.max_results;
     let colors = if mode.insert_mode() {
         Colors::Insert
     } else {
@@ -73,7 +75,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
 
     // Place the cursor on the search input line, right after its contents.
     view.set_cursor(Some(Position {
-        line: MAX_SEARCH_SELECT_RESULTS,
+        line: mode_config.max_results,
         offset: mode.query().graphemes(true).count(),
     }));
 

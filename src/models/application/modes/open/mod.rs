@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use std::slice::Iter;
 use bloodhound::ExclusionPattern;
 use util::SelectableVec;
-use models::application::modes::{SearchSelectMode, MAX_SEARCH_SELECT_RESULTS};
+use models::application::modes::{SearchSelectMode, SearchSelectConfig};
 use models::application::Event;
 use std::sync::mpsc::Sender;
 use std::thread;
@@ -24,10 +24,11 @@ pub struct OpenMode {
     pub input: String,
     index: OpenModeIndex,
     pub results: SelectableVec<DisplayablePath>,
+    config: SearchSelectConfig,
 }
 
 impl OpenMode {
-    pub fn new(path: PathBuf, exclusions: Option<Vec<ExclusionPattern>>, events: Sender<Event>) -> OpenMode {
+    pub fn new(path: PathBuf, exclusions: Option<Vec<ExclusionPattern>>, events: Sender<Event>, config: SearchSelectConfig) -> OpenMode {
         // Build and populate the index in a separate thread.
         let index_path = path.clone();
         thread::spawn(move || {
@@ -43,6 +44,7 @@ impl OpenMode {
             input: String::new(),
             index: OpenModeIndex::Indexing(path),
             results: SelectableVec::new(Vec::new()),
+            config,
         }
     }
 
@@ -63,7 +65,7 @@ impl SearchSelectMode<DisplayablePath> for OpenMode {
             if let OpenModeIndex::Complete(ref index) = self.index {
                 index.find(
                     &self.input.to_lowercase(),
-                    MAX_SEARCH_SELECT_RESULTS
+                    self.config.max_results
                 ).into_iter()
                 .map(|path| DisplayablePath(path.to_path_buf()))
                 .collect()
@@ -104,6 +106,10 @@ impl SearchSelectMode<DisplayablePath> for OpenMode {
 
     fn select_next(&mut self) {
         self.results.select_next();
+    }
+
+    fn config(&self) -> &SearchSelectConfig {
+        &self.config
     }
 
     fn message(&mut self) -> Option<String> {

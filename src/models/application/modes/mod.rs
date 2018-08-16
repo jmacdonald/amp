@@ -18,10 +18,8 @@ pub use self::line_jump::LineJumpMode;
 pub use self::path::PathMode;
 pub use self::open::OpenMode;
 pub use self::search::SearchMode;
-pub use self::search_select::SearchSelectMode;
+pub use self::search_select::{SearchSelectMode, SearchSelectConfig};
 pub use self::select::SelectMode;
 pub use self::select_line::SelectLineMode;
 pub use self::symbol_jump::SymbolJumpMode;
 pub use self::theme::ThemeMode;
-
-pub const MAX_SEARCH_SELECT_RESULTS: usize = 5;

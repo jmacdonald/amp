@@ -96,14 +96,16 @@ pub fn switch_to_line_jump_mode(app: &mut Application) -> Result {
 
 pub fn switch_to_open_mode(app: &mut Application) -> Result {
     let exclusions = app.preferences.borrow().open_mode_exclusions()?;
-    app.mode = Mode::Open(OpenMode::new(app.workspace.path.clone(), exclusions, app.event_channel.clone()));
+    let config = app.preferences.borrow().search_select_config();
+    app.mode = Mode::Open(OpenMode::new(app.workspace.path.clone(), exclusions, app.event_channel.clone(), config));
     commands::search_select::search(app)?;
 
     Ok(())
 }
 
 pub fn switch_to_command_mode(app: &mut Application) -> Result {
-    app.mode = Mode::Command(CommandMode::new());
+    let config = app.preferences.borrow().search_select_config();
+    app.mode = Mode::Command(CommandMode::new(config));
     commands::search_select::search(app)?;
 
     Ok(())
@@ -113,8 +115,9 @@ pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
     if let Some(buf) = app.workspace.current_buffer() {
         let token_set = buf.tokens()
             .chain_err(|| "No tokens available for the current buffer")?;
+        let config = app.preferences.borrow().search_select_config();
 
-        app.mode = Mode::SymbolJump(SymbolJumpMode::new(token_set));
+        app.mode = Mode::SymbolJump(SymbolJumpMode::new(token_set, config));
     } else {
         bail!(BUFFER_MISSING);
     }
@@ -124,10 +127,12 @@ pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
 }
 
 pub fn switch_to_theme_mode(app: &mut Application) -> Result {
+    let config = app.preferences.borrow().search_select_config();
     app.mode = Mode::Theme(
         ThemeMode::new(
-            app.view.theme_set.themes.keys().map(|k| k.to_string()).collect()
-        )
+            app.view.theme_set.themes.keys().map(|k| k.to_string()).collect(),
+            config
+        ),
     );
     commands::search_select::search(app)?;
 
