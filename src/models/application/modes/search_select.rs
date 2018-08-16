@@ -65,12 +65,14 @@ pub trait SearchSelectMode<T: Display>: Display {
 mod tests {
     use std::fmt;
     use std::slice::Iter;
-    use super::SearchSelectMode;
+    use super::{SearchSelectMode, SearchSelectConfig};
 
+    #[derive(Default)]
     struct TestMode {
         input: String,
         selection: String,
         results: Vec<String>,
+        config: SearchSelectConfig,
     }
 
     impl fmt::Display for TestMode {
@@ -92,32 +94,33 @@ mod tests {
         fn selected_index(&self) -> usize { 0 }
         fn select_previous(&mut self) { }
         fn select_next(&mut self) { }
+        fn config(&self) -> &SearchSelectConfig { &self.config }
     }
 
     #[test]
     fn push_search_char_updates_query() {
-        let mut mode = TestMode{ input: String::new(), selection: String::new(), results: Vec::new() };
+        let mut mode = TestMode{ .. Default::default() };
         mode.push_search_char('a');
         assert_eq!(mode.query(), "a");
     }
 
     #[test]
     fn pop_search_token_pops_all_characters_when_on_only_token() {
-        let mut mode = TestMode{ input: String::from("amp"), selection: String::new(), results: Vec::new() };
+        let mut mode = TestMode{ input: String::from("amp"), .. Default::default() };
         mode.pop_search_token();
         assert_eq!(mode.query(), "");
     }
 
     #[test]
     fn pop_search_token_pops_all_adjacent_non_whitespace_characters_when_on_non_whitespace_character() {
-        let mut mode = TestMode{ input: String::from("amp editor"), selection: String::new(), results: Vec::new() };
+        let mut mode = TestMode{ input: String::from("amp editor"), .. Default::default() };
         mode.pop_search_token();
         assert_eq!(mode.query(), "amp ");
     }
 
     #[test]
     fn pop_search_token_pops_all_whitespace_characters_when_on_whitespace_character() {
-        let mut mode = TestMode{ input: String::from("amp  "), selection: String::new(), results: Vec::new() };
+        let mut mode = TestMode{ input: String::from("amp  "), .. Default::default() };
         mode.pop_search_token();
         assert_eq!(mode.query(), "amp");
     }
