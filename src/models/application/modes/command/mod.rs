@@ -5,7 +5,7 @@ use util::SelectableVec;
 use std::collections::HashMap;
 use std::fmt;
 use std::slice::Iter;
-use models::application::modes::{SearchSelectMode, MAX_SEARCH_SELECT_RESULTS};
+use models::application::modes::{SearchSelectMode, SearchSelectConfig};
 use commands::{self, Command};
 pub use self::displayable_command::DisplayableCommand;
 
@@ -14,15 +14,17 @@ pub struct CommandMode {
     input: String,
     commands: HashMap<&'static str, Command>,
     results: SelectableVec<DisplayableCommand>,
+    config: SearchSelectConfig,
 }
 
 impl CommandMode {
-    pub fn new() -> CommandMode {
+    pub fn new(config: SearchSelectConfig) -> CommandMode {
         CommandMode {
             insert: true,
             input: String::new(),
             commands: commands::hash_map(),
             results: SelectableVec::new(Vec::new()),
+            config,
         }
     }
 }
@@ -41,7 +43,7 @@ impl SearchSelectMode<DisplayableCommand> for CommandMode {
         let results = fragment::matching::find(
             &self.input,
             &commands,
-            MAX_SEARCH_SELECT_RESULTS
+            self.config.max_results
         );
 
         // We don't care about the result objects; we just want
@@ -91,5 +93,9 @@ impl SearchSelectMode<DisplayableCommand> for CommandMode {
 
     fn select_next(&mut self) {
         self.results.select_next();
+    }
+
+    fn config(&self) -> &SearchSelectConfig {
+        &self.config
     }
 }

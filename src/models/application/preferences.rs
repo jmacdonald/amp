@@ -8,6 +8,7 @@ use std::fs::OpenOptions;
 use std::io::Read;
 use std::path::PathBuf;
 use yaml::yaml::{Hash, Yaml, YamlLoader};
+use models::application::modes::SearchSelectConfig;
 
 const FILE_NAME: &'static str = "config.yml";
 const APP_INFO: AppInfo = AppInfo {
@@ -22,6 +23,7 @@ const TAB_WIDTH_KEY: &'static str = "tab_width";
 const LINE_LENGTH_GUIDE_KEY: &'static str = "line_length_guide";
 const LINE_WRAPPING_KEY: &'static str = "line_wrapping";
 const SOFT_TABS_KEY: &'static str = "soft_tabs";
+const SEARCH_SELECT_KEY: &'static str = "search_select";
 
 const THEME_DEFAULT: &'static str = "solarized_dark";
 const TAB_WIDTH_DEFAULT: usize = 2;
@@ -153,6 +155,16 @@ impl Preferences {
                 None
             })
             .unwrap_or(TAB_WIDTH_DEFAULT)
+    }
+
+    pub fn search_select_config(&self) -> SearchSelectConfig {
+        let mut result = SearchSelectConfig::default();
+        if let Some(ref data) = self.data {
+            if let Yaml::Integer(max_results) = data[SEARCH_SELECT_KEY]["max_results"] {
+                result.max_results = max_results as usize;
+            }
+        }
+        result
     }
 
     pub fn soft_tabs(&self, path: Option<&PathBuf>) -> bool {

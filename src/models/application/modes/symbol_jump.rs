@@ -8,13 +8,14 @@ use std::iter::Iterator;
 use std::clone::Clone;
 use std::str::FromStr;
 use std::slice::Iter;
-use models::application::modes::{SearchSelectMode, MAX_SEARCH_SELECT_RESULTS};
+use models::application::modes::{SearchSelectMode, SearchSelectConfig};
 
 pub struct SymbolJumpMode {
     insert: bool,
     input: String,
     symbols: Vec<Symbol>,
     results: SelectableVec<Symbol>,
+    config: SearchSelectConfig,
 }
 
 #[derive(PartialEq, Debug)]
@@ -47,7 +48,7 @@ impl AsStr for Symbol {
 }
 
 impl SymbolJumpMode {
-    pub fn new(tokens: TokenSet) -> SymbolJumpMode {
+    pub fn new(tokens: TokenSet, config: SearchSelectConfig) -> SymbolJumpMode {
         let symbols = symbols(tokens.iter());
 
         SymbolJumpMode {
@@ -55,6 +56,7 @@ impl SymbolJumpMode {
             input: String::new(),
             symbols: symbols,
             results: SelectableVec::new(Vec::new()),
+            config,
         }
     }
 }
@@ -68,7 +70,7 @@ impl fmt::Display for SymbolJumpMode {
 impl SearchSelectMode<Symbol> for SymbolJumpMode {
     fn search(&mut self) {
         // Find the symbols we're looking for using the query.
-        let results = fragment::matching::find(&self.input, &self.symbols, MAX_SEARCH_SELECT_RESULTS);
+        let results = fragment::matching::find(&self.input, &self.symbols, self.config.max_results);
 
         // We don't care about the result objects; we just want
         // the underlying symbols. Map the collection to get these.
@@ -105,6 +107,10 @@ impl SearchSelectMode<Symbol> for SymbolJumpMode {
 
     fn select_next(&mut self) {
         self.results.select_next();
+    }
+
+    fn config(&self) -> &SearchSelectConfig {
+        &self.config
     }
 }
 
