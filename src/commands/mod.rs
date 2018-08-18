@@ -21,6 +21,6 @@ pub type Command = fn(&mut Application) -> Result;
 pub type Result = errors::Result<()>;
 
 pub fn hash_map() -> HashMap<&'static str, Command> {
-    include!("hash_map")
+    include!(concat!(env!("OUT_DIR"), "/hash_map"))
 }
 

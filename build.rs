@@ -18,8 +18,10 @@ fn main() {
 fn generate_commands() {
     // Create the output file and write the opening lines.
     let current_dir = env::current_dir().expect("Couldn't get the current directory");
-    let mut output = File::create("src/commands/hash_map")
-        .expect("Couldn't create output file");
+    let out_dir = env::var("OUT_DIR").expect("The compiler did not provide $OUT_DIR");
+    let out_file: std::path::PathBuf = [&out_dir, "hash_map"].iter().collect();
+    let mut output = File::create(&out_file)
+        .expect(&format!("Couldn't create output file: {}", out_file.to_string_lossy()));
     output
         .write("{\n    let mut commands: HashMap<&'static str, Command> = HashMap::new();\n"
                    .as_bytes())
