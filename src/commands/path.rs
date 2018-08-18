@@ -56,7 +56,7 @@ mod tests {
     use models::Application;
     use models::application::Mode;
     use scribe::Buffer;
-    use std::path::PathBuf;
+    use std::path::{PathBuf, Path};
 
     #[test]
     fn accept_path_sets_buffer_path_based_on_input_and_switches_to_normal_mode() {
@@ -93,7 +93,7 @@ mod tests {
         // Switch to the mode, add a name, set the flag, and accept it.
         commands::application::switch_to_path_mode(&mut app).unwrap();
         if let Mode::Path(ref mut mode) = app.mode {
-            mode.input = String::from("new_path");
+            mode.input = Path::new(concat!(env!("OUT_DIR"), "new_path")).to_string_lossy().into();
             mode.save_on_accept = true;
         }
         super::accept_path(&mut app).unwrap();
