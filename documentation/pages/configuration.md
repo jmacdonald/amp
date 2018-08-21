@@ -176,3 +176,16 @@ You can also opt out of exclusions altogether by setting the value to `false`:
 open_mode:
   exclusions: false
 ```
+
+## Miscellaneous
+
+### Search/Select Results
+
+The UI component used in open mode (and command mode, symbol jump mode, etc.)
+is referred to as _search/select_, internally. You can configure the number of
+results shown for any mode that uses this component:
+
+```yaml
+search_select:
+  max_results: 5
+```
