@@ -159,6 +159,7 @@ search_select:
   i: search_select::enable_insert
   j: search_select::select_next
   k: search_select::select_previous
+  z: application::suspend
   ctrl-z: application::suspend
   ctrl-c: application::exit
 
