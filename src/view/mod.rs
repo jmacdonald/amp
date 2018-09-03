@@ -94,20 +94,20 @@ impl View {
 
     /// Renders the app name, version and copyright info to the screen.
     pub fn draw_splash_screen(&mut self) -> Result<()> {
-        let title = format!("Amp v{}", env!("CARGO_PKG_VERSION"));
-        let copyright = "© 2015-2018 Jordan MacDonald";
+        let content = vec![
+            format!("Amp v{}", env!("CARGO_PKG_VERSION")),
+            String::from("© 2015-2018 Jordan MacDonald")
+        ];
+        let line_count = content.iter().count();
+        let vertical_offset = line_count / 2;
 
-        let mut position = Position{
-            line: self.height() / 2 - 1,
-            offset: self.width() / 2 - title.chars().count() / 2
-        };
-        self.print(&position, Style::Default, Colors::Default, &title)?;
-
-        position = Position{
-            line: self.height() / 2,
-            offset: self.width() / 2 - copyright.chars().count() / 2,
-        };
-        self.print(&position, Style::Default, Colors::Default, &copyright)?;
+        for (line_no, line) in content.iter().enumerate() {
+            let mut position = Position{
+                line: self.height() / 2 + line_no - vertical_offset,
+                offset: self.width() / 2 - line.chars().count() / 2
+            };
+            self.print(&position, Style::Default, Colors::Default, &line)?;
+        }
 
         Ok(())
     }
