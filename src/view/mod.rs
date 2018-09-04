@@ -96,7 +96,9 @@ impl View {
     pub fn draw_splash_screen(&mut self) -> Result<()> {
         let content = vec![
             format!("Amp v{}", env!("CARGO_PKG_VERSION")),
-            String::from("© 2015-2018 Jordan MacDonald")
+            String::from("© 2015-2018 Jordan MacDonald"),
+            String::new(),
+            String::from("Press \"?\" to view quick start guide")
         ];
         let line_count = content.iter().count();
         let vertical_offset = line_count / 2;
@@ -106,6 +108,7 @@ impl View {
                 line: self.height() / 2 + line_no - vertical_offset,
                 offset: self.width() / 2 - line.chars().count() / 2
             };
+
             self.print(&position, Style::Default, Colors::Default, &line)?;
         }
 
