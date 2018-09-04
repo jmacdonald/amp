@@ -75,6 +75,7 @@ normal:
   ctrl-r: buffer::reload
   ctrl-z: application::suspend
   ctrl-c: application::exit
+  "?": application::display_quick_start_guide
 
 insert:
   _: buffer::insert_char

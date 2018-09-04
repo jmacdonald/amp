@@ -199,6 +199,16 @@ pub fn display_default_keymap(app: &mut Application) -> Result {
     Ok(())
 }
 
+pub fn display_quick_start_guide(app: &mut Application) -> Result {
+    commands::workspace::new_buffer(app)?;
+
+    if let Some(buffer) = app.workspace.current_buffer() {
+        buffer.insert(include_str!("../../documentation/quick_start_guide"));
+    }
+
+    Ok(())
+}
+
 pub fn display_available_commands(app: &mut Application) -> Result {
     commands::workspace::new_buffer(app)?;
 

@@ -1,0 +1,78 @@
+Quick Start Guide
+=================
+
+Welcome to Amp! Before we get started, it's worth noting that there's a lot to
+cover. This guide isn't meant to be comprehensive; visit https://amp.rs/docs for
+a much more in-depth guide to using Amp.
+
+--
+
+Right, let's get started. You're currently looking at an open buffer, which can
+be scrolled up and down using "," and "m", respectively. Go ahead and try them
+now; you're going to use these a lot, and they're the only keys you need to read
+the rest of this guide.
+
+Moving the Cursor
+=================
+
+You can use the "hjkl" keys to move the cursor left, down, up, and right, just
+like in Vim.
+
+You can amplify these movements by holding shift. The "H" and "L" keys will go
+to the start and end of the current line, and the "J" and "K" keys will go to
+the last and first line, respectively.
+
+You can also use the "w" and "b" keys to move forwards and backwards one word at
+a time.
+
+Beyond that, you're going to want to use Amp's jump mode to navigate. This mode
+works by prefixing words with a jump token. Type the two letters in the jump
+token to move to the word.
+
+Type "f" to give it a shot.
+
+There's another version of jump mode that only uses single letter tokens. It's
+handy for moving around on the current line. Press the single quote key to use
+it.
+
+Editing
+=======
+
+Like Vim, you can use "i" to enter insert mode and add content, and press "esc"
+to switch back to normal mode. You can also use "d" to delete the current word,
+or "c" to change it, instead.
+
+Selecting Text
+==============
+
+Press the "v" key to enter select mode, and move the cursor to define a
+selection. You can use "d" and "c" to delete and change the selection,
+respectively.
+
+You can press "V" instead to use an alternative select mode, where entire lines
+are selected.
+
+Opening Files
+=============
+
+Hit the space key to switch to open mode. Amp will start recursively indexing
+the current directory, which you can search. It's recommended to use small,
+space-separated tokens. Tokens must exist in the file's path to trigger a match,
+and they can be in any order. Once you've found a match, hit "enter". If it's
+further down the list, you can use the up/down keys, or hit "esc" and use the
+"jk" keys, instead. You can leave open mode by hitting "esc" again.
+
+Managing Files
+=============
+
+You can switch between open files using the "tab" key. If you're done with a
+buffer, you can close it by hitting "q". Amp will warn you if there are unsaved
+changes before closing the buffer.
+
+Exiting
+=======
+
+When you're done with Amp, hit "Q" to quit. It's worth noting that Amp won't
+warn you about modified buffers when quitting. That's intentional! You may find
+it easier to close open buffers beforehand, and only quit from the splash
+screen.
