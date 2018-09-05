@@ -17,7 +17,7 @@ Before launching Amp, it's always a good idea to know how to quit. Type `Q (Shif
     beforehand using `q` (which _will_ prompt if the buffer is modified) until
     the workspace is empty.
 
-## Opening / Closing Files
+## Working with Files
 
 Unless you've specified file paths when running Amp, you'll be greeted with a splash screen. You can find and edit files in open mode, by hitting `Space`.
 
@@ -25,7 +25,7 @@ Unless you've specified file paths when running Amp, you'll be greeted with a sp
     This will **recursively index the current directory and all subdirectories.**
     It's meant to be used in project directories; don't use it from paths like `/` or `~`.
 
-### Searching for Files
+### Using the File Finder
 
 Amp's file finder is a little different than most. Rather than using a string fuzzing algorithm to match file paths against the query, it uses string fragments. Instead of typing full words, use fragments of the path name, separated by spaces:
 
@@ -36,7 +36,7 @@ Search terms _must_ occur in the path, which in practice tends to produce fewer,
 !!! note
     Hitting `backspace` will delete the entire last token, instead of the last character. The reasoning is, given the typical size of tokens, it's almost always easier to re-enter the last entry than to correct it.
 
-### Selecting/Opening Files
+#### Selecting/Opening Matches
 
 Once the file you're searching for is shown, you can select it using the `up` and `down` arrows, followed by `Enter`. The file finder also has its own insert/normal modes. Hitting `esc` will grey out the input area and expose the following key bindings:
 
@@ -51,20 +51,28 @@ Key           | Action
 !!! tip
     The search/select UI pattern used in open mode is re-used elsewhere, with the same fragment matching and insert/normal sub-mode behaviour. Take the time to get familiar with it; it'll pay dividends when using other features in Amp.
 
-### Excluding Files/Directories
+#### Exclusions
 
 By default, Amp's open mode doesn't index `.git` directories. If you'd like to change that behaviour, [you can redefine the exclusion patterns](configuration.md#excluding-filesdirectories) in the application preferences.
 
-## Closing Files
+### Closing
 
-From normal mode press `q` to close the current buffer.
+From normal mode press `q` to close the current buffer. If the file has
+modifications and hasn't been saved, you will be asked to confirm.
 
-## Saving Files
+### Saving
 
 Press `s` to save the current buffer. The UI will indicate when a buffer has
 unsaved modifications: their path will be rendered in bold, with an asterisk,
 and the normal mode indicator will be orange. These are cleared on save (or if
 the buffer is rolled back to an unmodified state with `undo` or `reload`).
+
+### Creating
+
+If you'd like to create a new file, start by opening a new, empty buffer by
+pressing `B`. When you're ready, press `s` to save it; Amp will realize it has
+no path, and you'll be prompted to enter one, after which the buffer will be
+written to disk.
 
 ## Movement
 
@@ -89,7 +97,7 @@ For files with syntax support, you can jump to class, method, and function defin
 
 You can also move the cursor to a specific line using `g`, which will prompt for a target line.
 
-## Working With Text
+## Working with Text
 
 ### Inserting Text
 
