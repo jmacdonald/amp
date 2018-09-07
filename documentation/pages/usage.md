@@ -122,6 +122,22 @@ To start a text selection range, use `v`. Move the cursor using [movement keys](
 !!! tip
     Although a matter of personal preference, configuring your terminal to use a vertical bar cursor, rather than a block, can make edit operations and text selection more intuitive.
 
+## Using the Clipboard
+
+Amp has built-in support for using the system clipboard; there is no additional
+configuration nor external dependencies required. Use can use the following keys
+to interact with it:
+
+Key | Action
+--- | ------
+`y` | Copy the current selection (if present) or line
+`p` | Paste at the cursor
+`P` | Paste on the line above
+
+!!! note
+    Like in Vim, whenever data is removed or changed in the buffer (e.g.
+    changing a word, deleting the current line), it's copied to the clipboard.
+
 ## Running Commands
 
 Under the hood, _all of Amp's functionality is exposed through a set of
