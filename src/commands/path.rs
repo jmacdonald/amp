@@ -41,6 +41,9 @@ pub fn accept_path(app: &mut Application) -> Result {
             bail!("Cannot accept path outside of path mode");
         };
 
+    app.workspace.update_current_syntax().chain_err(||
+        "Failed to update buffer's syntax definition"
+    )?;
     app.mode = Mode::Normal;
 
     if save_on_accept {
@@ -122,5 +125,25 @@ mod tests {
             panic!("Not in path mode");
         }
 
+    }
+
+    #[test]
+    fn accept_path_updates_syntax() {
+        let mut app = Application::new().unwrap();
+
+        let buffer = Buffer::new();
+        app.workspace.add_buffer(buffer);
+
+        // Switch to the mode, add a name, and accept it.
+        commands::application::switch_to_path_mode(&mut app).unwrap();
+        if let Mode::Path(ref mut mode) = app.mode {
+            mode.input = String::from("path.rs");
+        }
+        super::accept_path(&mut app).unwrap();
+
+        assert_eq!(
+            app.workspace.current_buffer().unwrap().syntax_definition.as_ref().unwrap().name,
+            "Rust"
+        );
     }
 }
