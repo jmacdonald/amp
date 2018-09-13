@@ -39,14 +39,14 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
     } else {
         // Draw the list of search results.
         for (line, result) in mode.results().enumerate() {
-            let colors = if line == mode.selected_index() {
-                Colors::Focused
+            let (content, colors, style) = if line == mode.selected_index() {
+                (format!("> {}", result), Colors::Focused, Style::Bold)
             } else {
-                Colors::Default
+                (format!("  {}", result), Colors::Default, Style::Default)
             };
-            let padded_content = format!("{}", result).pad_to_width(view.width());
+            let padded_content = content.pad_to_width(view.width());
             view.print(&Position{ line: line, offset: 0 },
-                       Style::Default,
+                       style,
                        colors,
                        &padded_content)?;
         }
