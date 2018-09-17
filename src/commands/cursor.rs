@@ -122,30 +122,24 @@ pub fn insert_with_newline(app: &mut Application) -> Result {
 }
 
 pub fn insert_with_newline_above(app: &mut Application) -> Result {
-    // Build the new line's indent based on the current line.
-    let mut content = String::new();
-    if let Some(buf) = app.workspace.current_buffer() {
-        if let Some(line) = buf.data().lines().nth(buf.cursor.line) {
-            for character in line.chars() {
-                if character.is_whitespace() {
-                    content.push(character);
-                } else {
-                    break;
-                }
-            }
-        }
-    } else {
-        bail!(BUFFER_MISSING);
-    };
+    let current_line_number = app
+        .workspace
+        .current_buffer()
+        .map(|b| b.cursor.line)
+        .ok_or(BUFFER_MISSING)?;
 
-    move_to_start_of_line(app)?;
-    buffer::start_command_group(app)?;
-    buffer::insert_newline(app)?;
-    commands::cursor::move_up(app)?;
-    app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.insert(content);
-    move_to_end_of_line(app)?;
-    application::switch_to_insert_mode(app)?;
-    commands::view::scroll_to_cursor(app)?;
+    if current_line_number == 0 {
+        buffer::start_command_group(app)?;
+        move_to_start_of_line(app)?;
+        buffer::insert_newline(app)?;
+        move_up(app)?;
+        move_to_end_of_line(app)?;
+        application::switch_to_insert_mode(app)?;
+        commands::view::scroll_to_cursor(app)?;
+    } else {
+        move_up(app)?;
+        insert_with_newline(app)?;
+    }
 
     Ok(())
 }
@@ -337,6 +331,40 @@ mod tests {
                        line: 1,
                        offset: 3,
                    });
+
+        // Ensure that we're in insert mode.
+        assert!(match app.mode {
+            ::models::application::Mode::Insert => true,
+            _ => false,
+        });
+    }
+
+    #[test]
+    fn insert_with_newline_above_finds_nearest_non_blank_indent() {
+        // Set up the application.
+        let mut app = set_up_application("    amp editor\n");
+
+        // Move to the start of the first non-whitespace word.
+        app.workspace
+            .current_buffer()
+            .unwrap()
+            .cursor
+            .move_to(Position { line: 1, offset: 0 });
+
+        // Call the command.
+        super::insert_with_newline_above(&mut app).unwrap();
+
+        // Ensure that a new line is inserted with indentation above.
+        assert_eq!(
+            &*app.workspace.current_buffer().unwrap().data(),
+            "    amp editor\n    \n"
+        );
+
+        // Ensure that the cursor is moved to the end of the indentation.
+        assert_eq!(
+            *app.workspace.current_buffer().unwrap().cursor,
+            Position { line: 1, offset: 4 }
+        );
 
         // Ensure that we're in insert mode.
         assert!(match app.mode {

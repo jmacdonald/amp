@@ -313,21 +313,30 @@ pub fn insert_newline(app: &mut Application) -> Result {
         buffer.cursor.move_down();
         buffer.cursor.move_to_start_of_line();
 
-        // Get the previous line.
-        if let Some(line) = buffer.data().lines().nth(position.line) {
-            // Get the whitespace from the start of
-            // the previous line and add it to the new line.
-            let prefix: String = line.chars().take_while(|&c| c.is_whitespace()).collect();
-            let prefix_length = prefix.len();
-            buffer.insert(prefix);
+        // Get a slice of the buffer up to and including the current line.
+        let data = buffer.data();
+        let end_of_current_line = data
+            .lines()
+            .nth(position.line)
+            .map(|l| (l.as_ptr() as usize) + l.len())
+            .unwrap();
+        let offset = end_of_current_line - (data.as_str().as_ptr() as usize);
+        let (previous_content, _) = data.split_at(offset);
 
-            // Move the cursor to the end of the inserted whitespace.
-            let new_cursor_position = Position {
-                line: position.line + 1,
-                offset: prefix_length,
-            };
-            buffer.cursor.move_to(new_cursor_position);
-        }
+        // Searching backwards, copy the nearest non-blank line's indent content.
+        let nearest_non_blank_line = previous_content.lines().rev().find(|line| !line.is_empty());
+        let indent_content = match nearest_non_blank_line {
+            Some(line) => line.chars().take_while(|&c| c.is_whitespace()).collect(),
+            None => String::new(),
+        };
+
+        // Insert and move to the end of the indent content.
+        let indent_length = indent_content.chars().count();
+        buffer.insert(indent_content);
+        buffer.cursor.move_to(Position {
+            line: position.line + 1,
+            offset: indent_length,
+        });
     } else {
         bail!(BUFFER_MISSING);
     }
@@ -741,6 +750,39 @@ mod tests {
                    expected_position.line);
         assert_eq!(app.workspace.current_buffer().unwrap().cursor.offset,
                    expected_position.offset);
+    }
+
+    #[test]
+    fn insert_newline_uses_nearest_line_indentation_when_current_line_blank() {
+        let mut app = ::models::Application::new().unwrap();
+        let mut buffer = Buffer::new();
+
+        // Insert data with indentation and move to the end of the line.
+        buffer.insert("    amp\n");
+        let position = Position { line: 1, offset: 0 };
+        buffer.cursor.move_to(position);
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        super::insert_newline(&mut app).unwrap();
+
+        // Ensure that the whitespace is inserted.
+        assert_eq!(
+            app.workspace.current_buffer().unwrap().data(),
+            "    amp\n\n    "
+        );
+
+        // Also ensure that the cursor is moved to the end of the inserted whitespace.
+        let expected_position = Position { line: 2, offset: 4 };
+        assert_eq!(
+            app.workspace.current_buffer().unwrap().cursor.line,
+            expected_position.line
+        );
+        assert_eq!(
+            app.workspace.current_buffer().unwrap().cursor.offset,
+            expected_position.offset
+        );
     }
 
     #[test]
