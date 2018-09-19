@@ -1,6 +1,6 @@
 # Usage
 
-`amp [file1 file2 ...]`
+`amp [dir | file1 file2 ...]`
 
 !!! abstract "Key Reference"
     What follows is only an overview of Amp. If you'd like to see an exhaustive
