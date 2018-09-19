@@ -867,7 +867,7 @@ dependencies = [
  "bitflags 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "gag 0.1.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "num-traits 0.1.43 (registry+https://github.com/rust-lang/crates.io-index)",
- "termbox-sys 0.2.10 (git+https://github.com/jmacdonald/termbox-sys)",
+ "termbox-sys 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -1090,8 +1090,8 @@ dependencies = [
 
 [[package]]
 name = "termbox-sys"
-version = "0.2.10"
-source = "git+https://github.com/jmacdonald/termbox-sys#aa62b4d0649c2fd15584a3025dc6868302ac32e9"
+version = "0.2.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "termion"
@@ -1442,7 +1442,7 @@ dependencies = [
 "checksum tempfile 3.0.2 (registry+https://github.com/rust-lang/crates.io-index)" = "47776f63b85777d984a50ce49d6b9e58826b6a3766a449fc95bc66cd5663c15b"
 "checksum term 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)" = "fa63644f74ce96fbeb9b794f66aff2a52d601cbd5e80f4b97123e3899f4570f1"
 "checksum term 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)" = "5e6b677dd1e8214ea1ef4297f85dbcbed8e8cdddb561040cc998ca2551c37561"
-"checksum termbox-sys 0.2.10 (git+https://github.com/jmacdonald/termbox-sys)" = "<none>"
+"checksum termbox-sys 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)" = "afbf597ba2137c0f99b2675988701dc1cd70c2aaa213002a133b08e08fbf42ee"
 "checksum termion 1.5.1 (registry+https://github.com/rust-lang/crates.io-index)" = "689a3bdfaab439fd92bc87df5c4c78417d3cbe537487274e9b0b2dce76e92096"
 "checksum textwrap 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)" = "c0b59b6b4b44d867f1370ef1bd91bfb262bf07bf0ae65c202ea2fbc16153b693"
 "checksum thread-id 2.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a9539db560102d1cef46b8b78ce737ff0bb64e7e18d35b2a5688f7d097d0ff03"
