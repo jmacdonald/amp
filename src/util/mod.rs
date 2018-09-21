@@ -4,8 +4,8 @@ pub mod movement_lexer;
 mod selectable_vec;
 pub mod token;
 
-use errors::*;
-use models::Application;
+use crate::errors::*;
+use crate::models::Application;
 use scribe::buffer::{Buffer, LineRange, Position, Range};
 
 /// Translates a line range to a regular range, including its last line.

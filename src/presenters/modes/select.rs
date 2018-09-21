@@ -1,9 +1,9 @@
-use errors::*;
-use models::application::modes::SelectMode;
+use crate::errors::*;
+use crate::models::application::modes::SelectMode;
 use scribe::Workspace;
 use scribe::buffer::Range;
-use presenters::current_buffer_status_line_data;
-use view::{Colors, StatusLineData, Style, View};
+use crate::presenters::current_buffer_status_line_data;
+use crate::view::{Colors, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, mode: &SelectMode, view: &mut View) -> Result<()> {
     // Wipe the slate clean.

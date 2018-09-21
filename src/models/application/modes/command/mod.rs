@@ -1,12 +1,12 @@
 mod displayable_command;
 
 use fragment;
-use util::SelectableVec;
+use crate::util::SelectableVec;
 use std::collections::HashMap;
 use std::fmt;
 use std::slice::Iter;
-use models::application::modes::{SearchSelectMode, SearchSelectConfig};
-use commands::{self, Command};
+use crate::models::application::modes::{SearchSelectMode, SearchSelectConfig};
+use crate::commands::{self, Command};
 pub use self::displayable_command::DisplayableCommand;
 
 pub struct CommandMode {

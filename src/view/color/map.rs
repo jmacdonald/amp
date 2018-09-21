@@ -1,6 +1,6 @@
 use syntect::highlighting::Theme;
-use view::color::to_rgb_color;
-use view::color::{Colors, RGBColor};
+use crate::view::color::to_rgb_color;
+use crate::view::color::{Colors, RGBColor};
 
 pub trait ColorMap {
     fn map_colors(&self, colors: Colors) -> Colors;

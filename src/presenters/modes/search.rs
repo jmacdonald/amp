@@ -1,9 +1,9 @@
-use errors::*;
+use crate::errors::*;
 use scribe::Workspace;
 use scribe::buffer::Position;
-use models::application::modes::SearchMode;
+use crate::models::application::modes::SearchMode;
 use unicode_segmentation::UnicodeSegmentation;
-use view::{Colors, StatusLineData, Style, View};
+use crate::view::{Colors, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, mode: &SearchMode, view: &mut View) -> Result<()> {
     // Wipe the slate clean.

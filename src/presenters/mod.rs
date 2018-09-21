@@ -2,7 +2,7 @@ pub mod modes;
 
 use std::path::{Path, PathBuf};
 use scribe::Workspace;
-use view::{Colors, StatusLineData, Style};
+use crate::view::{Colors, StatusLineData, Style};
 use git2::{self, Repository, Status};
 
 fn path_as_title(path: &Path) -> String {

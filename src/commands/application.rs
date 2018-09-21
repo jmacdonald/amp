@@ -1,11 +1,11 @@
-use errors::*;
-use commands::{self, Result};
-use input::KeyMap;
+use crate::errors::*;
+use crate::commands::{self, Result};
+use crate::input::KeyMap;
 use scribe::Buffer;
 use std::mem;
-use models::application::{Application, Mode};
-use models::application::modes::*;
-use util;
+use crate::models::application::{Application, Mode};
+use crate::models::application::modes::*;
+use crate::util;
 
 pub fn handle_input(app: &mut Application) -> Result {
     // Listen for and respond to user input.
@@ -262,8 +262,8 @@ pub fn exit(app: &mut Application) -> Result {
 
 #[cfg(test)]
 mod tests {
-    use models::Application;
-    use models::application::Mode;
+    use crate::models::Application;
+    use crate::models::application::Mode;
     use scribe::Buffer;
     use std::path::PathBuf;
 

@@ -1,7 +1,7 @@
-use errors::*;
-use commands::{self, Result};
-use util::token::{Direction, adjacent_token_position};
-use models::application::Application;
+use crate::errors::*;
+use crate::commands::{self, Result};
+use crate::util::token::{Direction, adjacent_token_position};
+use crate::models::application::Application;
 use scribe::buffer::Position;
 use super::{application, buffer};
 
@@ -198,7 +198,7 @@ pub fn append_to_current_token(app: &mut Application) -> Result {
 mod tests {
     use scribe::Buffer;
     use scribe::buffer::Position;
-    use models::application::Application;
+    use crate::models::application::Application;
 
     #[test]
     fn move_to_first_word_of_line_works() {
@@ -334,7 +334,7 @@ mod tests {
 
         // Ensure that we're in insert mode.
         assert!(match app.mode {
-            ::models::application::Mode::Insert => true,
+            crate::models::application::Mode::Insert => true,
             _ => false,
         });
     }
@@ -368,13 +368,13 @@ mod tests {
 
         // Ensure that we're in insert mode.
         assert!(match app.mode {
-            ::models::application::Mode::Insert => true,
+            crate::models::application::Mode::Insert => true,
             _ => false,
         });
     }
 
     fn set_up_application(content: &str) -> Application {
-        let mut app = ::models::Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
 
         // Insert data with indentation and move to the end of the line.

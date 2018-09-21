@@ -1,4 +1,4 @@
-use view::{Colors, Style};
+use crate::view::{Colors, Style};
 
 pub struct StatusLineData {
     pub content: String,

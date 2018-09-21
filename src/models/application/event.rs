@@ -1,5 +1,5 @@
-use input::Key;
-use models::application::modes::open::Index;
+use crate::input::Key;
+use crate::models::application::modes::open::Index;
 
 #[derive(Debug, PartialEq)]
 pub enum Event {

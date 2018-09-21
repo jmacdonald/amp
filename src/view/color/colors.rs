@@ -1,4 +1,4 @@
-use view::color::RGBColor;
+use crate::view::color::RGBColor;
 
 /// A convenience type used to represent a foreground/background
 /// color combination. Provides generic/convenience variants to

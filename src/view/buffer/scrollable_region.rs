@@ -1,8 +1,8 @@
 use std::sync::Arc;
 use scribe::buffer::Buffer;
 use unicode_segmentation::UnicodeSegmentation;
-use view::buffer::LineNumbers;
-use view::terminal::Terminal;
+use crate::view::buffer::LineNumbers;
+use crate::view::terminal::Terminal;
 
 /// Abstract representation of a fixed-height section of the screen.
 /// Used to determine visible ranges of lines based on previous state,
@@ -128,7 +128,7 @@ impl ScrollableRegion {
 mod tests {
     use std::sync::Arc;
     use super::ScrollableRegion;
-    use view::terminal::TestTerminal;
+    use crate::view::terminal::TestTerminal;
     use scribe::buffer::{Buffer, Position};
 
     #[test]

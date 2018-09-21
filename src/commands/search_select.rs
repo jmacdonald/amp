@@ -1,10 +1,10 @@
-use errors::*;
-use commands::{self, application, Result};
-use input::Key;
+use crate::errors::*;
+use crate::commands::{self, application, Result};
+use crate::input::Key;
 use std::mem;
-use models::application::modes::open::DisplayablePath;
-use models::application::{Application, Mode};
-use models::application::modes::SearchSelectMode;
+use crate::models::application::modes::open::DisplayablePath;
+use crate::models::application::{Application, Mode};
+use crate::models::application::modes::SearchSelectMode;
 
 pub fn accept(app: &mut Application) -> Result {
     // Consume the application mode. This is necessary because the selection in

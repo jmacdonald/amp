@@ -12,9 +12,9 @@ pub use self::buffer::{LexemeMapper, MappedLexeme};
 pub use self::style::Style;
 pub use self::color::{Colors, RGBColor};
 
-use errors::*;
-use input::Key;
-use models::application::{Event, Preferences};
+use crate::errors::*;
+use crate::input::Key;
+use crate::models::application::{Event, Preferences};
 use self::color::ColorMap;
 use self::buffer::{BufferRenderer, RenderCache, RenderState};
 use self::buffer::ScrollableRegion;
@@ -104,7 +104,7 @@ impl View {
         let vertical_offset = line_count / 2;
 
         for (line_no, line) in content.iter().enumerate() {
-            let mut position = Position{
+            let position = Position{
                 line: self.height() / 2 + line_no - vertical_offset,
                 offset: self.width() / 2 - line.chars().count() / 2
             };
@@ -310,14 +310,14 @@ mod tests {
     use scribe::{Buffer, Workspace};
     use super::View;
     use super::terminal::TestTerminal;
-    use models::application::Preferences;
+    use crate::models::application::Preferences;
     use scribe::buffer::Position;
     use std::cell::RefCell;
     use std::path::{Path, PathBuf};
     use std::rc::Rc;
     use std::sync::{Arc, mpsc};
     use syntect::highlighting::{Highlighter, ThemeSet};
-    use view::buffer::RenderState;
+    use crate::view::buffer::RenderState;
 
     #[test]
     fn scroll_down_prevents_scrolling_completely_beyond_buffer() {

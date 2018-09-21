@@ -1,9 +1,9 @@
-use models::application::{Application, ClipboardContent, Mode};
+use crate::models::application::{Application, ClipboardContent, Mode};
 use scribe::buffer::{LineRange, Range};
 use super::application;
-use errors::*;
-use commands::{self, Result};
-use util;
+use crate::errors::*;
+use crate::commands::{self, Result};
+use crate::util;
 
 pub fn delete(app: &mut Application) -> Result {
     if let Some(buffer) = app.workspace.current_buffer() {
@@ -102,8 +102,8 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
 
 #[cfg(test)]
 mod tests {
-    use commands;
-    use models::application::{Application, Mode};
+    use crate::commands;
+    use crate::models::application::{Application, Mode};
     use scribe::Buffer;
     use scribe::buffer::Position;
 

@@ -1,10 +1,10 @@
-use input::Key;
-use models::application::Event;
+use crate::input::Key;
+use crate::models::application::Event;
 use scribe::buffer::Position;
 use std::sync::Mutex;
 use std::fmt::Display;
 use super::Terminal;
-use view::{Colors, Style};
+use crate::view::{Colors, Style};
 
 const WIDTH: usize = 10;
 const HEIGHT: usize = 10;
@@ -110,9 +110,9 @@ impl Terminal for TestTerminal {
 
 #[cfg(test)]
 mod tests {
-    use view::terminal::Terminal;
+    use crate::view::terminal::Terminal;
     use super::TestTerminal;
-    use view::{Colors, Style};
+    use crate::view::{Colors, Style};
     use scribe::buffer::Position;
 
     #[test]

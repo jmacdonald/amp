@@ -1,6 +1,6 @@
-use errors::*;
+use crate::errors::*;
 use bloodhound::ExclusionPattern;
-use yaml::Yaml;
+use crate::yaml::Yaml;
 
 pub fn parse(exclusion_data: &[Yaml]) -> Result<Vec<ExclusionPattern>> {
     let mut mapped_exclusions = Vec::new();

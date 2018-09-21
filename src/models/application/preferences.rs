@@ -1,14 +1,14 @@
 use app_dirs::{app_dir, app_root, get_app_root, AppDataType, AppInfo};
 use bloodhound::ExclusionPattern;
-use errors::*;
-use input::KeyMap;
-use models::application::modes::open;
+use crate::errors::*;
+use crate::input::KeyMap;
+use crate::models::application::modes::open;
 use scribe::Buffer;
 use std::fs::OpenOptions;
 use std::io::Read;
 use std::path::PathBuf;
-use yaml::yaml::{Hash, Yaml, YamlLoader};
-use models::application::modes::SearchSelectConfig;
+use crate::yaml::yaml::{Hash, Yaml, YamlLoader};
+use crate::models::application::modes::SearchSelectConfig;
 
 const APP_INFO: AppInfo = AppInfo {
     name: "amp",
@@ -293,8 +293,8 @@ fn default_open_mode_exclusions() -> Result<Option<Vec<ExclusionPattern>>> {
 mod tests {
     use super::{ExclusionPattern, Preferences, YamlLoader};
     use std::path::PathBuf;
-    use input::KeyMap;
-    use yaml::yaml::Hash;
+    use crate::input::KeyMap;
+    use crate::yaml::yaml::Hash;
 
     #[test]
     fn preferences_returns_user_defined_theme_name() {
