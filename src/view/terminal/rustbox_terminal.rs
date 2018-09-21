@@ -1,8 +1,8 @@
 extern crate rustbox;
 extern crate libc;
 
-use input::Key;
-use models::application::Event;
+use crate::input::Key;
+use crate::models::application::Event;
 use scribe::buffer::Position;
 use self::rustbox::{OutputMode, RustBox};
 use self::rustbox::Color as RustboxColor;
@@ -11,8 +11,8 @@ use std::sync::Mutex;
 use super::Terminal;
 use std::fmt::Display;
 use std::time::Duration;
-use view::{Colors, Style};
-use view::color::RGBColor;
+use crate::view::{Colors, Style};
+use crate::view::color::RGBColor;
 
 /// The terminal type acts as a shim layer on top of Rustbox.
 /// It also enables headless testing; initialization and render calls

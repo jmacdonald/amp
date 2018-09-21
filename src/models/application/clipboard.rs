@@ -1,4 +1,4 @@
-use errors::*;
+use crate::errors::*;
 use clipboard::{ClipboardContext, ClipboardProvider};
 
 /// In-app content can be captured in both regular and full-line selection

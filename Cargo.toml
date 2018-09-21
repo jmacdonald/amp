@@ -10,6 +10,7 @@ documentation = "https://amp.rs/docs"
 readme = "README.md"
 license-file = "LICENSE"
 keywords = ["text", "editor", "terminal", "modal"]
+edition="2018"
 
 [build-dependencies]
 syntex_syntax = "0.58.1"

@@ -2,13 +2,13 @@ use fragment;
 use fragment::matching::AsStr;
 use scribe::buffer::{Position, Token, TokenSet};
 use syntect::highlighting::ScopeSelectors;
-use util::SelectableVec;
+use crate::util::SelectableVec;
 use std::fmt;
 use std::iter::Iterator;
 use std::clone::Clone;
 use std::str::FromStr;
 use std::slice::Iter;
-use models::application::modes::{SearchSelectMode, SearchSelectConfig};
+use crate::models::application::modes::{SearchSelectMode, SearchSelectConfig};
 
 pub struct SymbolJumpMode {
     insert: bool,

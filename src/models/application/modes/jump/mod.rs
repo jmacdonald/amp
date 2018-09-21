@@ -2,14 +2,14 @@ mod tag_generator;
 mod single_character_tag_generator;
 
 use luthor::token::Category;
-use util::movement_lexer;
+use crate::util::movement_lexer;
 use std::collections::HashMap;
 use scribe::buffer::{Distance, Position};
-use models::application::modes::select::SelectMode;
-use models::application::modes::select_line::SelectLineMode;
+use crate::models::application::modes::select::SelectMode;
+use crate::models::application::modes::select_line::SelectLineMode;
 use self::tag_generator::TagGenerator;
 use self::single_character_tag_generator::SingleCharacterTagGenerator;
-use view::{LexemeMapper, MappedLexeme};
+use crate::view::{LexemeMapper, MappedLexeme};
 
 /// Used to compose select and jump modes, allowing jump mode
 /// to be used for cursor navigation (to select a range of text).
@@ -181,7 +181,7 @@ impl LexemeMapper for JumpMode {
 
 #[cfg(test)]
 mod tests {
-    use view::{LexemeMapper, MappedLexeme};
+    use crate::view::{LexemeMapper, MappedLexeme};
     use scribe::buffer::Position;
     use super::JumpMode;
 

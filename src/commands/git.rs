@@ -1,7 +1,7 @@
-use errors::*;
-use commands::{self, Result};
+use crate::errors::*;
+use crate::commands::{self, Result};
 use git2;
-use models::application::{Application, ClipboardContent, Mode};
+use crate::models::application::{Application, ClipboardContent, Mode};
 use regex::Regex;
 
 pub fn add(app: &mut Application) -> Result {

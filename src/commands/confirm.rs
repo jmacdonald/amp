@@ -1,5 +1,5 @@
-use commands::{self, Result};
-use models::application::{Application, Mode};
+use crate::commands::{self, Result};
+use crate::models::application::{Application, Mode};
 
 pub fn confirm_command(app: &mut Application) -> Result {
     let command =

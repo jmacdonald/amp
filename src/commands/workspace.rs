@@ -1,7 +1,7 @@
-use commands::Result;
+use crate::commands::Result;
 use scribe::Buffer;
-use models::application::Application;
-use util;
+use crate::models::application::Application;
+use crate::util;
 
 pub fn next_buffer(app: &mut Application) -> Result {
     app.workspace.next_buffer();

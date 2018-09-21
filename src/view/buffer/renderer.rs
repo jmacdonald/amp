@@ -1,12 +1,12 @@
-use models::application::Preferences;
+use crate::models::application::Preferences;
 use scribe::buffer::{Buffer, Position, Range};
 use scribe::util::LineIterator;
-use view::buffer::{LexemeMapper, MappedLexeme, RenderState};
-use view::buffer::line_numbers::*;
-use view::{Colors, RENDER_CACHE_FREQUENCY, RGBColor, Style};
-use view::color::ColorMap;
-use view::color::to_rgb_color;
-use view::terminal::Terminal;
+use crate::view::buffer::{LexemeMapper, MappedLexeme, RenderState};
+use crate::view::buffer::line_numbers::*;
+use crate::view::{Colors, RENDER_CACHE_FREQUENCY, RGBColor, Style};
+use crate::view::color::ColorMap;
+use crate::view::color::to_rgb_color;
+use crate::view::terminal::Terminal;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -14,7 +14,7 @@ use std::str::FromStr;
 use syntect::highlighting::{Highlighter, HighlightIterator, Theme};
 use syntect::highlighting::Style as ThemeStyle;
 use syntect::parsing::ScopeStack;
-use errors::*;
+use crate::errors::*;
 
 /// A one-time-use type that encapsulates all of the
 /// details involved in rendering a buffer to the screen.
@@ -377,7 +377,7 @@ fn has_trailing_newline(line: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use models::application::Preferences;
+    use crate::models::application::Preferences;
     use scribe::{Buffer, Workspace};
     use scribe::buffer::Position;
     use std::cell::RefCell;
@@ -386,8 +386,8 @@ mod tests {
     use std::rc::Rc;
     use super::{BufferRenderer, LexemeMapper, MappedLexeme};
     use syntect::highlighting::ThemeSet;
-    use view::terminal::{Terminal, TestTerminal};
-    use yaml::yaml::YamlLoader;
+    use crate::view::terminal::{Terminal, TestTerminal};
+    use crate::yaml::yaml::YamlLoader;
 
     #[test]
     fn tabs_beyond_terminal_width_dont_panic() {

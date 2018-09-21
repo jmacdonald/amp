@@ -1,11 +1,11 @@
-use commands::{self, Command};
-use errors::*;
-use input::Key;
+use crate::commands::{self, Command};
+use crate::errors::*;
+use crate::input::Key;
 use smallvec::SmallVec;
 use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 use std::convert::Into;
-use yaml::yaml::{Hash, Yaml, YamlLoader};
+use crate::yaml::yaml::{Hash, Yaml, YamlLoader};
 
 /// Nested HashMap newtype that provides a more ergonomic interface.
 pub struct KeyMap(HashMap<String, HashMap<Key, SmallVec<[Command; 4]>>>);
@@ -240,10 +240,10 @@ impl Into<HashMap<String, HashMap<Key, SmallVec<[Command; 4]>>>> for KeyMap {
 
 #[cfg(test)]
 mod tests {
-    use yaml::YamlLoader;
+    use crate::yaml::YamlLoader;
     use super::KeyMap;
-    use commands;
-    use input::Key;
+    use crate::commands;
+    use crate::input::Key;
 
     #[test]
     fn keymap_correctly_parses_yaml_character_keybindings() {

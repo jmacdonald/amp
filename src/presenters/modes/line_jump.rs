@@ -1,8 +1,8 @@
-use errors::*;
+use crate::errors::*;
 use scribe::Workspace;
 use scribe::buffer::Position;
-use models::application::modes::LineJumpMode;
-use view::{Colors, StatusLineData, Style, View};
+use crate::models::application::modes::LineJumpMode;
+use crate::view::{Colors, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, mode: &LineJumpMode, view: &mut View) -> Result<()> {
     // Wipe the slate clean.

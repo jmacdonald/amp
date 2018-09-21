@@ -1,8 +1,8 @@
 use fragment;
-use util::SelectableVec;
+use crate::util::SelectableVec;
 use std::fmt;
 use std::slice::Iter;
-use models::application::modes::{SearchSelectMode, SearchSelectConfig};
+use crate::models::application::modes::{SearchSelectMode, SearchSelectConfig};
 
 pub struct ThemeMode {
     insert: bool,

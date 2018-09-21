@@ -1,7 +1,7 @@
-use errors::*;
-use input::Key;
-use commands::{self, Result};
-use models::application::{Application, Mode};
+use crate::errors::*;
+use crate::input::Key;
+use crate::commands::{self, Result};
+use crate::models::application::{Application, Mode};
 
 pub fn move_to_previous_result(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
@@ -136,9 +136,9 @@ fn select_closest_result(app: &mut Application) -> Result {
 mod tests {
     use scribe::Buffer;
     use scribe::buffer::Position;
-    use models::Application;
-    use models::application::Mode;
-    use commands;
+    use crate::models::Application;
+    use crate::models::application::Mode;
+    use crate::commands;
 
     #[test]
     fn move_to_previous_result_moves_cursor_to_previous_result() {
@@ -255,7 +255,7 @@ mod tests {
 
     #[test]
     fn accept_query_disables_insert_sub_mode_and_moves_to_next_match() {
-        let mut app = ::models::Application::new().unwrap();
+        let mut app = crate::models::Application::new().unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp editor\nedit\nedit");
 
@@ -271,7 +271,7 @@ mod tests {
 
         // Ensure that we've disabled insert sub-mode.
         assert!(match app.mode {
-            ::models::application::Mode::Search(ref mode) => !mode.insert_mode(),
+            crate::models::application::Mode::Search(ref mode) => !mode.insert_mode(),
             _ => false,
         });
 

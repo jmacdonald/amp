@@ -1,12 +1,12 @@
-use errors::*;
+use crate::errors::*;
 use std::cmp;
 use std::fmt::Display;
-use models::application::modes::{SearchSelectMode};
+use crate::models::application::modes::{SearchSelectMode};
 use pad::PadStr;
-use presenters::current_buffer_status_line_data;
+use crate::presenters::current_buffer_status_line_data;
 use scribe::Workspace;
 use scribe::buffer::Position;
-use view::{Colors, StatusLineData, Style, View};
+use crate::view::{Colors, StatusLineData, Style, View};
 use unicode_segmentation::UnicodeSegmentation;
 
 pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMode<T>, view: &mut View) -> Result<()> {

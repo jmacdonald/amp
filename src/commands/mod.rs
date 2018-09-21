@@ -1,5 +1,5 @@
-use errors;
-use models::application::Application;
+use crate::errors;
+use crate::models::application::Application;
 use std::collections::HashMap;
 
 pub mod application;

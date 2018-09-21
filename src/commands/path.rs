@@ -1,7 +1,7 @@
-use errors::*;
-use commands::{self, Result};
-use input::Key;
-use models::application::{Application, Mode};
+use crate::errors::*;
+use crate::commands::{self, Result};
+use crate::input::Key;
+use crate::models::application::{Application, Mode};
 use std::path::PathBuf;
 
 pub fn push_char(app: &mut Application) -> Result {
@@ -55,9 +55,9 @@ pub fn accept_path(app: &mut Application) -> Result {
 
 #[cfg(test)]
 mod tests {
-    use commands;
-    use models::Application;
-    use models::application::Mode;
+    use crate::commands;
+    use crate::models::Application;
+    use crate::models::application::Mode;
     use scribe::Buffer;
     use std::path::{PathBuf, Path};
 

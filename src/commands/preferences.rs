@@ -1,6 +1,6 @@
-use commands::Result;
-use models::application::{Application, Preferences};
-use util;
+use crate::commands::Result;
+use crate::models::application::{Application, Preferences};
+use crate::util;
 
 pub fn edit(app: &mut Application) -> Result {
     let preference_buffer = Preferences::edit()?;

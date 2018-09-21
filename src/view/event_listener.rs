@@ -1,8 +1,8 @@
-use models::application::Event;
+use crate::models::application::Event;
 use std::sync::Arc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
-use view::Terminal;
+use crate::view::Terminal;
 
 pub struct EventListener {
     terminal: Arc<Terminal + Sync + Send>,
@@ -36,12 +36,12 @@ impl EventListener {
 
 #[cfg(test)]
 mod tests {
-    use input::Key;
-    use models::application::Event;
+    use crate::input::Key;
+    use crate::models::application::Event;
     use std::sync::Arc;
     use std::sync::mpsc;
     use super::EventListener;
-    use view::terminal::TestTerminal;
+    use crate::view::terminal::TestTerminal;
 
     #[test]
     fn start_listens_for_and_sends_key_events_from_terminal() {

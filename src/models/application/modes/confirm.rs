@@ -1,4 +1,4 @@
-use commands::Command;
+use crate::commands::Command;
 
 pub struct ConfirmMode {
     pub command: Command,

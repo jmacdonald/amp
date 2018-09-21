@@ -1,7 +1,7 @@
-use errors::*;
-use input::Key;
-use commands::{self, Result};
-use models::application::{Application, Mode};
+use crate::errors::*;
+use crate::input::Key;
+use crate::commands::{self, Result};
+use crate::models::application::{Application, Mode};
 use scribe::buffer::Position;
 
 pub fn accept_input(app: &mut Application) -> Result {
@@ -79,14 +79,14 @@ pub fn pop_search_char(app: &mut Application) -> Result {
 
 #[cfg(test)]
 mod tests {
-    use commands;
+    use crate::commands;
     use scribe::Buffer;
     use scribe::buffer::Position;
-    use models::application::Mode;
+    use crate::models::application::Mode;
 
     #[test]
     fn accept_input_moves_cursor_to_requested_line_and_changes_modes() {
-        let mut app = ::models::Application::new().unwrap();
+        let mut app = crate::models::Application::new().unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\neditor");
 
@@ -111,14 +111,14 @@ mod tests {
 
         // Ensure that we're in normal mode.
         assert!(match app.mode {
-            ::models::application::Mode::Normal => true,
+            crate::models::application::Mode::Normal => true,
             _ => false,
         });
     }
 
     #[test]
     fn accept_input_handles_unavailable_offsets() {
-        let mut app = ::models::Application::new().unwrap();
+        let mut app = crate::models::Application::new().unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\namp");
         buffer.cursor.move_to(Position {
@@ -147,14 +147,14 @@ mod tests {
 
         // Ensure that we're in normal mode.
         assert!(match app.mode {
-            ::models::application::Mode::Normal => true,
+            crate::models::application::Mode::Normal => true,
             _ => false,
         });
     }
 
     #[test]
     fn accept_input_ignores_zero_input() {
-        let mut app = ::models::Application::new().unwrap();
+        let mut app = crate::models::Application::new().unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\namp");
 
@@ -177,7 +177,7 @@ mod tests {
 
         // Ensure that we're in normal mode.
         assert!(match app.mode {
-            ::models::application::Mode::Normal => true,
+            crate::models::application::Mode::Normal => true,
             _ => false,
         });
     }

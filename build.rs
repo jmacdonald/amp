@@ -3,8 +3,8 @@ extern crate syntex_syntax as syntax;
 use std::env;
 use std::fs::File;
 use std::io::Write;
-use syntax::parse::{parse_crate_from_file, ParseSess};
-use syntax::ast::{ItemKind, Visibility};
+use crate::syntax::parse::{parse_crate_from_file, ParseSess};
+use crate::syntax::ast::{ItemKind, Visibility};
 
 fn main() {
     generate_commands();

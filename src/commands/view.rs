@@ -1,6 +1,6 @@
-use errors::*;
-use commands::Result;
-use models::application::Application;
+use crate::errors::*;
+use crate::commands::Result;
+use crate::models::application::Application;
 
 pub fn scroll_up(app: &mut Application) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;

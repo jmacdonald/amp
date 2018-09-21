@@ -10,10 +10,10 @@ pub use self::preferences::Preferences;
 
 use self::clipboard::Clipboard;
 use self::modes::*;
-use commands;
-use errors::*;
+use crate::commands;
+use crate::errors::*;
 use git2::Repository;
-use presenters;
+use crate::presenters;
 use scribe::{Buffer, Workspace};
 use std::cell::RefCell;
 use std::env;
@@ -22,8 +22,8 @@ use std::path::Path;
 use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::sync::Arc;
-use view::terminal::*;
-use view::{self, StatusLineData, View};
+use crate::view::terminal::*;
+use crate::view::{self, StatusLineData, View};
 
 pub enum Mode {
     Confirm(ConfirmMode),
@@ -257,7 +257,7 @@ fn create_workspace(view: &mut View) -> Result<Workspace> {
 
         // Open the specified path if it exists, or
         // create a new buffer pointing to it if it doesn't.
-        let mut argument_buffer = if path.exists() {
+        let argument_buffer = if path.exists() {
             Buffer::from_file(path)?
         } else {
             let mut buffer = Buffer::new();
