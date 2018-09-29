@@ -35,6 +35,14 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
         // Draw the status line.
         view.draw_status_line(&status_line_data);
     } else {
+        let status_line_data = vec![
+            StatusLineData {
+                content: workspace.path.to_string_lossy().to_string(),
+                style: Style::Default,
+                colors: Colors::Default,
+            }
+        ];
+        view.draw_status_line(&status_line_data);
         view.draw_splash_screen()?;
         view.set_cursor(None);
     }
