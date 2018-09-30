@@ -26,7 +26,7 @@ impl SearchMode {
     // and stores the result as a collection of ranges.
     pub fn search(&mut self, buffer: &Buffer) -> Result<()> {
         let query = self.input.as_ref().ok_or(SEARCH_QUERY_MISSING)?;
-        let distance = Distance::from_str(&query);
+        let distance = Distance::of_str(&query);
 
         // Buffer search returns match starting positions, but we'd like ranges.
         // This maps the positions to ranges using the search query distance

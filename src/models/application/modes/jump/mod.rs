@@ -77,7 +77,7 @@ impl LexemeMapper for JumpMode {
 
         for subtoken in movement_lexer::lex(lexeme) {
             if subtoken.category == Category::Whitespace {
-                let distance = Distance::from_str(&subtoken.lexeme);
+                let distance = Distance::of_str(&subtoken.lexeme);
 
                 // We don't do anything to whitespace tokens.
                 self.mapped_lexeme_values.push(
@@ -149,7 +149,7 @@ impl LexemeMapper for JumpMode {
                         }
                     }
                     None => {
-                        let distance = Distance::from_str(&subtoken.lexeme);
+                        let distance = Distance::of_str(&subtoken.lexeme);
 
                         // We couldn't tag this subtoken; move along.
                         self.mapped_lexeme_values.push(
