@@ -1,3 +1,19 @@
+### 0.5.1
+
+* Added ability to open Amp in another directory via `amp path/to/directory`
+* Improved newline indentation heuristics
+  * See https://github.com/jmacdonald/amp/issues/103 for details
+* Added `>` prefix and bold style to selection in search/select mode
+  * See https://github.com/jmacdonald/amp/issues/106 for details
+* Amp will now refresh its syntax definition after a buffer's path is changed
+  * See https://github.com/jmacdonald/amp/issues/97 for details
+* Added a quick start guide, referenced from the splash page
+* Added suspend command key binding to search/select normal mode
+* Added the ability to configure number of results in search/select mode
+  * See https://amp.rs/docs/configuration/#searchselect-results for details
+* Updated `termbox-sys` dependency, which fixes `.termbox already exists` build errors
+  * See https://github.com/gchp/termbox-sys/issues/11 for details
+
 ### 0.5.0
 
 * Added caching to syntax highlighting, to improve performance for large buffers
