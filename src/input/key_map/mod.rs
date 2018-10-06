@@ -27,9 +27,9 @@ impl KeyMap {
         let commands = commands::hash_map();
 
         for (yaml_mode, yaml_key_bindings) in keymap_data {
-            let mode = yaml_mode.as_str().ok_or(format!(
-                "A mode key couldn't be parsed as a string"
-            ))?;
+            let mode = yaml_mode.as_str().ok_or_else(||
+                "A mode key couldn't be parsed as a string".to_string()
+            )?;
             let key_bindings = parse_mode_key_bindings(yaml_key_bindings, &commands).
                 chain_err(|| format!("Failed to parse keymaps for \"{}\" mode", mode))?;
 
@@ -125,9 +125,9 @@ fn parse_mode_key_bindings(mode: &Yaml, commands: &HashMap<&str, Command>) -> Re
     let mut key_bindings = HashMap::new();
     for (yaml_key, yaml_command) in mode_key_bindings {
         // Parse modifier/character from key component.
-        let key = parse_key(yaml_key.as_str().ok_or(format!(
-            "A keymap key couldn't be parsed as a string"
-        ))?)?;
+        let key = parse_key(yaml_key.as_str().ok_or_else(||
+            "A keymap key couldn't be parsed as a string".to_string()
+        )?)?;
 
         let mut key_commands = SmallVec::new();
 
@@ -137,7 +137,7 @@ fn parse_mode_key_bindings(mode: &Yaml, commands: &HashMap<&str, Command>) -> Re
                 let command_string = command.as_str();
 
                 key_commands.push(
-                    *commands.get(&command_string).ok_or(format!(
+                    *commands.get(&command_string).ok_or_else(|| format!(
                         "Keymap command \"{}\" doesn't exist",
                         command_string
                     ))?
@@ -145,13 +145,14 @@ fn parse_mode_key_bindings(mode: &Yaml, commands: &HashMap<&str, Command>) -> Re
             },
             &Yaml::Array(ref command_array) => {
                 for command in command_array {
-                    let command_string = command.as_str().ok_or(format!("Keymap command \"{:?}\" couldn't be parsed as a string", command))?;
+                    let command_string = command.as_str().ok_or_else(||
+                        format!("Keymap command \"{:?}\" couldn't be parsed as a string", command)
+                    )?;
 
                     key_commands.push(
-                        *commands.get(command_string).ok_or(format!(
-                            "Keymap command \"{}\" doesn't exist",
-                            command_string
-                        ))?
+                        *commands.get(command_string).ok_or_else(||
+                            format!("Keymap command \"{}\" doesn't exist", command_string)
+                        )?
                     );
                 }
             },
@@ -179,7 +180,7 @@ fn parse_key(data: &str) -> Result<Key> {
 
     if let Some(key) = key_components.next() {
         // We have a modifier-qualified key; get the key.
-        let key_char = key.chars().nth(0).ok_or(format!(
+        let key_char = key.chars().nth(0).ok_or_else(|| format!(
             "Keymap key \"{}\" is invalid",
             key
         ))?;
@@ -210,7 +211,7 @@ fn parse_key(data: &str) -> Result<Key> {
             "_"         => Key::AnyChar,
             _           => Key::Char(
                 // It's not a keyword; take its first character, if available.
-                component.chars().nth(0).ok_or(
+                component.chars().nth(0).ok_or_else(||
                     format!("Keymap key \"{}\" is invalid", component)
                 )?
             ),

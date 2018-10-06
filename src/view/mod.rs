@@ -74,7 +74,7 @@ impl View {
         let theme_name = preferences.theme();
         let theme = self.theme_set.themes
             .get(theme_name)
-            .ok_or(format!("Couldn't find \"{}\" theme", theme_name))?;
+            .ok_or_else(|| format!("Couldn't find \"{}\" theme", theme_name))?;
 
         let cursor_position = BufferRenderer::new(
             buffer,
@@ -256,7 +256,7 @@ impl View {
         let theme_name = preferences.theme();
         let theme = self.theme_set.themes
             .get(theme_name)
-            .ok_or(format!("Couldn't find \"{}\" theme", theme_name))?;
+            .ok_or_else(|| format!("Couldn't find \"{}\" theme", theme_name))?;
         let mapped_colors = theme.map_colors(colors);
         self.terminal.print(position, style, mapped_colors, content);
 
@@ -302,7 +302,7 @@ impl Drop for View {
 }
 
 fn buffer_key(buffer: &Buffer) -> Result<usize> {
-    buffer.id.ok_or(Error::from("Buffer ID doesn't exist"))
+    buffer.id.ok_or_else(|| Error::from("Buffer ID doesn't exist"))
 }
 
 #[cfg(test)]

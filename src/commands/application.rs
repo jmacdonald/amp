@@ -178,7 +178,7 @@ pub fn switch_to_path_mode(app: &mut Application) -> Result {
         .path.as_ref().map(|p|
             // The buffer has a path; use it.
             p.to_string_lossy().into_owned()
-        ).unwrap_or(
+        ).unwrap_or_else(||
             // Default to the workspace directory.
             format!("{}/", app.workspace.path.to_string_lossy())
         );

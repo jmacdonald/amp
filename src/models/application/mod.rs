@@ -229,7 +229,7 @@ fn render_error(view: &mut View, error: &Error) {
 
 fn initialize_preferences() -> Rc<RefCell<Preferences>> {
     Rc::new(RefCell::new(
-        Preferences::load().unwrap_or(Preferences::new(None)),
+        Preferences::load().unwrap_or_else(|_| Preferences::new(None)),
     ))
 }
 
