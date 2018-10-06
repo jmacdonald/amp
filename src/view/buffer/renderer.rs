@@ -23,7 +23,7 @@ pub struct BufferRenderer<'a, 'b> {
     buffer_position: Position,
     cursor_position: Option<Position>,
     gutter_width: usize,
-    highlights: Option<&'a Vec<Range>>,
+    highlights: Option<&'a [Range]>,
     stylist: Highlighter<'a>,
     current_style: ThemeStyle,
     lexeme_mapper: Option<&'b mut LexemeMapper>,
@@ -37,7 +37,7 @@ pub struct BufferRenderer<'a, 'b> {
 }
 
 impl<'a, 'b> BufferRenderer<'a, 'b> {
-    pub fn new(buffer: &'a Buffer, highlights: Option<&'a Vec<Range>>,
+    pub fn new(buffer: &'a Buffer, highlights: Option<&'a [Range]>,
     lexeme_mapper: Option<&'b mut LexemeMapper>, scroll_offset: usize,
     terminal: &'a Terminal, theme: &'a Theme, preferences: &'a Preferences,
     render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>) -> BufferRenderer<'a, 'b> {

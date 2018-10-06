@@ -219,7 +219,7 @@ impl Drop for Application {
 }
 
 fn render_error(view: &mut View, error: &Error) {
-    view.draw_status_line(&vec![StatusLineData {
+    view.draw_status_line(&[StatusLineData {
         content: error.description().to_string(),
         style: view::Style::Bold,
         colors: view::Colors::Warning,

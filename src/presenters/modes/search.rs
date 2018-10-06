@@ -11,7 +11,7 @@ pub fn display(workspace: &mut Workspace, mode: &SearchMode, view: &mut View) ->
 
     // Draw the visible set of tokens to the terminal.
     let buffer = workspace.current_buffer().ok_or(BUFFER_MISSING)?;
-    view.draw_buffer(buffer, mode.results.as_ref().map(|r| &**r), None)?;
+    view.draw_buffer(buffer, mode.results.as_ref().map(|r| r.as_slice()), None)?;
 
     let mode_display = format!(" {} ", mode);
     let search_input = format!(
@@ -34,7 +34,7 @@ pub fn display(workspace: &mut Workspace, mode: &SearchMode, view: &mut View) ->
         mode_display.graphemes(true).count() +
         search_input.graphemes(true).count();
 
-    view.draw_status_line(&vec![
+    view.draw_status_line(&[
         StatusLineData {
             content: mode_display,
             style: Style::Default,

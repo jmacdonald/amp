@@ -23,7 +23,7 @@ pub fn display(workspace: &mut Workspace, mode: &PathMode, view: &mut View) -> R
         mode_display.graphemes(true).count() +
         search_input.graphemes(true).count();
 
-    view.draw_status_line(&vec![
+    view.draw_status_line(&[
         StatusLineData {
             content: mode_display,
             style: Style::Default,

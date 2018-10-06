@@ -22,7 +22,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
         };
 
         // Build the status line mode and buffer title display.
-        let status_line_data = vec![
+        let status_line_data = [
             StatusLineData {
                 content: " NORMAL ".to_string(),
                 style: Style::Default,

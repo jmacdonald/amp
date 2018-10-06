@@ -17,7 +17,7 @@ pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) 
         view.draw_buffer(buf, None, Some(mode))?;
 
         // Draw the status line.
-        view.draw_status_line(&vec![
+        view.draw_status_line(&[
             StatusLineData {
                 content: " JUMP ".to_string(),
                 style: Style::Default,

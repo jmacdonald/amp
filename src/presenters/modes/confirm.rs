@@ -12,8 +12,8 @@ pub fn display(workspace: &mut Workspace, view: &mut View) -> Result<()> {
     }
 
     // Draw the status line as a search prompt.
-    let confirmation = format!("Are you sure? (y/n)");
-    view.draw_status_line(&vec![
+    let confirmation = "Are you sure? (y/n)".to_string();
+    view.draw_status_line(&[
         StatusLineData {
             content: confirmation,
             style: Style::Bold,

@@ -21,7 +21,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
         view.draw_buffer(buf, None, None)?;
 
         // Draw the status line.
-        view.draw_status_line(&vec![
+        view.draw_status_line(&[
             StatusLineData {
                 content: format!(" {} ", mode),
                 style: Style::Default,

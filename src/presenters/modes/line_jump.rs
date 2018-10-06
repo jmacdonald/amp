@@ -15,7 +15,7 @@ pub fn display(workspace: &mut Workspace, mode: &LineJumpMode, view: &mut View) 
         // Draw the status line as an input prompt.
         let input_prompt = format!("Go to line: {}", mode.input);
         let input_prompt_len = input_prompt.len();
-        view.draw_status_line(&vec![
+        view.draw_status_line(&[
             StatusLineData {
                 content: input_prompt,
                 style: Style::Default,

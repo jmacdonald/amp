@@ -68,7 +68,7 @@ impl View {
         })
     }
 
-    pub fn draw_buffer(&mut self, buffer: &Buffer, highlights: Option<&Vec<Range>>, lexeme_mapper: Option<&mut LexemeMapper>) -> Result<()> {
+    pub fn draw_buffer(&mut self, buffer: &Buffer, highlights: Option<&[Range]>, lexeme_mapper: Option<&mut LexemeMapper>) -> Result<()> {
         let scroll_offset = self.get_region(buffer)?.line_offset();
         let preferences = self.preferences.borrow();
         let theme_name = preferences.theme();

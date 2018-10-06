@@ -2,7 +2,7 @@ use errors::*;
 use bloodhound::ExclusionPattern;
 use yaml::Yaml;
 
-pub fn parse(exclusion_data: &Vec<Yaml>) -> Result<Vec<ExclusionPattern>> {
+pub fn parse(exclusion_data: &[Yaml]) -> Result<Vec<ExclusionPattern>> {
     let mut mapped_exclusions = Vec::new();
 
     for exclusion in exclusion_data.iter() {

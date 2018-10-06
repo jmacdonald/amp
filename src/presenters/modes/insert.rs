@@ -14,7 +14,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View) -> Result<()> {
         view.draw_buffer(buf, None, None)?;
 
         // Draw the status line.
-        view.draw_status_line(&vec![
+        view.draw_status_line(&[
             StatusLineData {
                 content: " INSERT ".to_string(),
                 style: Style::Default,

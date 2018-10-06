@@ -15,10 +15,10 @@ pub fn display(workspace: &mut Workspace, mode: &SelectLineMode, view: &mut View
         let selected_range = mode.to_range(&*buf.cursor);
 
         // Draw the visible set of tokens to the terminal.
-        view.draw_buffer(buf, Some(&vec![selected_range]), None)?;
+        view.draw_buffer(buf, Some(&[selected_range]), None)?;
 
         // Draw the status line.
-        view.draw_status_line(&vec![
+        view.draw_status_line(&[
             StatusLineData {
                 content: " SELECT LINE ".to_string(),
                 style: Style::Default,
