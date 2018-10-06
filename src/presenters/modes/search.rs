@@ -20,16 +20,14 @@ pub fn display(workspace: &mut Workspace, mode: &SearchMode, view: &mut View) ->
     );
     let result_display = if mode.insert {
         String::new()
-    } else {
-        if let Some(ref results) = mode.results {
-            if results.len() == 1 {
-                String::from("1 match")
-            } else {
-                format!("{} of {} matches", results.selected_index() + 1, results.len())
-            }
+    } else if let Some(ref results) = mode.results {
+        if results.len() == 1 {
+            String::from("1 match")
         } else {
-            String::new()
+            format!("{} of {} matches", results.selected_index() + 1, results.len())
         }
+    } else {
+        String::new()
     };
 
     let cursor_offset =
