@@ -14,6 +14,6 @@ pub use self::termion::color::Rgb as RGBColor;
 use syntect::highlighting::Color as RGBAColor;
 
 // Convenience function to convert from RGBA to RGB.
-pub fn to_rgb_color(color: &RGBAColor) -> RGBColor {
+pub fn to_rgb_color(color: RGBAColor) -> RGBColor {
     RGBColor(color.r, color.g, color.b)
 }

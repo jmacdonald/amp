@@ -165,7 +165,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             self.set_cursor();
 
             // Determine the style we'll use to print.
-            let token_color = to_rgb_color(&self.current_style.foreground);
+            let token_color = to_rgb_color(self.current_style.foreground);
             let (style, color) = self.current_char_style(token_color);
 
             if self.preferences.line_wrapping() && self.screen_position.offset == self.terminal.width() {
@@ -188,7 +188,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
                 // Print the sequence of spaces and move the offset accordingly.
                 for _ in self.screen_position.offset..screen_tab_stop {
-                    self.terminal.print(&self.screen_position, style, color.clone(), &' ');
+                    self.terminal.print(&self.screen_position, style, color, &' ');
                     self.screen_position.offset += 1;
                 }
                 self.buffer_position.offset += 1;

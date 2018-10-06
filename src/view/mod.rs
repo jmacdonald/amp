@@ -144,7 +144,7 @@ impl View {
 
             let _ = self.print(&Position{ line, offset },
                        element.style,
-                       element.colors.clone(),
+                       element.colors,
                        &content);
 
             // Update the tracked offset.

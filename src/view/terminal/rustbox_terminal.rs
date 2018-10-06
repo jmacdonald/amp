@@ -97,7 +97,7 @@ impl Terminal for RustboxTerminal {
         self.rustbox.print(
             position.offset,
             position.line,
-            map_style(&style),
+            map_style(style),
             fg,
             bg,
             &format!("{}", content)
@@ -120,8 +120,8 @@ impl Terminal for RustboxTerminal {
     }
 }
 
-fn map_style(style: &Style) -> rustbox::Style {
-    match *style {
+fn map_style(style: Style) -> rustbox::Style {
+    match style {
         Style::Bold     => rustbox::RB_BOLD,
         Style::Inverted => rustbox::RB_REVERSE,
         _               => rustbox::RB_NORMAL,
