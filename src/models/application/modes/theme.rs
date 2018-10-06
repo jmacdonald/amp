@@ -17,7 +17,7 @@ impl ThemeMode {
         ThemeMode {
             insert: true,
             input: String::new(),
-            themes: themes,
+            themes,
             results: SelectableVec::new(Vec::new()),
             config,
         }

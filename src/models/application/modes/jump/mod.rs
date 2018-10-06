@@ -41,7 +41,7 @@ impl JumpMode {
         JumpMode {
             input: String::new(),
             first_phase: true,
-            cursor_line: cursor_line,
+            cursor_line,
             select_mode: SelectModeOptions::None,
             tag_positions: HashMap::new(),
             tag_generator: TagGenerator::new(),

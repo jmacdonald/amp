@@ -21,8 +21,8 @@ pub fn adjacent_token_position(buffer: &mut Buffer,
     let tokens = movement_lexer::lex(&buffer.data());
     for token in tokens {
         let position = Position {
-            line: line,
-            offset: offset,
+            line,
+            offset,
         };
         if position > *buffer.cursor && direction == Direction::Forward {
             // We've found the next token!
@@ -59,8 +59,8 @@ pub fn adjacent_token_position(buffer: &mut Buffer,
         // If we're looking backwards and the next iteration will pass the
         // cursor, return the current position, or the previous if it's whitespace.
         let next_position = Position {
-            line: line,
-            offset: offset,
+            line,
+            offset,
         };
         if next_position >= *buffer.cursor && direction == Direction::Backward {
             match token.category {

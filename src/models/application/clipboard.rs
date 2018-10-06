@@ -31,7 +31,7 @@ impl Clipboard {
 
         Clipboard {
             content: ClipboardContent::None,
-            system_clipboard: system_clipboard,
+            system_clipboard,
         }
     }
 

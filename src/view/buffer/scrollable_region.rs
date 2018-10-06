@@ -15,7 +15,7 @@ pub struct ScrollableRegion {
 impl ScrollableRegion {
     pub fn new(terminal: Arc<Terminal>) -> ScrollableRegion {
         ScrollableRegion {
-            terminal: terminal,
+            terminal,
             line_offset: 0,
         }
     }

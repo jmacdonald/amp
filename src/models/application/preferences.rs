@@ -44,7 +44,7 @@ impl Preferences {
     /// Builds a new in-memory instance with default values.
     pub fn new(data: Option<Yaml>) -> Preferences {
         Preferences {
-            data: data,
+            data,
             keymap: KeyMap::default().expect("Failed to load default keymap!"),
             theme: None
         }
@@ -57,7 +57,7 @@ impl Preferences {
             data.as_ref().and_then(|data| data["keymap"].as_hash())
         )?;
 
-        Ok(Preferences { data: data, keymap: keymap, theme: None })
+        Ok(Preferences { data, keymap, theme: None })
     }
 
     /// Reloads all user preferences from disk and merges them with defaults.

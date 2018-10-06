@@ -68,15 +68,15 @@ impl Application {
 
         Ok(Application {
             mode: Mode::Normal,
-            workspace: workspace,
+            workspace,
             search_query: None,
-            view: view,
-            clipboard: clipboard,
+            view,
+            clipboard,
             repository: Repository::discover(&env::current_dir()?).ok(),
             error: None,
-            preferences: preferences,
-            event_channel: event_channel,
-            events: events,
+            preferences,
+            event_channel,
+            events,
         })
     }
 

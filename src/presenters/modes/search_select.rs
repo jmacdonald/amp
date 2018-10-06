@@ -45,7 +45,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
                 (format!("  {}", result), Colors::Default, Style::Default)
             };
             let padded_content = content.pad_to_width(view.width());
-            view.print(&Position{ line: line, offset: 0 },
+            view.print(&Position{ line, offset: 0 },
                        style,
                        colors,
                        &padded_content)?;
@@ -54,7 +54,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
 
     // Clear any remaining lines in the result display area.
     for line in cmp::max(mode.results().len(), 1)..mode_config.max_results {
-        view.print(&Position{ line: line, offset: 0 },
+        view.print(&Position{ line, offset: 0 },
                    Style::Default,
                    Colors::Default,
                    &String::new().pad_to_width(view.width()))?;
@@ -68,7 +68,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
         Colors::Inverted
     };
     let padded_content = mode.query().pad_to_width(view.width());
-    view.print(&Position{ line: line, offset: 0 },
+    view.print(&Position{ line, offset: 0 },
                Style::Bold,
                colors,
                &padded_content)?;

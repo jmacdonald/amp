@@ -6,6 +6,6 @@ pub struct ConfirmMode {
 
 impl ConfirmMode {
     pub fn new(command: Command) -> ConfirmMode {
-        ConfirmMode { command: command }
+        ConfirmMode { command }
     }
 }

@@ -377,7 +377,7 @@ pub fn indent_line(app: &mut Application) -> Result {
     buffer.start_operation_group();
     for line in lines {
         buffer.cursor.move_to(Position {
-            line: line,
+            line,
             offset: 0,
         });
         buffer.insert(tab_content.clone());
@@ -431,11 +431,11 @@ pub fn outdent_line(app: &mut Application) -> Result {
             // if we found any, and adjust cursor accordingly.
             if space_char_count > 0 {
                 buffer.delete_range(Range::new(Position {
-                                                   line: line,
+                                                   line,
                                                    offset: 0,
                                                },
                                                Position {
-                                                   line: line,
+                                                   line,
                                                    offset: space_char_count,
                                                }));
 
@@ -556,7 +556,7 @@ pub fn paste(app: &mut Application) -> Result {
                         // Move to the end of the line to insert the data.
                         if let Some(line_content) = buffer.data().lines().nth(line) {
                             buffer.cursor.move_to(Position {
-                                line: line,
+                                line,
                                 offset: line_content.len(),
                             });
                             buffer.insert(format!("\n{}", content));
@@ -614,12 +614,12 @@ pub fn remove_trailing_whitespace(app: &mut Application) -> Result {
             if space_count > 0 {
                 // We've found some trailing whitespace; track it.
                 ranges.push(Range::new(Position {
-                                           line: line,
+                                           line,
                                            offset: offset - space_count,
                                        },
                                        Position {
-                                           line: line,
-                                           offset: offset,
+                                           line,
+                                           offset,
                                        }));
             }
 
@@ -645,12 +645,12 @@ pub fn remove_trailing_whitespace(app: &mut Application) -> Result {
     // any trailing whitespace on the last line, track it.
     if space_count > 0 {
         ranges.push(Range::new(Position {
-                                   line: line,
+                                   line,
                                    offset: offset - space_count,
                                },
                                Position {
-                                   line: line,
-                                   offset: offset,
+                                   line,
+                                   offset,
                                }));
     }
 

@@ -11,7 +11,7 @@ pub struct SelectableVec<T> {
 impl<T> SelectableVec<T> {
     pub fn new(set: Vec<T>) -> SelectableVec<T> {
         SelectableVec {
-            set: set,
+            set,
             selected_index: 0,
         }
     }

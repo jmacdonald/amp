@@ -50,21 +50,21 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         let current_style = stylist.get_default();
 
         BufferRenderer{
-            buffer: buffer,
+            buffer,
             cursor_position: None,
-            gutter_width: gutter_width,
-            highlights: highlights,
-            stylist: stylist,
-            current_style: current_style,
-            lexeme_mapper: lexeme_mapper,
-            line_numbers: line_numbers,
+            gutter_width,
+            highlights,
+            stylist,
+            current_style,
+            lexeme_mapper,
+            line_numbers,
             buffer_position: Position{ line: 0, offset: 0 },
-            preferences: preferences,
-            render_cache: render_cache,
+            preferences,
+            render_cache,
             screen_position: Position{ line: 0, offset: 0 },
-            scroll_offset: scroll_offset,
-            terminal: terminal,
-            theme: theme,
+            scroll_offset,
+            terminal,
+            theme,
         }
     }
 
@@ -83,7 +83,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
                 Colors::Blank
             };
 
-            self.terminal.print(&Position{ line: self.screen_position.line, offset: offset },
+            self.terminal.print(&Position{ line: self.screen_position.line, offset },
                             Style::Default,
                             self.theme.map_colors(colors),
                             &' ');

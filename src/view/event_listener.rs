@@ -15,11 +15,7 @@ impl EventListener {
     /// and forwarding those to the application event channel.
     pub fn start(terminal: Arc<Terminal + Sync + Send>, events: Sender<Event>, killswitch: Receiver<()>) {
         thread::spawn(move || {
-            EventListener {
-                terminal: terminal,
-                events: events,
-                killswitch: killswitch
-            }.listen();
+            EventListener { terminal, events, killswitch }.listen();
         });
     }
 

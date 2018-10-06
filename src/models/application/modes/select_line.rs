@@ -6,7 +6,7 @@ pub struct SelectLineMode {
 
 impl SelectLineMode {
     pub fn new(anchor: usize) -> SelectLineMode {
-        SelectLineMode { anchor: anchor }
+        SelectLineMode { anchor }
     }
 
     pub fn to_range(&self, cursor: &Position) -> Range {

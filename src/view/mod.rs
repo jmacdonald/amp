@@ -56,14 +56,14 @@ impl View {
         EventListener::start(terminal.clone(), event_channel.clone(), killswitch_rx);
 
         Ok(View {
-            terminal: terminal,
+            terminal,
             cursor_position: None,
             last_key: None,
-            preferences: preferences,
+            preferences,
             scrollable_regions: HashMap::new(),
             render_caches: HashMap::new(),
-            theme_set: theme_set,
-            event_channel: event_channel,
+            theme_set,
+            event_channel,
             event_listener_killswitch: killswitch_tx
         })
     }
@@ -142,7 +142,7 @@ impl View {
                 }
             };
 
-            let _ = self.print(&Position{ line: line, offset: offset},
+            let _ = self.print(&Position{ line, offset },
                        element.style,
                        element.colors.clone(),
                        &content);

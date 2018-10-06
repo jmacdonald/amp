@@ -6,6 +6,6 @@ pub struct SelectMode {
 
 impl SelectMode {
     pub fn new(anchor: Position) -> SelectMode {
-        SelectMode { anchor: anchor }
+        SelectMode { anchor }
     }
 }

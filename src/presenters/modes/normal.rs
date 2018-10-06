@@ -26,7 +26,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
             StatusLineData {
                 content: " NORMAL ".to_string(),
                 style: Style::Default,
-                colors: colors,
+                colors,
             },
             buffer_status,
             git_status_line_data(&repo, &buf.path)

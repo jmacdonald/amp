@@ -54,7 +54,7 @@ impl SymbolJumpMode {
         SymbolJumpMode {
             insert: true,
             input: String::new(),
-            symbols: symbols,
+            symbols,
             results: SelectableVec::new(Vec::new()),
             config,
         }

@@ -14,7 +14,7 @@ pub struct ThemeLoader {
 impl ThemeLoader {
     pub fn new(path: PathBuf) -> ThemeLoader {
         ThemeLoader{
-            path: path,
+            path,
             themes: BTreeMap::new()
         }
 

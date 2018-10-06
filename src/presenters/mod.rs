@@ -26,8 +26,8 @@ fn current_buffer_status_line_data(workspace: &mut Workspace) -> StatusLineData 
     }).unwrap_or((String::new(), Style::Default));
 
     StatusLineData {
-        content: content,
-        style: style,
+        content,
+        style,
         colors: Colors::Focused,
     }
 }
@@ -48,7 +48,7 @@ fn git_status_line_data(repo: &Option<Repository>, path: &Option<PathBuf>) -> St
     }
 
     StatusLineData {
-        content: content,
+        content,
         style: Style::Default,
         colors: Colors::Focused,
     }

@@ -75,7 +75,7 @@ pub fn move_to_first_word_of_line(app: &mut Application) -> Result {
                 // Move the cursor to this position.
                 let new_cursor_position = Position {
                     line: buffer.cursor.line,
-                    offset: offset,
+                    offset,
                 };
                 buffer.cursor.move_to(new_cursor_position);
 
