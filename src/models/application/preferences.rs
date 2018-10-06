@@ -10,26 +10,25 @@ use std::path::PathBuf;
 use yaml::yaml::{Hash, Yaml, YamlLoader};
 use models::application::modes::SearchSelectConfig;
 
-const FILE_NAME: &'static str = "config.yml";
 const APP_INFO: AppInfo = AppInfo {
     name: "amp",
     author: "Jordan MacDonald",
 };
-const SYNTAX_PATH: &'static str = "syntaxes";
-const THEME_PATH: &'static str = "themes";
-const TYPES_KEY: &'static str = "types";
-const THEME_KEY: &'static str = "theme";
-const TAB_WIDTH_KEY: &'static str = "tab_width";
-const LINE_LENGTH_GUIDE_KEY: &'static str = "line_length_guide";
-const LINE_WRAPPING_KEY: &'static str = "line_wrapping";
-const SOFT_TABS_KEY: &'static str = "soft_tabs";
-const SEARCH_SELECT_KEY: &'static str = "search_select";
-
-const THEME_DEFAULT: &'static str = "solarized_dark";
-const TAB_WIDTH_DEFAULT: usize = 2;
+const FILE_NAME: &str = "config.yml";
 const LINE_LENGTH_GUIDE_DEFAULT: usize = 80;
+const LINE_LENGTH_GUIDE_KEY: &str = "line_length_guide";
 const LINE_WRAPPING_DEFAULT: bool = true;
+const LINE_WRAPPING_KEY: &str = "line_wrapping";
+const SEARCH_SELECT_KEY: &str = "search_select";
 const SOFT_TABS_DEFAULT: bool = true;
+const SOFT_TABS_KEY: &str = "soft_tabs";
+const SYNTAX_PATH: &str = "syntaxes";
+const TAB_WIDTH_DEFAULT: usize = 2;
+const TAB_WIDTH_KEY: &str = "tab_width";
+const THEME_DEFAULT: &str = "solarized_dark";
+const THEME_KEY: &str = "theme";
+const THEME_PATH: &str = "themes";
+const TYPES_KEY: &str = "types";
 
 /// Loads, creates, and provides default values for application preferences.
 /// Values are immutable once loaded, with the exception of those that provide
