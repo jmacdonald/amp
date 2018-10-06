@@ -223,13 +223,13 @@ impl Preferences {
 
     pub fn open_mode_exclusions(&self) -> Result<Option<Vec<ExclusionPattern>>> {
         if let Some(exclusion_data) = self.data.as_ref().map(|data| &data["open_mode"]["exclusions"]) {
-            match exclusion_data {
-                &Yaml::Array(ref exclusions) => {
+            match *exclusion_data {
+                Yaml::Array(ref exclusions) => {
                     open::exclusions::parse(exclusions)
                         .chain_err(|| "Failed to parse user-defined open mode exclusions")
-                        .map(|e| Some(e))
+                        .map(Some)
                 },
-                &Yaml::Boolean(_) => Ok(None),
+                Yaml::Boolean(_) => Ok(None),
                 _ => default_open_mode_exclusions(), // Preference is unset or invalid YAML
             }
         } else {

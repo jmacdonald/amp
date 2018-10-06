@@ -269,7 +269,7 @@ pub fn backspace(app: &mut Application) -> Result {
 
 pub fn insert_char(app: &mut Application) -> Result {
     if let Some(buffer) = app.workspace.current_buffer() {
-        if let &Some(Key::Char(character)) = app.view.last_key() {
+        if let Some(Key::Char(character)) = *app.view.last_key() {
             // TODO: Drop explicit call to to_string().
             buffer.insert(character.to_string());
             buffer.cursor.move_right();

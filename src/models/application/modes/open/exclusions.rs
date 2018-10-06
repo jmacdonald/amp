@@ -6,7 +6,7 @@ pub fn parse(exclusion_data: &Vec<Yaml>) -> Result<Vec<ExclusionPattern>> {
     let mut mapped_exclusions = Vec::new();
 
     for exclusion in exclusion_data.iter() {
-        if let &Yaml::String(ref pattern) = exclusion {
+        if let Yaml::String(ref pattern) = *exclusion {
             mapped_exclusions.push(
                 ExclusionPattern::new(&pattern).chain_err(|| {
                     format!("Failed to parse exclusion pattern: {}", pattern)

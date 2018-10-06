@@ -114,7 +114,7 @@ pub fn disable_insert(app: &mut Application) -> Result {
 }
 
 pub fn push_search_char(app: &mut Application) -> Result {
-    if let &Some(Key::Char(c)) = app.view.last_key() {
+    if let Some(Key::Char(c)) = *app.view.last_key() {
         match app.mode {
             Mode::Command(ref mut mode) => mode.push_search_char(c),
             Mode::Open(ref mut mode) => mode.push_search_char(c),

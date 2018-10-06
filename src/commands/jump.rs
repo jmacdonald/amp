@@ -62,10 +62,10 @@ fn switch_to_previous_mode(app: &mut Application) {
 }
 
 pub fn push_search_char(app: &mut Application) -> Result {
-    if let &Some(ref key) = app.view.last_key() {
+    if let Some(ref key) = *app.view.last_key() {
         if let Mode::Jump(ref mut mode) = app.mode {
-            match key {
-                &Key::Char('f') => {
+            match *key {
+                Key::Char('f') => {
                     if mode.first_phase {
                         mode.first_phase = false;
                     } else {
@@ -73,7 +73,7 @@ pub fn push_search_char(app: &mut Application) -> Result {
                         mode.input.push('f');
                     }
                 },
-                &Key::Char(c) => mode.input.push(c),
+                Key::Char(c) => mode.input.push(c),
                 _ => bail!("Last key press wasn't a character")
             }
         } else {

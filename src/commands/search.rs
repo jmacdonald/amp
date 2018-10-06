@@ -73,7 +73,7 @@ pub fn clear_query(app: &mut Application) -> Result {
 pub fn push_search_char(app: &mut Application) -> Result {
     let key = app.view.last_key().as_ref().ok_or("View hasn't tracked a key press")?;
 
-    if let &Key::Char(c) = key {
+    if let Key::Char(c) = *key {
         if let Mode::Search(ref mut mode) = app.mode {
             let query = mode.input.get_or_insert(String::new());
             query.push(c);

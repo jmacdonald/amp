@@ -45,7 +45,7 @@ impl KeyMap {
     ///
     pub fn commands_for(&self, mode: &str, key: &Key) -> Option<SmallVec<[Command; 4]>> {
         self.0.get(mode).and_then(|mode_keymap| {
-            if let &Key::Char(_) = key {
+            if let Key::Char(_) = *key {
                 // Look for a command for this specific character, falling
                 // back to another search for a wildcard character binding.
                 mode_keymap.get(key).or_else(|| mode_keymap.get(&Key::AnyChar))
@@ -132,8 +132,8 @@ fn parse_mode_key_bindings(mode: &Yaml, commands: &HashMap<&str, Command>) -> Re
         let mut key_commands = SmallVec::new();
 
         // Parse and find command reference from command component.
-        match yaml_command {
-            &Yaml::String(ref command) => {
+        match *yaml_command {
+            Yaml::String(ref command) => {
                 let command_string = command.as_str();
 
                 key_commands.push(
@@ -143,7 +143,7 @@ fn parse_mode_key_bindings(mode: &Yaml, commands: &HashMap<&str, Command>) -> Re
                     ))?
                 );
             },
-            &Yaml::Array(ref command_array) => {
+            Yaml::Array(ref command_array) => {
                 for command in command_array {
                     let command_string = command.as_str().ok_or_else(||
                         format!("Keymap command \"{:?}\" couldn't be parsed as a string", command)
