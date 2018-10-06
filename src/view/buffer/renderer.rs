@@ -341,14 +341,14 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             .stylist
             .style_for_stack(
                 ScopeStack::from_str("keyword")
-                .unwrap_or(ScopeStack::new())
+                .unwrap_or_default()
                 .as_slice()
             );
         let blurred_style = self
             .stylist
             .style_for_stack(
                 ScopeStack::from_str("comment")
-                .unwrap_or(ScopeStack::new())
+                .unwrap_or_default()
                 .as_slice()
             );
 
