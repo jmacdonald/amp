@@ -173,7 +173,7 @@ fn parse_mode_key_bindings(mode: &Yaml, commands: &HashMap<&str, Command>) -> Re
 ///   ctrl-r becomes Key::Ctrl('r')
 ///
 fn parse_key(data: &str) -> Result<Key> {
-    let mut key_components = data.split("-");
+    let mut key_components = data.split('-');
     let component = key_components.next().ok_or(
         "A keymap key is an empty string",
     )?;
