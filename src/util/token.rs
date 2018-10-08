@@ -2,7 +2,7 @@ use util::movement_lexer;
 use scribe::buffer::{Buffer, Position};
 use luthor::token::Category;
 
-#[derive(PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum Direction {
     Forward,
     Backward,
