@@ -48,7 +48,7 @@ impl AsStr for Symbol {
 }
 
 impl SymbolJumpMode {
-    pub fn new(tokens: TokenSet, config: SearchSelectConfig) -> SymbolJumpMode {
+    pub fn new(tokens: &TokenSet, config: SearchSelectConfig) -> SymbolJumpMode {
         let symbols = symbols(tokens.iter());
 
         SymbolJumpMode {

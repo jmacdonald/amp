@@ -117,7 +117,7 @@ pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
             .chain_err(|| "No tokens available for the current buffer")?;
         let config = app.preferences.borrow().search_select_config();
 
-        app.mode = Mode::SymbolJump(SymbolJumpMode::new(token_set, config));
+        app.mode = Mode::SymbolJump(SymbolJumpMode::new(&token_set, config));
     } else {
         bail!(BUFFER_MISSING);
     }
