@@ -48,9 +48,7 @@ pub trait SearchSelectMode<T: Display>: Display {
         // using fold to carry the previous character's type forward.
         let mut boundary_index = 0;
         query.char_indices().fold(true, |was_whitespace, (index, c)| {
-            if c.is_whitespace() && !was_whitespace {
-                boundary_index = index;
-            } else if !c.is_whitespace() && was_whitespace {
+            if c.is_whitespace() != was_whitespace {
                 boundary_index = index;
             }
 
