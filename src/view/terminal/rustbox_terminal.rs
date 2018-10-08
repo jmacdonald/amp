@@ -150,12 +150,12 @@ fn ansi_256_color(rgb: RGBColor) -> RustboxColor {
         g = segments.iter().position(|&s| g < s).unwrap_or(4) as u8;
         b = segments.iter().position(|&s| b < s).unwrap_or(4) as u8;
 
-        RustboxColor::Byte((r*36 + g*6 + b + 16) as u16)
+        RustboxColor::Byte(u16::from(r*36 + g*6 + b + 16))
     }
 }
 
 fn greyscale_ansi(value: u8) -> u16 {
-    (((value as f32)/255.0 * 23.0).round() + 232.0) as u16
+    ((f32::from(value)/255.0 * 23.0).round() + 232.0) as u16
 }
 
 fn create_rustbox_instance() -> RustBox {
