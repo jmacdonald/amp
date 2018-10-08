@@ -4,13 +4,12 @@ use amp::Error;
 
 fn main() {
     // Instantiate, run, and handle errors for the application.
-    Application::new()
+    if let Some(e) = Application::new()
         .and_then(|mut app| app.run())
-        .err()
-        .map(|e| handle_error(e));
+        .err() { handle_error(&e) }
 }
 
-fn handle_error(error: Error) {
+fn handle_error(error: &Error) {
     // Print the proximate/contextual error.
     eprintln!("error: {}", error);
 

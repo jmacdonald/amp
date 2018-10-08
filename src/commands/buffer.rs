@@ -55,11 +55,11 @@ pub fn delete_token(app: &mut Application) -> Result {
     let mut subsequent_token_on_line = false;
 
     if let Some(buffer) = app.workspace.current_buffer() {
-        adjacent_token_position(buffer, false, Direction::Forward).map(|position| {
+        if let Some(position) = adjacent_token_position(buffer, false, Direction::Forward) {
             if position.line == buffer.cursor.line {
                 subsequent_token_on_line = true;
             }
-        });
+        }
     } else {
         bail!(BUFFER_MISSING);
     }
