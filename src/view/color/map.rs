@@ -11,19 +11,19 @@ impl ColorMap for Theme {
         let fg = self.
             settings.
             foreground.
-            map(|color| to_rgb_color(color)).
+            map(to_rgb_color).
             unwrap_or(RGBColor(255, 255, 255));
 
         let bg = self.
             settings.
             background.
-            map(|color| to_rgb_color(color)).
+            map(to_rgb_color).
             unwrap_or(RGBColor(0, 0, 0));
 
         let alt_bg = self.
             settings.
             line_highlight.
-            map(|color| to_rgb_color(color)).
+            map(to_rgb_color).
             unwrap_or(RGBColor(55, 55, 55));
 
         match colors {
