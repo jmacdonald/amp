@@ -21,6 +21,12 @@ pub struct Clipboard {
     system_clipboard: Option<ClipboardContext>,
 }
 
+impl Default for Clipboard {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Clipboard {
     pub fn new() -> Clipboard {
         // Initialize and keep a reference to the system clipboard.
