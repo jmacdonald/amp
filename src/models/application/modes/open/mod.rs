@@ -1,5 +1,6 @@
 mod displayable_path;
 pub mod exclusions;
+mod folder_filter;
 
 use std::fmt;
 use std::path::PathBuf;
@@ -59,16 +60,24 @@ impl fmt::Display for OpenMode {
     }
 }
 
+
 impl SearchSelectMode<DisplayablePath> for OpenMode {
+
+
     fn search(&mut self) {
         let results =
             if let OpenModeIndex::Complete(ref index) = self.index {
-                index.find(
+                let mut s_res = index.find(
                     &self.input.to_lowercase(),
-                    self.config.max_results
-                ).into_iter()
-                .map(|path| DisplayablePath(path.to_path_buf()))
-                .collect()
+                    usize::max_value()// self.config.max_results replaced to shrink later (internally, it only trucates at end anyway)
+                );
+                if s_res.len() <= self.config.max_results{
+                    s_res.into_iter().map(|x|DisplayablePath(PathBuf::from(x))).collect()
+                }else {
+                    s_res.truncate(self.config.max_results);
+                    folder_filter::search_as_folders(s_res).unwrap_or(vec![]).into_iter().map(|x|DisplayablePath(x)).collect()
+                }
+                
             } else {
                 vec![]
             };
