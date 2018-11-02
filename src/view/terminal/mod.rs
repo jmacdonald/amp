@@ -1,4 +1,4 @@
-mod rustbox_terminal;
+mod termion_terminal;
 
 #[cfg(any(test, feature = "bench"))]
 mod test_terminal;
@@ -8,7 +8,7 @@ use scribe::buffer::Position;
 use std::fmt::Display;
 use crate::view::{Colors, Style};
 
-pub use self::rustbox_terminal::RustboxTerminal;
+pub use self::termion_terminal::TermionTerminal;
 
 #[cfg(any(test, feature = "bench"))]
 pub use self::test_terminal::TestTerminal;

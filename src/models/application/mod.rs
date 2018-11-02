@@ -296,7 +296,7 @@ fn create_workspace(view: &mut View, args: &Vec<String>) -> Result<Workspace> {
 
 #[cfg(not(any(test, feature = "bench")))]
 fn build_terminal() -> Arc<Terminal + Sync + Send> {
-    Arc::new(RustboxTerminal::new())
+    Arc::new(TermionTerminal::new())
 }
 
 #[cfg(any(test, feature = "bench"))]
