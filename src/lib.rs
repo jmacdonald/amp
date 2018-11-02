@@ -1,5 +1,6 @@
 // `error_chain!` can recurse deeply
 #![recursion_limit = "1024"]
+#![feature(option_replace)]
 
 // External dependencies
 extern crate app_dirs;
