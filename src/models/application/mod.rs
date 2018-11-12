@@ -236,10 +236,10 @@ fn initialize_preferences() -> Rc<RefCell<Preferences>> {
 fn create_workspace(view: &mut View, args: &Vec<String>) -> Result<Workspace> {
     // Move into an argument-specified directory, if present.
     if let Some(arg) = args.iter().nth(1) {
-        let path = Path::new(&arg).canonicalize()?;
+        let path = Path::new(&arg);
 
         if path.is_dir() {
-            env::set_current_dir(&path)?;
+            env::set_current_dir(path.canonicalize()?)?;
         }
     }
 
@@ -251,7 +251,7 @@ fn create_workspace(view: &mut View, args: &Vec<String>) -> Result<Workspace> {
         let path = Path::new(&path_arg);
 
         // We're only interested in files.
-        if !path.is_file() {
+        if path.is_dir() {
             continue;
         }
 
@@ -294,4 +294,50 @@ fn build_terminal() -> Arc<Terminal + Sync + Send> {
 fn build_terminal() -> Arc<Terminal + Sync + Send> {
     // Use a headless terminal if we're in test mode.
     Arc::new(TestTerminal::new())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Application;
+    use scribe::Buffer;
+    use std::env::current_dir;
+    use std::path::{Path, PathBuf};
+
+    #[test]
+    fn application_uses_directory_argument_to_set_working_directory() {
+        // Canonicalizing this before we initialize the application
+        // as passing a directory argument will change the working directory.
+        let expected_path = PathBuf::from("src/models").canonicalize().unwrap();
+        let application =
+            Application::new(&vec![String::new(), String::from("src/models")]).unwrap();
+        assert_eq!(application.workspace.path, expected_path);
+    }
+
+    #[test]
+    fn application_uses_file_arguments_to_load_contents_into_buffers_when_files_exist() {
+        let mut application =
+            Application::new(&vec![String::new(), String::from("Cargo.lock")]).unwrap();
+        let buffer = Buffer::from_file(Path::new("Cargo.lock")).unwrap();
+
+        assert_eq!(
+            application.workspace.current_buffer().unwrap().path,
+            buffer.path
+        );
+        assert_eq!(
+            application.workspace.current_buffer().unwrap().data(),
+            buffer.data()
+        );
+    }
+
+    #[test]
+    fn application_uses_file_arguments_to_create_new_buffers_when_files_do_not_exist() {
+        let mut application =
+            Application::new(&vec![String::new(), String::from("non_existent_file")]).unwrap();
+
+        assert_eq!(
+            application.workspace.current_buffer().unwrap().path,
+            Some(current_dir().unwrap().join("non_existent_file"))
+        );
+        assert_eq!(application.workspace.current_buffer().unwrap().data(), "");
+    }
 }
