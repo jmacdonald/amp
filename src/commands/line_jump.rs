@@ -86,7 +86,7 @@ mod tests {
 
     #[test]
     fn accept_input_moves_cursor_to_requested_line_and_changes_modes() {
-        let mut app = ::models::Application::new().unwrap();
+        let mut app = ::models::Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\neditor");
 
@@ -118,7 +118,7 @@ mod tests {
 
     #[test]
     fn accept_input_handles_unavailable_offsets() {
-        let mut app = ::models::Application::new().unwrap();
+        let mut app = ::models::Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\namp");
         buffer.cursor.move_to(Position {
@@ -154,7 +154,7 @@ mod tests {
 
     #[test]
     fn accept_input_ignores_zero_input() {
-        let mut app = ::models::Application::new().unwrap();
+        let mut app = ::models::Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\namp");
 

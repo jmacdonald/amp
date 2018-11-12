@@ -269,7 +269,7 @@ mod tests {
 
     #[test]
     fn display_available_commands_creates_a_new_buffer() {
-        let mut app = Application::new().unwrap();
+        let mut app = Application::new(&Vec::new()).unwrap();
         super::display_available_commands(&mut app).unwrap();
 
         assert!(app.workspace.current_buffer().is_some());
@@ -277,7 +277,7 @@ mod tests {
 
     #[test]
     fn display_available_commands_populates_new_buffer_with_alphabetic_command_names() {
-        let mut app = Application::new().unwrap();
+        let mut app = Application::new(&Vec::new()).unwrap();
         super::display_available_commands(&mut app).unwrap();
 
         let buffer_data = app.workspace.current_buffer().unwrap().data();
@@ -288,7 +288,7 @@ mod tests {
 
     #[test]
     fn switch_to_search_mode_sets_initial_search_query() {
-        let mut app = Application::new().unwrap();
+        let mut app = Application::new(&Vec::new()).unwrap();
 
         // A buffer needs to be open to switch to search mode.
         let buffer = Buffer::new();
@@ -309,7 +309,7 @@ mod tests {
 
     #[test]
     fn switch_to_path_mode_inserts_workspace_directory_as_default() {
-        let mut app = Application::new().unwrap();
+        let mut app = Application::new(&Vec::new()).unwrap();
 
         let buffer = Buffer::new();
         app.workspace.add_buffer(buffer);
@@ -327,7 +327,7 @@ mod tests {
 
     #[test]
     fn switch_to_path_mode_inserts_buffer_path_if_one_exists() {
-        let mut app = Application::new().unwrap();
+        let mut app = Application::new(&Vec::new()).unwrap();
 
         let mut buffer = Buffer::new();
         let absolute_path = format!("{}/test", app.workspace.path.to_string_lossy());
@@ -347,7 +347,7 @@ mod tests {
 
     #[test]
     fn switch_to_path_mode_raises_error_if_no_buffer_is_open() {
-        let mut app = Application::new().unwrap();
+        let mut app = Application::new(&Vec::new()).unwrap();
 
         // The application type picks up on test run
         // arguments and will open empty buffers for each.

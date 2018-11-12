@@ -1,10 +1,11 @@
 extern crate amp;
 use amp::Application;
 use amp::Error;
+use std::env;
 
 fn main() {
     // Instantiate, run, and handle errors for the application.
-    if let Some(e) = Application::new()
+    if let Some(e) = Application::new(&env::args().collect())
         .and_then(|mut app| app.run())
         .err() { handle_error(&e) }
 }

@@ -7,7 +7,7 @@ use criterion::Criterion;
 use std::path::PathBuf;
 
 fn buffer_rendering(c: &mut Criterion) {
-    let mut app = Application::new().unwrap();
+    let mut app = Application::new(&Vec::new()).unwrap();
     app.workspace.open_buffer(
         &PathBuf::from("src/commands/buffer.rs")
     ).unwrap();
@@ -23,7 +23,7 @@ fn buffer_rendering(c: &mut Criterion) {
 }
 
 fn scrolled_buffer_rendering(c: &mut Criterion) {
-    let mut app = Application::new().unwrap();
+    let mut app = Application::new(&Vec::new()).unwrap();
     app.workspace.open_buffer(
         &PathBuf::from("src/commands/buffer.rs")
     ).unwrap();

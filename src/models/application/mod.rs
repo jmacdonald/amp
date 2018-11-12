@@ -56,7 +56,7 @@ pub struct Application {
 }
 
 impl Application {
-    pub fn new() -> Result<Application> {
+    pub fn new(args: &Vec<String>) -> Result<Application> {
         let preferences = initialize_preferences();
 
         let (event_channel, events) = mpsc::channel();
@@ -64,7 +64,7 @@ impl Application {
         let clipboard = Clipboard::new();
 
         // Set up a workspace in the current directory.
-        let workspace = create_workspace(&mut view)?;
+        let workspace = create_workspace(&mut view, args)?;
 
         Ok(Application {
             mode: Mode::Normal,
@@ -233,9 +233,9 @@ fn initialize_preferences() -> Rc<RefCell<Preferences>> {
     ))
 }
 
-fn create_workspace(view: &mut View) -> Result<Workspace> {
+fn create_workspace(view: &mut View, args: &Vec<String>) -> Result<Workspace> {
     // Move into an argument-specified directory, if present.
-    if let Some(arg) = env::args().nth(1) {
+    if let Some(arg) = args.iter().nth(1) {
         let path = Path::new(&arg).canonicalize()?;
 
         if path.is_dir() {
@@ -247,7 +247,7 @@ fn create_workspace(view: &mut View) -> Result<Workspace> {
     let mut workspace = Workspace::new(&workspace_dir)?;
 
     // Try to open specified files.
-    for path_arg in env::args().skip(1) {
+    for path_arg in args.iter().skip(1) {
         let path = Path::new(&path_arg);
 
         // We're only interested in files.
