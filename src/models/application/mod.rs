@@ -234,8 +234,12 @@ fn initialize_preferences() -> Rc<RefCell<Preferences>> {
 }
 
 fn create_workspace(view: &mut View, args: &Vec<String>) -> Result<Workspace> {
+    // Discard the executable portion of the argument list.
+    let mut path_args = args.iter().skip(1).peekable();
+
     // Move into an argument-specified directory, if present.
-    if let Some(arg) = args.iter().nth(1) {
+    let initial_dir = env::current_dir()?;
+    if let Some(arg) = path_args.peek() {
         let path = Path::new(&arg);
 
         if path.is_dir() {
@@ -246,14 +250,16 @@ fn create_workspace(view: &mut View, args: &Vec<String>) -> Result<Workspace> {
     let workspace_dir = env::current_dir()?;
     let mut workspace = Workspace::new(&workspace_dir)?;
 
+    // If the first argument was a directory, we've navigated into
+    // it; skip it before evaluating file args, lest we interpret
+    // it again as a non-existent file and create a buffer for it.
+    if workspace_dir != initial_dir { path_args.next(); }
+
     // Try to open specified files.
-    for path_arg in args.iter().skip(1) {
+    for path_arg in path_args {
         let path = Path::new(&path_arg);
 
-        // We're only interested in files.
-        if path.is_dir() {
-            continue;
-        }
+        if path.is_dir() { continue; }
 
         // Open the specified path if it exists, or
         // create a new buffer pointing to it if it doesn't.
@@ -300,18 +306,8 @@ fn build_terminal() -> Arc<Terminal + Sync + Send> {
 mod tests {
     use super::Application;
     use scribe::Buffer;
-    use std::env::current_dir;
-    use std::path::{Path, PathBuf};
-
-    #[test]
-    fn application_uses_directory_argument_to_set_working_directory() {
-        // Canonicalizing this before we initialize the application
-        // as passing a directory argument will change the working directory.
-        let expected_path = PathBuf::from("src/models").canonicalize().unwrap();
-        let application =
-            Application::new(&vec![String::new(), String::from("src/models")]).unwrap();
-        assert_eq!(application.workspace.path, expected_path);
-    }
+    use std::env;
+    use std::path::Path;
 
     #[test]
     fn application_uses_file_arguments_to_load_contents_into_buffers_when_files_exist() {
@@ -336,7 +332,7 @@ mod tests {
 
         assert_eq!(
             application.workspace.current_buffer().unwrap().path,
-            Some(current_dir().unwrap().join("non_existent_file"))
+            Some(env::current_dir().unwrap().join("non_existent_file"))
         );
         assert_eq!(application.workspace.current_buffer().unwrap().data(), "");
     }
