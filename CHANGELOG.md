@@ -1,3 +1,9 @@
+### 0.5.2
+
+* Fixed a regression that would raise an error when trying to open Amp with a
+  new file argument
+  * See https://github.com/jmacdonald/amp/issues/112 for details
+
 ### 0.5.1
 
 * Added ability to open Amp in another directory via `amp path/to/directory`
