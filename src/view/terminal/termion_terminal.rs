@@ -11,6 +11,7 @@ use self::termion::input::{Keys, TermRead};
 use self::termion::raw::{IntoRawMode, RawTerminal};
 use self::termion::style;
 use std::io::{BufWriter, Stdin, stdin, stdout, Write};
+use std::ops::Drop;
 use std::sync::Mutex;
 use view::{Colors, Style};
 
@@ -228,6 +229,23 @@ impl Terminal for TermionTerminal {
         if let Ok(mut guard) = self.input.lock() {
             guard.replace(stdin().keys());
         }
+    }
+}
+
+impl Drop for TermionTerminal {
+    fn drop(&mut self) {
+        if let Ok(mut guard) = self.output.lock() {
+            if let Some(ref mut output) = *guard {
+                let _ = write!(
+                    output,
+                    "{}{}{}",
+                    termion::cursor::Show,
+                    style::Reset,
+                    termion::clear::All,
+                );
+            }
+        }
+        self.present();
     }
 }
 
