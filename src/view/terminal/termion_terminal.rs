@@ -93,6 +93,21 @@ impl TermionTerminal {
             }
         }
     }
+
+    fn restore_cursor(&self) {
+        if let Ok(mut guard) = self.output.lock() {
+            if let Some(ref mut output) = *guard {
+                let _ = write!(
+                    output,
+                    "{}{}{}",
+                    termion::cursor::Show,
+                    style::Reset,
+                    termion::clear::All,
+                );
+            }
+        }
+        self.present();
+    }
 }
 
 impl Terminal for TermionTerminal {
@@ -197,18 +212,7 @@ impl Terminal for TermionTerminal {
     }
 
     fn suspend(&self) {
-        if let Ok(mut guard) = self.output.lock() {
-            if let Some(ref mut output) = *guard {
-                let _ = write!(
-                    output,
-                    "{}{}{}",
-                    termion::cursor::Show,
-                    style::Reset,
-                    termion::clear::All,
-                );
-            }
-        }
-        self.present();
+        self.restore_cursor();
 
         // Terminal destructor cleans up for us.
         if let Ok(mut guard) = self.output.lock() {
@@ -234,18 +238,7 @@ impl Terminal for TermionTerminal {
 
 impl Drop for TermionTerminal {
     fn drop(&mut self) {
-        if let Ok(mut guard) = self.output.lock() {
-            if let Some(ref mut output) = *guard {
-                let _ = write!(
-                    output,
-                    "{}{}{}",
-                    termion::cursor::Show,
-                    style::Reset,
-                    termion::clear::All,
-                );
-            }
-        }
-        self.present();
+        self.restore_cursor();
     }
 }
 
