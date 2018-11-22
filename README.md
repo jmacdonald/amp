@@ -21,3 +21,5 @@ If you have Cargo installed:
 ```
 cargo install amp
 ```
+
+More instructions on the [wiki](https://github.com/jmacdonald/amp/wiki/Instalation).
