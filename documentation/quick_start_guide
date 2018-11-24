@@ -62,12 +62,15 @@ and they can be in any order. Once you've found a match, hit "enter". If it's
 further down the list, you can use the up/down keys, or hit "esc" and use the
 "jk" keys, instead. You can leave open mode by hitting "esc" again.
 
-Managing Files
-=============
+If you'd like to create a new file, start by opening a new, empty buffer by 
+pressing "B".
 
-You can switch between open files using the "tab" key. If you're done with a
-buffer, you can close it by hitting "q". Amp will warn you if there are unsaved
-changes before closing the buffer.
+Managing Files
+==============
+
+You can switch between open files using the "tab" key. Press "s" to save the 
+current buffer. If you're done with a buffer, you can close it by hitting "q". 
+Amp will warn you if there are unsaved changes before closing the buffer.
 
 Exiting
 =======
