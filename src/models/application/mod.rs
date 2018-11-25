@@ -250,6 +250,16 @@ fn create_workspace(view: &mut View, args: &Vec<String>) -> Result<Workspace> {
     let workspace_dir = env::current_dir()?;
     let mut workspace = Workspace::new(&workspace_dir)?;
 
+    // Load user syntax definitions.
+    //
+    // It's important to do this before opening buffers, as that's when syntax
+    // definitions are associated; we want the complete set before that happens.
+    let syntax_path = Preferences::syntax_path()?;
+    if let Err(e) = workspace.syntax_set.load_syntaxes(syntax_path, true) {
+        bail!("Failed to load user syntaxes: {:?}", e);
+    }
+    workspace.syntax_set.link_syntaxes();
+
     // If the first argument was a directory, we've navigated into
     // it; skip it before evaluating file args, lest we interpret
     // it again as a non-existent file and create a buffer for it.
@@ -280,13 +290,6 @@ fn create_workspace(view: &mut View, args: &Vec<String>) -> Result<Workspace> {
         workspace.add_buffer(argument_buffer);
         view.initialize_buffer(workspace.current_buffer().unwrap())?;
     }
-
-    // Add user syntax definitions.
-    let syntax_path = Preferences::syntax_path()?;
-    if let Err(e) = workspace.syntax_set.load_syntaxes(syntax_path, true) {
-        bail!("Failed to load user syntaxes: {:?}", e);
-    }
-    workspace.syntax_set.link_syntaxes();
 
     Ok(workspace)
 }
