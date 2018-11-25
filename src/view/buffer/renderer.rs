@@ -215,6 +215,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     }
 
     pub fn render(&mut self) -> Result<Option<Position>> {
+        self.terminal.set_cursor(None);
         // Print the first line number. Others will
         // be handled as newlines are encountered.
         self.print_line_number();
