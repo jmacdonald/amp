@@ -1,9 +1,13 @@
 extern crate libc;
 extern crate termion;
 
+use errors::*;
+use mio::{Events, Poll, PollOpt, Ready, Token};
+use mio::unix::EventedFd;
 use super::Terminal;
 use std::fmt::Display;
 use std::io::Stdout;
+use std::os::unix::io::AsRawFd;
 use scribe::buffer::Position;
 use self::termion::color::{Bg, Fg};
 use self::termion::{color, cursor};
@@ -13,13 +17,17 @@ use self::termion::style;
 use std::io::{BufWriter, Stdin, stdin, stdout, Write};
 use std::ops::Drop;
 use std::sync::Mutex;
+use std::time::Duration;
 use view::{Colors, Style};
 
 use self::termion::event::Key as TermionKey;
 use input::Key;
 use models::application::Event;
 
+const STDIN_INPUT: Token = Token(0);
+
 pub struct TermionTerminal {
+    event_listener: Poll,
     input: Mutex<Option<Keys<Stdin>>>,
     output: Mutex<Option<BufWriter<RawTerminal<Stdout>>>>,
     current_style: Mutex<Option<Style>>,
@@ -30,6 +38,7 @@ impl TermionTerminal {
     #[allow(dead_code)]
     pub fn new() -> TermionTerminal {
         TermionTerminal {
+            event_listener: create_event_listener().unwrap(),
             input: Mutex::new(Some(stdin().keys())),
             output: Mutex::new(Some(create_output_instance())),
             current_style: Mutex::new(None),
@@ -112,6 +121,11 @@ impl TermionTerminal {
 
 impl Terminal for TermionTerminal {
     fn listen(&self) -> Option<Event> {
+        // Check for events on stdin.
+        let mut events = Events::with_capacity(1);
+        self.event_listener.poll(&mut events, Some(Duration::from_millis(100)));
+        if events.is_empty() { return None };
+
         let mut guard = self.input.lock().ok()?;
         let input_handle = guard.as_mut()?;
         let input_data = input_handle.next()?;
@@ -248,6 +262,18 @@ fn terminal_size() -> (usize, usize) {
     termion::terminal_size()
         .map(|(x,y)| (x as usize, y as usize))
         .unwrap_or((0, 0))
+}
+
+fn create_event_listener() -> Result<Poll> {
+    let event_listener = Poll::new().chain_err(|| "Failed to establish polling")?;
+    event_listener.register(
+        &EventedFd(&stdin().as_raw_fd()),
+        STDIN_INPUT,
+        Ready::readable(),
+        PollOpt::edge()
+    ).chain_err(|| "Failed to register stdin to event listener")?;
+
+    Ok(event_listener)
 }
 
 fn create_output_instance() -> BufWriter<RawTerminal<Stdout>> {
