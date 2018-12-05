@@ -116,6 +116,8 @@ search:
     - application::switch_to_normal_mode
     - application::handle_input
   escape: application::switch_to_normal_mode
+  enter: application::switch_to_symbol_jump_mode
+  space: application::switch_to_open_mode
   backspace:
     - selection::delete
     - search::run
