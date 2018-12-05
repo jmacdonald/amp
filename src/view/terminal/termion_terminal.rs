@@ -112,34 +112,29 @@ impl TermionTerminal {
 
 impl Terminal for TermionTerminal {
     fn listen(&self) -> Option<Event> {
-        if let Ok(mut guard) = self.input.lock() {
-            guard.as_mut().and_then(|i| {
-                i.next().and_then(|k| {
-                    k.ok().and_then(|k| {
-                        match k {
-                            TermionKey::Backspace => Some(Event::Key(Key::Backspace)),
-                            TermionKey::Left => Some(Event::Key(Key::Left)),
-                            TermionKey::Right => Some(Event::Key(Key::Right)),
-                            TermionKey::Up => Some(Event::Key(Key::Up)),
-                            TermionKey::Down => Some(Event::Key(Key::Down)),
-                            TermionKey::Home => Some(Event::Key(Key::Home)),
-                            TermionKey::End => Some(Event::Key(Key::End)),
-                            TermionKey::PageUp => Some(Event::Key(Key::PageUp)),
-                            TermionKey::PageDown => Some(Event::Key(Key::PageDown)),
-                            TermionKey::Delete => Some(Event::Key(Key::Delete)),
-                            TermionKey::Insert => Some(Event::Key(Key::Insert)),
-                            TermionKey::Esc => Some(Event::Key(Key::Esc)),
-                            TermionKey::Char('\n') => Some(Event::Key(Key::Enter)),
-                            TermionKey::Char('\t') => Some(Event::Key(Key::Tab)),
-                            TermionKey::Char(c) => Some(Event::Key(Key::Char(c))),
-                            TermionKey::Ctrl(c) => Some(Event::Key(Key::Ctrl(c))),
-                            _ => None,
-                        }
-                    })
-                })
-            })
-        } else {
-            None
+        let mut guard = self.input.lock().ok()?;
+        let input_handle = guard.as_mut()?;
+        let input_data = input_handle.next()?;
+        let key = input_data.ok()?;
+
+        match key {
+            TermionKey::Backspace => Some(Event::Key(Key::Backspace)),
+            TermionKey::Left => Some(Event::Key(Key::Left)),
+            TermionKey::Right => Some(Event::Key(Key::Right)),
+            TermionKey::Up => Some(Event::Key(Key::Up)),
+            TermionKey::Down => Some(Event::Key(Key::Down)),
+            TermionKey::Home => Some(Event::Key(Key::Home)),
+            TermionKey::End => Some(Event::Key(Key::End)),
+            TermionKey::PageUp => Some(Event::Key(Key::PageUp)),
+            TermionKey::PageDown => Some(Event::Key(Key::PageDown)),
+            TermionKey::Delete => Some(Event::Key(Key::Delete)),
+            TermionKey::Insert => Some(Event::Key(Key::Insert)),
+            TermionKey::Esc => Some(Event::Key(Key::Esc)),
+            TermionKey::Char('\n') => Some(Event::Key(Key::Enter)),
+            TermionKey::Char('\t') => Some(Event::Key(Key::Tab)),
+            TermionKey::Char(c) => Some(Event::Key(Key::Char(c))),
+            TermionKey::Ctrl(c) => Some(Event::Key(Key::Ctrl(c))),
+            _ => None,
         }
     }
 
