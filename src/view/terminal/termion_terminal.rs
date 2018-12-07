@@ -1,7 +1,7 @@
 extern crate libc;
 extern crate termion;
 
-use errors::*;
+use crate::errors::*;
 use mio::{Events, Poll, PollOpt, Ready, Token};
 use mio::unix::EventedFd;
 use super::Terminal;
@@ -18,11 +18,11 @@ use std::io::{BufWriter, Stdin, stdin, stdout, Write};
 use std::ops::Drop;
 use std::sync::Mutex;
 use std::time::Duration;
-use view::{Colors, Style};
+use crate::view::{Colors, Style};
 
 use self::termion::event::Key as TermionKey;
-use input::Key;
-use models::application::Event;
+use crate::input::Key;
+use crate::models::application::Event;
 
 const STDIN_INPUT: Token = Token(0);
 
