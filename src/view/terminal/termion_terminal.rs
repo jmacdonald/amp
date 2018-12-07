@@ -63,7 +63,7 @@ impl TermionTerminal {
                             );
 
                             // Resetting styles unfortunately clears active colors, too.
-                            if let Ok(mut color_guard) = self.current_colors.lock() {
+                            if let Ok(color_guard) = self.current_colors.lock() {
                                 if let Some(ref current_colors) = *color_guard {
                                     match *current_colors {
                                         Colors::Blank => { let _ = write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
