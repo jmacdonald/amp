@@ -18,3 +18,9 @@ pub enum Colors {
     CustomFocusedForeground(RGBColor),
     Custom(RGBColor, RGBColor),
 }
+
+impl Default for Colors {
+    fn default() -> Self {
+        Colors::Default
+    }
+}
