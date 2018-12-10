@@ -1,3 +1,5 @@
+mod buffer;
+mod cell;
 mod termion_terminal;
 
 #[cfg(any(test, feature = "bench"))]
@@ -8,6 +10,8 @@ use scribe::buffer::Position;
 use std::fmt::Display;
 use crate::view::{Colors, Style};
 
+pub use self::buffer::TerminalBuffer;
+pub use self::cell::Cell;
 pub use self::termion_terminal::TermionTerminal;
 
 #[cfg(any(test, feature = "bench"))]
