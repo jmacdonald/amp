@@ -71,6 +71,7 @@ normal:
   backspace:
     - buffer::backspace
     - application::switch_to_insert_mode
+  delete: buffer::delete
   ctrl-a: selection::select_all
   ctrl-r: buffer::reload
   ctrl-z: application::suspend
@@ -91,6 +92,7 @@ insert:
   page_up: view::scroll_up
   page_down: view::scroll_down
   escape: application::switch_to_normal_mode
+  delete: buffer::delete
   ctrl-a: selection::select_all
   ctrl-z: application::suspend
   ctrl-c: application::exit
@@ -126,6 +128,10 @@ search:
   N: search::move_to_previous_result
   c: selection::change
   d:
+    - selection::copy_and_delete
+    - search::run
+    - view::scroll_to_cursor
+  delete:
     - selection::copy_and_delete
     - search::run
     - view::scroll_to_cursor
@@ -196,6 +202,10 @@ select:
     - selection::copy_and_delete
     - application::switch_to_normal_mode
     - view::scroll_to_cursor
+  delete:
+    - selection::copy_and_delete
+    - application::switch_to_normal_mode
+    - view::scroll_to_cursor
   c: selection::change
   y: selection::copy
   p:
@@ -230,6 +240,10 @@ select_line:
   w: cursor::move_to_start_of_next_token
   e: cursor::move_to_end_of_current_token
   d:
+    - selection::copy_and_delete
+    - application::switch_to_normal_mode
+    - view::scroll_to_cursor
+  delete:
     - selection::copy_and_delete
     - application::switch_to_normal_mode
     - view::scroll_to_cursor
