@@ -1,4 +1,4 @@
-use crate::view::terminal::Cell;
+use crate::view::terminal::{Cell, TerminalBufferIterator};
 use scribe::buffer::Position;
 use std::slice::Iter;
 
@@ -25,8 +25,8 @@ impl TerminalBuffer {
         self.cells = vec![Cell::default(); self.width*self.height];
     }
 
-    pub fn iter(&self) -> Iter<Cell> {
-        self.cells.iter()
+    pub fn iter(&self) -> TerminalBufferIterator {
+        TerminalBufferIterator::new(self.width, &self.cells)
     }
 }
 

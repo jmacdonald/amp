@@ -1,4 +1,5 @@
 mod buffer;
+mod buffer_iterator;
 mod cell;
 mod termion_terminal;
 
@@ -11,6 +12,7 @@ use std::fmt::Display;
 use crate::view::{Colors, Style};
 
 pub use self::buffer::TerminalBuffer;
+pub use self::buffer_iterator::TerminalBufferIterator;
 pub use self::cell::Cell;
 pub use self::termion_terminal::TermionTerminal;
 
