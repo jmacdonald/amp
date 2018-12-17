@@ -1,4 +1,5 @@
 use crate::errors::*;
+use crate::errors;
 use crate::commands::{self, Result};
 use git2;
 use crate::models::application::{Application, ClipboardContent, Mode};
@@ -18,6 +19,16 @@ pub fn add(app: &mut Application) -> Result {
     index.write().chain_err(|| "Failed to write index.")
 }
 
+fn get_gh_path(url: &str) -> errors::Result<&str> {
+    lazy_static! {
+        static ref regex: Regex =
+            Regex::new(r"^(?:https://|git@)github.com(?::|/)(.*?)(?:.git)?$").unwrap();
+    }
+    regex.captures(url).and_then(|c| c.at(1)).chain_err(|| {
+        "Failed to capture remote repo path"
+    })
+}
+
 pub fn copy_remote_url(app: &mut Application) -> Result {
     if let Some(ref mut repo) = app.repository {
         let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
@@ -26,12 +37,9 @@ pub fn copy_remote_url(app: &mut Application) -> Result {
             "Couldn't find a remote \"origin\""
         })?;
         let url = remote.url().ok_or("No URL for remote/origin")?;
-        let regex = Regex::new(r"^git@github.com:(.*).git$").chain_err(|| {
-            "Failed to build repo regex"
-        })?;
-        let gh_path = regex.captures(url).and_then(|c| c.at(1)).ok_or(
-          "Failed to capture remote repo path"
-        )?;
+
+        let gh_path = get_gh_path(url)?;
+
         let repo_path = repo.workdir().ok_or("No path found for the repository")?;
         let relative_path = buffer_path.strip_prefix(repo_path).chain_err(|| {
             "Failed to build a relative buffer path"
@@ -94,4 +102,17 @@ pub fn copy_remote_url(app: &mut Application) -> Result {
     commands::application::switch_to_normal_mode(app)?;
 
     Ok(())
+}
+
+#[test]
+fn test_get_gh_path() {
+    let cases = [
+        ("git@github.com:jmacdonald/amp.git", "jmacdonald/amp"),
+        ("https://github.com/jmacdonald/amp.git", "jmacdonald/amp"),
+        ("https://github.com/jmacdonald/amp", "jmacdonald/amp"),
+    ];
+
+    cases.iter().for_each(|(url, expected_gh_path)| {
+        assert_eq!(&get_gh_path(url).unwrap(), expected_gh_path)
+    })
 }
