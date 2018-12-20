@@ -155,8 +155,12 @@ impl Terminal for TermionTerminal {
     fn clear(&self) {
         // Because we're clearing styles below, we'll
         // also need to bust the style/color cache.
-        //self.current_style = None;
-        //self.current_colors = None;
+        if let Ok(mut guard) = self.current_style.lock() {
+            guard.take();
+        }
+        if let Ok(mut guard) = self.current_colors.lock() {
+            guard.take();
+        }
 
         // It's important to reset the terminal styles prior to clearing the
         // screen, otherwise the current background color will be used.
