@@ -58,7 +58,7 @@ mod tests {
     #[test]
     fn set_cell_sets_correct_cell() {
         let mut buffer = TerminalBuffer::new(5, 10);
-        let cell = Cell{ content: ' ', colors: Colors::Default };
+        let cell = Cell{ content: 'a', colors: Colors::Default };
         buffer.set_cell(Position{ line: 2, offset: 1 }, cell.clone());
 
         assert_eq!(buffer.cells[11], cell);
