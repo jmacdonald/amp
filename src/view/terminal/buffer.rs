@@ -2,14 +2,14 @@ use crate::view::terminal::{Cell, TerminalBufferIterator};
 use scribe::buffer::Position;
 use std::slice::Iter;
 
-pub struct TerminalBuffer {
+pub struct TerminalBuffer<'c> {
     width: usize,
     height: usize,
-    cells: Vec<Cell>,
+    cells: Vec<Cell<'c>>,
 }
 
-impl TerminalBuffer {
-    pub fn new(width: usize, height: usize) -> TerminalBuffer {
+impl<'c> TerminalBuffer<'c> {
+    pub fn new(width: usize, height: usize) -> TerminalBuffer<'c> {
         TerminalBuffer{
             width,
             height,
@@ -17,7 +17,7 @@ impl TerminalBuffer {
         }
     }
 
-    pub fn set_cell(&mut self, position: Position, cell: Cell) {
+    pub fn set_cell(&mut self, position: Position, cell: Cell<'c>) {
         self.cells[position.line * self.width + position.offset] = cell;
     }
 
@@ -58,7 +58,7 @@ mod tests {
     #[test]
     fn set_cell_sets_correct_cell() {
         let mut buffer = TerminalBuffer::new(5, 10);
-        let cell = Cell{ content: 'a', colors: Colors::Default };
+        let cell = Cell{ content: "a", colors: Colors::Default };
         buffer.set_cell(Position{ line: 2, offset: 1 }, cell.clone());
 
         assert_eq!(buffer.cells[11], cell);
@@ -67,7 +67,7 @@ mod tests {
     #[test]
     fn clear_resets_cells_to_default() {
         let mut buffer = TerminalBuffer::new(5, 10);
-        let cell = Cell{ content: ' ', colors: Colors::Default };
+        let cell = Cell{ content: " ", colors: Colors::Default };
         buffer.set_cell(Position{ line: 2, offset: 1 }, cell.clone());
 
         assert_eq!(buffer.cells[11], cell);

@@ -4,17 +4,17 @@ use scribe::buffer::Position;
 pub struct TerminalBufferIterator<'c> {
     index: usize,
     width: usize,
-    cells: &'c Vec<Cell>,
+    cells: &'c Vec<Cell<'c>>,
 }
 
 impl<'c> TerminalBufferIterator<'c> {
-    pub fn new(width: usize, cells: &'c Vec<Cell>) -> TerminalBufferIterator {
+    pub fn new(width: usize, cells: &'c Vec<Cell<'c>>) -> TerminalBufferIterator {
         TerminalBufferIterator{ index: 0, width, cells }
     }
 }
 
 impl<'c> Iterator for TerminalBufferIterator<'c> {
-    type Item = (Position, &'c Cell);
+    type Item = (Position, &'c Cell<'c>);
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(cell) = self.cells.get(self.index) {
@@ -42,15 +42,15 @@ mod tests {
     fn terminal_buffer_iterator_yields_correct_position_and_cell_pairs() {
         let width = 2;
         let cells = vec![
-            Cell{ content: 'a', colors: Colors::Default },
-            Cell{ content: 'm', colors: Colors::Default },
-            Cell{ content: 'p', colors: Colors::Default }
+            Cell{ content: "a", colors: Colors::Default },
+            Cell{ content: "m", colors: Colors::Default },
+            Cell{ content: "p", colors: Colors::Default }
         ];
         let iterator = TerminalBufferIterator::new(width, &cells);
         assert_eq!(iterator.collect::<Vec<(Position, &Cell)>>(), vec![
-            (Position{ line: 0, offset: 0 }, &Cell{ content: 'a', colors: Colors::Default }),
-            (Position{ line: 0, offset: 1 }, &Cell{ content: 'm', colors: Colors::Default }),
-            (Position{ line: 1, offset: 0 }, &Cell{ content: 'p', colors: Colors::Default })
+            (Position{ line: 0, offset: 0 }, &Cell{ content: "a", colors: Colors::Default }),
+            (Position{ line: 0, offset: 1 }, &Cell{ content: "m", colors: Colors::Default }),
+            (Position{ line: 1, offset: 0 }, &Cell{ content: "p", colors: Colors::Default })
         ]);
     }
 }
