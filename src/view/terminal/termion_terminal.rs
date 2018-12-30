@@ -8,7 +8,7 @@ use super::Terminal;
 use std::fmt::Display;
 use std::io::Stdout;
 use std::os::unix::io::AsRawFd;
-use scribe::buffer::Position;
+use scribe::buffer::{Distance, Position};
 use self::termion::color::{Bg, Fg};
 use self::termion::{color, cursor};
 use self::termion::input::{Keys, TermRead};
@@ -32,6 +32,7 @@ pub struct TermionTerminal {
     output: Mutex<Option<BufWriter<RawTerminal<Stdout>>>>,
     current_style: Mutex<Option<Style>>,
     current_colors: Mutex<Option<Colors>>,
+    current_position: Mutex<Position>,
 }
 
 impl TermionTerminal {
@@ -43,6 +44,7 @@ impl TermionTerminal {
             output: Mutex::new(Some(create_output_instance())),
             current_style: Mutex::new(None),
             current_colors: Mutex::new(None),
+            current_position: Mutex::new(Position::new()),
         }
     }
 
@@ -213,13 +215,19 @@ impl Terminal for TermionTerminal {
 
         if let Ok(mut guard) = self.output.lock() {
             if let Some(ref mut output) = *guard {
-                // Now that style and color have been addressed, print the content.
-                let _ = write!(
-                    output,
-                    "{}{}",
-                    cursor_position(position),
-                    content
-                );
+                // Handle position updates.
+                if let Ok(mut current_position) = self.current_position.lock() {
+                    let next_position = *current_position + Distance{ lines: 0, offset: 1 };
+                    if *position != next_position {
+                        // We're not adjacent to the previous print; move the cursor.
+                        let _ = write!(output, "{}", cursor_position(position));
+                    }
+                    *current_position = *position;
+                }
+
+                // Now that style, color, and position have been
+                // addressed, print the content.
+                let _ = write!(output, "{}", content);
             }
         }
     }
