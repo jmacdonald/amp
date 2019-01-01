@@ -3,6 +3,7 @@ pub mod terminal;
 mod buffer;
 mod data;
 mod event_listener;
+mod presenter;
 mod style;
 mod theme_loader;
 
