@@ -9,13 +9,12 @@ use scribe::buffer::Position;
 use std::fmt::Display;
 use syntect::highlighting::Theme;
 
-pub struct Presenter<'a, 'b> {
-    buffer_renderer: BufferRenderer<'a, 'b>,
+pub struct Presenter<'a> {
     terminal: &'a Terminal,
     theme: &'a Theme,
 }
 
-impl<'a, 'b> Presenter<'a, 'b> {
+impl<'a> Presenter<'a> {
     /// Renders the app name, version and copyright info to the screen.
     pub fn draw_splash_screen(&mut self) -> Result<()> {
         let content = vec![
