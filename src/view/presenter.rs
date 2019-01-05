@@ -3,15 +3,14 @@ use crate::view::buffer::BufferRenderer;
 use crate::view::color::{ColorMap, Colors};
 use crate::view::StatusLineData;
 use crate::view::style::Style;
-use crate::view::Terminal;
+use crate::view::View;
 use pad::PadStr;
 use scribe::buffer::Position;
 use std::fmt::Display;
 use syntect::highlighting::Theme;
 
 pub struct Presenter<'a> {
-    pub terminal: &'a Terminal,
-    pub theme: &'a Theme,
+    pub view: &'a mut View,
 }
 
 impl<'a> Presenter<'a> {
@@ -28,29 +27,29 @@ impl<'a> Presenter<'a> {
 
         for (line_no, line) in content.iter().enumerate() {
             let position = Position{
-                line: self.terminal.height() / 2 + line_no - vertical_offset,
-                offset: self.terminal.width() / 2 - line.chars().count() / 2
+                line: self.view.terminal.height() / 2 + line_no - vertical_offset,
+                offset: self.view.terminal.width() / 2 - line.chars().count() / 2
             };
 
-            self.print(&position, Style::Default, Colors::Default, &line)?;
+            self.view.print(&position, Style::Default, Colors::Default, &line)?;
         }
 
         Ok(())
     }
 
     pub fn draw_status_line(&self, data: &[StatusLineData]) {
-        let line = self.terminal.height() - 1;
+        let line = self.view.terminal.height() - 1;
 
         data.iter().enumerate().fold(0, |offset, (index, element)| {
             let content = match data.len() {
                 1 => {
                     // There's only one element; have it fill the line.
-                    element.content.pad_to_width(self.terminal.width())
+                    element.content.pad_to_width(self.view.terminal.width())
                 },
                 2 => {
                     if index == data.len() - 1 {
                         // Expand the last element to fill the remaining width.
-                        element.content.pad_to_width(self.terminal.width() - offset)
+                        element.content.pad_to_width(self.view.terminal.width() - offset)
                     } else {
                         element.content.clone()
                     }
@@ -58,14 +57,14 @@ impl<'a> Presenter<'a> {
                 _ => {
                     if index == data.len() - 2 {
                         // Before-last element extends to fill unused space.
-                        element.content.pad_to_width(self.terminal.width() - offset - data[index+1].content.len())
+                        element.content.pad_to_width(self.view.terminal.width() - offset - data[index+1].content.len())
                     } else {
                         element.content.clone()
                     }
                 }
             };
 
-            let _ = self.print(&Position{ line, offset },
+            let _ = self.view.print(&Position{ line, offset },
                        element.style,
                        element.colors,
                        &content);
@@ -76,8 +75,13 @@ impl<'a> Presenter<'a> {
     }
 
     pub fn print(&self, position: &Position, style: Style, colors: Colors, content: &Display) -> Result<()> {
-        let mapped_colors = self.theme.map_colors(colors);
-        self.terminal.print(position, style, mapped_colors, content);
+        let preferences = self.view.preferences.borrow();
+        let theme_name = preferences.theme();
+        let theme = self.view.theme_set.themes
+            .get(theme_name)
+            .ok_or_else(|| format!("Couldn't find \"{}\" theme", theme_name))?;
+        let mapped_colors = theme.map_colors(colors);
+        self.view.terminal.print(position, style, mapped_colors, content);
 
         Ok(())
     }

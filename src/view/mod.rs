@@ -71,16 +71,7 @@ impl View {
     }
 
     pub fn build_presenter<'a>(&'a mut self) -> Result<Presenter<'a>> {
-        let preferences = self.preferences.borrow();
-        let theme_name = preferences.theme();
-        let theme = self.theme_set.themes
-            .get(theme_name)
-            .ok_or_else(|| format!("Couldn't find \"{}\" theme", theme_name))?;
-
-        Ok(Presenter{
-            terminal: &*self.terminal,
-            theme,
-        })
+        Ok(Presenter{ view: self })
     }
 
     pub fn draw_buffer(&mut self, buffer: &Buffer, highlights: Option<&[Range]>, lexeme_mapper: Option<&mut LexemeMapper>) -> Result<()> {
