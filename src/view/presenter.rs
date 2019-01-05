@@ -14,6 +14,19 @@ pub struct Presenter<'a> {
 }
 
 impl<'a> Presenter<'a> {
+    pub fn clear(&mut self) {
+        self.view.terminal.clear()
+    }
+
+    pub fn set_cursor(&mut self, position: Option<Position>) {
+        self.view.cursor_position = position;
+    }
+
+    pub fn present(&mut self) {
+        self.view.terminal.set_cursor(self.view.cursor_position);
+        self.view.terminal.present();
+    }
+
     pub fn draw_buffer(&mut self, buffer: &Buffer, highlights: Option<&[Range]>, lexeme_mapper: Option<&mut LexemeMapper>) -> Result<()> {
         let scroll_offset = self.view.get_region(buffer)?.line_offset();
         let preferences = self.view.preferences.borrow();
