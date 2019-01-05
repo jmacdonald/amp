@@ -12,6 +12,7 @@ pub use self::data::StatusLineData;
 pub use self::buffer::{LexemeMapper, MappedLexeme};
 pub use self::style::Style;
 pub use self::color::{Colors, RGBColor};
+pub use self::presenter::Presenter;
 
 use crate::errors::*;
 use crate::input::Key;
@@ -66,6 +67,19 @@ impl View {
             theme_set,
             event_channel,
             event_listener_killswitch: killswitch_tx
+        })
+    }
+
+    pub fn build_presenter<'a>(&'a mut self) -> Result<Presenter<'a>> {
+        let preferences = self.preferences.borrow();
+        let theme_name = preferences.theme();
+        let theme = self.theme_set.themes
+            .get(theme_name)
+            .ok_or_else(|| format!("Couldn't find \"{}\" theme", theme_name))?;
+
+        Ok(Presenter{
+            terminal: &*self.terminal,
+            theme,
         })
     }
 

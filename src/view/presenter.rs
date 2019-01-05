@@ -10,8 +10,8 @@ use std::fmt::Display;
 use syntect::highlighting::Theme;
 
 pub struct Presenter<'a> {
-    terminal: &'a Terminal,
-    theme: &'a Theme,
+    pub terminal: &'a Terminal,
+    pub theme: &'a Theme,
 }
 
 impl<'a> Presenter<'a> {
