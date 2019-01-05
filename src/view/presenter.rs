@@ -1,11 +1,11 @@
 use crate::errors::*;
-use crate::view::buffer::BufferRenderer;
+use crate::view::buffer::{BufferRenderer, LexemeMapper};
 use crate::view::color::{ColorMap, Colors};
 use crate::view::StatusLineData;
 use crate::view::style::Style;
 use crate::view::View;
 use pad::PadStr;
-use scribe::buffer::Position;
+use scribe::buffer::{Buffer, Position, Range};
 use std::fmt::Display;
 use syntect::highlighting::Theme;
 
@@ -14,6 +14,30 @@ pub struct Presenter<'a> {
 }
 
 impl<'a> Presenter<'a> {
+    pub fn draw_buffer(&mut self, buffer: &Buffer, highlights: Option<&[Range]>, lexeme_mapper: Option<&mut LexemeMapper>) -> Result<()> {
+        let scroll_offset = self.view.get_region(buffer)?.line_offset();
+        let preferences = self.view.preferences.borrow();
+        let theme_name = preferences.theme();
+        let theme = self.view.theme_set.themes
+            .get(theme_name)
+            .ok_or_else(|| format!("Couldn't find \"{}\" theme", theme_name))?;
+
+        let cursor_position = BufferRenderer::new(
+            buffer,
+            highlights,
+            lexeme_mapper,
+            scroll_offset,
+            &*self.view.terminal,
+            theme,
+            &self.view.preferences.borrow(),
+            self.view.get_render_cache(buffer)?
+        ).render()?;
+
+        self.view.cursor_position = cursor_position;
+
+        Ok(())
+    }
+
     /// Renders the app name, version and copyright info to the screen.
     pub fn draw_splash_screen(&mut self) -> Result<()> {
         let content = vec![
