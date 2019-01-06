@@ -19,6 +19,14 @@ impl<'a> Presenter<'a> {
         Presenter{ cursor_position: None, view: view }
     }
 
+    pub fn width(&self) -> usize {
+        self.view.terminal.width()
+    }
+
+    pub fn height(&self) -> usize {
+        self.view.terminal.height()
+    }
+
     pub fn clear(&mut self) {
         self.view.terminal.clear()
     }
