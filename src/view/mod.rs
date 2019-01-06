@@ -18,11 +18,10 @@ use crate::errors::*;
 use crate::input::Key;
 use crate::models::application::{Event, Preferences};
 use self::color::ColorMap;
-use self::buffer::{BufferRenderer, RenderCache, RenderState};
+use self::buffer::{RenderCache, RenderState};
 use self::buffer::ScrollableRegion;
 use self::event_listener::EventListener;
-use scribe::buffer::{Buffer, Position, Range};
-use pad::PadStr;
+use scribe::buffer::{Buffer, Position};
 use std::cmp;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -39,7 +38,6 @@ const RENDER_CACHE_FREQUENCY: usize = 100;
 
 pub struct View {
     terminal: Arc<Terminal + Sync + Send>,
-    cursor_position: Option<Position>,
     scrollable_regions: HashMap<usize, ScrollableRegion>,
     render_caches: HashMap<usize, Rc<RefCell<HashMap<usize, RenderState>>>>,
     pub theme_set: ThemeSet,
@@ -59,7 +57,6 @@ impl View {
 
         Ok(View {
             terminal,
-            cursor_position: None,
             last_key: None,
             preferences,
             scrollable_regions: HashMap::new(),

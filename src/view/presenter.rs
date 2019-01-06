@@ -7,7 +7,6 @@ use crate::view::View;
 use pad::PadStr;
 use scribe::buffer::{Buffer, Position, Range};
 use std::fmt::Display;
-use syntect::highlighting::Theme;
 
 pub struct Presenter<'a> {
     cursor_position: Option<Position>,

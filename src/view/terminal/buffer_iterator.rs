@@ -1,5 +1,4 @@
 use crate::view::terminal::Cell;
-use scribe::buffer::Position;
 use std::cmp;
 
 /// Iterates over the provided cells, yielding slices for each line.

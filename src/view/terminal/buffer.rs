@@ -1,6 +1,5 @@
 use crate::view::terminal::{Cell, TerminalBufferIterator};
 use scribe::buffer::Position;
-use std::slice::Iter;
 
 pub struct TerminalBuffer<'c> {
     width: usize,
