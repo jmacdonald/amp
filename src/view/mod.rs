@@ -145,18 +145,6 @@ impl View {
         Ok(cache)
     }
 
-    pub fn print(&self, position: &Position, style: Style, colors: Colors, content: &Display) -> Result<()> {
-        let preferences = self.preferences.borrow();
-        let theme_name = preferences.theme();
-        let theme = self.theme_set.themes
-            .get(theme_name)
-            .ok_or_else(|| format!("Couldn't find \"{}\" theme", theme_name))?;
-        let mapped_colors = theme.map_colors(colors);
-        self.terminal.print(position, style, mapped_colors, content);
-
-        Ok(())
-    }
-
     pub fn suspend(&mut self) {
         let _ = self.event_listener_killswitch.send(());
         self.terminal.suspend();

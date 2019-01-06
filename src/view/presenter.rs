@@ -78,7 +78,7 @@ impl<'a> Presenter<'a> {
                 offset: self.view.terminal.width() / 2 - line.chars().count() / 2
             };
 
-            self.view.print(&position, Style::Default, Colors::Default, &line)?;
+            self.print(&position, Style::Default, Colors::Default, &line)?;
         }
 
         Ok(())
@@ -111,7 +111,7 @@ impl<'a> Presenter<'a> {
                 }
             };
 
-            let _ = self.view.print(&Position{ line, offset },
+            let _ = self.print(&Position{ line, offset },
                        element.style,
                        element.colors,
                        &content);
