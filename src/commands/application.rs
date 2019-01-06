@@ -247,8 +247,6 @@ pub fn display_last_error(app: &mut Application) -> Result {
 }
 
 pub fn suspend(app: &mut Application) -> Result {
-    // We need to clear the cursor or it won't render properly on resume.
-    app.view.set_cursor(None);
     app.view.suspend();
 
     Ok(())

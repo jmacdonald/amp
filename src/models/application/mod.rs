@@ -214,17 +214,21 @@ impl Application {
 
 impl Drop for Application {
     fn drop(&mut self) {
-        self.view.clear();
+        let mut presenter = self.view.build_presenter().unwrap();
+        presenter.clear();
+        presenter.present();
     }
 }
 
 fn render_error(view: &mut View, error: &Error) {
-    view.draw_status_line(&[StatusLineData {
+    let mut presenter = view.build_presenter().unwrap();
+
+    presenter.draw_status_line(&[StatusLineData {
         content: error.description().to_string(),
         style: view::Style::Bold,
         colors: view::Colors::Warning,
     }]);
-    view.present();
+    presenter.present();
 }
 
 fn initialize_preferences() -> Rc<RefCell<Preferences>> {
