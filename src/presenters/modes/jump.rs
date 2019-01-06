@@ -5,8 +5,10 @@ use crate::models::application::modes::JumpMode;
 use crate::view::{Colors, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) -> Result<()> {
+    let mut presenter = view.build_presenter()?;
+
     // Wipe the slate clean.
-    view.clear();
+    presenter.clear();
 
     let buffer_status = current_buffer_status_line_data(workspace);
 
@@ -14,10 +16,10 @@ pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) 
         mode.reset_display();
 
         // Draw the visible set of tokens to the terminal.
-        view.draw_buffer(buf, None, Some(mode))?;
+        presenter.draw_buffer(buf, None, Some(mode))?;
 
         // Draw the status line.
-        view.draw_status_line(&[
+        presenter.draw_status_line(&[
             StatusLineData {
                 content: " JUMP ".to_string(),
                 style: Style::Default,
@@ -28,11 +30,11 @@ pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) 
     }
 
     // Don't display a cursor.
-    view.set_cursor(None);
+    presenter.set_cursor(None);
 
 
     // Render the changes to the screen.
-    view.present();
+    presenter.present();
 
     Ok(())
 }

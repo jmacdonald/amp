@@ -4,17 +4,19 @@ use scribe::Workspace;
 use crate::view::{Colors, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, view: &mut View) -> Result<()> {
+    let mut presenter = view.build_presenter()?;
+
     // Wipe the slate clean.
-    view.clear();
+    presenter.clear();
 
     let buffer_status = current_buffer_status_line_data(workspace);
 
     if let Some(buf) = workspace.current_buffer() {
         // Draw the visible set of tokens to the terminal.
-        view.draw_buffer(buf, None, None)?;
+        presenter.draw_buffer(buf, None, None)?;
 
         // Draw the status line.
-        view.draw_status_line(&[
+        presenter.draw_status_line(&[
             StatusLineData {
                 content: " INSERT ".to_string(),
                 style: Style::Default,
@@ -25,7 +27,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View) -> Result<()> {
     }
 
     // Render the changes to the screen.
-    view.present();
+    presenter.present();
 
     Ok(())
 }

@@ -5,8 +5,10 @@ use crate::presenters::current_buffer_status_line_data;
 use crate::view::{Colors, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, mode: &SelectLineMode, view: &mut View) -> Result<()> {
+    let mut presenter = view.build_presenter()?;
+
     // Wipe the slate clean.
-    view.clear();
+    presenter.clear();
 
     let buffer_status = current_buffer_status_line_data(workspace);
 
@@ -15,10 +17,10 @@ pub fn display(workspace: &mut Workspace, mode: &SelectLineMode, view: &mut View
         let selected_range = mode.to_range(&*buf.cursor);
 
         // Draw the visible set of tokens to the terminal.
-        view.draw_buffer(buf, Some(&[selected_range]), None)?;
+        presenter.draw_buffer(buf, Some(&[selected_range]), None)?;
 
         // Draw the status line.
-        view.draw_status_line(&[
+        presenter.draw_status_line(&[
             StatusLineData {
                 content: " SELECT LINE ".to_string(),
                 style: Style::Default,
@@ -28,11 +30,11 @@ pub fn display(workspace: &mut Workspace, mode: &SelectLineMode, view: &mut View
         ]);
     } else {
         // There's no buffer; clear the cursor.
-        view.set_cursor(None);
+        presenter.set_cursor(None);
     }
 
     // Render the changes to the screen.
-    view.present();
+    presenter.present();
 
     Ok(())
 }

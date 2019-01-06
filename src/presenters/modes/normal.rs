@@ -5,14 +5,16 @@ use git2::Repository;
 use crate::view::{Colors, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Repository>) -> Result<()> {
+    let mut presenter = view.build_presenter()?;
+
     // Wipe the slate clean.
-    view.clear();
+    presenter.clear();
 
     let buffer_status = current_buffer_status_line_data(workspace);
 
     if let Some(buf) = workspace.current_buffer() {
         // Draw the visible set of tokens to the terminal.
-        view.draw_buffer(buf, None, None)?;
+        presenter.draw_buffer(buf, None, None)?;
 
         // Determine mode display color based on buffer modification status.
         let colors = if buf.modified() {
@@ -33,14 +35,14 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
         ];
 
         // Draw the status line.
-        view.draw_status_line(&status_line_data);
+        presenter.draw_status_line(&status_line_data);
     } else {
-        view.draw_splash_screen()?;
-        view.set_cursor(None);
+        presenter.draw_splash_screen()?;
+        presenter.set_cursor(None);
     }
 
     // Render the changes to the screen.
-    view.present();
+    presenter.present();
 
     Ok(())
 }

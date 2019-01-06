@@ -3,17 +3,19 @@ use scribe::Workspace;
 use crate::view::{Colors, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, view: &mut View) -> Result<()> {
+    let mut presenter = view.build_presenter()?;
+
     // Wipe the slate clean.
-    view.clear();
+    presenter.clear();
 
     if let Some(buf) = workspace.current_buffer() {
         // Draw the visible set of tokens to the terminal.
-        view.draw_buffer(buf, None, None)?;
+        presenter.draw_buffer(buf, None, None)?;
     }
 
     // Draw the status line as a search prompt.
     let confirmation = "Are you sure? (y/n)".to_string();
-    view.draw_status_line(&[
+    presenter.draw_status_line(&[
         StatusLineData {
             content: confirmation,
             style: Style::Bold,
@@ -22,7 +24,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View) -> Result<()> {
     ]);
 
     // Render the changes to the screen.
-    view.present();
+    presenter.present();
 
     Ok(())
 }
