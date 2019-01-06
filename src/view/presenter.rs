@@ -10,20 +10,25 @@ use std::fmt::Display;
 use syntect::highlighting::Theme;
 
 pub struct Presenter<'a> {
+    cursor_position: Option<Position>,
     pub view: &'a mut View,
 }
 
 impl<'a> Presenter<'a> {
+    pub fn new(view: &'a mut View) -> Presenter {
+        Presenter{ cursor_position: None, view: view }
+    }
+
     pub fn clear(&mut self) {
         self.view.terminal.clear()
     }
 
     pub fn set_cursor(&mut self, position: Option<Position>) {
-        self.view.cursor_position = position;
+        self.cursor_position = position;
     }
 
     pub fn present(&mut self) {
-        self.view.terminal.set_cursor(self.view.cursor_position);
+        self.view.terminal.set_cursor(self.cursor_position);
         self.view.terminal.present();
     }
 
@@ -35,7 +40,7 @@ impl<'a> Presenter<'a> {
             .get(theme_name)
             .ok_or_else(|| format!("Couldn't find \"{}\" theme", theme_name))?;
 
-        let cursor_position = BufferRenderer::new(
+        self.cursor_position = BufferRenderer::new(
             buffer,
             highlights,
             lexeme_mapper,
@@ -45,8 +50,6 @@ impl<'a> Presenter<'a> {
             &self.view.preferences.borrow(),
             self.view.get_render_cache(buffer)?
         ).render()?;
-
-        self.view.cursor_position = cursor_position;
 
         Ok(())
     }

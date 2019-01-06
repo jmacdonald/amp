@@ -71,7 +71,7 @@ impl View {
     }
 
     pub fn build_presenter<'a>(&'a mut self) -> Result<Presenter<'a>> {
-        Ok(Presenter{ view: self })
+        Ok(Presenter::new(self))
     }
 
     pub fn draw_buffer(&mut self, buffer: &Buffer, highlights: Option<&[Range]>, lexeme_mapper: Option<&mut LexemeMapper>) -> Result<()> {
