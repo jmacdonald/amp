@@ -17,7 +17,6 @@ use crate::presenters;
 use scribe::{Buffer, Workspace};
 use std::cell::RefCell;
 use std::env;
-use std::ops::Drop;
 use std::path::Path;
 use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender};
@@ -209,14 +208,6 @@ impl Application {
             },
             Mode::Exit => None,
         }
-    }
-}
-
-impl Drop for Application {
-    fn drop(&mut self) {
-        let mut presenter = self.view.build_presenter().unwrap();
-        presenter.clear();
-        presenter.present();
     }
 }
 
