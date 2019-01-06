@@ -3,6 +3,7 @@ use crate::view::buffer::{BufferRenderer, LexemeMapper};
 use crate::view::color::{ColorMap, Colors};
 use crate::view::StatusLineData;
 use crate::view::style::Style;
+use crate::view::terminal::TerminalBuffer;
 use crate::view::View;
 use pad::PadStr;
 use scribe::buffer::{Buffer, Position, Range};
@@ -10,12 +11,20 @@ use std::fmt::Display;
 
 pub struct Presenter<'a> {
     cursor_position: Option<Position>,
+    terminal_buffer: TerminalBuffer<'a>,
     pub view: &'a mut View,
 }
 
 impl<'a> Presenter<'a> {
     pub fn new(view: &'a mut View) -> Presenter {
-        Presenter{ cursor_position: None, view: view }
+        Presenter{
+            cursor_position: None,
+            terminal_buffer: TerminalBuffer::new(
+                view.terminal.width(),
+                view.terminal.height(),
+            ),
+            view: view
+        }
     }
 
     pub fn width(&self) -> usize {
