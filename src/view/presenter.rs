@@ -8,23 +8,35 @@ use crate::view::View;
 use pad::PadStr;
 use scribe::buffer::{Buffer, Position, Range};
 use std::fmt::Display;
+use syntect::highlighting::Theme;
 
 pub struct Presenter<'a> {
     cursor_position: Option<Position>,
     terminal_buffer: TerminalBuffer<'a>,
+    theme: Theme,
     pub view: &'a mut View,
 }
 
 impl<'a> Presenter<'a> {
-    pub fn new(view: &'a mut View) -> Presenter {
-        Presenter{
+    pub fn new(view: &'a mut View) -> Result<Presenter> {
+        let theme = {
+            let preferences = view.preferences.borrow();
+            let theme_name = preferences.theme();
+            let theme = view.theme_set.themes
+                .get(theme_name)
+                .ok_or_else(|| format!("Couldn't find \"{}\" theme", theme_name))?;
+            theme.clone()
+        };
+
+        Ok(Presenter{
             cursor_position: None,
             terminal_buffer: TerminalBuffer::new(
                 view.terminal.width(),
                 view.terminal.height(),
             ),
-            view: view
-        }
+            theme,
+            view
+        })
     }
 
     pub fn width(&self) -> usize {
@@ -50,11 +62,6 @@ impl<'a> Presenter<'a> {
 
     pub fn draw_buffer(&mut self, buffer: &Buffer, highlights: Option<&[Range]>, lexeme_mapper: Option<&mut LexemeMapper>) -> Result<()> {
         let scroll_offset = self.view.get_region(buffer)?.line_offset();
-        let preferences = self.view.preferences.borrow();
-        let theme_name = preferences.theme();
-        let theme = self.view.theme_set.themes
-            .get(theme_name)
-            .ok_or_else(|| format!("Couldn't find \"{}\" theme", theme_name))?;
 
         self.cursor_position = BufferRenderer::new(
             buffer,
@@ -62,7 +69,7 @@ impl<'a> Presenter<'a> {
             lexeme_mapper,
             scroll_offset,
             &*self.view.terminal,
-            theme,
+            &self.theme,
             &self.view.preferences.borrow(),
             self.view.get_render_cache(buffer)?
         ).render()?;
@@ -131,12 +138,7 @@ impl<'a> Presenter<'a> {
     }
 
     pub fn print(&self, position: &Position, style: Style, colors: Colors, content: &Display) -> Result<()> {
-        let preferences = self.view.preferences.borrow();
-        let theme_name = preferences.theme();
-        let theme = self.view.theme_set.themes
-            .get(theme_name)
-            .ok_or_else(|| format!("Couldn't find \"{}\" theme", theme_name))?;
-        let mapped_colors = theme.map_colors(colors);
+        let mapped_colors = self.theme.map_colors(colors);
         self.view.terminal.print(position, style, mapped_colors, content);
 
         Ok(())

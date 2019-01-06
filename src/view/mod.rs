@@ -68,7 +68,7 @@ impl View {
     }
 
     pub fn build_presenter<'a>(&'a mut self) -> Result<Presenter<'a>> {
-        Ok(Presenter::new(self))
+        Presenter::new(self)
     }
 
     ///
