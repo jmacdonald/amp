@@ -7,7 +7,6 @@ use crate::view::terminal::TerminalBuffer;
 use crate::view::View;
 use pad::PadStr;
 use scribe::buffer::{Buffer, Position, Range};
-use std::fmt::Display;
 use syntect::highlighting::Theme;
 
 pub struct Presenter<'a> {
@@ -114,7 +113,7 @@ impl<'a> Presenter<'a> {
         });
     }
 
-    pub fn print(&self, position: &Position, style: Style, colors: Colors, content: &Display) -> Result<()> {
+    pub fn print(&self, position: &Position, style: Style, colors: Colors, content: &str) -> Result<()> {
         let mapped_colors = self.theme.map_colors(colors);
         self.view.terminal.print(position, style, mapped_colors, content);
 

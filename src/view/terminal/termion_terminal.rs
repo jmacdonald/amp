@@ -5,7 +5,6 @@ use crate::errors::*;
 use mio::{Events, Poll, PollOpt, Ready, Token};
 use mio::unix::EventedFd;
 use super::Terminal;
-use std::fmt::Display;
 use std::io::Stdout;
 use std::os::unix::io::AsRawFd;
 use scribe::buffer::{Distance, Position};
@@ -15,6 +14,7 @@ use self::termion::input::{Keys, TermRead};
 use self::termion::raw::{IntoRawMode, RawTerminal};
 use self::termion::style;
 use std::io::{BufWriter, Stdin, stdin, stdout, Write};
+use std::fmt::Display;
 use std::ops::Drop;
 use std::sync::Mutex;
 use std::time::Duration;
@@ -209,7 +209,7 @@ impl Terminal for TermionTerminal {
         }
     }
 
-    fn print(&self, position: &Position, style: Style, colors: Colors, content: &Display) {
+    fn print(&self, position: &Position, style: Style, colors: Colors, content: &str) {
         self.update_style(style);
         self.update_colors(colors);
 

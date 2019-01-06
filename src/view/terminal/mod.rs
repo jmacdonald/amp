@@ -8,7 +8,6 @@ mod test_terminal;
 
 use crate::models::application::Event;
 use scribe::buffer::Position;
-use std::fmt::Display;
 use crate::view::{Colors, Style};
 
 pub use self::buffer::TerminalBuffer;
@@ -26,6 +25,6 @@ pub trait Terminal {
     fn width(&self) -> usize;
     fn height(&self) -> usize;
     fn set_cursor(&self, _: Option<Position>);
-    fn print(&self, _: &Position, _: Style, _: Colors, _: &Display);
+    fn print(&self, _: &Position, _: Style, _: Colors, _: &str);
     fn suspend(&self);
 }

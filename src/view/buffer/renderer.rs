@@ -14,6 +14,7 @@ use std::str::FromStr;
 use syntect::highlighting::{Highlighter, HighlightIterator, Theme};
 use syntect::highlighting::Style as ThemeStyle;
 use syntect::parsing::ScopeStack;
+use unicode_segmentation::UnicodeSegmentation;
 use crate::errors::*;
 
 /// A one-time-use type that encapsulates all of the
@@ -86,7 +87,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
             self.terminal.print(&Position{ line: self.screen_position.line, offset },
                             Style::Default,
                             self.theme.map_colors(colors),
-                            &' ');
+                            &" ");
         }
     }
 
@@ -158,9 +159,9 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
     }
 
     pub fn print_lexeme(&mut self, lexeme: &str) {
-        for character in lexeme.chars() {
+        for character in lexeme.graphemes(true) {
             // Ignore newline characters.
-            if character == '\n' { continue; }
+            if character == "\n" { continue; }
 
             self.set_cursor();
 
@@ -174,7 +175,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
                 self.terminal.print(&self.screen_position, style, color, &character);
                 self.screen_position.offset += 1;
                 self.buffer_position.offset += 1;
-            } else if character == '\t' {
+            } else if character == "\t" {
                 // Calculate the next tab stop using the tab-aware offset,
                 // *without considering the line number gutter*, and then
                 // re-add the gutter width to get the actual/screen offset.
@@ -188,7 +189,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
 
                 // Print the sequence of spaces and move the offset accordingly.
                 for _ in self.screen_position.offset..screen_tab_stop {
-                    self.terminal.print(&self.screen_position, style, color, &' ');
+                    self.terminal.print(&self.screen_position, style, color, &" ");
                     self.screen_position.offset += 1;
                 }
                 self.buffer_position.offset += 1;
@@ -327,7 +328,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
                 &Position{ line: self.screen_position.line, offset: self.line_numbers.width() },
                 weight,
                 self.theme.map_colors(Colors::Focused),
-                &' '
+                &" "
             );
         }
         self.screen_position.offset = self.line_numbers.width() + 1;
