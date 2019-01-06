@@ -327,7 +327,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
                 &Position{ line: self.screen_position.line, offset: self.line_numbers.width() },
                 weight,
                 self.theme.map_colors(Colors::Focused),
-                &line_number
+                &' '
             );
         }
         self.screen_position.offset = self.line_numbers.width() + 1;
