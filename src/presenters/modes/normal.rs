@@ -1,5 +1,6 @@
 use crate::errors::*;
 use scribe::Workspace;
+use scribe::buffer::Position;
 use crate::presenters::{current_buffer_status_line_data, git_status_line_data};
 use git2::Repository;
 use crate::view::{Colors, StatusLineData, Style, View};
@@ -37,7 +38,24 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
         // Draw the status line.
         presenter.draw_status_line(&status_line_data);
     } else {
-        presenter.draw_splash_screen()?;
+        let content = vec![
+            format!("Amp v{}", env!("CARGO_PKG_VERSION")),
+            String::from("© 2015-2018 Jordan MacDonald"),
+            String::new(),
+            String::from("Press \"?\" to view quick start guide")
+        ];
+        let line_count = content.iter().count();
+        let vertical_offset = line_count / 2;
+
+        for (line_no, line) in content.iter().enumerate() {
+            let position = Position{
+                line: presenter.height() / 2 + line_no - vertical_offset,
+                offset: presenter.width() / 2 - line.chars().count() / 2
+            };
+
+            presenter.print(&position, Style::Default, Colors::Default, &line)?;
+        }
+
         presenter.set_cursor(None);
     }
 

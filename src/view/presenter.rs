@@ -77,29 +77,6 @@ impl<'a> Presenter<'a> {
         Ok(())
     }
 
-    /// Renders the app name, version and copyright info to the screen.
-    pub fn draw_splash_screen(&mut self) -> Result<()> {
-        let content = vec![
-            format!("Amp v{}", env!("CARGO_PKG_VERSION")),
-            String::from("© 2015-2018 Jordan MacDonald"),
-            String::new(),
-            String::from("Press \"?\" to view quick start guide")
-        ];
-        let line_count = content.iter().count();
-        let vertical_offset = line_count / 2;
-
-        for (line_no, line) in content.iter().enumerate() {
-            let position = Position{
-                line: self.view.terminal.height() / 2 + line_no - vertical_offset,
-                offset: self.view.terminal.width() / 2 - line.chars().count() / 2
-            };
-
-            self.print(&position, Style::Default, Colors::Default, &line)?;
-        }
-
-        Ok(())
-    }
-
     pub fn draw_status_line(&self, data: &[StatusLineData]) {
         let line = self.view.terminal.height() - 1;
 
