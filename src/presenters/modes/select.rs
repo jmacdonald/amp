@@ -7,6 +7,7 @@ use crate::view::{Colors, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, mode: &SelectMode, view: &mut View) -> Result<()> {
     let mut presenter = view.build_presenter()?;
+    let mut status_line_entries = Vec::new();
 
     // Wipe the slate clean.
     presenter.clear();
@@ -20,7 +21,7 @@ pub fn display(workspace: &mut Workspace, mode: &SelectMode, view: &mut View) ->
         presenter.draw_buffer(buf, Some(&[selected_range]), None)?;
 
         // Draw the status line.
-        presenter.draw_status_line(&[
+        status_line_entries = presenter.status_line_entries(&[
             StatusLineData {
                 content: " SELECT ".to_string(),
                 style: Style::Default,
@@ -31,6 +32,15 @@ pub fn display(workspace: &mut Workspace, mode: &SelectMode, view: &mut View) ->
     } else {
         // There's no buffer; clear the cursor.
         presenter.set_cursor(None);
+    }
+
+    for (position, style, colors, content) in status_line_entries.iter() {
+        presenter.print(
+            position,
+            *style,
+            *colors,
+            content
+        )?;
     }
 
     // Render the changes to the screen.

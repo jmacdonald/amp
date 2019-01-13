@@ -214,11 +214,19 @@ impl Application {
 fn render_error(view: &mut View, error: &Error) {
     let mut presenter = view.build_presenter().unwrap();
 
-    presenter.draw_status_line(&[StatusLineData {
+    let entries = presenter.status_line_entries(&[StatusLineData {
         content: error.description().to_string(),
         style: view::Style::Bold,
         colors: view::Colors::Warning,
     }]);
+    for (position, style, colors, content) in entries.iter() {
+        presenter.print(
+            position,
+            *style,
+            *colors,
+            content
+        );
+    }
     presenter.present();
 }
 

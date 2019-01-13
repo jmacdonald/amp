@@ -13,6 +13,11 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
     let mut presenter = view.build_presenter()?;
     let mode_config = mode.config().clone();
 
+    let mut padded_message = String::new();
+    let mut padded_content = Vec::new();
+    let mut remaining_lines = Vec::new();
+    let mut status_line_entries = Vec::new();
+
     // Wipe the slate clean.
     presenter.clear();
 
@@ -22,7 +27,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
         presenter.draw_buffer(buf, None, None)?;
 
         // Draw the status line.
-        presenter.draw_status_line(&[
+        status_line_entries = presenter.status_line_entries(&[
             StatusLineData {
                 content: format!(" {} ", mode),
                 style: Style::Default,
@@ -32,11 +37,21 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
         ]);
     }
 
+    for (position, style, colors, content) in status_line_entries.iter() {
+        presenter.print(
+            position,
+            *style,
+            *colors,
+            content
+        )?;
+    }
+
     if let Some(message) = mode.message() {
+        padded_message = message.pad_to_width(presenter.width());
         presenter.print(&Position{ line: 0, offset: 0 },
                    Style::Default,
                    Colors::Default,
-                   &message.pad_to_width(presenter.width()))?;
+                   &padded_message)?;
     } else {
         // Draw the list of search results.
         for (line, result) in mode.results().enumerate() {
@@ -45,20 +60,30 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
             } else {
                 (format!("  {}", result), Colors::Default, Style::Default)
             };
-            let padded_content = content.pad_to_width(presenter.width());
-            presenter.print(&Position{ line, offset: 0 },
-                       style,
-                       colors,
-                       &padded_content)?;
+            padded_content.push((
+                Position{ line, offset: 0 },
+                style,
+                colors,
+                content.pad_to_width(presenter.width())
+            ));
+        }
+
+        for (position, style, colors, content) in padded_content.iter() {
+            presenter.print(position, *style, *colors, content)?;
         }
     }
 
     // Clear any remaining lines in the result display area.
     for line in cmp::max(mode.results().len(), 1)..mode_config.max_results {
-        presenter.print(&Position{ line, offset: 0 },
-                   Style::Default,
-                   Colors::Default,
-                   &String::new().pad_to_width(presenter.width()))?;
+        remaining_lines.push((
+           Position{ line, offset: 0 },
+           Style::Default,
+           Colors::Default,
+           String::new().pad_to_width(presenter.width())
+        ));
+    }
+    for (position, style, colors, content) in remaining_lines.iter() {
+        presenter.print(position, *style, *colors, content)?;
     }
 
     // Draw the divider.

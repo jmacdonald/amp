@@ -3,7 +3,7 @@ use crate::view::buffer::{BufferRenderer, LexemeMapper};
 use crate::view::color::{ColorMap, Colors};
 use crate::view::StatusLineData;
 use crate::view::style::Style;
-use crate::view::terminal::TerminalBuffer;
+use crate::view::terminal::{Cell, TerminalBuffer};
 use crate::view::View;
 use pad::PadStr;
 use scribe::buffer::{Buffer, Position, Range};
@@ -76,8 +76,9 @@ impl<'a> Presenter<'a> {
         Ok(())
     }
 
-    pub fn draw_status_line(&self, data: &[StatusLineData]) {
+    pub fn status_line_entries(&mut self, data: &[StatusLineData]) -> Vec<(Position, Style, Colors, String)> {
         let line = self.view.terminal.height() - 1;
+        let mut status_line_entries = Vec::new();
 
         data.iter().enumerate().fold(0, |offset, (index, element)| {
             let content = match data.len() {
@@ -103,18 +104,26 @@ impl<'a> Presenter<'a> {
                 }
             };
 
-            let _ = self.print(&Position{ line, offset },
-                       element.style,
-                       element.colors,
-                       &content);
-
             // Update the tracked offset.
-            offset + content.len()
+            let updated_offset = offset + content.len();
+
+            status_line_entries.push((
+                Position{ line, offset },
+                element.style,
+                element.colors,
+                content
+            ));
+
+            updated_offset
         });
+
+        status_line_entries
     }
 
-    pub fn print(&self, position: &Position, style: Style, colors: Colors, content: &str) -> Result<()> {
+    pub fn print(&mut self, position: &Position, style: Style, colors: Colors, content: &'a str) -> Result<()> {
         let mapped_colors = self.theme.map_colors(colors);
+        let cell = Cell{ content, colors };
+        self.terminal_buffer.set_cell(*position, cell);
         self.view.terminal.print(position, style, mapped_colors, content);
 
         Ok(())

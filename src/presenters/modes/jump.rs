@@ -6,6 +6,7 @@ use crate::view::{Colors, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) -> Result<()> {
     let mut presenter = view.build_presenter()?;
+    let mut status_line_entries = Vec::new();
 
     // Wipe the slate clean.
     presenter.clear();
@@ -19,7 +20,7 @@ pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) 
         presenter.draw_buffer(buf, None, Some(mode))?;
 
         // Draw the status line.
-        presenter.draw_status_line(&[
+        status_line_entries = presenter.status_line_entries(&[
             StatusLineData {
                 content: " JUMP ".to_string(),
                 style: Style::Default,
@@ -29,9 +30,17 @@ pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) 
         ]);
     }
 
+    for (position, style, colors, content) in status_line_entries.iter() {
+        presenter.print(
+            position,
+            *style,
+            *colors,
+            content
+        )?;
+    }
+
     // Don't display a cursor.
     presenter.set_cursor(None);
-
 
     // Render the changes to the screen.
     presenter.present();

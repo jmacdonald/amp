@@ -36,7 +36,16 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
         ];
 
         // Draw the status line.
-        presenter.draw_status_line(&status_line_data);
+        let status_line_entries = presenter.status_line_entries(&status_line_data);
+        for (position, style, colors, content) in status_line_entries.iter() {
+            presenter.print(
+                position,
+                *style,
+                *colors,
+                content
+            )?;
+        }
+        presenter.present();
     } else {
         let content = vec![
             format!("Amp v{}", env!("CARGO_PKG_VERSION")),
@@ -57,10 +66,8 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
         }
 
         presenter.set_cursor(None);
+        presenter.present();
     }
-
-    // Render the changes to the screen.
-    presenter.present();
 
     Ok(())
 }

@@ -25,7 +25,7 @@ pub fn display(workspace: &mut Workspace, mode: &PathMode, view: &mut View) -> R
         mode_display.graphemes(true).count() +
         search_input.graphemes(true).count();
 
-    presenter.draw_status_line(&[
+    let status_line_entries = presenter.status_line_entries(&[
         StatusLineData {
             content: mode_display,
             style: Style::Default,
@@ -37,6 +37,15 @@ pub fn display(workspace: &mut Workspace, mode: &PathMode, view: &mut View) -> R
             colors: Colors::Focused,
         },
     ]);
+
+    for (position, style, colors, content) in status_line_entries.iter() {
+        presenter.print(
+            position,
+            *style,
+            *colors,
+            content
+        )?;
+    }
 
     // Move the cursor to the end of the search query input.
     {
