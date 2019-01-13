@@ -19,6 +19,7 @@ use std::ops::Drop;
 use std::sync::Mutex;
 use std::time::Duration;
 use crate::view::{Colors, Style};
+use unicode_segmentation::UnicodeSegmentation;
 
 use self::termion::event::Key as TermionKey;
 use crate::input::Key;
@@ -217,7 +218,7 @@ impl Terminal for TermionTerminal {
             if let Some(ref mut output) = *guard {
                 // Handle position updates.
                 if let Ok(mut current_position) = self.current_position.lock() {
-                    let next_position = *current_position + Distance{ lines: 0, offset: 1 };
+                    let next_position = *current_position + Distance{ lines: 0, offset: content.graphemes(true).count() };
                     if *position != next_position {
                         // We're not adjacent to the previous print; move the cursor.
                         let _ = write!(output, "{}", cursor_position(position));
