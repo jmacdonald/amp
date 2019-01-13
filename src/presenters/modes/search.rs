@@ -8,9 +8,6 @@ use crate::view::{Colors, StatusLineData, Style, View};
 pub fn display(workspace: &mut Workspace, mode: &SearchMode, view: &mut View) -> Result<()> {
     let mut presenter = view.build_presenter()?;
 
-    // Wipe the slate clean.
-    presenter.clear();
-
     // Draw the visible set of tokens to the terminal.
     let buffer = workspace.current_buffer().ok_or(BUFFER_MISSING)?;
     presenter.draw_buffer(buffer, mode.results.as_ref().map(|r| r.as_slice()), None)?;

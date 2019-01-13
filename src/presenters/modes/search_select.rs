@@ -12,14 +12,10 @@ use unicode_segmentation::UnicodeSegmentation;
 pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMode<T>, view: &mut View) -> Result<()> {
     let mut presenter = view.build_presenter()?;
     let mode_config = mode.config().clone();
-
     let mut padded_message = String::new();
     let mut padded_content = Vec::new();
     let mut remaining_lines = Vec::new();
     let mut status_line_entries = Vec::new();
-
-    // Wipe the slate clean.
-    presenter.clear();
 
     let buffer_status = current_buffer_status_line_data(workspace);
 

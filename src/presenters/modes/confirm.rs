@@ -5,9 +5,6 @@ use crate::view::{Colors, StatusLineData, Style, View};
 pub fn display(workspace: &mut Workspace, view: &mut View) -> Result<()> {
     let mut presenter = view.build_presenter()?;
 
-    // Wipe the slate clean.
-    presenter.clear();
-
     if let Some(buf) = workspace.current_buffer() {
         // Draw the visible set of tokens to the terminal.
         presenter.draw_buffer(buf, None, None)?;

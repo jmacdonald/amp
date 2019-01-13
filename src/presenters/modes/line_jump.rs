@@ -8,9 +8,6 @@ pub fn display(workspace: &mut Workspace, mode: &LineJumpMode, view: &mut View) 
     let mut presenter = view.build_presenter()?;
     let mut status_line_entries = Vec::new();
 
-    // Wipe the slate clean.
-    presenter.clear();
-
     if let Some(buf) = workspace.current_buffer() {
         // Draw the visible set of tokens to the terminal.
         presenter.draw_buffer(buf, None, None)?;
