@@ -8,6 +8,7 @@ use crate::view::View;
 use pad::PadStr;
 use scribe::buffer::{Buffer, Position, Range};
 use syntect::highlighting::Theme;
+use unicode_segmentation::UnicodeSegmentation;
 
 pub struct Presenter<'a> {
     cursor_position: Option<Position>,
@@ -55,8 +56,20 @@ impl<'a> Presenter<'a> {
     }
 
     pub fn present(&mut self) {
-        self.view.terminal.set_cursor(self.cursor_position);
+        for (line, cells) in self.terminal_buffer.iter().enumerate() {
+            cells.iter().fold(0, |offset, cell| {
+                self.view.terminal.print(
+                    &Position{ line, offset },
+                    cell.style,
+                    cell.colors,
+                    cell.content,
+                );
+
+                offset + cell.content.graphemes(true).count()
+            });
+        }
         self.view.terminal.present();
+        self.view.terminal.set_cursor(self.cursor_position);
     }
 
     pub fn draw_buffer(&mut self, buffer: &Buffer, highlights: Option<&[Range]>, lexeme_mapper: Option<&mut LexemeMapper>) -> Result<()> {
@@ -124,7 +137,6 @@ impl<'a> Presenter<'a> {
         let mapped_colors = self.theme.map_colors(colors);
         let cell = Cell{ content, style, colors };
         self.terminal_buffer.set_cell(*position, cell);
-        self.view.terminal.print(position, style, mapped_colors, content);
 
         Ok(())
     }
