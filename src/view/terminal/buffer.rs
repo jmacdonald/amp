@@ -17,7 +17,11 @@ impl<'c> TerminalBuffer<'c> {
     }
 
     pub fn set_cell(&mut self, position: Position, cell: Cell<'c>) {
-        self.cells[position.line * self.width + position.offset] = cell;
+        let index = position.line * self.width + position.offset;
+
+        if index < self.cells.len() {
+            self.cells[position.line * self.width + position.offset] = cell;
+        }
     }
 
     pub fn clear(&mut self) {
