@@ -5,3 +5,9 @@ pub enum Style {
     Inverted,
     Italic,
 }
+
+impl Default for Style {
+    fn default() -> Self {
+        Style::Default
+    }
+}

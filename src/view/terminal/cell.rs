@@ -1,7 +1,8 @@
-use crate::view::Colors;
+use crate::view::{Colors, Style};
 
-#[derive(Clone, Debug, Default, PartialEq)]
+#[derive(Clone, Default, PartialEq)]
 pub struct Cell<'c> {
     pub content: &'c str,
     pub colors: Colors,
+    pub style: Style,
 }

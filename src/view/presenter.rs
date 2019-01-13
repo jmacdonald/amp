@@ -122,7 +122,7 @@ impl<'a> Presenter<'a> {
 
     pub fn print(&mut self, position: &Position, style: Style, colors: Colors, content: &'a str) -> Result<()> {
         let mapped_colors = self.theme.map_colors(colors);
-        let cell = Cell{ content, colors };
+        let cell = Cell{ content, style, colors };
         self.terminal_buffer.set_cell(*position, cell);
         self.view.terminal.print(position, style, mapped_colors, content);
 
