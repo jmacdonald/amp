@@ -48,7 +48,7 @@ impl<'a> Presenter<'a> {
     }
 
     pub fn clear(&mut self) {
-        self.view.terminal.clear()
+        self.terminal_buffer.clear()
     }
 
     pub fn set_cursor(&mut self, position: Option<Position>) {
