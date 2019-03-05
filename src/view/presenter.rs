@@ -10,15 +10,15 @@ use scribe::buffer::{Buffer, Position, Range};
 use syntect::highlighting::Theme;
 use unicode_segmentation::UnicodeSegmentation;
 
-pub struct Presenter<'a> {
+pub struct Presenter<'p> {
     cursor_position: Option<Position>,
-    terminal_buffer: TerminalBuffer<'a>,
+    terminal_buffer: TerminalBuffer<'p>,
     theme: Theme,
-    pub view: &'a mut View,
+    pub view: &'p mut View,
 }
 
-impl<'a> Presenter<'a> {
-    pub fn new(view: &'a mut View) -> Result<Presenter> {
+impl<'p> Presenter<'p> {
+    pub fn new(view: &'p mut View) -> Result<Presenter> {
         let theme = {
             let preferences = view.preferences.borrow();
             let theme_name = preferences.theme();
@@ -72,7 +72,7 @@ impl<'a> Presenter<'a> {
         self.view.terminal.set_cursor(self.cursor_position);
     }
 
-    pub fn draw_buffer(&mut self, buffer: &Buffer, highlights: Option<&[Range]>, lexeme_mapper: Option<&mut LexemeMapper>) -> Result<()> {
+    pub fn draw_buffer(&mut self, buffer: &Buffer, highlights: Option<&[Range]>, lexeme_mapper: Option<&'p mut LexemeMapper>) -> Result<()> {
         let scroll_offset = self.view.get_region(buffer)?.line_offset();
 
         self.cursor_position = BufferRenderer::new(
@@ -133,7 +133,7 @@ impl<'a> Presenter<'a> {
         status_line_entries
     }
 
-    pub fn print(&mut self, position: &Position, style: Style, colors: Colors, content: &'a str) -> Result<()> {
+    pub fn print(&mut self, position: &Position, style: Style, colors: Colors, content: &'p str) -> Result<()> {
         let mapped_colors = self.theme.map_colors(colors);
         let cell = Cell{ content, style, colors };
         self.terminal_buffer.set_cell(*position, cell);

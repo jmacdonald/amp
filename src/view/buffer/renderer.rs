@@ -19,7 +19,7 @@ use crate::errors::*;
 
 /// A one-time-use type that encapsulates all of the
 /// details involved in rendering a buffer to the screen.
-pub struct BufferRenderer<'a, 'b> {
+pub struct BufferRenderer<'a, 'p> {
     buffer: &'a Buffer,
     buffer_position: Position,
     cursor_position: Option<Position>,
@@ -27,7 +27,7 @@ pub struct BufferRenderer<'a, 'b> {
     highlights: Option<&'a [Range]>,
     stylist: Highlighter<'a>,
     current_style: ThemeStyle,
-    lexeme_mapper: Option<&'b mut LexemeMapper>,
+    lexeme_mapper: Option<&'p mut LexemeMapper>,
     line_numbers: LineNumbers,
     preferences: &'a Preferences,
     render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>,
@@ -37,11 +37,11 @@ pub struct BufferRenderer<'a, 'b> {
     theme: &'a Theme,
 }
 
-impl<'a, 'b> BufferRenderer<'a, 'b> {
+impl<'a, 'p> BufferRenderer<'a, 'p> {
     pub fn new(buffer: &'a Buffer, highlights: Option<&'a [Range]>,
-    lexeme_mapper: Option<&'b mut LexemeMapper>, scroll_offset: usize,
+    lexeme_mapper: Option<&'p mut LexemeMapper>, scroll_offset: usize,
     terminal: &'a Terminal, theme: &'a Theme, preferences: &'a Preferences,
-    render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>) -> BufferRenderer<'a, 'b> {
+    render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>) -> BufferRenderer<'a, 'p> {
         let line_numbers = LineNumbers::new(&buffer, Some(scroll_offset));
         let gutter_width = line_numbers.width() + 1;
 
@@ -158,7 +158,7 @@ impl<'a, 'b> BufferRenderer<'a, 'b> {
         (style, self.theme.map_colors(colors))
     }
 
-    pub fn print_lexeme(&mut self, lexeme: &str) {
+    pub fn print_lexeme(&mut self, lexeme: &'p str) {
         for character in lexeme.graphemes(true) {
             // Ignore newline characters.
             if character == "\n" { continue; }
