@@ -1,5 +1,5 @@
 name: amp
-version: git
+version: 0.5.2
 summary: "A complete text editor for your terminal."
 description: |
   Heavily inspired by Vi/Vim. Amp aims to take the core interaction model
@@ -15,6 +15,7 @@ parts:
     source: ./
     build-packages:
       - python
+      - python3
       - libxmu-dev
       - libssl-dev
       - pkg-config
