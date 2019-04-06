@@ -6,7 +6,7 @@ use crate::view::buffer::line_numbers::*;
 use crate::view::{Colors, RENDER_CACHE_FREQUENCY, RGBColor, Style};
 use crate::view::color::ColorMap;
 use crate::view::color::to_rgb_color;
-use crate::view::terminal::Terminal;
+use crate::view::terminal::{Cell, Terminal, TerminalBuffer};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -19,7 +19,7 @@ use crate::errors::*;
 
 /// A one-time-use type that encapsulates all of the
 /// details involved in rendering a buffer to the screen.
-pub struct BufferRenderer<'a> {
+pub struct BufferRenderer<'a, 'p> {
     buffer: &'a Buffer,
     buffer_position: Position,
     cursor_position: Option<Position>,
@@ -33,14 +33,16 @@ pub struct BufferRenderer<'a> {
     screen_position: Position,
     scroll_offset: usize,
     terminal: &'a Terminal,
+    terminal_buffer: &'a mut TerminalBuffer<'p>,
     theme: &'a Theme,
 }
 
-impl<'a> BufferRenderer<'a> {
+impl<'a, 'p> BufferRenderer<'a, 'p> {
     pub fn new(buffer: &'a Buffer, highlights: Option<&'a [Range]>,
     scroll_offset: usize, terminal: &'a Terminal, theme: &'a Theme,
     preferences: &'a Preferences,
-    render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>) -> BufferRenderer<'a> {
+    render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>,
+    terminal_buffer: &'a mut TerminalBuffer<'p>) -> BufferRenderer<'a, 'p> {
         let line_numbers = LineNumbers::new(&buffer, Some(scroll_offset));
         let gutter_width = line_numbers.width() + 1;
 
@@ -63,6 +65,7 @@ impl<'a> BufferRenderer<'a> {
             screen_position: Position{ line: 0, offset: 0 },
             scroll_offset,
             terminal,
+            terminal_buffer,
             theme,
         }
     }
@@ -82,10 +85,10 @@ impl<'a> BufferRenderer<'a> {
                 Colors::Blank
             };
 
-            self.terminal.print(&Position{ line: self.screen_position.line, offset },
-                            Style::Default,
-                            self.theme.map_colors(colors),
-                            &" ");
+            self.print(Position{ line: self.screen_position.line, offset },
+                       Style::Default,
+                       self.theme.map_colors(colors),
+                       &" ");
         }
     }
 
@@ -156,7 +159,7 @@ impl<'a> BufferRenderer<'a> {
         (style, self.theme.map_colors(colors))
     }
 
-    pub fn print_lexeme(&mut self, lexeme: &str) {
+    pub fn print_lexeme(&mut self, lexeme: &'p str) {
         for character in lexeme.graphemes(true) {
             // Ignore newline characters.
             if character == "\n" { continue; }
@@ -170,7 +173,7 @@ impl<'a> BufferRenderer<'a> {
             if self.preferences.line_wrapping() && self.screen_position.offset == self.terminal.width() {
                 self.screen_position.line += 1;
                 self.screen_position.offset = self.gutter_width;
-                self.terminal.print(&self.screen_position, style, color, &character);
+                self.print(self.screen_position, style, color, &character);
                 self.screen_position.offset += 1;
                 self.buffer_position.offset += 1;
             } else if character == "\t" {
@@ -187,12 +190,12 @@ impl<'a> BufferRenderer<'a> {
 
                 // Print the sequence of spaces and move the offset accordingly.
                 for _ in self.screen_position.offset..screen_tab_stop {
-                    self.terminal.print(&self.screen_position, style, color, &" ");
+                    self.print(self.screen_position, style, color, &" ");
                     self.screen_position.offset += 1;
                 }
                 self.buffer_position.offset += 1;
             } else {
-                self.terminal.print(&self.screen_position, style, color, &character);
+                self.print(self.screen_position, style, color, &character);
                 self.screen_position.offset += 1;
                 self.buffer_position.offset += 1;
             }
@@ -213,7 +216,7 @@ impl<'a> BufferRenderer<'a> {
         !self.before_visible_content() && !self.after_visible_content()
     }
 
-    pub fn render(&mut self, lines: LineIterator, mut lexeme_mapper: Option<&mut LexemeMapper>) -> Result<Option<Position>> {
+    pub fn render(&mut self, lines: LineIterator<'p>, mut lexeme_mapper: Option<&'p mut LexemeMapper>) -> Result<Option<Position>> {
         self.terminal.set_cursor(None);
         // Print the first line number. Others will
         // be handled as newlines are encountered.
@@ -305,8 +308,8 @@ impl<'a> BufferRenderer<'a> {
             Style::Default
         };
 
-        self.terminal.print(
-            &Position{ line: self.screen_position.line, offset: 0 },
+        self.print(
+            Position{ line: self.screen_position.line, offset: 0 },
             weight,
             self.theme.map_colors(Colors::Focused),
             &line_number
@@ -314,8 +317,8 @@ impl<'a> BufferRenderer<'a> {
 
         // Leave a one-column gap between line numbers and buffer content.
         if self.on_cursor_line() {
-            self.terminal.print(
-                &Position{ line: self.screen_position.line, offset: self.line_numbers.width() },
+            self.print(
+                Position{ line: self.screen_position.line, offset: self.line_numbers.width() },
                 weight,
                 self.theme.map_colors(Colors::Focused),
                 &" "
@@ -357,6 +360,11 @@ impl<'a> BufferRenderer<'a> {
             .filter(|(k, _)| **k < self.scroll_offset)
             .max_by(|(k1, _), (k2, _)| k1.cmp(k2))
             .map(|(k, v)| (*k, v.clone()))
+    }
+
+    fn print(&mut self, position: Position, style: Style, colors: Colors, content: &'p str) {
+        let cell = Cell{ content, style, colors };
+        self.terminal_buffer.set_cell(position, cell);
     }
 }
 
