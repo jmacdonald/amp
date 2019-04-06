@@ -4,11 +4,11 @@ use crate::view::{Colors, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, view: &mut View) -> Result<()> {
     let mut presenter = view.build_presenter()?;
+    let buf = workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+    let data = buf.data();
 
-    if let Some(buf) = workspace.current_buffer() {
-        // Draw the visible set of tokens to the terminal.
-        presenter.draw_buffer(buf, None, None)?;
-    }
+    // Draw the visible set of tokens to the terminal.
+    presenter.draw_buffer(buf, &data, None, None)?;
 
     // Draw the status line as a search prompt.
     let confirmation = "Are you sure? (y/n)".to_string();

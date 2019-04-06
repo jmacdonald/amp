@@ -215,7 +215,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
         !self.before_visible_content() && !self.after_visible_content()
     }
 
-    pub fn render(&mut self) -> Result<Option<Position>> {
+    pub fn render(&mut self, lines: LineIterator<'p>) -> Result<Option<Position>> {
         self.terminal.set_cursor(None);
         // Print the first line number. Others will
         // be handled as newlines are encountered.
@@ -225,9 +225,6 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
         // the buffer renderer type, we can use it while still allowing the
         // renderer to be borrowed (which is required for printing methods).
         let mut lexeme_mapper = self.lexeme_mapper.take();
-
-        let buffer_data = self.buffer.data();
-        let lines = LineIterator::new(&buffer_data);
 
         let highlighter = Highlighter::new(&self.theme);
         let syntax_definition = self.buffer.syntax_definition.as_ref().ok_or("Buffer has no syntax definition")?;

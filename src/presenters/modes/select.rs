@@ -9,26 +9,22 @@ pub fn display(workspace: &mut Workspace, mode: &SelectMode, view: &mut View) ->
     let mut presenter = view.build_presenter()?;
     let mut status_line_entries = Vec::new();
     let buffer_status = current_buffer_status_line_data(workspace);
+    let buf = workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+    let selected_range = Range::new(mode.anchor, *buf.cursor.clone());
+    let data = buf.data();
 
-    if let Some(buf) = workspace.current_buffer() {
-        let selected_range = Range::new(mode.anchor, *buf.cursor.clone());
+    // Draw the visible set of tokens to the terminal.
+    presenter.draw_buffer(buf, &data, Some(&[selected_range]), None)?;
 
-        // Draw the visible set of tokens to the terminal.
-        presenter.draw_buffer(buf, Some(&[selected_range]), None)?;
-
-        // Draw the status line.
-        status_line_entries = presenter.status_line_entries(&[
-            StatusLineData {
-                content: " SELECT ".to_string(),
-                style: Style::Default,
-                colors: Colors::SelectMode,
-            },
-            buffer_status
-        ]);
-    } else {
-        // There's no buffer; clear the cursor.
-        presenter.set_cursor(None);
-    }
+    // Draw the status line.
+    status_line_entries = presenter.status_line_entries(&[
+        StatusLineData {
+            content: " SELECT ".to_string(),
+            style: Style::Default,
+            colors: Colors::SelectMode,
+        },
+        buffer_status
+    ]);
 
     for (position, style, colors, content) in status_line_entries.iter() {
         presenter.print(

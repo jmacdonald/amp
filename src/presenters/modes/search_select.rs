@@ -16,11 +16,13 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
     let mut padded_content = Vec::new();
     let mut remaining_lines = Vec::new();
     let mut status_line_entries = Vec::new();
+    let mut data;
 
     let buffer_status = current_buffer_status_line_data(workspace);
 
     if let Some(buf) = workspace.current_buffer() {
-        presenter.draw_buffer(buf, None, None)?;
+        data = buf.data();
+        presenter.draw_buffer(buf, &data, None, None)?;
 
         // Draw the status line.
         status_line_entries = presenter.status_line_entries(&[
