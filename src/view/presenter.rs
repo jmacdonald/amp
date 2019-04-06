@@ -19,7 +19,7 @@ pub struct Presenter<'p> {
 }
 
 impl<'p> Presenter<'p> {
-    pub fn new(view: &'p mut View) -> Result<Presenter> {
+    pub fn new(view: &mut View) -> Result<Presenter> {
         let theme = {
             let preferences = view.preferences.borrow();
             let theme_name = preferences.theme();
@@ -73,7 +73,7 @@ impl<'p> Presenter<'p> {
         self.view.terminal.set_cursor(self.cursor_position);
     }
 
-    pub fn draw_buffer(&mut self, buffer: &Buffer, buffer_data: &'p str, highlights: Option<&[Range]>, mut lexeme_mapper: Option<&'p mut LexemeMapper>) -> Result<()> {
+    pub fn draw_buffer(&mut self, buffer: &Buffer, buffer_data: &str, highlights: Option<&[Range]>, mut lexeme_mapper: Option<&mut LexemeMapper>) -> Result<()> {
         let scroll_offset = self.view.get_region(buffer)?.line_offset();
         let lines = LineIterator::new(buffer_data);
 

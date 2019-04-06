@@ -213,7 +213,7 @@ impl<'a> BufferRenderer<'a> {
         !self.before_visible_content() && !self.after_visible_content()
     }
 
-    pub fn render<'p>(&mut self, lines: LineIterator<'p>, mut lexeme_mapper: Option<&'p mut LexemeMapper>) -> Result<Option<Position>> {
+    pub fn render(&mut self, lines: LineIterator, mut lexeme_mapper: Option<&mut LexemeMapper>) -> Result<Option<Position>> {
         self.terminal.set_cursor(None);
         // Print the first line number. Others will
         // be handled as newlines are encountered.
