@@ -19,7 +19,7 @@ use crate::errors::*;
 
 /// A one-time-use type that encapsulates all of the
 /// details involved in rendering a buffer to the screen.
-pub struct BufferRenderer<'a, 'p> {
+pub struct BufferRenderer<'a> {
     buffer: &'a Buffer,
     buffer_position: Position,
     cursor_position: Option<Position>,
@@ -27,7 +27,6 @@ pub struct BufferRenderer<'a, 'p> {
     highlights: Option<&'a [Range]>,
     stylist: Highlighter<'a>,
     current_style: ThemeStyle,
-    lexeme_mapper: Option<&'p mut LexemeMapper>,
     line_numbers: LineNumbers,
     preferences: &'a Preferences,
     render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>,
@@ -37,11 +36,11 @@ pub struct BufferRenderer<'a, 'p> {
     theme: &'a Theme,
 }
 
-impl<'a, 'p> BufferRenderer<'a, 'p> {
+impl<'a> BufferRenderer<'a> {
     pub fn new(buffer: &'a Buffer, highlights: Option<&'a [Range]>,
-    lexeme_mapper: Option<&'p mut LexemeMapper>, scroll_offset: usize,
-    terminal: &'a Terminal, theme: &'a Theme, preferences: &'a Preferences,
-    render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>) -> BufferRenderer<'a, 'p> {
+    scroll_offset: usize, terminal: &'a Terminal, theme: &'a Theme,
+    preferences: &'a Preferences,
+    render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>) -> BufferRenderer<'a> {
         let line_numbers = LineNumbers::new(&buffer, Some(scroll_offset));
         let gutter_width = line_numbers.width() + 1;
 
@@ -57,7 +56,6 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
             highlights,
             stylist,
             current_style,
-            lexeme_mapper,
             line_numbers,
             buffer_position: Position{ line: 0, offset: 0 },
             preferences,
@@ -158,7 +156,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
         (style, self.theme.map_colors(colors))
     }
 
-    pub fn print_lexeme(&mut self, lexeme: &'p str) {
+    pub fn print_lexeme(&mut self, lexeme: &str) {
         for character in lexeme.graphemes(true) {
             // Ignore newline characters.
             if character == "\n" { continue; }
@@ -215,16 +213,11 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
         !self.before_visible_content() && !self.after_visible_content()
     }
 
-    pub fn render(&mut self, lines: LineIterator<'p>) -> Result<Option<Position>> {
+    pub fn render<'p>(&mut self, lines: LineIterator<'p>, mut lexeme_mapper: Option<&'p mut LexemeMapper>) -> Result<Option<Position>> {
         self.terminal.set_cursor(None);
         // Print the first line number. Others will
         // be handled as newlines are encountered.
         self.print_line_number();
-
-        // We only use the lexeme mapper in this method, and by moving it out of
-        // the buffer renderer type, we can use it while still allowing the
-        // renderer to be borrowed (which is required for printing methods).
-        let mut lexeme_mapper = self.lexeme_mapper.take();
 
         let highlighter = Highlighter::new(&self.theme);
         let syntax_definition = self.buffer.syntax_definition.as_ref().ok_or("Buffer has no syntax definition")?;
