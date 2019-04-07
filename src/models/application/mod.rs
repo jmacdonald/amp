@@ -41,11 +41,11 @@ pub enum Mode {
     Theme(ThemeMode),
 }
 
-pub struct Application {
+pub struct Application<T: Terminal + Sync + Send> {
     pub mode: Mode,
     pub workspace: Workspace,
     pub search_query: Option<String>,
-    pub view: View,
+    pub view: View<T>,
     pub clipboard: Clipboard,
     pub repository: Option<Repository>,
     pub error: Option<Error>,
