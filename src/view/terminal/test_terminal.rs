@@ -1,6 +1,7 @@
 use crate::input::Key;
 use crate::models::application::Event;
 use scribe::buffer::Position;
+use std::fmt::Display;
 use std::sync::Mutex;
 use super::Terminal;
 use crate::view::{Colors, Style};
@@ -91,7 +92,7 @@ impl Terminal for TestTerminal {
         *cursor = position;
     }
     fn suspend(&self) { }
-    fn print(&self, position: &Position, _: Style, colors: Colors, content: &str) {
+    fn print(&self, position: &Position, _: Style, colors: Colors, content: &Display) {
         // Ignore lines beyond visible height.
         if position.line >= self.height() { return; }
 

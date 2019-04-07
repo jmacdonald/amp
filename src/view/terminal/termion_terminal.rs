@@ -210,7 +210,7 @@ impl Terminal for TermionTerminal {
         }
     }
 
-    fn print(&self, position: &Position, style: Style, colors: Colors, content: &str) {
+    fn print(&self, position: &Position, style: Style, colors: Colors, content: &Display) {
         self.update_style(style);
         self.update_colors(colors);
 
