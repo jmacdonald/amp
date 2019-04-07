@@ -8,6 +8,7 @@ use crate::view::View;
 use pad::PadStr;
 use scribe::buffer::{Buffer, Position, Range};
 use scribe::util::LineIterator;
+use std::borrow::Cow;
 use syntect::highlighting::Theme;
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -63,7 +64,7 @@ impl<'p> Presenter<'p> {
                     &Position{ line, offset },
                     cell.style,
                     cell.colors,
-                    cell.content,
+                    &cell.content,
                 );
 
                 offset + cell.content.graphemes(true).count()
@@ -135,9 +136,11 @@ impl<'p> Presenter<'p> {
         status_line_entries
     }
 
-    pub fn print(&mut self, position: &Position, style: Style, colors: Colors, content: &'p str) -> Result<()> {
+    pub fn print<C>(&mut self, position: &Position, style: Style, colors: Colors, content: C) -> Result<()>
+        where C: Into<Cow<'p, str>>
+    {
         let mapped_colors = self.theme.map_colors(colors);
-        let cell = Cell{ content, style, colors };
+        let cell = Cell{ content: content.into(), style, colors };
         self.terminal_buffer.set_cell(*position, cell);
 
         Ok(())

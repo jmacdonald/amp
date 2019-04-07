@@ -1,8 +1,9 @@
 use crate::view::{Colors, Style};
+use std::borrow::Cow;
 
 #[derive(Clone, PartialEq)]
 pub struct Cell<'c> {
-    pub content: &'c str,
+    pub content: Cow<'c, str>,
     pub colors: Colors,
     pub style: Style,
 }
@@ -10,7 +11,7 @@ pub struct Cell<'c> {
 impl<'c> Default for Cell<'c> {
     fn default() -> Self {
         Cell{
-            content: " ",
+            content: " ".into(),
             colors: Colors::default(),
             style: Style::default()
         }

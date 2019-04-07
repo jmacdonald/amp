@@ -7,6 +7,7 @@ use crate::view::{Colors, RENDER_CACHE_FREQUENCY, RGBColor, Style};
 use crate::view::color::ColorMap;
 use crate::view::color::to_rgb_color;
 use crate::view::terminal::{Cell, Terminal, TerminalBuffer};
+use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -88,7 +89,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
             self.print(Position{ line: self.screen_position.line, offset },
                        Style::Default,
                        self.theme.map_colors(colors),
-                       &" ");
+                       " ");
         }
     }
 
@@ -159,8 +160,10 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
         (style, self.theme.map_colors(colors))
     }
 
-    pub fn print_lexeme(&mut self, lexeme: &'p str) {
-        for character in lexeme.graphemes(true) {
+    pub fn print_lexeme<L>(&mut self, lexeme: L)
+        where L: Into<Cow<'p, str>>
+    {
+        for character in lexeme.into().graphemes(true) {
             // Ignore newline characters.
             if character == "\n" { continue; }
 
@@ -173,7 +176,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
             if self.preferences.line_wrapping() && self.screen_position.offset == self.terminal.width() {
                 self.screen_position.line += 1;
                 self.screen_position.offset = self.gutter_width;
-                self.print(self.screen_position, style, color, &character);
+                self.print(self.screen_position, style, color, character);
                 self.screen_position.offset += 1;
                 self.buffer_position.offset += 1;
             } else if character == "\t" {
@@ -190,12 +193,12 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
 
                 // Print the sequence of spaces and move the offset accordingly.
                 for _ in self.screen_position.offset..screen_tab_stop {
-                    self.print(self.screen_position, style, color, &" ");
+                    self.print(self.screen_position, style, color, " ");
                     self.screen_position.offset += 1;
                 }
                 self.buffer_position.offset += 1;
             } else {
-                self.print(self.screen_position, style, color, &character);
+                self.print(self.screen_position, style, color, character);
                 self.screen_position.offset += 1;
                 self.buffer_position.offset += 1;
             }
@@ -312,7 +315,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
             Position{ line: self.screen_position.line, offset: 0 },
             weight,
             self.theme.map_colors(Colors::Focused),
-            &line_number
+            line_number
         );
 
         // Leave a one-column gap between line numbers and buffer content.
@@ -321,7 +324,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
                 Position{ line: self.screen_position.line, offset: self.line_numbers.width() },
                 weight,
                 self.theme.map_colors(Colors::Focused),
-                &" "
+                " "
             );
         }
         self.screen_position.offset = self.line_numbers.width() + 1;
@@ -362,8 +365,10 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
             .map(|(k, v)| (*k, v.clone()))
     }
 
-    fn print(&mut self, position: Position, style: Style, colors: Colors, content: &'p str) {
-        let cell = Cell{ content, style, colors };
+    fn print<C>(&mut self, position: Position, style: Style, colors: Colors, content: C)
+        where C: Into<Cow<'p, str>>
+    {
+        let cell = Cell{ content: content.into(), style, colors };
         self.terminal_buffer.set_cell(position, cell);
     }
 }
