@@ -5,7 +5,7 @@ use crate::models::application::{Application, Mode};
 use crate::view::Terminal;
 use scribe::buffer::Position;
 
-pub fn accept_input<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
+pub fn accept_input(app: &mut Application) -> Result {
     if let Mode::LineJump(ref mode) = app.mode {
         // Try parsing an integer from the input.
         let line_number = mode
@@ -52,7 +52,7 @@ pub fn accept_input<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Resu
     Ok(())
 }
 
-pub fn push_search_char<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
+pub fn push_search_char(app: &mut Application) -> Result {
     let key = app.view.last_key().as_ref().ok_or("View hasn't tracked a key press")?;
 
     if let Key::Char(c) = *key {
@@ -68,7 +68,7 @@ pub fn push_search_char<T: Terminal + Sync + Send>(app: &mut Application<T>) -> 
     Ok(())
 }
 
-pub fn pop_search_char<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
+pub fn pop_search_char(app: &mut Application) -> Result {
     if let Mode::LineJump(ref mut mode) = app.mode {
         mode.input.pop()
     } else {

@@ -41,11 +41,11 @@ pub enum Mode {
     Theme(ThemeMode),
 }
 
-pub struct Application<T: Terminal + Sync + Send> {
+pub struct Application {
     pub mode: Mode,
     pub workspace: Workspace,
     pub search_query: Option<String>,
-    pub view: View<T>,
+    pub view: View,
     pub clipboard: Clipboard,
     pub repository: Option<Repository>,
     pub error: Option<Error>,
@@ -54,8 +54,8 @@ pub struct Application<T: Terminal + Sync + Send> {
     events: Receiver<Event>,
 }
 
-impl<T: Terminal + Sync + Send> Application<T> {
-    pub fn new(args: &Vec<String>) -> Result<Application<T>> {
+impl Application {
+    pub fn new(args: &Vec<String>) -> Result<Application> {
         let preferences = initialize_preferences();
 
         let (event_channel, events) = mpsc::channel();
@@ -211,7 +211,7 @@ impl<T: Terminal + Sync + Send> Application<T> {
     }
 }
 
-fn render_error<T: Terminal + Sync + Send>(view: &mut View<T>, error: &Error) {
+fn render_error(view: &mut View, error: &Error) {
     let mut presenter = view.build_presenter().unwrap();
 
     let entries = presenter.status_line_entries(&[StatusLineData {
@@ -236,7 +236,7 @@ fn initialize_preferences() -> Rc<RefCell<Preferences>> {
     ))
 }
 
-fn create_workspace<T: Terminal + Sync + Send>(view: &mut View<T>, args: &Vec<String>) -> Result<Workspace> {
+fn create_workspace(view: &mut View, args: &Vec<String>) -> Result<Workspace> {
     // Discard the executable portion of the argument list.
     let mut path_args = args.iter().skip(1).peekable();
 
@@ -298,12 +298,12 @@ fn create_workspace<T: Terminal + Sync + Send>(view: &mut View<T>, args: &Vec<St
 }
 
 #[cfg(not(any(test, feature = "bench")))]
-fn build_terminal() -> Arc<Terminal + Sync + Send> {
+fn build_terminal() -> Arc<TermionTerminal> {
     Arc::new(TermionTerminal::new())
 }
 
 #[cfg(any(test, feature = "bench"))]
-fn build_terminal() -> Arc<Terminal + Sync + Send> {
+fn build_terminal() -> Arc<TestTerminal> {
     // Use a headless terminal if we're in test mode.
     Arc::new(TestTerminal::new())
 }

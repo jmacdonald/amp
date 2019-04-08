@@ -5,7 +5,7 @@ use crate::presenters::{current_buffer_status_line_data, git_status_line_data};
 use git2::Repository;
 use crate::view::{Colors, StatusLineData, Style, Terminal, View};
 
-pub fn display<T: Terminal + Sync + Send>(workspace: &mut Workspace, view: &mut View<T>, repo: &Option<Repository>) -> Result<()> {
+pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Repository>) -> Result<()> {
     let mut presenter = view.build_presenter()?;
     let buffer_status = current_buffer_status_line_data(workspace);
 

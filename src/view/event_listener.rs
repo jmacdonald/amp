@@ -2,18 +2,18 @@ use crate::models::application::Event;
 use std::sync::Arc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
-use crate::view::Terminal;
+use crate::view::{Terminal, TermionTerminal};
 
-pub struct EventListener<T: Terminal + Sync + Send> {
-    terminal: Arc<T>,
+pub struct EventListener {
+    terminal: Arc<TermionTerminal>,
     events: Sender<Event>,
     killswitch: Receiver<()>
 }
 
-impl<T: Terminal + Sync + Send> EventListener<T> {
+impl EventListener {
     /// Spins up a thread that loops forever, waiting on terminal events
     /// and forwarding those to the application event channel.
-    pub fn start(terminal: Arc<T>, events: Sender<Event>, killswitch: Receiver<()>) {
+    pub fn start(terminal: Arc<TermionTerminal>, events: Sender<Event>, killswitch: Receiver<()>) {
         thread::spawn(move || {
             EventListener { terminal, events, killswitch }.listen();
         });

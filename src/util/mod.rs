@@ -51,7 +51,7 @@ pub fn inclusive_range(line_range: &LineRange, buffer: &mut Buffer) -> Range {
 }
 
 /// Convenience method to initialize and add a buffer to the workspace.
-pub fn add_buffer<T: Terminal + Sync + Send>(buffer: Buffer, app: &mut Application<T>) -> Result<()> {
+pub fn add_buffer(buffer: Buffer, app: &mut Application) -> Result<()> {
     app.workspace.add_buffer(buffer);
     app.view.initialize_buffer(app.workspace.current_buffer().unwrap())?;
 

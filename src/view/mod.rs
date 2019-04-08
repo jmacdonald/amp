@@ -13,7 +13,7 @@ pub use self::buffer::{LexemeMapper, MappedLexeme};
 pub use self::style::Style;
 pub use self::color::{Colors, RGBColor};
 pub use self::presenter::Presenter;
-pub use self::terminal::Terminal;
+pub use self::terminal::{Terminal, TermionTerminal};
 
 use crate::errors::*;
 use crate::input::Key;
@@ -36,9 +36,9 @@ use syntect::highlighting::ThemeSet;
 
 const RENDER_CACHE_FREQUENCY: usize = 100;
 
-pub struct View<T: Terminal + Sync + Send> {
-    terminal: Arc<T>,
-    scrollable_regions: HashMap<usize, ScrollableRegion<T>>,
+pub struct View {
+    terminal: Arc<TermionTerminal>,
+    scrollable_regions: HashMap<usize, ScrollableRegion>,
     render_caches: HashMap<usize, Rc<RefCell<HashMap<usize, RenderState>>>>,
     pub theme_set: ThemeSet,
     preferences: Rc<RefCell<Preferences>>,
@@ -47,8 +47,8 @@ pub struct View<T: Terminal + Sync + Send> {
     event_listener_killswitch: SyncSender<()>
 }
 
-impl<T: Terminal + Sync + Send> View<T> {
-    pub fn new(terminal: Arc<T>, preferences: Rc<RefCell<Preferences>>, event_channel: Sender<Event>) -> Result<View<T>> {
+impl View {
+    pub fn new(terminal: Arc<TermionTerminal>, preferences: Rc<RefCell<Preferences>>, event_channel: Sender<Event>) -> Result<View> {
         let theme_path = preferences.borrow().theme_path()?;
         let theme_set = ThemeLoader::new(theme_path).load()?;
 
@@ -67,7 +67,7 @@ impl<T: Terminal + Sync + Send> View<T> {
         })
     }
 
-    pub fn build_presenter<'a>(&'a mut self) -> Result<Presenter<'a, T>> {
+    pub fn build_presenter<'a>(&'a mut self) -> Result<Presenter<'a>> {
         Presenter::new(self)
     }
 
@@ -128,7 +128,7 @@ impl<T: Terminal + Sync + Send> View<T> {
 
     // Tries to fetch a scrollable region for the specified buffer,
     // inserting (and returning a reference to) a new one if not.
-    fn get_region(&mut self, buffer: &Buffer) -> Result<&mut ScrollableRegion<T>> {
+    fn get_region(&mut self, buffer: &Buffer) -> Result<&mut ScrollableRegion> {
         Ok(self.scrollable_regions
             .entry(buffer_key(buffer)?)
             .or_insert(
@@ -177,7 +177,7 @@ impl<T: Terminal + Sync + Send> View<T> {
     }
 }
 
-impl<T: Terminal + Sync + Send> Drop for View<T> {
+impl Drop for View {
     fn drop(&mut self) {
         let _ = self.event_listener_killswitch.send(());
     }

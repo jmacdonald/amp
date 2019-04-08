@@ -2,7 +2,7 @@ use crate::commands::{self, Result};
 use crate::models::application::{Application, Mode};
 use crate::view::Terminal;
 
-pub fn confirm_command<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
+pub fn confirm_command(app: &mut Application) -> Result {
     let command =
       if let Mode::Confirm(ref mode) = app.mode {
           mode.command
