@@ -13,6 +13,7 @@ pub use self::buffer::{LexemeMapper, MappedLexeme};
 pub use self::style::Style;
 pub use self::color::{Colors, RGBColor};
 pub use self::presenter::Presenter;
+pub use self::terminal::Terminal;
 
 use crate::errors::*;
 use crate::input::Key;
@@ -31,7 +32,6 @@ use std::ops::Drop;
 use std::sync::mpsc::{self, Sender, SyncSender};
 use std::sync::Arc;
 use self::theme_loader::ThemeLoader;
-use self::terminal::Terminal;
 use syntect::highlighting::ThemeSet;
 
 const RENDER_CACHE_FREQUENCY: usize = 100;

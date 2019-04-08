@@ -6,10 +6,10 @@ use pad::PadStr;
 use crate::presenters::current_buffer_status_line_data;
 use scribe::Workspace;
 use scribe::buffer::Position;
-use crate::view::{Colors, StatusLineData, Style, View};
+use crate::view::{Colors, StatusLineData, Style, Terminal, View};
 use unicode_segmentation::UnicodeSegmentation;
 
-pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMode<T>, view: &mut View) -> Result<()> {
+pub fn display<T: Display, S: Terminal + Sync + Send>(workspace: &mut Workspace, mode: &mut SearchSelectMode<T>, view: &mut View<S>) -> Result<()> {
     let mut presenter = view.build_presenter()?;
     let mode_config = mode.config().clone();
     let mut padded_message = String::new();

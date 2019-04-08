@@ -3,9 +3,9 @@ use scribe::Workspace;
 use scribe::buffer::Position;
 use crate::models::application::modes::SearchMode;
 use unicode_segmentation::UnicodeSegmentation;
-use crate::view::{Colors, StatusLineData, Style, View};
+use crate::view::{Colors, StatusLineData, Style, Terminal, View};
 
-pub fn display(workspace: &mut Workspace, mode: &SearchMode, view: &mut View) -> Result<()> {
+pub fn display<T: Terminal + Sync + Send>(workspace: &mut Workspace, mode: &SearchMode, view: &mut View<T>) -> Result<()> {
     let mut presenter = view.build_presenter()?;
 
     // Draw the visible set of tokens to the terminal.

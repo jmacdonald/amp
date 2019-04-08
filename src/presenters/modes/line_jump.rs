@@ -2,9 +2,9 @@ use crate::errors::*;
 use scribe::Workspace;
 use scribe::buffer::Position;
 use crate::models::application::modes::LineJumpMode;
-use crate::view::{Colors, StatusLineData, Style, View};
+use crate::view::{Colors, StatusLineData, Style, Terminal, View};
 
-pub fn display(workspace: &mut Workspace, mode: &LineJumpMode, view: &mut View) -> Result<()> {
+pub fn display<T: Terminal + Sync + Send>(workspace: &mut Workspace, mode: &LineJumpMode, view: &mut View<T>) -> Result<()> {
     let mut presenter = view.build_presenter()?;
     let mut status_line_entries = Vec::new();
     let buf = workspace.current_buffer().ok_or(BUFFER_MISSING)?;
