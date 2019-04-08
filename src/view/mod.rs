@@ -48,7 +48,7 @@ pub struct View<T: Terminal + Sync + Send> {
 }
 
 impl<T: Terminal + Sync + Send> View<T> {
-    pub fn new(terminal: Arc<T>, preferences: Rc<RefCell<Preferences>>, event_channel: Sender<Event>) -> Result<View> {
+    pub fn new(terminal: Arc<T>, preferences: Rc<RefCell<Preferences>>, event_channel: Sender<Event>) -> Result<View<T>> {
         let theme_path = preferences.borrow().theme_path()?;
         let theme_set = ThemeLoader::new(theme_path).load()?;
 
@@ -67,7 +67,7 @@ impl<T: Terminal + Sync + Send> View<T> {
         })
     }
 
-    pub fn build_presenter<'a>(&'a mut self) -> Result<Presenter<'a>> {
+    pub fn build_presenter<'a>(&'a mut self) -> Result<Presenter<'a, T>> {
         Presenter::new(self)
     }
 
