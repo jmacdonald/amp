@@ -64,7 +64,7 @@ impl<'p, T: Terminal + Sync + Send> Presenter<'p, T> {
                     &Position{ line, offset },
                     cell.style,
                     cell.colors,
-                    &cell.content,
+                    cell.content,
                 );
 
                 offset + cell.content.graphemes(true).count()
