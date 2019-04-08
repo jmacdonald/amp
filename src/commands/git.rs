@@ -1,11 +1,12 @@
 use crate::errors::*;
 use crate::errors;
 use crate::commands::{self, Result};
-use git2;
 use crate::models::application::{Application, ClipboardContent, Mode};
+use crate::view::Terminal;
+use git2;
 use regex::Regex;
 
-pub fn add(app: &mut Application) -> Result {
+pub fn add<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let repo = app.repository.as_ref().ok_or("No repository available")?;
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
     let mut index = repo.index().chain_err(|| "Couldn't get the repository index")?;
@@ -29,7 +30,7 @@ fn get_gh_path(url: &str) -> errors::Result<&str> {
     })
 }
 
-pub fn copy_remote_url(app: &mut Application) -> Result {
+pub fn copy_remote_url<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if let Some(ref mut repo) = app.repository {
         let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
         let buffer_path = buffer.path.as_ref().ok_or(BUFFER_PATH_MISSING)?;

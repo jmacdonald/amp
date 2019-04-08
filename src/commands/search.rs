@@ -2,8 +2,9 @@ use crate::errors::*;
 use crate::input::Key;
 use crate::commands::{self, Result};
 use crate::models::application::{Application, Mode};
+use crate::view::Terminal;
 
-pub fn move_to_previous_result(app: &mut Application) -> Result {
+pub fn move_to_previous_result<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
         mode.results.as_mut().ok_or(NO_SEARCH_RESULTS)?.select_previous();
     } else {
@@ -15,7 +16,7 @@ pub fn move_to_previous_result(app: &mut Application) -> Result {
     move_to_current_result(app)
 }
 
-pub fn move_to_next_result(app: &mut Application) -> Result {
+pub fn move_to_next_result<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
         mode.results.as_mut().ok_or(NO_SEARCH_RESULTS)?.select_next();
     } else {
@@ -27,7 +28,7 @@ pub fn move_to_next_result(app: &mut Application) -> Result {
     move_to_current_result(app)
 }
 
-pub fn move_to_current_result(app: &mut Application) -> Result {
+pub fn move_to_current_result<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
         let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
         let query = mode.input.as_ref().ok_or(SEARCH_QUERY_MISSING)?;
@@ -47,7 +48,7 @@ pub fn move_to_current_result(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn accept_query(app: &mut Application) -> Result {
+pub fn accept_query<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
         // Disable insert sub-mode.
         mode.insert = false;
@@ -59,7 +60,7 @@ pub fn accept_query(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn clear_query(app: &mut Application) -> Result {
+pub fn clear_query<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
         mode.input = None;
         app.search_query = None;
@@ -70,7 +71,7 @@ pub fn clear_query(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn push_search_char(app: &mut Application) -> Result {
+pub fn push_search_char<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let key = app.view.last_key().as_ref().ok_or("View hasn't tracked a key press")?;
 
     if let Key::Char(c) = *key {
@@ -88,7 +89,7 @@ pub fn push_search_char(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn pop_search_char(app: &mut Application) -> Result {
+pub fn pop_search_char<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
         let query = mode.input.as_mut().ok_or(SEARCH_QUERY_MISSING)?;
 
@@ -101,7 +102,7 @@ pub fn pop_search_char(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn run(app: &mut Application) -> Result {
+pub fn run<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
         // Search the buffer.
         let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
@@ -114,7 +115,7 @@ pub fn run(app: &mut Application) -> Result {
     move_to_current_result(app)
 }
 
-fn select_closest_result(app: &mut Application) -> Result {
+fn select_closest_result<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
         let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
         let results = mode.results.as_mut().ok_or(NO_SEARCH_RESULTS)?;

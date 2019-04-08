@@ -4,11 +4,12 @@ use std::mem;
 use crate::input::Key;
 use crate::util;
 use crate::util::token::{Direction, adjacent_token_position};
+use crate::view::Terminal;
 use crate::models::application::{Application, ClipboardContent, Mode};
 use crate::models::application::modes::ConfirmMode;
 use scribe::buffer::{Buffer, Position, Range};
 
-pub fn save(app: &mut Application) -> Result {
+pub fn save<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     remove_trailing_whitespace(app)?;
     ensure_trailing_newline(app)?;
 
@@ -38,20 +39,20 @@ pub fn save(app: &mut Application) -> Result {
     }
 }
 
-pub fn reload(app: &mut Application) -> Result {
+pub fn reload<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.reload().chain_err(|| {
         "Unable to reload buffer."
     })
 }
 
-pub fn delete(app: &mut Application) -> Result {
+pub fn delete<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.delete();
     commands::view::scroll_to_cursor(app)?;
 
     Ok(())
 }
 
-pub fn delete_token(app: &mut Application) -> Result {
+pub fn delete_token<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let mut subsequent_token_on_line = false;
 
     if let Some(buffer) = app.workspace.current_buffer() {
@@ -77,7 +78,7 @@ pub fn delete_token(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn delete_current_line(app: &mut Application) -> Result {
+pub fn delete_current_line<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     commands::application::switch_to_select_line_mode(app)?;
     commands::selection::copy_and_delete(app)?;
     commands::application::switch_to_normal_mode(app)?;
@@ -86,7 +87,7 @@ pub fn delete_current_line(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn copy_current_line(app: &mut Application) -> Result {
+pub fn copy_current_line<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     commands::application::switch_to_select_line_mode(app)?;
     commands::selection::copy(app)?;
     commands::application::switch_to_normal_mode(app)?;
@@ -95,7 +96,7 @@ pub fn copy_current_line(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn merge_next_line(app: &mut Application) -> Result {
+pub fn merge_next_line<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
     let current_line = buffer.cursor.line;
     let data = buffer.data();
@@ -150,7 +151,7 @@ pub fn merge_next_line(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn close(app: &mut Application) -> Result {
+pub fn close<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     // Build confirmation check conditions.
     let (unmodified, empty) =
         if let Some(buf) = app.workspace.current_buffer() {
@@ -180,7 +181,7 @@ pub fn close(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn close_others(app: &mut Application) -> Result {
+pub fn close_others<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     // Get the current buffer's ID so we know what *not* to close.
     let id = app.workspace.current_buffer().map(|b| b.id).ok_or(BUFFER_MISSING)?;
     let mut modified_buffer = false;
@@ -226,7 +227,7 @@ pub fn close_others(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn close_others_confirm(app: &mut Application) -> Result {
+pub fn close_others_confirm<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if let Some(buf) = app.workspace.current_buffer() {
         app.view.forget_buffer(buf)?;
     }
@@ -236,7 +237,7 @@ pub fn close_others_confirm(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn backspace(app: &mut Application) -> Result {
+pub fn backspace<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let mut outdent = false;
 
     if let Some(buffer) = app.workspace.current_buffer() {
@@ -267,7 +268,7 @@ pub fn backspace(app: &mut Application) -> Result {
     commands::view::scroll_to_cursor(app)
 }
 
-pub fn insert_char(app: &mut Application) -> Result {
+pub fn insert_char<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if let Some(buffer) = app.workspace.current_buffer() {
         if let Some(Key::Char(character)) = *app.view.last_key() {
             // TODO: Drop explicit call to to_string().
@@ -284,7 +285,7 @@ pub fn insert_char(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn display_current_scope(app: &mut Application) -> Result {
+pub fn display_current_scope<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let scope_display_buffer = {
         let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
         let scope_stack = buffer.current_scope().chain_err(|| "No syntax definition for the current buffer")?;
@@ -303,7 +304,7 @@ pub fn display_current_scope(app: &mut Application) -> Result {
 /// Inserts a newline character at the current cursor position.
 /// Also performs automatic indentation, basing the indent off
 /// of the previous line's leading whitespace.
-pub fn insert_newline(app: &mut Application) -> Result {
+pub fn insert_newline<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if let Some(buffer) = app.workspace.current_buffer() {
         // Insert the newline character.
         buffer.insert("\n");
@@ -345,7 +346,7 @@ pub fn insert_newline(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn indent_line(app: &mut Application) -> Result {
+pub fn indent_line<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
     let tab_content = app.preferences.borrow().tab_content(buffer.path.as_ref());
 
@@ -390,7 +391,7 @@ pub fn indent_line(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn outdent_line(app: &mut Application) -> Result {
+pub fn outdent_line<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
     let tab_content = app.preferences.borrow().tab_content(buffer.path.as_ref());
 
@@ -468,14 +469,14 @@ pub fn outdent_line(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn change_token(app: &mut Application) -> Result {
+pub fn change_token<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     commands::buffer::delete_token(app)?;
     commands::application::switch_to_insert_mode(app)?;
 
     Ok(())
 }
 
-pub fn delete_rest_of_line(app: &mut Application) -> Result {
+pub fn delete_rest_of_line<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
     // Create a range extending from the
@@ -495,14 +496,14 @@ pub fn delete_rest_of_line(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn change_rest_of_line(app: &mut Application) -> Result {
+pub fn change_rest_of_line<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     commands::buffer::delete_rest_of_line(app)?;
     commands::application::switch_to_insert_mode(app)?;
 
     Ok(())
 }
 
-pub fn start_command_group(app: &mut Application) -> Result {
+pub fn start_command_group<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     app.workspace
         .current_buffer()
         .ok_or(BUFFER_MISSING)?
@@ -511,7 +512,7 @@ pub fn start_command_group(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn end_command_group(app: &mut Application) -> Result {
+pub fn end_command_group<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     app.workspace
         .current_buffer()
         .ok_or(BUFFER_MISSING)?
@@ -520,21 +521,21 @@ pub fn end_command_group(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn undo(app: &mut Application) -> Result {
+pub fn undo<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.undo();
     commands::view::scroll_to_cursor(app).chain_err(|| {
         "Couldn't scroll to cursor after undoing."
     })
 }
 
-pub fn redo(app: &mut Application) -> Result {
+pub fn redo<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.redo();
     commands::view::scroll_to_cursor(app).chain_err(|| {
         "Couldn't scroll to cursor after redoing."
     })
 }
 
-pub fn paste(app: &mut Application) -> Result {
+pub fn paste<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let insert_below = match app.mode {
         Mode::Select(_) | Mode::SelectLine(_) | Mode::Search(_) => {
             commands::selection::delete(app).chain_err(|| {
@@ -591,7 +592,7 @@ pub fn paste(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn paste_above(app: &mut Application) -> Result {
+pub fn paste_above<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
     if let ClipboardContent::Block(ref content) = *app.clipboard.get_content() {
@@ -610,7 +611,7 @@ pub fn paste_above(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn remove_trailing_whitespace(app: &mut Application) -> Result {
+pub fn remove_trailing_whitespace<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
     let mut line = 0;
     let mut offset = 0;
@@ -673,7 +674,7 @@ pub fn remove_trailing_whitespace(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn ensure_trailing_newline(app: &mut Application) -> Result {
+pub fn ensure_trailing_newline<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
     // Find end of buffer position.
@@ -705,7 +706,7 @@ pub fn ensure_trailing_newline(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn insert_tab(app: &mut Application) -> Result {
+pub fn insert_tab<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
     let tab_content = app.preferences.borrow().tab_content(buffer.path.as_ref());
     let tab_content_width = tab_content.chars().count();

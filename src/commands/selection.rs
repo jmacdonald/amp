@@ -4,8 +4,9 @@ use super::application;
 use crate::errors::*;
 use crate::commands::{self, Result};
 use crate::util;
+use crate::view::Terminal;
 
-pub fn delete(app: &mut Application) -> Result {
+pub fn delete<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if let Some(buffer) = app.workspace.current_buffer() {
         match app.mode {
             Mode::Select(ref select_mode) => {
@@ -35,24 +36,24 @@ pub fn delete(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn copy_and_delete(app: &mut Application) -> Result {
+pub fn copy_and_delete<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let _ = copy_to_clipboard(app);
     delete(app)
 }
 
-pub fn change(app: &mut Application) -> Result {
+pub fn change<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let _ = copy_to_clipboard(app);
     delete(app)?;
     application::switch_to_insert_mode(app)?;
     commands::view::scroll_to_cursor(app)
 }
 
-pub fn copy(app: &mut Application) -> Result {
+pub fn copy<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     copy_to_clipboard(app)?;
     application::switch_to_normal_mode(app)
 }
 
-pub fn select_all(app: &mut Application) -> Result {
+pub fn select_all<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     app.workspace
         .current_buffer()
         .ok_or(BUFFER_MISSING)?
@@ -68,7 +69,7 @@ pub fn select_all(app: &mut Application) -> Result {
     Ok(())
 }
 
-fn copy_to_clipboard(app: &mut Application) -> Result {
+fn copy_to_clipboard<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
     match app.mode {

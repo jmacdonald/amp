@@ -1,5 +1,6 @@
 use crate::errors;
 use crate::models::application::Application;
+use crate::view::Terminal;
 use std::collections::HashMap;
 
 pub mod application;
@@ -17,7 +18,7 @@ pub mod search_select;
 pub mod view;
 pub mod workspace;
 
-pub type Command = fn(&mut Application) -> Result;
+pub type Command = fn(&mut Application<T>) -> Result;
 pub type Result = errors::Result<()>;
 
 pub fn hash_map() -> HashMap<&'static str, Command> {

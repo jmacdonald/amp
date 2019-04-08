@@ -5,9 +5,10 @@ use crate::commands::Result;
 use crate::models::application::modes::jump;
 use crate::models::application::modes::JumpMode;
 use crate::models::application::{Mode, Application};
+use crate::view::Terminal;
 use scribe::Workspace;
 
-pub fn match_tag(app: &mut Application) -> Result {
+pub fn match_tag<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let result =
         if let Mode::Jump(ref mut jump_mode) = app.mode {
             match jump_mode.input.len() {
@@ -43,7 +44,7 @@ fn jump_to_tag(jump_mode: &mut JumpMode, workspace: &mut Workspace) -> Result {
     Ok(())
 }
 
-fn switch_to_previous_mode(app: &mut Application) {
+fn switch_to_previous_mode<T: Terminal + Sync + Send>(app: &mut Application<T>) {
     let old_mode = mem::replace(&mut app.mode, Mode::Normal);
 
     // Now that we own the jump mode, switch to
@@ -61,7 +62,7 @@ fn switch_to_previous_mode(app: &mut Application) {
     }
 }
 
-pub fn push_search_char(app: &mut Application) -> Result {
+pub fn push_search_char<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if let Some(ref key) = *app.view.last_key() {
         if let Mode::Jump(ref mut mode) = app.mode {
             match *key {

@@ -6,8 +6,9 @@ use std::mem;
 use crate::models::application::{Application, Mode};
 use crate::models::application::modes::*;
 use crate::util;
+use crate::view::Terminal;
 
-pub fn handle_input(app: &mut Application) -> Result {
+pub fn handle_input<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     // Listen for and respond to user input.
     let commands = app.view.last_key().as_ref().and_then(|key| {
         app.mode_str().and_then(|mode| {
@@ -25,14 +26,14 @@ pub fn handle_input(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn switch_to_normal_mode(app: &mut Application) -> Result {
+pub fn switch_to_normal_mode<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let _ = commands::buffer::end_command_group(app);
     app.mode = Mode::Normal;
 
     Ok(())
 }
 
-pub fn switch_to_insert_mode(app: &mut Application) -> Result {
+pub fn switch_to_insert_mode<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if app.workspace.current_buffer().is_some() {
         commands::buffer::start_command_group(app)?;
         app.mode = Mode::Insert;
@@ -44,7 +45,7 @@ pub fn switch_to_insert_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn switch_to_jump_mode(app: &mut Application) -> Result {
+pub fn switch_to_jump_mode<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
     // Initialize a new jump mode and swap
@@ -73,7 +74,7 @@ pub fn switch_to_jump_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn switch_to_second_stage_jump_mode(app: &mut Application) -> Result {
+pub fn switch_to_second_stage_jump_mode<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     switch_to_jump_mode(app)?;
     if let Mode::Jump(ref mut mode) = app.mode {
         mode.first_phase = false;
@@ -84,7 +85,7 @@ pub fn switch_to_second_stage_jump_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn switch_to_line_jump_mode(app: &mut Application) -> Result {
+pub fn switch_to_line_jump_mode<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if app.workspace.current_buffer().is_some() {
         app.mode = Mode::LineJump(LineJumpMode::new());
     } else {
@@ -94,7 +95,7 @@ pub fn switch_to_line_jump_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn switch_to_open_mode(app: &mut Application) -> Result {
+pub fn switch_to_open_mode<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let exclusions = app.preferences.borrow().open_mode_exclusions()?;
     let config = app.preferences.borrow().search_select_config();
     app.mode = Mode::Open(OpenMode::new(app.workspace.path.clone(), exclusions, app.event_channel.clone(), config));
@@ -103,7 +104,7 @@ pub fn switch_to_open_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn switch_to_command_mode(app: &mut Application) -> Result {
+pub fn switch_to_command_mode<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let config = app.preferences.borrow().search_select_config();
     app.mode = Mode::Command(CommandMode::new(config));
     commands::search_select::search(app)?;
@@ -111,7 +112,7 @@ pub fn switch_to_command_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
+pub fn switch_to_symbol_jump_mode<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if let Some(buf) = app.workspace.current_buffer() {
         let token_set = buf.tokens()
             .chain_err(|| "No tokens available for the current buffer")?;
@@ -126,7 +127,7 @@ pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn switch_to_theme_mode(app: &mut Application) -> Result {
+pub fn switch_to_theme_mode<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let config = app.preferences.borrow().search_select_config();
     app.mode = Mode::Theme(
         ThemeMode::new(
@@ -139,7 +140,7 @@ pub fn switch_to_theme_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn switch_to_select_mode(app: &mut Application) -> Result {
+pub fn switch_to_select_mode<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if let Some(buffer) = app.workspace.current_buffer() {
         app.mode = Mode::Select(SelectMode::new(*buffer.cursor.clone()));
     } else {
@@ -149,7 +150,7 @@ pub fn switch_to_select_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
+pub fn switch_to_select_line_mode<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if let Some(buffer) = app.workspace.current_buffer() {
         app.mode = Mode::SelectLine(SelectLineMode::new(buffer.cursor.line));
     } else {
@@ -159,7 +160,7 @@ pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn switch_to_search_mode(app: &mut Application) -> Result {
+pub fn switch_to_search_mode<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if app.workspace.current_buffer().is_some() {
         app.mode = Mode::Search(
             SearchMode::new(app.search_query.clone())
@@ -171,7 +172,7 @@ pub fn switch_to_search_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn switch_to_path_mode(app: &mut Application) -> Result {
+pub fn switch_to_path_mode<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let path = app.workspace
         .current_buffer()
         .ok_or(BUFFER_MISSING)?
@@ -189,7 +190,7 @@ pub fn switch_to_path_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn display_default_keymap(app: &mut Application) -> Result {
+pub fn display_default_keymap<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     commands::workspace::new_buffer(app)?;
 
     if let Some(buffer) = app.workspace.current_buffer() {
@@ -199,7 +200,7 @@ pub fn display_default_keymap(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn display_quick_start_guide(app: &mut Application) -> Result {
+pub fn display_quick_start_guide<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     commands::workspace::new_buffer(app)?;
 
     if let Some(buffer) = app.workspace.current_buffer() {
@@ -209,7 +210,7 @@ pub fn display_quick_start_guide(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn display_available_commands(app: &mut Application) -> Result {
+pub fn display_available_commands<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     commands::workspace::new_buffer(app)?;
 
     if let Some(buffer) = app.workspace.current_buffer() {
@@ -225,7 +226,7 @@ pub fn display_available_commands(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn display_last_error(app: &mut Application) -> Result {
+pub fn display_last_error<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let error = app.error.take().ok_or("No error to display")?;
     let scope_display_buffer = {
         let mut error_buffer = Buffer::new();
@@ -246,13 +247,13 @@ pub fn display_last_error(app: &mut Application) -> Result {
     util::add_buffer(scope_display_buffer, app)
 }
 
-pub fn suspend(app: &mut Application) -> Result {
+pub fn suspend<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     app.view.suspend();
 
     Ok(())
 }
 
-pub fn exit(app: &mut Application) -> Result {
+pub fn exit<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     app.mode = Mode::Exit;
 
     Ok(())

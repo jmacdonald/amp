@@ -2,9 +2,10 @@ use crate::errors::*;
 use crate::commands::{self, Result};
 use crate::input::Key;
 use crate::models::application::{Application, Mode};
+use crate::view::Terminal;
 use std::path::PathBuf;
 
-pub fn push_char(app: &mut Application) -> Result {
+pub fn push_char<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let last_key = app.view.last_key().as_ref().ok_or("View hasn't tracked a key press")?;
     if let Key::Char(c) = *last_key {
         if let Mode::Path(ref mut mode) = app.mode {
@@ -18,7 +19,7 @@ pub fn push_char(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn pop_char(app: &mut Application) -> Result {
+pub fn pop_char<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     if let Mode::Path(ref mut mode) = app.mode {
         mode.pop_char();
     } else {
@@ -27,7 +28,7 @@ pub fn pop_char(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn accept_path(app: &mut Application) -> Result {
+pub fn accept_path<T: Terminal + Sync + Send>(app: &mut Application<T>) -> Result {
     let save_on_accept =
         if let Mode::Path(ref mut mode) = app.mode {
             let current_buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
