@@ -38,7 +38,7 @@ const RENDER_CACHE_FREQUENCY: usize = 100;
 
 pub struct View<T: Terminal + Sync + Send> {
     terminal: Arc<T>,
-    scrollable_regions: HashMap<usize, ScrollableRegion>,
+    scrollable_regions: HashMap<usize, ScrollableRegion<T>>,
     render_caches: HashMap<usize, Rc<RefCell<HashMap<usize, RenderState>>>>,
     pub theme_set: ThemeSet,
     preferences: Rc<RefCell<Preferences>>,
@@ -128,7 +128,7 @@ impl<T: Terminal + Sync + Send> View<T> {
 
     // Tries to fetch a scrollable region for the specified buffer,
     // inserting (and returning a reference to) a new one if not.
-    fn get_region(&mut self, buffer: &Buffer) -> Result<&mut ScrollableRegion> {
+    fn get_region(&mut self, buffer: &Buffer) -> Result<&mut ScrollableRegion<T>> {
         Ok(self.scrollable_regions
             .entry(buffer_key(buffer)?)
             .or_insert(

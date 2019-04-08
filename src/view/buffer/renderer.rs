@@ -20,7 +20,7 @@ use crate::errors::*;
 
 /// A one-time-use type that encapsulates all of the
 /// details involved in rendering a buffer to the screen.
-pub struct BufferRenderer<'a, 'p> {
+pub struct BufferRenderer<'a, 'p, T: Terminal + Sync + Send> {
     buffer: &'a Buffer,
     buffer_position: Position,
     cursor_position: Option<Position>,
@@ -33,17 +33,17 @@ pub struct BufferRenderer<'a, 'p> {
     render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>,
     screen_position: Position,
     scroll_offset: usize,
-    terminal: &'a Terminal,
+    terminal: &'a T,
     terminal_buffer: &'a mut TerminalBuffer<'p>,
     theme: &'a Theme,
 }
 
-impl<'a, 'p> BufferRenderer<'a, 'p> {
+impl<'a, 'p, T: Terminal + Sync + Send> BufferRenderer<'a, 'p, T> {
     pub fn new(buffer: &'a Buffer, highlights: Option<&'a [Range]>,
-    scroll_offset: usize, terminal: &'a Terminal, theme: &'a Theme,
+    scroll_offset: usize, terminal: &'a T, theme: &'a Theme,
     preferences: &'a Preferences,
     render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>,
-    terminal_buffer: &'a mut TerminalBuffer<'p>) -> BufferRenderer<'a, 'p> {
+    terminal_buffer: &'a mut TerminalBuffer<'p>) -> BufferRenderer<'a, 'p, T> {
         let line_numbers = LineNumbers::new(&buffer, Some(scroll_offset));
         let gutter_width = line_numbers.width() + 1;
 
