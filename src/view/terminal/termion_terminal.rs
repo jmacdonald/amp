@@ -211,7 +211,7 @@ impl Terminal for TermionTerminal {
         }
     }
 
-    fn print<'a, T: Into<Cow<'a, str>>>(&self, position: &Position, style: Style, colors: Colors, content: T) {
+    fn print<'a>(&self, position: &Position, style: Style, colors: Colors, content: &str) {
         self.update_style(style);
         self.update_colors(colors);
 
@@ -229,7 +229,7 @@ impl Terminal for TermionTerminal {
 
                 // Now that style, color, and position have been
                 // addressed, print the content.
-                let _ = write!(output, "{}", content.into());
+                let _ = write!(output, "{}", content);
             }
         }
     }

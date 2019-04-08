@@ -26,6 +26,6 @@ pub trait Terminal {
     fn width(&self) -> usize;
     fn height(&self) -> usize;
     fn set_cursor(&self, _: Option<Position>);
-    fn print<'a, T: Into<Cow<'a, str>>>(&self, _: &Position, _: Style, _: Colors, _: T);
+    fn print<'a>(&self, _: &Position, _: Style, _: Colors, _: &str);
     fn suspend(&self);
 }

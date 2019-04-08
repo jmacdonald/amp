@@ -64,7 +64,7 @@ impl<'p> Presenter<'p> {
                     &Position{ line, offset },
                     cell.style,
                     cell.colors,
-                    cell.content,
+                    &cell.content,
                 );
 
                 offset + cell.content.graphemes(true).count()
