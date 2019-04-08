@@ -13,6 +13,7 @@ use self::termion::{color, cursor};
 use self::termion::input::{Keys, TermRead};
 use self::termion::raw::{IntoRawMode, RawTerminal};
 use self::termion::style;
+use std::borrow::Cow;
 use std::io::{BufWriter, Stdin, stdin, stdout, Write};
 use std::fmt::Display;
 use std::ops::Drop;
@@ -210,7 +211,7 @@ impl Terminal for TermionTerminal {
         }
     }
 
-    fn print(&self, position: &Position, style: Style, colors: Colors, content: &Display) {
+    fn print<'a, T: Into<Cow<'a, str>>>(&self, position: &Position, style: Style, colors: Colors, content: T) {
         self.update_style(style);
         self.update_colors(colors);
 
@@ -228,7 +229,7 @@ impl Terminal for TermionTerminal {
 
                 // Now that style, color, and position have been
                 // addressed, print the content.
-                let _ = write!(output, "{}", content);
+                let _ = write!(output, "{}", content.into());
             }
         }
     }
