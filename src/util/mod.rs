@@ -6,6 +6,7 @@ pub mod token;
 
 use crate::errors::*;
 use crate::models::Application;
+use crate::view::Terminal;
 use scribe::buffer::{Buffer, LineRange, Position, Range};
 
 /// Translates a line range to a regular range, including its last line.
@@ -50,7 +51,7 @@ pub fn inclusive_range(line_range: &LineRange, buffer: &mut Buffer) -> Range {
 }
 
 /// Convenience method to initialize and add a buffer to the workspace.
-pub fn add_buffer(buffer: Buffer, app: &mut Application) -> Result<()> {
+pub fn add_buffer<T: Terminal + Sync + Send>(buffer: Buffer, app: &mut Application<T>) -> Result<()> {
     app.workspace.add_buffer(buffer);
     app.view.initialize_buffer(app.workspace.current_buffer().unwrap())?;
 

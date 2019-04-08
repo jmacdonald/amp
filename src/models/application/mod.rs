@@ -54,8 +54,8 @@ pub struct Application<T: Terminal + Sync + Send> {
     events: Receiver<Event>,
 }
 
-impl Application {
-    pub fn new(args: &Vec<String>) -> Result<Application> {
+impl<T: Terminal + Sync + Send> Application<T> {
+    pub fn new(args: &Vec<String>) -> Result<Application<T>> {
         let preferences = initialize_preferences();
 
         let (event_channel, events) = mpsc::channel();
