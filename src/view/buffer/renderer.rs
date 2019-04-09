@@ -217,7 +217,7 @@ impl<'a, 'p, T: Terminal + Sync + Send> BufferRenderer<'a, 'p, T> {
         !self.before_visible_content() && !self.after_visible_content()
     }
 
-    pub fn render(&mut self, lines: LineIterator<'p>, lexeme_mapper: Option<&'p mut LexemeMapper>) -> Result<Option<Position>> {
+    pub fn render(&mut self, lines: LineIterator<'p>, mut lexeme_mapper: Option<&mut LexemeMapper>) -> Result<Option<Position>> {
         self.terminal.set_cursor(None);
         // Print the first line number. Others will
         // be handled as newlines are encountered.
@@ -259,7 +259,7 @@ impl<'a, 'p, T: Terminal + Sync + Send> BufferRenderer<'a, 'p, T> {
                     }
 
                     // We're in a visible area.
-                    if let Some(mapper) = lexeme_mapper {
+                    if let Some(ref mut mapper) = lexeme_mapper {
                         let mapped_lexemes = mapper.map(lexeme, self.buffer_position);
                         for mapped_lexeme in mapped_lexemes {
                             match mapped_lexeme {
