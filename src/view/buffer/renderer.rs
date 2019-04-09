@@ -160,9 +160,7 @@ impl<'a, 'p, T: Terminal + Sync + Send> BufferRenderer<'a, 'p, T> {
         (style, self.theme.map_colors(colors))
     }
 
-    pub fn print_lexeme<L>(&mut self, lexeme: L)
-        where L: Into<Cow<'p, str>>
-    {
+    pub fn print_lexeme<L: Into<Cow<'p, str>>>(&mut self, lexeme: L) {
         for character in lexeme.into().graphemes(true) {
             // Ignore newline characters.
             if character == "\n" { continue; }
@@ -267,11 +265,11 @@ impl<'a, 'p, T: Terminal + Sync + Send> BufferRenderer<'a, 'p, T> {
                             match mapped_lexeme {
                                 MappedLexeme::Focused(value) => {
                                     self.current_style = focused_style;
-                                    self.print_lexeme(value);
+                                    self.print_lexeme(value.to_string());
                                 },
                                 MappedLexeme::Blurred(value) => {
                                     self.current_style = blurred_style;
-                                    self.print_lexeme(value);
+                                    self.print_lexeme(value.to_string());
                                 }
                             }
 
