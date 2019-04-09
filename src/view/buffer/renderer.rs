@@ -174,7 +174,7 @@ impl<'a, 'p, T: Terminal + Sync + Send> BufferRenderer<'a, 'p, T> {
             if self.preferences.line_wrapping() && self.screen_position.offset == self.terminal.width() {
                 self.screen_position.line += 1;
                 self.screen_position.offset = self.gutter_width;
-                self.print(self.screen_position, style, color, character);
+                self.print(self.screen_position, style, color, character.to_string());
                 self.screen_position.offset += 1;
                 self.buffer_position.offset += 1;
             } else if character == "\t" {
@@ -196,7 +196,7 @@ impl<'a, 'p, T: Terminal + Sync + Send> BufferRenderer<'a, 'p, T> {
                 }
                 self.buffer_position.offset += 1;
             } else {
-                self.print(self.screen_position, style, color, character);
+                self.print(self.screen_position, style, color, character.to_string());
                 self.screen_position.offset += 1;
                 self.buffer_position.offset += 1;
             }
