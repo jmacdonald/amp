@@ -92,7 +92,7 @@ impl Terminal for TestTerminal {
         *cursor = position;
     }
     fn suspend(&self) { }
-    fn print(&self, position: &Position, _: Style, colors: Colors, content: &Display) {
+    fn print(&self, position: &Position, _: Style, colors: Colors, content: &str) {
         // Ignore lines beyond visible height.
         if position.line >= self.height() { return; }
 
