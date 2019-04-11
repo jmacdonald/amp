@@ -5,7 +5,7 @@ use crate::models::application::modes::SearchMode;
 use unicode_segmentation::UnicodeSegmentation;
 use crate::view::{Colors, StatusLineData, Style, Terminal, View};
 
-pub fn display<T: Terminal + Sync + Send>(workspace: &mut Workspace, mode: &SearchMode, view: &mut View<T>) -> Result<()> {
+pub fn display<T: Terminal + Sync + Send + 'static>(workspace: &mut Workspace, mode: &SearchMode, view: &mut View<T>) -> Result<()> {
     let mut presenter = view.build_presenter()?;
 
     // Draw the visible set of tokens to the terminal.

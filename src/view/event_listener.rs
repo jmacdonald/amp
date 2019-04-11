@@ -4,13 +4,13 @@ use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
 use crate::view::{Terminal, TermionTerminal};
 
-pub struct EventListener<T: Terminal + Sync + Send> {
+pub struct EventListener<T: Terminal + Sync + Send + 'static> {
     terminal: Arc<T>,
     events: Sender<Event>,
     killswitch: Receiver<()>
 }
 
-impl<T: Terminal + Sync + Send> EventListener<T> {
+impl<T: Terminal + Sync + Send + 'static> EventListener<T> {
     /// Spins up a thread that loops forever, waiting on terminal events
     /// and forwarding those to the application event channel.
     pub fn start(terminal: Arc<T>, events: Sender<Event>, killswitch: Receiver<()>) {

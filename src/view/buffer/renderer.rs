@@ -20,7 +20,7 @@ use crate::errors::*;
 
 /// A one-time-use type that encapsulates all of the
 /// details involved in rendering a buffer to the screen.
-pub struct BufferRenderer<'a, 'p, T: Terminal + Sync + Send> {
+pub struct BufferRenderer<'a, 'p, T: Terminal + Sync + Send + 'static> {
     buffer: &'a Buffer,
     buffer_position: Position,
     cursor_position: Option<Position>,
@@ -38,7 +38,7 @@ pub struct BufferRenderer<'a, 'p, T: Terminal + Sync + Send> {
     theme: &'a Theme,
 }
 
-impl<'a, 'p, T: Terminal + Sync + Send> BufferRenderer<'a, 'p, T> {
+impl<'a, 'p, T: Terminal + Sync + Send + 'static> BufferRenderer<'a, 'p, T> {
     pub fn new(buffer: &'a Buffer, highlights: Option<&'a [Range]>,
     scroll_offset: usize, terminal: &'a T, theme: &'a Theme,
     preferences: &'a Preferences,

@@ -12,14 +12,14 @@ use std::borrow::Cow;
 use syntect::highlighting::Theme;
 use unicode_segmentation::UnicodeSegmentation;
 
-pub struct Presenter<'p, T: Terminal + Sync + Send> {
+pub struct Presenter<'p, T: Terminal + Sync + Send + 'static> {
     cursor_position: Option<Position>,
     terminal_buffer: TerminalBuffer<'p>,
     theme: Theme,
     pub view: &'p mut View<T>,
 }
 
-impl<'p, T: Terminal + Sync + Send> Presenter<'p, T> {
+impl<'p, T: Terminal + Sync + Send + 'static> Presenter<'p, T> {
     pub fn new(view: &mut View<T>) -> Result<Presenter<T>> {
         let theme = {
             let preferences = view.preferences.borrow();

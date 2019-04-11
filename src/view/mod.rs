@@ -36,7 +36,7 @@ use syntect::highlighting::ThemeSet;
 
 const RENDER_CACHE_FREQUENCY: usize = 100;
 
-pub struct View<T: Terminal + Sync + Send> {
+pub struct View<T: Terminal + Sync + Send + 'static> {
     terminal: Arc<T>,
     scrollable_regions: HashMap<usize, ScrollableRegion<T>>,
     render_caches: HashMap<usize, Rc<RefCell<HashMap<usize, RenderState>>>>,
@@ -47,7 +47,7 @@ pub struct View<T: Terminal + Sync + Send> {
     event_listener_killswitch: SyncSender<()>
 }
 
-impl<T: Terminal + Sync + Send> View<T> {
+impl<T: Terminal + Sync + Send + 'static> View<T> {
     pub fn new(terminal: Arc<T>, preferences: Rc<RefCell<Preferences>>, event_channel: Sender<Event>) -> Result<View<T>> {
         let theme_path = preferences.borrow().theme_path()?;
         let theme_set = ThemeLoader::new(theme_path).load()?;
@@ -177,7 +177,7 @@ impl<T: Terminal + Sync + Send> View<T> {
     }
 }
 
-impl<T: Terminal + Sync + Send> Drop for View<T> {
+impl<T: Terminal + Sync + Send + 'static> Drop for View<T> {
     fn drop(&mut self) {
         let _ = self.event_listener_killswitch.send(());
     }
