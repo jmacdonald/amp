@@ -7,13 +7,13 @@ use crate::view::terminal::{Terminal, TermionTerminal};
 /// Abstract representation of a fixed-height section of the screen.
 /// Used to determine visible ranges of lines based on previous state,
 /// explicit line focus, and common scrolling implementation behaviours.
-pub struct ScrollableRegion {
-    terminal: Arc<TermionTerminal>,
+pub struct ScrollableRegion<T: Terminal + Sync + Send> {
+    terminal: Arc<T>,
     line_offset: usize,
 }
 
-impl ScrollableRegion {
-    pub fn new(terminal: Arc<TermionTerminal>) -> ScrollableRegion {
+impl<T: Terminal + Sync + Send> ScrollableRegion<T> {
+    pub fn new(terminal: Arc<T>) -> ScrollableRegion<T> {
         ScrollableRegion {
             terminal,
             line_offset: 0,

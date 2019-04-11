@@ -5,7 +5,7 @@ use scribe::buffer::Range;
 use crate::presenters::current_buffer_status_line_data;
 use crate::view::{Colors, StatusLineData, Style, Terminal, View};
 
-pub fn display(workspace: &mut Workspace, mode: &SelectMode, view: &mut View) -> Result<()> {
+pub fn display<T: Terminal + Sync + Send>(workspace: &mut Workspace, mode: &SelectMode, view: &mut View<T>) -> Result<()> {
     let mut presenter = view.build_presenter()?;
     let mut status_line_entries = Vec::new();
     let buffer_status = current_buffer_status_line_data(workspace);
