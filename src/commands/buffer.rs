@@ -423,8 +423,8 @@ pub fn outdent_line(app: &mut Application) -> Result {
                 if content.chars().next() == Some('\t') {
                     space_char_count = 1;
                 }
-           	} else {
-           		// We're looking for spaces.
+            } else {
+                // We're looking for spaces.
                 for character in content.chars().take(tab_content.chars().count()) {
                     if character == ' ' {
                         space_char_count += 1;
