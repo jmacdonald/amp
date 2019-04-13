@@ -418,12 +418,20 @@ pub fn outdent_line(app: &mut Application) -> Result {
             let mut space_char_count = 0;
 
             // Check for leading whitespace.
-            for character in content.chars().take(tab_content.chars().count()) {
-                if character == ' ' {
-                    space_char_count += 1;
-                } else {
-                    // We've run into a non-whitespace character; stop here.
-                    break;
+            if tab_content.chars().next() == Some('\t') {
+                // We're looking for a tab character.
+                if content.chars().next() == Some('\t') {
+                    space_char_count = 1;
+                }
+            } else {
+                // We're looking for spaces.
+                for character in content.chars().take(tab_content.chars().count()) {
+                    if character == ' ' {
+                        space_char_count += 1;
+                    } else {
+                        // We've run into a non-whitespace character; stop here.
+                        break;
+                    }
                 }
             }
 
