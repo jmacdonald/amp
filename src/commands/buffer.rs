@@ -418,9 +418,9 @@ pub fn outdent_line(app: &mut Application) -> Result {
             let mut space_char_count = 0;
 
             // Check for leading whitespace.
-            if tab_content.chars().next().unwrap() == '\t' {
+            if tab_content.chars().next() == Some('\t') {
                 // We're looking for a tab character.
-                if content.chars().next().unwrap() == '\t' {
+                if content.chars().next() == Some('\t') {
                     space_char_count = 1;
                 }
            	} else {
