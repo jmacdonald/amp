@@ -21,7 +21,6 @@ use std::path::Path;
 use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::sync::Arc;
-use crate::view::terminal::*;
 use crate::view::{self, StatusLineData, View};
 
 pub enum Mode {
@@ -59,7 +58,7 @@ impl Application {
         let preferences = initialize_preferences();
 
         let (event_channel, events) = mpsc::channel();
-        let mut view = View::new(build_terminal(), preferences.clone(), event_channel.clone())?;
+        let mut view = View::new(preferences.clone(), event_channel.clone())?;
         let clipboard = Clipboard::new();
 
         // Set up a workspace in the current directory.
@@ -295,17 +294,6 @@ fn create_workspace(view: &mut View, args: &Vec<String>) -> Result<Workspace> {
     }
 
     Ok(workspace)
-}
-
-#[cfg(not(any(test, feature = "bench")))]
-fn build_terminal() -> Arc<TermionTerminal> {
-    Arc::new(TermionTerminal::new())
-}
-
-#[cfg(any(test, feature = "bench"))]
-fn build_terminal() -> Arc<TestTerminal> {
-    // Use a headless terminal if we're in test mode.
-    Arc::new(TestTerminal::new())
 }
 
 #[cfg(test)]
