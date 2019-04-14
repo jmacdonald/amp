@@ -13,7 +13,7 @@ pub use self::buffer::{LexemeMapper, MappedLexeme};
 pub use self::style::Style;
 pub use self::color::{Colors, RGBColor};
 pub use self::presenter::Presenter;
-pub use self::terminal::{Terminal, TermionTerminal};
+pub use self::terminal::*;
 
 use crate::errors::*;
 use crate::input::Key;
@@ -36,9 +36,22 @@ use syntect::highlighting::ThemeSet;
 
 const RENDER_CACHE_FREQUENCY: usize = 100;
 
+#[cfg(not(any(test, feature = "bench")))]
 pub struct View {
     terminal: Arc<TermionTerminal>,
     scrollable_regions: HashMap<usize, ScrollableRegion<TermionTerminal>>,
+    render_caches: HashMap<usize, Rc<RefCell<HashMap<usize, RenderState>>>>,
+    pub theme_set: ThemeSet,
+    preferences: Rc<RefCell<Preferences>>,
+    pub last_key: Option<Key>,
+    event_channel: Sender<Event>,
+    event_listener_killswitch: SyncSender<()>
+}
+
+#[cfg(any(test, feature = "bench"))]
+pub struct View {
+    terminal: Arc<TestTerminal>,
+    scrollable_regions: HashMap<usize, ScrollableRegion<TestTerminal>>,
     render_caches: HashMap<usize, Rc<RefCell<HashMap<usize, RenderState>>>>,
     pub theme_set: ThemeSet,
     preferences: Rc<RefCell<Preferences>>,
@@ -129,7 +142,18 @@ impl View {
 
     // Tries to fetch a scrollable region for the specified buffer,
     // inserting (and returning a reference to) a new one if not.
+    #[cfg(not(any(test, feature = "bench")))]
     fn get_region(&mut self, buffer: &Buffer) -> Result<&mut ScrollableRegion<TermionTerminal>> {
+        Ok(self.scrollable_regions
+            .entry(buffer_key(buffer)?)
+            .or_insert(
+                ScrollableRegion::new(self.terminal.clone())
+            )
+        )
+    }
+
+    #[cfg(any(test, feature = "bench"))]
+    fn get_region(&mut self, buffer: &Buffer) -> Result<&mut ScrollableRegion<TestTerminal>> {
         Ok(self.scrollable_regions
             .entry(buffer_key(buffer)?)
             .or_insert(
