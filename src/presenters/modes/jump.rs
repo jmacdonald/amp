@@ -4,7 +4,7 @@ use scribe::Workspace;
 use crate::models::application::modes::JumpMode;
 use crate::view::{Colors, StatusLineData, Style, Terminal, View};
 
-pub fn display<T: Terminal + Sync + Send + 'static>(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View<T>) -> Result<()> {
+pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) -> Result<()> {
     let mut presenter = view.build_presenter()?;
     let mut status_line_entries = Vec::new();
     let buffer_status = current_buffer_status_line_data(workspace);

@@ -2,7 +2,7 @@ use crate::models::application::Event;
 use std::sync::Arc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
-use crate::view::{Terminal, TermionTerminal};
+use crate::view::Terminal;
 
 pub struct EventListener<T: Terminal + Sync + Send + 'static> {
     terminal: Arc<T>,

@@ -2,7 +2,7 @@ use std::sync::Arc;
 use scribe::buffer::Buffer;
 use unicode_segmentation::UnicodeSegmentation;
 use crate::view::buffer::LineNumbers;
-use crate::view::terminal::{Terminal, TermionTerminal};
+use crate::view::terminal::Terminal;
 
 /// Abstract representation of a fixed-height section of the screen.
 /// Used to determine visible ranges of lines based on previous state,

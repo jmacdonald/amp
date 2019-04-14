@@ -45,7 +45,7 @@ pub struct Application {
     pub mode: Mode,
     pub workspace: Workspace,
     pub search_query: Option<String>,
-    pub view: View<TermionTerminal>,
+    pub view: View,
     pub clipboard: Clipboard,
     pub repository: Option<Repository>,
     pub error: Option<Error>,
@@ -211,7 +211,7 @@ impl Application {
     }
 }
 
-fn render_error<T: Terminal + Sync + Send + 'static>(view: &mut View<T>, error: &Error) {
+fn render_error(view: &mut View, error: &Error) {
     let mut presenter = view.build_presenter().unwrap();
 
     let entries = presenter.status_line_entries(&[StatusLineData {
@@ -236,7 +236,7 @@ fn initialize_preferences() -> Rc<RefCell<Preferences>> {
     ))
 }
 
-fn create_workspace<T: Terminal + Sync + Send + 'static>(view: &mut View<T>, args: &Vec<String>) -> Result<Workspace> {
+fn create_workspace(view: &mut View, args: &Vec<String>) -> Result<Workspace> {
     // Discard the executable portion of the argument list.
     let mut path_args = args.iter().skip(1).peekable();
 
