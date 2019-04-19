@@ -1,7 +1,7 @@
 use crate::view::{Colors, Style};
 use std::borrow::Cow;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Cell<'c> {
     pub content: Cow<'c, str>,
     pub colors: Colors,

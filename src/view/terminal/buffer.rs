@@ -35,9 +35,10 @@ impl<'c> TerminalBuffer<'c> {
 
 #[cfg(test)]
 mod tests {
-    use crate::view::color::Colors;
+    use crate::view::{Colors, Style};
     use crate::view::terminal::Cell;
     use scribe::buffer::Position;
+    use std::borrow::Cow;
     use super::TerminalBuffer;
 
     #[test]
@@ -61,7 +62,7 @@ mod tests {
     #[test]
     fn set_cell_sets_correct_cell() {
         let mut buffer = TerminalBuffer::new(5, 10);
-        let cell = Cell{ content: "a", colors: Colors::Default };
+        let cell = Cell{ content: Cow::from("a"), colors: Colors::Default, style: Style::Default };
         buffer.set_cell(Position{ line: 2, offset: 1 }, cell.clone());
 
         assert_eq!(buffer.cells[11], cell);
@@ -70,7 +71,7 @@ mod tests {
     #[test]
     fn clear_resets_cells_to_default() {
         let mut buffer = TerminalBuffer::new(5, 10);
-        let cell = Cell{ content: " ", colors: Colors::Default };
+        let cell = Cell{ content: Cow::from(" "), colors: Colors::Default, style: Style::Default };
         buffer.set_cell(Position{ line: 2, offset: 1 }, cell.clone());
 
         assert_eq!(buffer.cells[11], cell);

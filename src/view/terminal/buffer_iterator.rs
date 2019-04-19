@@ -34,17 +34,18 @@ impl<'c> Iterator for TerminalBufferIterator<'c> {
 #[cfg(test)]
 mod tests {
     use scribe::buffer::Position;
+    use std::borrow::Cow;
     use super::TerminalBufferIterator;
     use crate::view::terminal::Cell;
-    use crate::view::color::Colors;
+    use crate::view::{Colors, Style};
 
     #[test]
     fn terminal_buffer_iterator_yields_lines_of_cells() {
         let width = 2;
         let cells = vec![
-            Cell{ content: "a", colors: Colors::Default },
-            Cell{ content: "m", colors: Colors::Default },
-            Cell{ content: "p", colors: Colors::Default }
+            Cell{ content: Cow::from("a"), colors: Colors::Default, style: Style::Default },
+            Cell{ content: Cow::from("m"), colors: Colors::Default, style: Style::Default },
+            Cell{ content: Cow::from("p"), colors: Colors::Default, style: Style::Default }
         ];
         let mut iterator = TerminalBufferIterator::new(width, &cells);
 

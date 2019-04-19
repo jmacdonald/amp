@@ -383,13 +383,14 @@ mod tests {
     use crate::models::application::Preferences;
     use scribe::{Buffer, Workspace};
     use scribe::buffer::Position;
+    use scribe::util::LineIterator;
     use std::cell::RefCell;
     use std::collections::HashMap;
     use std::path::{Path, PathBuf};
     use std::rc::Rc;
     use super::{BufferRenderer, LexemeMapper, MappedLexeme};
     use syntect::highlighting::ThemeSet;
-    use crate::view::terminal::{Terminal, TestTerminal};
+    use crate::view::terminal::{Terminal, TerminalBuffer, TestTerminal};
     use crate::yaml::yaml::YamlLoader;
 
     #[test]
@@ -401,7 +402,10 @@ mod tests {
         buffer.insert("\t\t\t");
         workspace.add_buffer(buffer);
 
+        let data = workspace.current_buffer().unwrap().data();
+        let lines = LineIterator::new(&data);
         let mut terminal = TestTerminal::new();
+        let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
         let theme_set = ThemeSet::load_defaults();
         let data = YamlLoader::load_from_str("tab_width: 100").unwrap().into_iter().nth(0).unwrap();
         let preferences = Preferences::new(Some(data));
@@ -409,13 +413,13 @@ mod tests {
         BufferRenderer::new(
             workspace.current_buffer().unwrap(),
             None,
-            None,
             0,
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
-            &Rc::new(RefCell::new(HashMap::new()))
-        ).render().unwrap();
+            &Rc::new(RefCell::new(HashMap::new())),
+            &mut terminal_buffer
+        ).render(lines, None).unwrap();
     }
 
     #[test]
@@ -429,7 +433,10 @@ mod tests {
         buffer.insert("\t\txy");
         workspace.add_buffer(buffer);
 
+        let data = workspace.current_buffer().unwrap().data();
+        let lines = LineIterator::new(&data);
         let mut terminal = TestTerminal::new();
+        let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
         let theme_set = ThemeSet::load_defaults();
         let data = YamlLoader::load_from_str("tab_width: 2").unwrap().into_iter().nth(0).unwrap();
         let preferences = Preferences::new(Some(data));
@@ -437,13 +444,13 @@ mod tests {
         BufferRenderer::new(
             workspace.current_buffer().unwrap(),
             None,
-            None,
             0,
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
-            &Rc::new(RefCell::new(HashMap::new()))
-        ).render().unwrap();
+            &Rc::new(RefCell::new(HashMap::new())),
+            &mut terminal_buffer
+        ).render(lines, None).unwrap();
 
         // Both tabs should fully expand.
         assert_eq!(terminal.content(), " 1      xy");
@@ -460,7 +467,10 @@ mod tests {
         buffer.insert("\t \txy");
         workspace.add_buffer(buffer);
 
+        let data = workspace.current_buffer().unwrap().data();
+        let lines = LineIterator::new(&data);
         let mut terminal = TestTerminal::new();
+        let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
         let theme_set = ThemeSet::load_defaults();
         let data = YamlLoader::load_from_str("tab_width: 2").unwrap().into_iter().nth(0).unwrap();
         let preferences = Preferences::new(Some(data));
@@ -468,13 +478,13 @@ mod tests {
         BufferRenderer::new(
             workspace.current_buffer().unwrap(),
             None,
-            None,
             0,
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
-            &Rc::new(RefCell::new(HashMap::new()))
-        ).render().unwrap();
+            &Rc::new(RefCell::new(HashMap::new())),
+            &mut terminal_buffer
+        ).render(lines, None).unwrap();
 
         // The space between the tabs should just eat into the second tab's width.
         assert_eq!(terminal.content(), " 1      xy");
@@ -489,20 +499,23 @@ mod tests {
         buffer.insert("amp editor\nsecond line\n");
         workspace.add_buffer(buffer);
 
+        let data = workspace.current_buffer().unwrap().data();
+        let lines = LineIterator::new(&data);
         let mut terminal = TestTerminal::new();
+        let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
         let theme_set = ThemeSet::load_defaults();
         let preferences = Preferences::new(None);
 
         BufferRenderer::new(
             workspace.current_buffer().unwrap(),
             None,
-            None,
             0,
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
-            &Rc::new(RefCell::new(HashMap::new()))
-        ).render().unwrap();
+            &Rc::new(RefCell::new(HashMap::new())),
+            &mut terminal_buffer
+        ).render(lines, None).unwrap();
 
         assert_eq!(
             terminal.content(),
@@ -526,20 +539,23 @@ mod tests {
         buffer.insert("original");
         workspace.add_buffer(buffer);
 
+        let data = workspace.current_buffer().unwrap().data();
+        let lines = LineIterator::new(&data);
         let mut terminal = TestTerminal::new();
+        let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
         let theme_set = ThemeSet::load_defaults();
         let preferences = Preferences::new(None);
 
         BufferRenderer::new(
             workspace.current_buffer().unwrap(),
             None,
-            Some(&mut TestMapper{}),
             0,
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
-            &Rc::new(RefCell::new(HashMap::new()))
-        ).render().unwrap();
+            &Rc::new(RefCell::new(HashMap::new())),
+            &mut terminal_buffer
+        ).render(lines, Some(&mut TestMapper{})).unwrap();
 
         assert_eq!(terminal.content(), " 1  mapped");
     }
@@ -553,20 +569,23 @@ mod tests {
         buffer.insert("\n");
         workspace.add_buffer(buffer);
 
+        let data = workspace.current_buffer().unwrap().data();
+        let lines = LineIterator::new(&data);
         let mut terminal = TestTerminal::new();
+        let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
         let theme_set = ThemeSet::load_defaults();
         let preferences = Preferences::new(None);
 
         let cursor_position = BufferRenderer::new(
             workspace.current_buffer().unwrap(),
             None,
-            None,
             0,
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
-            &Rc::new(RefCell::new(HashMap::new()))
-        ).render().unwrap();
+            &Rc::new(RefCell::new(HashMap::new())),
+            &mut terminal_buffer
+        ).render(lines, None).unwrap();
 
         assert_eq!(cursor_position, Some(Position{ line: 0, offset: 4 }));
     }
@@ -583,7 +602,10 @@ mod tests {
         }
         workspace.add_buffer(buffer);
 
+        let data = workspace.current_buffer().unwrap().data();
+        let lines = LineIterator::new(&data);
         let mut terminal = TestTerminal::new();
+        let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
         let theme_set = ThemeSet::load_defaults();
         let preferences = Preferences::new(None);
         let render_cache = Rc::new(RefCell::new(HashMap::new()));
@@ -591,13 +613,13 @@ mod tests {
         BufferRenderer::new(
             workspace.current_buffer().unwrap(),
             None,
-            None,
             495,
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
-            &render_cache
-        ).render().unwrap();
+            &render_cache,
+            &mut terminal_buffer
+        ).render(lines, None).unwrap();
 
         assert_eq!(render_cache.borrow().keys().count(), 5);
     }
@@ -613,7 +635,10 @@ mod tests {
         }
         workspace.add_buffer(buffer);
 
+        let data = workspace.current_buffer().unwrap().data();
+        let lines = LineIterator::new(&data);
         let mut terminal = TestTerminal::new();
+        let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
         let theme_set = ThemeSet::load_defaults();
         let preferences = Preferences::new(None);
         let render_cache = Rc::new(RefCell::new(HashMap::new()));
@@ -623,13 +648,13 @@ mod tests {
         BufferRenderer::new(
             workspace.current_buffer().unwrap(),
             None,
-            None,
             95,
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
-            &render_cache
-        ).render().unwrap();
+            &render_cache,
+            &mut terminal_buffer
+        ).render(lines, None).unwrap();
 
         assert_eq!(render_cache.borrow().keys().count(), 1);
         let initial_cache = render_cache.borrow().values().nth(0).unwrap().clone();
@@ -639,16 +664,19 @@ mod tests {
         // the cache is being used.
         workspace.current_buffer().unwrap().insert("\"");
 
+        let data2 = workspace.current_buffer().unwrap().data();
+        let lines2 = LineIterator::new(&data2);
+
         BufferRenderer::new(
             workspace.current_buffer().unwrap(),
-            None,
             None,
             495,
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
-            &render_cache
-        ).render().unwrap();
+            &render_cache,
+            &mut terminal_buffer
+        ).render(lines2, None).unwrap();
 
         assert_eq!(render_cache.borrow().keys().count(), 5);
         for value in render_cache.borrow().values() {
@@ -667,7 +695,10 @@ mod tests {
         }
         workspace.add_buffer(buffer);
 
+        let mut data = workspace.current_buffer().unwrap().data();
+        let mut lines = LineIterator::new(&data);
         let mut terminal = TestTerminal::new();
+        let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
         let theme_set = ThemeSet::load_defaults();
         let preferences = Preferences::new(None);
         let render_cache = Rc::new(RefCell::new(HashMap::new()));
@@ -677,13 +708,13 @@ mod tests {
         BufferRenderer::new(
             workspace.current_buffer().unwrap(),
             None,
-            None,
             95,
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
-            &render_cache
-        ).render().unwrap();
+            &render_cache,
+            &mut terminal_buffer
+        ).render(lines, None).unwrap();
 
         assert_eq!(render_cache.borrow().keys().count(), 1);
         terminal.clear();
@@ -692,17 +723,19 @@ mod tests {
         // text in the buffer; it's how we'll confirm that
         // the cache is being used.
         workspace.current_buffer().unwrap().insert("\"");
+        let data2 = workspace.current_buffer().unwrap().data();
+        let lines2 = LineIterator::new(&data2);
 
         BufferRenderer::new(
             workspace.current_buffer().unwrap(),
-            None,
             None,
             200,
             &mut terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
-            &render_cache
-        ).render().unwrap();
+            &render_cache,
+            &mut terminal_buffer
+        ).render(lines2, None).unwrap();
 
         assert_eq!(
             terminal.content(),

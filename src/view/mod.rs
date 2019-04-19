@@ -239,10 +239,9 @@ mod tests {
 
     #[test]
     fn scroll_down_prevents_scrolling_completely_beyond_buffer() {
-        let terminal = Arc::new(TestTerminal::new());
         let preferences = Rc::new(RefCell::new(Preferences::new(None)));
         let (tx, _) = mpsc::channel();
-        let mut view = View::new(terminal, preferences, tx).unwrap();
+        let mut view = View::new(preferences, tx).unwrap();
 
         // Build a 10-line buffer.
         let mut buffer = Buffer::new();
@@ -264,10 +263,9 @@ mod tests {
 
     #[test]
     fn scroll_down_prevents_scrolling_when_buffer_is_smaller_than_top_half() {
-        let terminal = Arc::new(TestTerminal::new());
         let preferences = Rc::new(RefCell::new(Preferences::new(None)));
         let (tx, _) = mpsc::channel();
-        let mut view = View::new(terminal, preferences, tx).unwrap();
+        let mut view = View::new(preferences, tx).unwrap();
 
         // Build a 2-line buffer and try to scroll it.
         let mut buffer = Buffer::new();
@@ -318,10 +316,9 @@ mod tests {
 
     #[test]
     fn initialize_buffer_creates_render_cache_for_buffer() {
-        let terminal = Arc::new(TestTerminal::new());
         let preferences = Rc::new(RefCell::new(Preferences::new(None)));
         let (tx, _) = mpsc::channel();
-        let mut view = View::new(terminal.clone(), preferences, tx).unwrap();
+        let mut view = View::new(preferences, tx).unwrap();
         let mut buffer = Buffer::new();
         buffer.id = Some(1);
 
@@ -332,10 +329,9 @@ mod tests {
 
     #[test]
     fn initialize_buffer_sets_change_callback_to_clear_render_cache() {
-        let terminal = Arc::new(TestTerminal::new());
         let preferences = Rc::new(RefCell::new(Preferences::new(None)));
         let (tx, _) = mpsc::channel();
-        let mut view = View::new(terminal.clone(), preferences, tx).unwrap();
+        let mut view = View::new(preferences, tx).unwrap();
 
         // Set up a buffer with a syntax definition and id.
         let mut workspace = Workspace::new(Path::new(".")).unwrap();
