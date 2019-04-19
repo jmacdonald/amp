@@ -146,3 +146,52 @@ impl<'p> Presenter<'p> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::models::application::Preferences;
+    use crate::view::View;
+    use scribe::{Buffer, Workspace};
+    use std::cell::RefCell;
+    use std::path::{Path, PathBuf};
+    use std::rc::Rc;
+    use std::sync::{mpsc, Arc};
+
+    #[test]
+    fn draw_buffer_initializes_renderer_with_cached_state() {
+        let preferences = Rc::new(RefCell::new(Preferences::new(None)));
+        let (tx, _) = mpsc::channel();
+        let mut view = View::new(preferences, tx).unwrap();
+
+        // Set up a Rust-categorized buffer.
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.id = Some(0);
+        buffer.path = Some(PathBuf::from("rust.rs"));
+        for _ in 0..200 {
+            buffer.insert("line\n");
+        }
+
+        // Initialize the buffer's render cache, but get rid of the callback
+        // so that we can test the cache without it being invalidated.
+        view.initialize_buffer(&mut buffer).unwrap();
+        // buffer.change_callback = None;
+        workspace.add_buffer(buffer);
+
+        // Scroll down enough to trigger caching during the render process.
+        view.scroll_down(workspace.current_buffer().unwrap(), 105).unwrap();
+
+        // Ensure there is nothing in the render cache for this buffer.
+        let mut cache = view.get_render_cache(workspace.current_buffer().unwrap()).unwrap();
+        assert_eq!(cache.borrow().iter().count(), 0);
+
+        // Draw the buffer.
+        let mut presenter = view.build_presenter().unwrap();
+        let data = workspace.current_buffer().unwrap().data();
+        presenter.draw_buffer(workspace.current_buffer().unwrap(), &data, None, None).unwrap();
+
+        // Ensure there is something in the render cache for this buffer.
+        cache = view.get_render_cache(workspace.current_buffer().unwrap()).unwrap();
+        assert_ne!(cache.borrow().iter().count(), 0);
+    }
+}

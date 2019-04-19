@@ -278,43 +278,6 @@ mod tests {
     }
 
     #[test]
-    fn draw_buffer_caches_render_states() {
-        let terminal = Arc::new(TestTerminal::new());
-        let preferences = Rc::new(RefCell::new(Preferences::new(None)));
-        let (tx, _) = mpsc::channel();
-        let mut view = View::new(terminal.clone(), preferences, tx).unwrap();
-
-        // Set up a Rust-categorized buffer.
-        let mut workspace = Workspace::new(Path::new(".")).unwrap();
-        let mut buffer = Buffer::new();
-        buffer.id = Some(0);
-        buffer.path = Some(PathBuf::from("rust.rs"));
-        for _ in 0..200 {
-            buffer.insert("line\n");
-        }
-
-        // Initialize the buffer's render cache, but get rid of the callback
-        // so that we can test the cache without it being invalidated.
-        view.initialize_buffer(&mut buffer).unwrap();
-        buffer.change_callback = None;
-        workspace.add_buffer(buffer);
-
-        // Scroll down enough to trigger caching.
-        view.scroll_down(workspace.current_buffer().unwrap(), 105).unwrap();
-
-        // Draw the buffer and capture the terminal data.
-        view.draw_buffer(workspace.current_buffer().unwrap(), None, None).unwrap();
-        let initial_data = terminal.data();
-
-        // By inserting a single quote, we'll change the color of the entire
-        // buffer. We'll then check the terminal to ensure the color hasn't
-        // actually changed, because of the cache.
-        workspace.current_buffer().unwrap().insert("\"");
-        view.draw_buffer(workspace.current_buffer().unwrap(), None, None).unwrap();
-        assert_eq!(terminal.data(), initial_data);
-    }
-
-    #[test]
     fn initialize_buffer_creates_render_cache_for_buffer() {
         let preferences = Rc::new(RefCell::new(Preferences::new(None)));
         let (tx, _) = mpsc::channel();
