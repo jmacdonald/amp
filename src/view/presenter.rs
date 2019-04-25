@@ -78,8 +78,8 @@ impl<'p> Presenter<'p> {
                 offset + cell.content.graphemes(true).count()
             });
         }
-        self.view.terminal.present();
         self.view.terminal.set_cursor(self.cursor_position);
+        self.view.terminal.present();
     }
 
     pub fn draw_buffer(&mut self, buffer: &Buffer, buffer_data: &'p str, highlights: Option<&[Range]>, mut lexeme_mapper: Option<&'p mut LexemeMapper>) -> Result<()> {
