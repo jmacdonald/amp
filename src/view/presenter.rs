@@ -58,6 +58,10 @@ impl<'p> Presenter<'p> {
     }
 
     pub fn present(&mut self) {
+        // We don't want to actually render the cursor while it's
+        // being moved around the screen to print content.
+        self.view.terminal.set_cursor(None);
+
         for (line, cells) in self.terminal_buffer.iter().enumerate() {
             cells.iter().enumerate().fold(0, |offset, (cell_no, cell)| {
                 // Cells can contain multiple graphemes, and their content
