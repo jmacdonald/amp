@@ -88,7 +88,7 @@ impl<'a, 'p, T: Terminal + Sync + Send + 'static> BufferRenderer<'a, 'p, T> {
 
             self.print(Position{ line: self.screen_position.line, offset },
                        Style::Default,
-                       self.theme.map_colors(colors),
+                       colors,
                        " ");
         }
     }
@@ -133,9 +133,9 @@ impl<'a, 'p, T: Terminal + Sync + Send + 'static> BufferRenderer<'a, 'p, T> {
                         // We're inside of one of the highlighted areas.
                         // Return early with highlight colors.
                         if range.includes(&self.buffer.cursor) {
-                            return (Style::Bold, self.theme.map_colors(Colors::SelectMode))
+                            return (Style::Bold, Colors::SelectMode)
                         } else {
-                            return (Style::Inverted, self.theme.map_colors(Colors::Default))
+                            return (Style::Inverted, Colors::Default)
                         }
                     }
                 }
@@ -157,7 +157,7 @@ impl<'a, 'p, T: Terminal + Sync + Send + 'static> BufferRenderer<'a, 'p, T> {
             },
         };
 
-        (style, self.theme.map_colors(colors))
+        (style, colors)
     }
 
     pub fn print_lexeme<L: Into<Cow<'p, str>>>(&mut self, lexeme: L) {
@@ -312,7 +312,7 @@ impl<'a, 'p, T: Terminal + Sync + Send + 'static> BufferRenderer<'a, 'p, T> {
         self.print(
             Position{ line: self.screen_position.line, offset: 0 },
             weight,
-            self.theme.map_colors(Colors::Focused),
+            Colors::Focused,
             line_number
         );
 
@@ -325,7 +325,7 @@ impl<'a, 'p, T: Terminal + Sync + Send + 'static> BufferRenderer<'a, 'p, T> {
         self.print(
             Position{ line: self.screen_position.line, offset: self.line_numbers.width() },
             weight,
-            self.theme.map_colors(gap_color),
+            gap_color,
             " "
         );
 
@@ -370,7 +370,8 @@ impl<'a, 'p, T: Terminal + Sync + Send + 'static> BufferRenderer<'a, 'p, T> {
     fn print<C>(&mut self, position: Position, style: Style, colors: Colors, content: C)
         where C: Into<Cow<'p, str>>
     {
-        let cell = Cell{ content: content.into(), style, colors };
+        let mapped_colors = self.theme.map_colors(colors);
+        let cell = Cell{ content: content.into(), style, colors: mapped_colors };
         self.terminal_buffer.set_cell(position, cell);
     }
 }
