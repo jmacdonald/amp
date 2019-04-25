@@ -83,7 +83,7 @@ impl<'a, 'p, T: Terminal + Sync + Send + 'static> BufferRenderer<'a, 'p, T> {
             let colors = if on_cursor_line || guide_offset.map(|go| go == offset).unwrap_or(false) {
                 Colors::Focused
             } else {
-                Colors::Blank
+                Colors::Default
             };
 
             self.print(Position{ line: self.screen_position.line, offset },

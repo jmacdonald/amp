@@ -5,7 +5,6 @@ use crate::view::color::RGBColor;
 /// discourage color selection outside of the theme, whenever possible.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Colors {
-    Blank,         // blank/blank
     Default,       // default/background
     Focused,       // default/alt background
     Inverted,      // background/default

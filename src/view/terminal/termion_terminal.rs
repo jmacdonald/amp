@@ -70,7 +70,7 @@ impl TermionTerminal {
                             if let Ok(color_guard) = self.current_colors.lock() {
                                 if let Some(ref current_colors) = *color_guard {
                                     match *current_colors {
-                                        Colors::Blank => { let _ = write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
+                                        Colors::Default => { let _ = write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
                                         Colors::Custom(fg, bg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(bg)); }
                                         Colors::CustomForeground(fg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(color::Reset)); }
                                         _ => (),
@@ -94,7 +94,7 @@ impl TermionTerminal {
                 if let Ok(mut color_guard) = self.current_colors.lock() {
                     if Some(&colors) != color_guard.as_ref() {
                         match colors {
-                            Colors::Blank => { let _ = write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
+                            Colors::Default => { let _ = write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
                             Colors::Custom(fg, bg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(bg)); }
                             Colors::CustomForeground(fg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(color::Reset)); }
                             _ => (),

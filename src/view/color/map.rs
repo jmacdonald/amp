@@ -27,7 +27,6 @@ impl ColorMap for Theme {
             unwrap_or(RGBColor(55, 55, 55));
 
         match colors {
-            Colors::Blank => Colors::Blank,
             Colors::Default => Colors::CustomForeground(fg),
             Colors::Focused => Colors::Custom(fg, alt_bg),
             Colors::Inverted => Colors::Custom(bg, fg),
