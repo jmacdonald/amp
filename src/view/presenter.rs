@@ -148,7 +148,7 @@ impl<'p> Presenter<'p> {
         where C: Into<Cow<'p, str>>
     {
         let mapped_colors = self.theme.map_colors(colors);
-        let cell = Cell{ content: content.into(), style, colors };
+        let cell = Cell{ content: content.into(), style, colors: mapped_colors };
         self.terminal_buffer.set_cell(*position, cell);
 
         Ok(())
