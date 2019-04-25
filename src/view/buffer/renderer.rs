@@ -317,14 +317,18 @@ impl<'a, 'p, T: Terminal + Sync + Send + 'static> BufferRenderer<'a, 'p, T> {
         );
 
         // Leave a one-column gap between line numbers and buffer content.
-        if self.on_cursor_line() {
-            self.print(
-                Position{ line: self.screen_position.line, offset: self.line_numbers.width() },
-                weight,
-                self.theme.map_colors(Colors::Focused),
-                " "
-            );
-        }
+        let gap_color = if self.on_cursor_line() {
+            Colors::Focused
+        } else {
+            Colors::Default
+        };
+        self.print(
+            Position{ line: self.screen_position.line, offset: self.line_numbers.width() },
+            weight,
+            self.theme.map_colors(gap_color),
+            " "
+        );
+
         self.screen_position.offset = self.line_numbers.width() + 1;
     }
 
