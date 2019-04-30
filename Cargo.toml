@@ -34,7 +34,10 @@ yaml-rust = "0.3.5"
 smallvec = "0.4.3"
 lazy_static = "1.2.0"
 mio = "0.6"
-signal-hook = "0.1.9"
+
+[dependencies.signal-hook]
+version = "0.1.9"
+features = ["mio-support"]
 
 [dev-dependencies]
 criterion = "0.2.0"
