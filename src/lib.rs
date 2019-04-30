@@ -11,6 +11,7 @@ extern crate mio;
 extern crate pad;
 extern crate regex;
 extern crate scribe;
+extern crate signal_hook;
 extern crate syntect;
 extern crate unicode_segmentation;
 extern crate clipboard;
