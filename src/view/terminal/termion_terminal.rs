@@ -21,15 +21,18 @@ use std::sync::Mutex;
 use std::time::Duration;
 use crate::view::{Colors, Style};
 use unicode_segmentation::UnicodeSegmentation;
+use signal_hook::iterator::Signals;
 
 use self::termion::event::Key as TermionKey;
 use crate::input::Key;
 use crate::models::application::Event;
 
 const STDIN_INPUT: Token = Token(0);
+const RESIZE: Token = Token(1);
 
 pub struct TermionTerminal {
     event_listener: Poll,
+    signals: Signals,
     input: Mutex<Option<Keys<Stdin>>>,
     output: Mutex<Option<BufWriter<RawTerminal<Stdout>>>>,
     current_style: Mutex<Option<Style>>,
@@ -40,8 +43,11 @@ pub struct TermionTerminal {
 impl TermionTerminal {
     #[allow(dead_code)]
     pub fn new() -> TermionTerminal {
+        let (event_listener, signals) = create_event_listener().unwrap();
+
         TermionTerminal {
-            event_listener: create_event_listener().unwrap(),
+            event_listener,
+            signals,
             input: Mutex::new(Some(stdin().keys())),
             output: Mutex::new(Some(create_output_instance())),
             current_style: Mutex::new(None),
@@ -128,31 +134,39 @@ impl Terminal for TermionTerminal {
         // Check for events on stdin.
         let mut events = Events::with_capacity(1);
         self.event_listener.poll(&mut events, Some(Duration::from_millis(100)));
-        if events.is_empty() { return None };
+        if let Some(event) = events.iter().next() {
+            match event.token() {
+                STDIN_INPUT => {
+                    let mut guard = self.input.lock().ok()?;
+                    let input_handle = guard.as_mut()?;
+                    let input_data = input_handle.next()?;
+                    let key = input_data.ok()?;
 
-        let mut guard = self.input.lock().ok()?;
-        let input_handle = guard.as_mut()?;
-        let input_data = input_handle.next()?;
-        let key = input_data.ok()?;
-
-        match key {
-            TermionKey::Backspace => Some(Event::Key(Key::Backspace)),
-            TermionKey::Left => Some(Event::Key(Key::Left)),
-            TermionKey::Right => Some(Event::Key(Key::Right)),
-            TermionKey::Up => Some(Event::Key(Key::Up)),
-            TermionKey::Down => Some(Event::Key(Key::Down)),
-            TermionKey::Home => Some(Event::Key(Key::Home)),
-            TermionKey::End => Some(Event::Key(Key::End)),
-            TermionKey::PageUp => Some(Event::Key(Key::PageUp)),
-            TermionKey::PageDown => Some(Event::Key(Key::PageDown)),
-            TermionKey::Delete => Some(Event::Key(Key::Delete)),
-            TermionKey::Insert => Some(Event::Key(Key::Insert)),
-            TermionKey::Esc => Some(Event::Key(Key::Esc)),
-            TermionKey::Char('\n') => Some(Event::Key(Key::Enter)),
-            TermionKey::Char('\t') => Some(Event::Key(Key::Tab)),
-            TermionKey::Char(c) => Some(Event::Key(Key::Char(c))),
-            TermionKey::Ctrl(c) => Some(Event::Key(Key::Ctrl(c))),
-            _ => None,
+                    match key {
+                        TermionKey::Backspace => Some(Event::Key(Key::Backspace)),
+                        TermionKey::Left => Some(Event::Key(Key::Left)),
+                        TermionKey::Right => Some(Event::Key(Key::Right)),
+                        TermionKey::Up => Some(Event::Key(Key::Up)),
+                        TermionKey::Down => Some(Event::Key(Key::Down)),
+                        TermionKey::Home => Some(Event::Key(Key::Home)),
+                        TermionKey::End => Some(Event::Key(Key::End)),
+                        TermionKey::PageUp => Some(Event::Key(Key::PageUp)),
+                        TermionKey::PageDown => Some(Event::Key(Key::PageDown)),
+                        TermionKey::Delete => Some(Event::Key(Key::Delete)),
+                        TermionKey::Insert => Some(Event::Key(Key::Insert)),
+                        TermionKey::Esc => Some(Event::Key(Key::Esc)),
+                        TermionKey::Char('\n') => Some(Event::Key(Key::Enter)),
+                        TermionKey::Char('\t') => Some(Event::Key(Key::Tab)),
+                        TermionKey::Char(c) => Some(Event::Key(Key::Char(c))),
+                        TermionKey::Ctrl(c) => Some(Event::Key(Key::Ctrl(c))),
+                        _ => None,
+                    }
+                },
+                RESIZE => Some(Event::Resize),
+                _ => None,
+            }
+        } else {
+            None
         }
     }
 
@@ -281,7 +295,9 @@ fn terminal_size() -> (usize, usize) {
         .unwrap_or((0, 0))
 }
 
-fn create_event_listener() -> Result<Poll> {
+fn create_event_listener() -> Result<(Poll, Signals)> {
+    let signals = Signals::new(&[signal_hook::SIGWINCH])
+        .chain_err(|| "Failed to initialize event listener signal")?;
     let event_listener = Poll::new().chain_err(|| "Failed to establish polling")?;
     event_listener.register(
         &EventedFd(&stdin().as_raw_fd()),
@@ -289,8 +305,14 @@ fn create_event_listener() -> Result<Poll> {
         Ready::readable(),
         PollOpt::edge()
     ).chain_err(|| "Failed to register stdin to event listener")?;
+    event_listener.register(
+        &signals,
+        RESIZE,
+        Ready::readable(),
+        PollOpt::level()
+    ).chain_err(|| "Failed to register resize signal to event listener")?;
 
-    Ok(event_listener)
+    Ok((event_listener, signals))
 }
 
 fn create_output_instance() -> BufWriter<RawTerminal<Stdout>> {
