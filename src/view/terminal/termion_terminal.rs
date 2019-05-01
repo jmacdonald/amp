@@ -162,7 +162,12 @@ impl Terminal for TermionTerminal {
                         _ => None,
                     }
                 },
-                RESIZE => Some(Event::Resize),
+                RESIZE => {
+                    // Consume the resize signal so it doesn't trigger again.
+                    self.signals.into_iter().next();
+
+                    Some(Event::Resize)
+                }
                 _ => None,
             }
         } else {
