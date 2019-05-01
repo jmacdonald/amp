@@ -42,10 +42,10 @@ pub struct TermionTerminal {
 
 impl TermionTerminal {
     #[allow(dead_code)]
-    pub fn new() -> TermionTerminal {
-        let (event_listener, signals) = create_event_listener().unwrap();
+    pub fn new() -> Result<TermionTerminal> {
+        let (event_listener, signals) = create_event_listener()?;
 
-        TermionTerminal {
+        Ok(TermionTerminal {
             event_listener,
             signals,
             input: Mutex::new(Some(stdin().keys())),
@@ -53,7 +53,7 @@ impl TermionTerminal {
             current_style: Mutex::new(None),
             current_colors: Mutex::new(None),
             current_position: Mutex::new(Position::new()),
-        }
+        })
     }
 
     // Clears any pre-existing styles.

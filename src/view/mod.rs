@@ -62,7 +62,7 @@ pub struct View {
 
 impl View {
     pub fn new(preferences: Rc<RefCell<Preferences>>, event_channel: Sender<Event>) -> Result<View> {
-        let terminal = build_terminal();
+        let terminal = build_terminal().chain_err(|| "Failed to initialize terminal")?;
         let theme_path = preferences.borrow().theme_path()?;
         let theme_set = ThemeLoader::new(theme_path).load()?;
 
@@ -213,14 +213,14 @@ fn buffer_key(buffer: &Buffer) -> Result<usize> {
 }
 
 #[cfg(not(any(test, feature = "bench")))]
-fn build_terminal() -> Arc<TermionTerminal> {
-    Arc::new(TermionTerminal::new())
+fn build_terminal() -> Result<Arc<TermionTerminal>> {
+    Ok(Arc::new(TermionTerminal::new()?))
 }
 
 #[cfg(any(test, feature = "bench"))]
-fn build_terminal() -> Arc<TestTerminal> {
+fn build_terminal() -> Result<Arc<TestTerminal>> {
     // Use a headless terminal if we're in test mode.
-    Arc::new(TestTerminal::new())
+    Ok(Arc::new(TestTerminal::new()))
 }
 
 #[cfg(test)]
