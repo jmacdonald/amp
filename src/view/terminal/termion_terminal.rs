@@ -308,7 +308,7 @@ fn create_event_listener() -> Result<(Poll, Signals)> {
         &EventedFd(&stdin().as_raw_fd()),
         STDIN_INPUT,
         Ready::readable(),
-        PollOpt::edge()
+        PollOpt::level()
     ).chain_err(|| "Failed to register stdin to event listener")?;
     event_listener.register(
         &signals,
