@@ -93,10 +93,10 @@ impl Application {
 
     fn render(&mut self) {
         if let Err(error) = self.present() {
-            render_error(&mut self.view, &error);
+            presenters::error::display(&mut self.workspace, &mut self.view, &error);
         } else if let Some(ref error) = self.error {
             // Display an error from previous command invocation, if one exists.
-            render_error(&mut self.view, error);
+            presenters::error::display(&mut self.workspace, &mut self.view, error);
         }
     }
 
@@ -208,25 +208,6 @@ impl Application {
             Mode::Exit => None,
         }
     }
-}
-
-fn render_error(view: &mut View, error: &Error) {
-    let mut presenter = view.build_presenter().unwrap();
-
-    let entries = presenter.status_line_entries(&[StatusLineData {
-        content: error.description().to_string(),
-        style: view::Style::Bold,
-        colors: view::Colors::Warning,
-    }]);
-    for (position, style, colors, content) in entries.iter() {
-        presenter.print(
-            position,
-            *style,
-            *colors,
-            content
-        );
-    }
-    presenter.present();
 }
 
 fn initialize_preferences() -> Rc<RefCell<Preferences>> {

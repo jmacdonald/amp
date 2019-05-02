@@ -1,3 +1,4 @@
+pub mod error;
 pub mod modes;
 
 use std::path::{Path, PathBuf};
