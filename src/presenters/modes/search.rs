@@ -58,7 +58,7 @@ pub fn display(workspace: &mut Workspace, mode: &SearchMode, view: &mut View) ->
             *style,
             *colors,
             content
-        )?;
+        );
     }
 
     // Move the cursor to the end of the search query input.

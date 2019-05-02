@@ -148,15 +148,13 @@ impl<'p> Presenter<'p> {
         status_line_entries
     }
 
-    pub fn print<C>(&mut self, position: &Position, style: Style, colors: Colors, content: C) -> Result<()>
+    pub fn print<C>(&mut self, position: &Position, style: Style, colors: Colors, content: C)
         where C: Into<Cow<'p, str>>
     {
         self.terminal_buffer.set_cell(
             *position,
             Cell{ content: content.into(), style, colors }
         );
-
-        Ok(())
     }
 }
 

@@ -42,7 +42,7 @@ pub fn display(workspace: &mut Workspace, mode: &PathMode, view: &mut View) -> R
             *style,
             *colors,
             content
-        )?;
+        );
     }
 
     // Move the cursor to the end of the search query input.

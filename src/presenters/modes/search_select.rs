@@ -41,7 +41,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
             *style,
             *colors,
             content
-        )?;
+        );
     }
 
     if let Some(message) = mode.message() {
@@ -49,7 +49,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
         presenter.print(&Position{ line: 0, offset: 0 },
                    Style::Default,
                    Colors::Default,
-                   &padded_message)?;
+                   &padded_message);
     } else {
         // Draw the list of search results.
         for (line, result) in mode.results().enumerate() {
@@ -67,7 +67,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
         }
 
         for (position, style, colors, content) in padded_content.iter() {
-            presenter.print(position, *style, *colors, content)?;
+            presenter.print(position, *style, *colors, content);
         }
     }
 
@@ -81,7 +81,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
         ));
     }
     for (position, style, colors, content) in remaining_lines.iter() {
-        presenter.print(position, *style, *colors, content)?;
+        presenter.print(position, *style, *colors, content);
     }
 
     // Draw the divider.
@@ -95,7 +95,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
     presenter.print(&Position{ line, offset: 0 },
                Style::Bold,
                colors,
-               &padded_content)?;
+               &padded_content);
 
     // Place the cursor on the search input line, right after its contents.
     presenter.set_cursor(Some(Position {

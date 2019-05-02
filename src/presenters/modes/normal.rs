@@ -40,7 +40,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
                 *style,
                 *colors,
                 content
-            )?;
+            );
         }
         presenter.present();
     } else {
@@ -59,7 +59,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
                 offset: presenter.width() / 2 - line.chars().count() / 2
             };
 
-            presenter.print(&position, Style::Default, Colors::Default, line)?;
+            presenter.print(&position, Style::Default, Colors::Default, line);
         }
 
         presenter.set_cursor(None);

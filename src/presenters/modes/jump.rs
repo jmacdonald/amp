@@ -32,7 +32,7 @@ pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) 
             *style,
             *colors,
             content
-        )?;
+        );
     }
 
     // Don't display a cursor.

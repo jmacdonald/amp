@@ -26,7 +26,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View) -> Result<()> {
             *style,
             *colors,
             content
-        )?;
+        );
     }
 
     // Render the changes to the screen.

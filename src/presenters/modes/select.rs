@@ -32,7 +32,7 @@ pub fn display(workspace: &mut Workspace, mode: &SelectMode, view: &mut View) ->
             *style,
             *colors,
             content
-        )?;
+        );
     }
 
     // Render the changes to the screen.
