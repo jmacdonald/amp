@@ -75,7 +75,7 @@ impl<'p> Presenter<'p> {
                 self.view.terminal.print(
                     &Position{ line, offset },
                     cell.style,
-                    cell.colors,
+                    self.theme.map_colors(cell.colors),
                     &cell.content,
                 );
 
@@ -151,9 +151,10 @@ impl<'p> Presenter<'p> {
     pub fn print<C>(&mut self, position: &Position, style: Style, colors: Colors, content: C) -> Result<()>
         where C: Into<Cow<'p, str>>
     {
-        let mapped_colors = self.theme.map_colors(colors);
-        let cell = Cell{ content: content.into(), style, colors: mapped_colors };
-        self.terminal_buffer.set_cell(*position, cell);
+        self.terminal_buffer.set_cell(
+            *position,
+            Cell{ content: content.into(), style, colors }
+        );
 
         Ok(())
     }
