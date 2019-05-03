@@ -12,7 +12,7 @@ pub fn display(workspace: &mut Workspace, mode: &SelectLineMode, view: &mut View
     let data = buf.data();
 
     // Draw the visible set of tokens to the terminal.
-    presenter.draw_buffer(buf, &data, Some(&[selected_range]), None)?;
+    presenter.print_buffer(buf, &data, Some(&[selected_range]), None)?;
 
     presenter.print_status_line(&[
         StatusLineData {

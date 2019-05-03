@@ -86,7 +86,7 @@ impl<'p> Presenter<'p> {
         self.view.terminal.present();
     }
 
-    pub fn draw_buffer(&mut self, buffer: &Buffer, buffer_data: &'p str, highlights: Option<&[Range]>, mut lexeme_mapper: Option<&'p mut LexemeMapper>) -> Result<()> {
+    pub fn print_buffer(&mut self, buffer: &Buffer, buffer_data: &'p str, highlights: Option<&[Range]>, mut lexeme_mapper: Option<&'p mut LexemeMapper>) -> Result<()> {
         let scroll_offset = self.view.get_region(buffer)?.line_offset();
         let lines = LineIterator::new(buffer_data);
 
@@ -169,7 +169,7 @@ mod tests {
     use std::sync::{mpsc, Arc};
 
     #[test]
-    fn draw_buffer_initializes_renderer_with_cached_state() {
+    fn print_buffer_initializes_renderer_with_cached_state() {
         let preferences = Rc::new(RefCell::new(Preferences::new(None)));
         let (tx, _) = mpsc::channel();
         let mut view = View::new(preferences, tx).unwrap();
@@ -199,7 +199,7 @@ mod tests {
         // Draw the buffer.
         let mut presenter = view.build_presenter().unwrap();
         let data = workspace.current_buffer().unwrap().data();
-        presenter.draw_buffer(workspace.current_buffer().unwrap(), &data, None, None).unwrap();
+        presenter.print_buffer(workspace.current_buffer().unwrap(), &data, None, None).unwrap();
 
         // Ensure there is something in the render cache for this buffer.
         cache = view.get_render_cache(workspace.current_buffer().unwrap()).unwrap();

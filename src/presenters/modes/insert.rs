@@ -10,7 +10,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View) -> Result<()> {
     let data = buf.data();
 
     // Draw the visible set of tokens to the terminal.
-    presenter.draw_buffer(buf, &data, None, None)?;
+    presenter.print_buffer(buf, &data, None, None)?;
 
     presenter.print_status_line(&[
         StatusLineData {

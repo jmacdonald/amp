@@ -11,7 +11,7 @@ pub fn display(workspace: &mut Workspace, mode: &PathMode, view: &mut View) -> R
     // Draw the visible set of tokens to the terminal.
     let buffer = workspace.current_buffer().ok_or(BUFFER_MISSING)?;
     let data = buffer.data();
-    presenter.draw_buffer(buffer, &data, None, None)?;
+    presenter.print_buffer(buffer, &data, None, None)?;
 
     let mode_display = format!(" {} ", mode);
     let search_input = format!(

@@ -8,7 +8,7 @@ pub fn display(workspace: &mut Workspace, mode: &LineJumpMode, view: &mut View) 
     let mut presenter = view.build_presenter()?;
     let buf = workspace.current_buffer().ok_or(BUFFER_MISSING)?;
     let data = buf.data();
-    presenter.draw_buffer(buf, &data, None, None)?;
+    presenter.print_buffer(buf, &data, None, None)?;
 
     // Draw the status line as an input prompt.
     let input_prompt = format!("Go to line: {}", mode.input);

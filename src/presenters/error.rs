@@ -10,7 +10,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, error: &Error) {
     let mut data = String::new();
     if let Some(buffer) = workspace.current_buffer() {
         data = buffer.data();
-        presenter.draw_buffer(buffer, &data, None, None);
+        presenter.print_buffer(buffer, &data, None, None);
     }
 
     presenter.print_status_line(&[StatusLineData {
