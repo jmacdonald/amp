@@ -13,18 +13,11 @@ pub fn display(workspace: &mut Workspace, view: &mut View, error: &Error) {
         presenter.draw_buffer(buffer, &data, None, None);
     }
 
-    let entries = presenter.status_line_entries(&[StatusLineData {
+    presenter.print_status_line(&[StatusLineData {
         content: error.description().to_string(),
         style: Style::Bold,
         colors: Colors::Warning,
     }]);
-    for (position, style, colors, content) in entries.iter() {
-        presenter.print(
-            position,
-            *style,
-            *colors,
-            content
-        );
-    }
+
     presenter.present();
 }

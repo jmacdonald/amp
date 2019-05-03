@@ -22,7 +22,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
         };
 
         // Build the status line mode and buffer title display.
-        let status_line_data = [
+        presenter.print_status_line(&[
             StatusLineData {
                 content: " NORMAL ".to_string(),
                 style: Style::Default,
@@ -30,18 +30,8 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
             },
             buffer_status,
             git_status_line_data(&repo, &buf.path)
-        ];
+        ]);
 
-        // Draw the status line.
-        let status_line_entries = presenter.status_line_entries(&status_line_data);
-        for (position, style, colors, content) in status_line_entries.iter() {
-            presenter.print(
-                position,
-                *style,
-                *colors,
-                content
-            );
-        }
         presenter.present();
     } else {
         let content = vec![

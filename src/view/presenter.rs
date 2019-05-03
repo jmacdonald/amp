@@ -104,18 +104,17 @@ impl<'p> Presenter<'p> {
         Ok(())
     }
 
-    pub fn status_line_entries(&mut self, data: &[StatusLineData]) -> Vec<(Position, Style, Colors, String)> {
+    pub fn print_status_line(&mut self, entries: &[StatusLineData]) {
         let line = self.view.terminal.height() - 1;
-        let mut status_line_entries = Vec::new();
 
-        data.iter().enumerate().fold(0, |offset, (index, element)| {
-            let content = match data.len() {
+        entries.iter().enumerate().fold(0, |offset, (index, element)| {
+            let content = match entries.len() {
                 1 => {
                     // There's only one element; have it fill the line.
                     element.content.pad_to_width(self.view.terminal.width())
                 },
                 2 => {
-                    if index == data.len() - 1 {
+                    if index == entries.len() - 1 {
                         // Expand the last element to fill the remaining width.
                         element.content.pad_to_width(self.view.terminal.width() - offset)
                     } else {
@@ -123,9 +122,9 @@ impl<'p> Presenter<'p> {
                     }
                 },
                 _ => {
-                    if index == data.len() - 2 {
+                    if index == entries.len() - 2 {
                         // Before-last element extends to fill unused space.
-                        element.content.pad_to_width(self.view.terminal.width() - offset - data[index+1].content.len())
+                        element.content.pad_to_width(self.view.terminal.width() - offset - entries[index+1].content.len())
                     } else {
                         element.content.clone()
                     }
@@ -135,17 +134,15 @@ impl<'p> Presenter<'p> {
             // Update the tracked offset.
             let updated_offset = offset + content.len();
 
-            status_line_entries.push((
-                Position{ line, offset },
+            self.print(
+                &Position{ line, offset },
                 element.style,
                 element.colors,
                 content
-            ));
+            );
 
             updated_offset
         });
-
-        status_line_entries
     }
 
     pub fn print<C>(&mut self, position: &Position, style: Style, colors: Colors, content: C)

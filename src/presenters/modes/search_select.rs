@@ -15,7 +15,6 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
     let mut padded_message = String::new();
     let mut padded_content = Vec::new();
     let mut remaining_lines = Vec::new();
-    let mut status_line_entries = Vec::new();
     let mut data;
 
     let buffer_status = current_buffer_status_line_data(workspace);
@@ -24,8 +23,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
         data = buf.data();
         presenter.draw_buffer(buf, &data, None, None)?;
 
-        // Draw the status line.
-        status_line_entries = presenter.status_line_entries(&[
+        presenter.print_status_line(&[
             StatusLineData {
                 content: format!(" {} ", mode),
                 style: Style::Default,
@@ -33,15 +31,6 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMod
             },
             buffer_status
         ]);
-    }
-
-    for (position, style, colors, content) in status_line_entries.iter() {
-        presenter.print(
-            position,
-            *style,
-            *colors,
-            content
-        );
     }
 
     if let Some(message) = mode.message() {
