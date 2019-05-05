@@ -19,16 +19,6 @@ pub fn add(app: &mut Application) -> Result {
     index.write().chain_err(|| "Failed to write index.")
 }
 
-fn get_gh_path(url: &str) -> errors::Result<&str> {
-    lazy_static! {
-        static ref regex: Regex =
-            Regex::new(r"^(?:https://|git@)github.com(?::|/)(.*?)(?:.git)?$").unwrap();
-    }
-    regex.captures(url).and_then(|c| c.at(1)).chain_err(|| {
-        "Failed to capture remote repo path"
-    })
-}
-
 pub fn copy_remote_url(app: &mut Application) -> Result {
     if let Some(ref mut repo) = app.repository {
         let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
@@ -102,6 +92,16 @@ pub fn copy_remote_url(app: &mut Application) -> Result {
     commands::application::switch_to_normal_mode(app)?;
 
     Ok(())
+}
+
+fn get_gh_path(url: &str) -> errors::Result<&str> {
+    lazy_static! {
+        static ref REGEX: Regex =
+            Regex::new(r"^(?:https://|git@)github.com(?::|/)(.*?)(?:.git)?$").unwrap();
+    }
+    REGEX.captures(url).and_then(|c| c.at(1)).chain_err(|| {
+        "Failed to capture remote repo path"
+    })
 }
 
 #[test]

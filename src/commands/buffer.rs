@@ -113,7 +113,7 @@ pub fn merge_next_line(app: &mut Application) -> Result {
                                              if index == current_line {
                                                  format!("{} ", line)
                                              } else {
-                                                 line.trim_left().to_string()
+                                                 line.trim_start().to_string()
                                              }
                                          })
                                          .collect();
