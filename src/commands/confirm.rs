@@ -1,6 +1,5 @@
 use crate::commands::{self, Result};
 use crate::models::application::{Application, Mode};
-use crate::view::Terminal;
 
 pub fn confirm_command(app: &mut Application) -> Result {
     let command =

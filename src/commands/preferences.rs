@@ -1,7 +1,6 @@
 use crate::commands::Result;
 use crate::models::application::{Application, Preferences};
 use crate::util;
-use crate::view::Terminal;
 
 pub fn edit(app: &mut Application) -> Result {
     let preference_buffer = Preferences::edit()?;

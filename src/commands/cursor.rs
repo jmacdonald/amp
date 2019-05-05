@@ -1,7 +1,6 @@
 use crate::errors::*;
 use crate::commands::{self, Result};
 use crate::util::token::{Direction, adjacent_token_position};
-use crate::view::Terminal;
 use crate::models::application::Application;
 use scribe::buffer::Position;
 use super::{application, buffer};

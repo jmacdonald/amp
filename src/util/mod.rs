@@ -6,7 +6,6 @@ pub mod token;
 
 use crate::errors::*;
 use crate::models::Application;
-use crate::view::Terminal;
 use scribe::buffer::{Buffer, LineRange, Position, Range};
 
 /// Translates a line range to a regular range, including its last line.

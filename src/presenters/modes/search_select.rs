@@ -6,7 +6,7 @@ use pad::PadStr;
 use crate::presenters::current_buffer_status_line_data;
 use scribe::Workspace;
 use scribe::buffer::Position;
-use crate::view::{Colors, StatusLineData, Style, Terminal, View};
+use crate::view::{Colors, StatusLineData, Style, View};
 use unicode_segmentation::UnicodeSegmentation;
 
 pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMode<T>, view: &mut View) -> Result<()> {

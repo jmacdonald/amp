@@ -2,7 +2,6 @@ use crate::errors::*;
 use crate::commands::{self, Result};
 use crate::input::Key;
 use crate::models::application::{Application, Mode};
-use crate::view::Terminal;
 use std::path::PathBuf;
 
 pub fn push_char(app: &mut Application) -> Result {

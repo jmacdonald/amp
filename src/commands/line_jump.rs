@@ -2,7 +2,6 @@ use crate::errors::*;
 use crate::input::Key;
 use crate::commands::{self, Result};
 use crate::models::application::{Application, Mode};
-use crate::view::Terminal;
 use scribe::buffer::Position;
 
 pub fn accept_input(app: &mut Application) -> Result {

@@ -20,8 +20,7 @@ use std::env;
 use std::path::Path;
 use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender};
-use std::sync::Arc;
-use crate::view::{self, StatusLineData, View};
+use crate::view::View;
 
 pub enum Mode {
     Confirm(ConfirmMode),

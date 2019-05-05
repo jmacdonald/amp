@@ -8,7 +8,6 @@ mod test_terminal;
 
 use crate::models::application::Event;
 use scribe::buffer::Position;
-use std::borrow::Cow;
 use crate::view::{Colors, Style};
 
 pub use self::buffer::TerminalBuffer;

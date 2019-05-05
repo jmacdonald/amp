@@ -2,7 +2,6 @@ use crate::errors::*;
 use crate::input::Key;
 use crate::commands::{self, Result};
 use crate::models::application::{Application, Mode};
-use crate::view::Terminal;
 
 pub fn move_to_previous_result(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {

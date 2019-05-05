@@ -5,7 +5,6 @@ use std::mem;
 use crate::models::application::modes::open::DisplayablePath;
 use crate::models::application::{Application, Mode};
 use crate::models::application::modes::SearchSelectMode;
-use crate::view::Terminal;
 
 pub fn accept(app: &mut Application) -> Result {
     // Consume the application mode. This is necessary because the selection in

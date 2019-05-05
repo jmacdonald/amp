@@ -4,7 +4,6 @@ use super::application;
 use crate::errors::*;
 use crate::commands::{self, Result};
 use crate::util;
-use crate::view::Terminal;
 
 pub fn delete(app: &mut Application) -> Result {
     if let Some(buffer) = app.workspace.current_buffer() {

@@ -4,7 +4,6 @@ use scribe::util::LineIterator;
 use crate::view::buffer::{LexemeMapper, MappedLexeme, RenderState};
 use crate::view::buffer::line_numbers::*;
 use crate::view::{Colors, RENDER_CACHE_FREQUENCY, RGBColor, Style};
-use crate::view::color::ColorMap;
 use crate::view::color::to_rgb_color;
 use crate::view::terminal::{Cell, Terminal, TerminalBuffer};
 use std::borrow::Cow;

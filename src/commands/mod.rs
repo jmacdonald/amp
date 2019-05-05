@@ -1,6 +1,5 @@
 use crate::errors;
 use crate::models::application::Application;
-use crate::view::Terminal;
 use std::collections::HashMap;
 
 pub mod application;

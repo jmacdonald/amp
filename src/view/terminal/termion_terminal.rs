@@ -13,7 +13,6 @@ use self::termion::{color, cursor};
 use self::termion::input::{Keys, TermRead};
 use self::termion::raw::{IntoRawMode, RawTerminal};
 use self::termion::style;
-use std::borrow::Cow;
 use std::io::{BufWriter, Stdin, stdin, stdout, Write};
 use std::fmt::Display;
 use std::ops::Drop;

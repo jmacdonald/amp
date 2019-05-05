@@ -3,7 +3,7 @@ use scribe::Workspace;
 use scribe::buffer::Position;
 use crate::models::application::modes::PathMode;
 use unicode_segmentation::UnicodeSegmentation;
-use crate::view::{Colors, StatusLineData, Style, Terminal, View};
+use crate::view::{Colors, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, mode: &PathMode, view: &mut View) -> Result<()> {
     let mut presenter = view.build_presenter()?;

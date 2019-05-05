@@ -2,7 +2,6 @@ use crate::errors::*;
 use crate::errors;
 use crate::commands::{self, Result};
 use crate::models::application::{Application, ClipboardContent, Mode};
-use crate::view::Terminal;
 use git2;
 use regex::Regex;
 

@@ -1,6 +1,6 @@
 use crate::errors::*;
 use scribe::Workspace;
-use crate::view::{Colors, StatusLineData, Style, Terminal, View};
+use crate::view::{Colors, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, view: &mut View) -> Result<()> {
     let mut presenter = view.build_presenter()?;

@@ -6,7 +6,6 @@ use std::mem;
 use crate::models::application::{Application, Mode};
 use crate::models::application::modes::*;
 use crate::util;
-use crate::view::Terminal;
 
 pub fn handle_input(app: &mut Application) -> Result {
     // Listen for and respond to user input.
