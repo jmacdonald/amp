@@ -62,25 +62,13 @@ impl<'p> Presenter<'p> {
         // being moved around the screen to print content.
         self.view.terminal.set_cursor(None);
 
-        for (line, cells) in self.terminal_buffer.iter().enumerate() {
-            cells.iter().enumerate().fold(0, |offset, (cell_no, cell)| {
-                // Cells can contain multiple graphemes, and their content
-                // should overlap adjacent cells. This does that by skipping
-                // cells until we're caught up to the offset the last printed
-                // cell took us to.
-                if cell_no < offset {
-                    return offset;
-                }
-
-                self.view.terminal.print(
-                    &Position{ line, offset },
-                    cell.style,
-                    self.theme.map_colors(cell.colors),
-                    &cell.content,
-                );
-
-                offset + cell.content.graphemes(true).count()
-            });
+        for (position, cell) in self.terminal_buffer.iter() {
+            self.view.terminal.print(
+                &position,
+                cell.style,
+                self.theme.map_colors(cell.colors),
+                &cell.content,
+            );
         }
         self.view.terminal.set_cursor(self.cursor_position);
         self.view.terminal.present();
@@ -204,41 +192,5 @@ mod tests {
         // Ensure there is something in the render cache for this buffer.
         cache = view.get_render_cache(workspace.current_buffer().unwrap()).unwrap();
         assert_ne!(cache.borrow().iter().count(), 0);
-    }
-
-    #[test]
-    fn present_handles_overlapping_cells_correctly() {
-        let preferences = Rc::new(RefCell::new(Preferences::new(None)));
-        let (tx, _) = mpsc::channel();
-        let mut view = View::new(preferences, tx).unwrap();
-
-        // Set up a Rust-categorized buffer.
-        let mut workspace = Workspace::new(Path::new(".")).unwrap();
-        let mut buffer = Buffer::new();
-        buffer.id = Some(0);
-        buffer.path = Some(PathBuf::from("rust.rs"));
-        for _ in 0..200 {
-            buffer.insert("line\n");
-        }
-
-        // Set up some overlapping data.
-        let mut presenter = view.build_presenter().unwrap();
-        presenter.terminal_buffer.set_cell(
-            Position{ line: 0, offset: 0 },
-            Cell{ content: Cow::from("amp"), ..Cell::default() }
-        );
-        presenter.terminal_buffer.set_cell(
-            Position{ line: 0, offset: 1 },
-            Cell{ content: Cow::from("b"), ..Cell::default() }
-        );
-        presenter.terminal_buffer.set_cell(
-            Position{ line: 0, offset: 2 },
-            Cell{ content: Cow::from("c"), ..Cell::default() }
-        );
-        presenter.present();
-
-        // Ensure that the overlapped data isn't presented.
-        let content = presenter.view.terminal.content();
-        assert_eq!(content.lines().nth(0).unwrap(), "amp       ");
     }
 }
