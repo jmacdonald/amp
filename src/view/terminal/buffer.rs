@@ -31,6 +31,24 @@ impl<'c> TerminalBuffer<'c> {
     pub fn iter(&self) -> TerminalBufferIterator {
         TerminalBufferIterator::new(self.width, &self.cells)
     }
+
+    #[cfg(test)]
+    // For testing purposes, produces a String representation of the
+    // terminal buffer that can be used to assert a particular state.
+    pub fn content(&self) -> String {
+        let mut content = String::new();
+        let mut line = 0;
+        for (position, cell) in self.iter() {
+            // Add newline characters to the representation.
+            if position.line > line {
+                content.push('\n');
+                line += 1;
+            }
+            content.push_str(&*cell.content);
+        }
+
+        content
+    }
 }
 
 #[cfg(test)]

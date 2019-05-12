@@ -458,7 +458,11 @@ mod tests {
         ).render(lines, None).unwrap();
 
         // Both tabs should fully expand.
-        assert_eq!(terminal.content(), " 1      xy");
+        let expected_content = " 1      xy";
+        assert_eq!(
+            &terminal_buffer.content()[0..expected_content.len()],
+            expected_content
+        );
     }
 
     #[test]
@@ -492,7 +496,11 @@ mod tests {
         ).render(lines, None).unwrap();
 
         // The space between the tabs should just eat into the second tab's width.
-        assert_eq!(terminal.content(), " 1      xy");
+        let expected_content = " 1      xy";
+        assert_eq!(
+            &terminal_buffer.content()[0..expected_content.len()],
+            expected_content
+        );
     }
 
     #[test]
@@ -522,9 +530,11 @@ mod tests {
             &mut terminal_buffer
         ).render(lines, None).unwrap();
 
+        let expected_content = " 1  amp ed\n    itor  \n 2  second\n     line \n 3        ";
         assert_eq!(
-            terminal.content(),
-            " 1  amp ed\n    itor  \n 2  second\n     line \n 3        ");
+            &terminal_buffer.content()[0..expected_content.len()],
+            expected_content
+        );
     }
 
     // Used to test lexeme mapper usage.
@@ -562,7 +572,11 @@ mod tests {
             &mut terminal_buffer
         ).render(lines, Some(&mut TestMapper{})).unwrap();
 
-        assert_eq!(terminal.content(), " 1  mapped");
+        let expected_content = " 1  mapped";
+        assert_eq!(
+            &terminal_buffer.content()[0..expected_content.len()],
+            expected_content
+        );
     }
 
     #[test]
@@ -742,8 +756,9 @@ mod tests {
             &mut terminal_buffer
         ).render(lines2, None).unwrap();
 
+        let expected_content = " 201  line\n 202  line\n 203  line\n 204      ";
         assert_eq!(
-            terminal.content(),
-            " 201  line\n 202  line\n 203  line\n 204      ");
+            &terminal_buffer.content()[0..expected_content.len()],
+            expected_content);
     }
 }
