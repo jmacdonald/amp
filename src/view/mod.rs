@@ -34,22 +34,9 @@ use syntect::highlighting::ThemeSet;
 
 const RENDER_CACHE_FREQUENCY: usize = 100;
 
-#[cfg(not(any(test, feature = "bench")))]
 pub struct View {
-    terminal: Arc<TermionTerminal>,
-    scrollable_regions: HashMap<usize, ScrollableRegion<TermionTerminal>>,
-    render_caches: HashMap<usize, Rc<RefCell<HashMap<usize, RenderState>>>>,
-    pub theme_set: ThemeSet,
-    preferences: Rc<RefCell<Preferences>>,
-    pub last_key: Option<Key>,
-    event_channel: Sender<Event>,
-    event_listener_killswitch: SyncSender<()>
-}
-
-#[cfg(any(test, feature = "bench"))]
-pub struct View {
-    terminal: Arc<TestTerminal>,
-    scrollable_regions: HashMap<usize, ScrollableRegion<TestTerminal>>,
+    terminal: Arc<Box<Terminal + Sync + Send + 'static>>,
+    scrollable_regions: HashMap<usize, ScrollableRegion>,
     render_caches: HashMap<usize, Rc<RefCell<HashMap<usize, RenderState>>>>,
     pub theme_set: ThemeSet,
     preferences: Rc<RefCell<Preferences>>,
@@ -140,18 +127,7 @@ impl View {
 
     // Tries to fetch a scrollable region for the specified buffer,
     // inserting (and returning a reference to) a new one if not.
-    #[cfg(not(any(test, feature = "bench")))]
-    fn get_region(&mut self, buffer: &Buffer) -> Result<&mut ScrollableRegion<TermionTerminal>> {
-        Ok(self.scrollable_regions
-            .entry(buffer_key(buffer)?)
-            .or_insert(
-                ScrollableRegion::new(self.terminal.clone())
-            )
-        )
-    }
-
-    #[cfg(any(test, feature = "bench"))]
-    fn get_region(&mut self, buffer: &Buffer) -> Result<&mut ScrollableRegion<TestTerminal>> {
+    fn get_region(&mut self, buffer: &Buffer) -> Result<&mut ScrollableRegion> {
         Ok(self.scrollable_regions
             .entry(buffer_key(buffer)?)
             .or_insert(
@@ -208,17 +184,6 @@ impl Drop for View {
 
 fn buffer_key(buffer: &Buffer) -> Result<usize> {
     buffer.id.ok_or_else(|| Error::from("Buffer ID doesn't exist"))
-}
-
-#[cfg(not(any(test, feature = "bench")))]
-fn build_terminal() -> Result<Arc<TermionTerminal>> {
-    Ok(Arc::new(TermionTerminal::new()?))
-}
-
-#[cfg(any(test, feature = "bench"))]
-fn build_terminal() -> Result<Arc<TestTerminal>> {
-    // Use a headless terminal if we're in test mode.
-    Ok(Arc::new(TestTerminal::new()))
 }
 
 #[cfg(test)]

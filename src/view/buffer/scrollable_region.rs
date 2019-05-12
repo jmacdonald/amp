@@ -7,13 +7,13 @@ use crate::view::terminal::Terminal;
 /// Abstract representation of a fixed-height section of the screen.
 /// Used to determine visible ranges of lines based on previous state,
 /// explicit line focus, and common scrolling implementation behaviours.
-pub struct ScrollableRegion<T: Terminal + Sync + Send + 'static> {
-    terminal: Arc<T>,
+pub struct ScrollableRegion {
+    terminal: Arc<Box<Terminal + Sync + Send + 'static>>,
     line_offset: usize,
 }
 
-impl<T: Terminal + Sync + Send + 'static> ScrollableRegion<T> {
-    pub fn new(terminal: Arc<T>) -> ScrollableRegion<T> {
+impl ScrollableRegion {
+    pub fn new(terminal: Arc<Box<Terminal + Sync + Send + 'static>>) -> ScrollableRegion {
         ScrollableRegion {
             terminal,
             line_offset: 0,
@@ -128,12 +128,12 @@ impl<T: Terminal + Sync + Send + 'static> ScrollableRegion<T> {
 mod tests {
     use std::sync::Arc;
     use super::ScrollableRegion;
-    use crate::view::terminal::TestTerminal;
+    use crate::view::terminal::*;
     use scribe::buffer::{Buffer, Position};
 
     #[test]
     fn scroll_into_view_correctly_handles_additonal_rendered_trailing_newline() {
-        let terminal = Arc::new(TestTerminal::new());
+        let terminal = build_terminal().unwrap();
         let mut buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
         buffer.insert("\n\n");
@@ -144,7 +144,7 @@ mod tests {
 
     #[test]
     fn scroll_into_view_correctly_handles_additonal_rendered_trailing_newline_at_edge_of_region() {
-        let terminal = Arc::new(TestTerminal::new());
+        let terminal = build_terminal().unwrap();
         let mut buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
         for _ in 0..10 {
@@ -157,7 +157,7 @@ mod tests {
 
     #[test]
     fn scroll_into_view_advances_region_if_line_after_current_range() {
-        let terminal = Arc::new(TestTerminal::new());
+        let terminal = build_terminal().unwrap();
         let mut buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
         for _ in 0..10 {
@@ -170,7 +170,7 @@ mod tests {
 
     #[test]
     fn scroll_into_view_recedes_region_if_line_before_current_range() {
-        let terminal = Arc::new(TestTerminal::new());
+        let terminal = build_terminal().unwrap();
         let mut buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_down(10);
@@ -184,7 +184,7 @@ mod tests {
 
     #[test]
     fn scroll_into_view_considers_empty_lines_when_deciding_to_advance_region() {
-        let terminal = Arc::new(TestTerminal::new());
+        let terminal = build_terminal().unwrap();
         let mut buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
         for _ in 0..10 {
@@ -197,7 +197,7 @@ mod tests {
 
     #[test]
     fn scroll_into_view_advances_line_offset_if_preceding_lines_wrap() {
-        let terminal = Arc::new(TestTerminal::new());
+        let terminal = build_terminal().unwrap();
         let mut buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
         // Create a buffer with 10 lines when rendered to the screen,
@@ -216,7 +216,7 @@ mod tests {
 
     #[test]
     fn scroll_into_view_advances_line_offset_if_cursor_line_and_preceding_lines_wrap() {
-        let terminal = Arc::new(TestTerminal::new());
+        let terminal = build_terminal().unwrap();
         let mut buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
         // Create a buffer with 10 lines when rendered to the screen,
@@ -234,7 +234,7 @@ mod tests {
 
     #[test]
     fn scroll_to_center_sets_correct_line_offset() {
-        let terminal = Arc::new(TestTerminal::new());
+        let terminal = build_terminal().unwrap();
         let mut buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
         for _ in 0..20 {
@@ -247,7 +247,7 @@ mod tests {
 
     #[test]
     fn scroll_to_center_does_not_set_negative_offset() {
-        let terminal = Arc::new(TestTerminal::new());
+        let terminal = build_terminal().unwrap();
         let buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_to_center(&buffer);
@@ -256,7 +256,7 @@ mod tests {
 
     #[test]
     fn scroll_to_center_weighs_wrapped_lines_correctly() {
-        let terminal = Arc::new(TestTerminal::new());
+        let terminal = build_terminal().unwrap();
         let mut buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
         // Insert wrapped lines at the top.
@@ -276,7 +276,7 @@ mod tests {
 
     #[test]
     fn scroll_to_center_considers_space_beyond_end_of_buffer() {
-        let terminal = Arc::new(TestTerminal::new());
+        let terminal = build_terminal().unwrap();
         let mut buffer = Buffer::new();
         for _ in 0..6 {
             buffer.insert("\n");
@@ -289,7 +289,7 @@ mod tests {
 
     #[test]
     fn scroll_down_increases_line_offset_by_amount() {
-        let terminal = Arc::new(TestTerminal::new());
+        let terminal = build_terminal().unwrap();
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_down(10);
         assert_eq!(region.line_offset(), 10);
@@ -297,7 +297,7 @@ mod tests {
 
     #[test]
     fn scroll_up_decreases_line_offset_by_amount() {
-        let terminal = Arc::new(TestTerminal::new());
+        let terminal = build_terminal().unwrap();
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_down(10);
         region.scroll_up(5);
@@ -306,7 +306,7 @@ mod tests {
 
     #[test]
     fn scroll_up_does_not_scroll_beyond_top_of_region() {
-        let terminal = Arc::new(TestTerminal::new());
+        let terminal = build_terminal().unwrap();
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_up(5);
         assert_eq!(region.line_offset(), 0);

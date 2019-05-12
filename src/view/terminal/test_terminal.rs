@@ -117,7 +117,7 @@ mod tests {
 
     #[test]
     fn print_sets_terminal_data_correctly() {
-        let terminal = TestTerminal::new();
+        let terminal = Box::new(TestTerminal::new());
         terminal.print(&Position{ line: 0, offset: 0 }, Style::Default, Colors::Default, &"data");
 
         assert_eq!(terminal.content(), "data");
@@ -125,7 +125,7 @@ mod tests {
 
     #[test]
     fn data_uses_newlines_and_spaces_to_represent_structure() {
-        let terminal = TestTerminal::new();
+        let terminal = Box::new(TestTerminal::new());
 
         // Setting a non-zero x coordinate on a previous line exercises column resetting.
         terminal.print(&Position{ line: 0, offset: 2 }, Style::Default, Colors::Default, &"some");

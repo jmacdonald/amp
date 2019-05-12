@@ -82,7 +82,7 @@ impl<'p> Presenter<'p> {
             buffer,
             highlights,
             scroll_offset,
-            &*self.view.terminal,
+            &**self.view.terminal,
             &self.theme,
             &self.view.preferences.borrow(),
             self.view.get_render_cache(buffer)?,

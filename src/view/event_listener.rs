@@ -4,16 +4,16 @@ use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
 use crate::view::Terminal;
 
-pub struct EventListener<T: Terminal + Sync + Send + 'static> {
-    terminal: Arc<T>,
+pub struct EventListener {
+    terminal: Arc<Box<Terminal + Sync + Send + 'static>>,
     events: Sender<Event>,
     killswitch: Receiver<()>
 }
 
-impl<T: Terminal + Sync + Send + 'static> EventListener<T> {
+impl EventListener {
     /// Spins up a thread that loops forever, waiting on terminal events
     /// and forwarding those to the application event channel.
-    pub fn start(terminal: Arc<T>, events: Sender<Event>, killswitch: Receiver<()>) {
+    pub fn start(terminal: Arc<Box<Terminal + Sync + Send + 'static>>, events: Sender<Event>, killswitch: Receiver<()>) {
         thread::spawn(move || {
             EventListener { terminal, events, killswitch }.listen();
         });
@@ -37,11 +37,11 @@ mod tests {
     use std::sync::Arc;
     use std::sync::mpsc;
     use super::EventListener;
-    use crate::view::terminal::TestTerminal;
+    use crate::view::terminal::*;
 
     #[test]
     fn start_listens_for_and_sends_key_events_from_terminal() {
-        let terminal = Arc::new(TestTerminal::new());
+        let terminal = build_terminal().unwrap();
         let (event_tx, event_rx) = mpsc::channel();
         let (_, killswitch_rx) = mpsc::sync_channel(0);
         EventListener::start(terminal.clone(), event_tx, killswitch_rx);
