@@ -58,10 +58,6 @@ impl TestTerminal {
 
         data
     }
-
-    pub fn data(&self) -> [[Option<(char, Colors)>; WIDTH]; HEIGHT] {
-        *self.data.lock().unwrap()
-    }
 }
 
 impl Terminal for TestTerminal {
