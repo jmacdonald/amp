@@ -6,14 +6,13 @@ use unicode_segmentation::UnicodeSegmentation;
 /// Iterates over the provided cells, yielding slices for each line.
 pub struct TerminalBufferIterator<'c> {
     index: usize,
-    line: usize,
     width: usize,
     cells: &'c Vec<Cell<'c>>,
 }
 
 impl<'c> TerminalBufferIterator<'c> {
     pub fn new(width: usize, cells: &'c Vec<Cell<'c>>) -> TerminalBufferIterator {
-        TerminalBufferIterator{ index: 0, line: 0, width, cells }
+        TerminalBufferIterator{ index: 0, width, cells }
     }
 }
 
