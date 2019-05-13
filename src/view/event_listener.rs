@@ -34,7 +34,6 @@ impl EventListener {
 mod tests {
     use crate::input::Key;
     use crate::models::application::Event;
-    use std::sync::Arc;
     use std::sync::mpsc;
     use super::EventListener;
     use crate::view::terminal::*;

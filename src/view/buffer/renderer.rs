@@ -714,8 +714,8 @@ mod tests {
         }
         workspace.add_buffer(buffer);
 
-        let mut data = workspace.current_buffer().unwrap().data();
-        let mut lines = LineIterator::new(&data);
+        let data = workspace.current_buffer().unwrap().data();
+        let lines = LineIterator::new(&data);
         let terminal = build_terminal().unwrap();
         let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
         let theme_set = ThemeSet::load_defaults();

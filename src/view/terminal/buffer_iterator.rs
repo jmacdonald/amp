@@ -1,6 +1,5 @@
 use crate::view::terminal::Cell;
 use scribe::buffer::Position;
-use std::cmp;
 use unicode_segmentation::UnicodeSegmentation;
 
 /// Iterates over the provided cells, yielding slices for each line.

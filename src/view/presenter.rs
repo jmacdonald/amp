@@ -3,14 +3,13 @@ use crate::view::buffer::{BufferRenderer, LexemeMapper};
 use crate::view::color::{ColorMap, Colors};
 use crate::view::StatusLineData;
 use crate::view::style::Style;
-use crate::view::terminal::{Cell, Terminal, TerminalBuffer};
+use crate::view::terminal::{Cell, TerminalBuffer};
 use crate::view::View;
 use pad::PadStr;
 use scribe::buffer::{Buffer, Position, Range};
 use scribe::util::LineIterator;
 use std::borrow::Cow;
 use syntect::highlighting::Theme;
-use unicode_segmentation::UnicodeSegmentation;
 
 pub struct Presenter<'p> {
     cursor_position: Option<Position>,
@@ -147,14 +146,11 @@ impl<'p> Presenter<'p> {
 mod tests {
     use crate::models::application::Preferences;
     use crate::view::View;
-    use crate::view::terminal::Cell;
     use scribe::{Buffer, Workspace};
-    use scribe::buffer::Position;
-    use std::borrow::Cow;
     use std::cell::RefCell;
     use std::path::{Path, PathBuf};
     use std::rc::Rc;
-    use std::sync::{mpsc, Arc};
+    use std::sync::mpsc;
 
     #[test]
     fn print_buffer_initializes_renderer_with_cached_state() {

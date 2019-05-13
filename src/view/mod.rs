@@ -190,13 +190,12 @@ fn buffer_key(buffer: &Buffer) -> Result<usize> {
 mod tests {
     use scribe::{Buffer, Workspace};
     use super::View;
-    use super::terminal::TestTerminal;
     use crate::models::application::Preferences;
     use scribe::buffer::Position;
     use std::cell::RefCell;
     use std::path::{Path, PathBuf};
     use std::rc::Rc;
-    use std::sync::{Arc, mpsc};
+    use std::sync::mpsc;
     use syntect::highlighting::{Highlighter, ThemeSet};
     use crate::view::buffer::RenderState;
 
