@@ -26,7 +26,7 @@ impl<'c> Iterator for TerminalBufferIterator<'c> {
                 offset: self.index % self.width
             };
             let cell = &self.cells[self.index];
-            self.index += cell.content.graphemes(true).count();
+            self.index += cell.content.graphemes(true).count().max(1);
 
             Some((position, cell))
         } else {
@@ -85,6 +85,20 @@ mod tests {
 
         assert_eq!(iterator.next(), Some((Position{ line: 0, offset: 0 }, &cells[0])));
         assert_eq!(iterator.next(), Some((Position{ line: 0, offset: 3 }, &cells[3])));
+        assert_eq!(iterator.next(), None);
+    }
+
+    #[test]
+    fn terminal_buffer_iterator_handles_empty_cells_correctly() {
+        let width = 4;
+        let cells = vec![
+            Cell{ content: Cow::from(""), colors: Colors::Default, style: Style::Default },
+            Cell{ content: Cow::from("a"), colors: Colors::Default, style: Style::Default },
+        ];
+        let mut iterator = TerminalBufferIterator::new(width, &cells);
+
+        assert_eq!(iterator.next(), Some((Position{ line: 0, offset: 0 }, &cells[0])));
+        assert_eq!(iterator.next(), Some((Position{ line: 0, offset: 1 }, &cells[1])));
         assert_eq!(iterator.next(), None);
     }
 }
