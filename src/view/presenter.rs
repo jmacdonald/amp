@@ -57,10 +57,6 @@ impl<'p> Presenter<'p> {
     }
 
     pub fn present(&mut self) {
-        // We don't want to actually render the cursor while it's
-        // being moved around the screen to print content.
-        self.view.terminal.set_cursor(None);
-
         for (position, cell) in self.terminal_buffer.iter() {
             self.view.terminal.print(
                 &position,

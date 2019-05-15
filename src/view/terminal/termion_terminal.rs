@@ -229,7 +229,7 @@ impl Terminal for TermionTerminal {
         }
     }
 
-    fn print<'a>(&self, position: &Position, style: Style, colors: Colors, content: &str) {
+    fn print<'a>(&self, target_position: &Position, style: Style, colors: Colors, content: &str) {
         self.update_style(style);
         self.update_colors(colors);
 
@@ -237,12 +237,11 @@ impl Terminal for TermionTerminal {
             if let Some(ref mut output) = *guard {
                 // Handle position updates.
                 if let Ok(mut current_position) = self.current_position.lock() {
-                    let next_position = *current_position + Distance{ lines: 0, offset: content.graphemes(true).count() };
-                    if *position != next_position {
+                    if *target_position != *current_position {
                         // We're not adjacent to the previous print; move the cursor.
-                        let _ = write!(output, "{}", cursor_position(position));
+                        let _ = write!(output, "{}", cursor_position(target_position));
                     }
-                    *current_position = *position;
+                    *current_position = *target_position + Distance{ lines: 0, offset: content.graphemes(true).count() };
                 }
 
                 // Now that style, color, and position have been
