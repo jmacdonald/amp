@@ -36,7 +36,7 @@ pub struct TermionTerminal {
     output: Mutex<Option<BufWriter<RawTerminal<Stdout>>>>,
     current_style: Mutex<Option<Style>>,
     current_colors: Mutex<Option<Colors>>,
-    current_position: Mutex<Position>,
+    current_position: Mutex<Option<Position>>,
 }
 
 impl TermionTerminal {
@@ -51,7 +51,7 @@ impl TermionTerminal {
             output: Mutex::new(Some(create_output_instance())),
             current_style: Mutex::new(None),
             current_colors: Mutex::new(None),
-            current_position: Mutex::new(Position::new()),
+            current_position: Mutex::new(None),
         })
     }
 
@@ -235,13 +235,20 @@ impl Terminal for TermionTerminal {
 
         if let Ok(mut guard) = self.output.lock() {
             if let Some(ref mut output) = *guard {
-                // Handle position updates.
+                // Handle cursor position updates.
                 if let Ok(mut current_position) = self.current_position.lock() {
-                    if *target_position != *current_position {
-                        // We're not adjacent to the previous print; move the cursor.
+                    if *current_position != Some(*target_position) {
+                        // We need to move the cursor to print here.
                         let _ = write!(output, "{}", cursor_position(target_position));
                     }
-                    *current_position = *target_position + Distance{ lines: 0, offset: content.graphemes(true).count() };
+
+                    // Track where the cursor is after printing.
+                    *current_position = Some(
+                        *target_position + Distance{
+                            lines: 0,
+                            offset: content.graphemes(true).count()
+                        }
+                    );
                 }
 
                 // Now that style, color, and position have been
@@ -255,6 +262,10 @@ impl Terminal for TermionTerminal {
         self.restore_cursor();
         self.set_cursor(Some(Position{ line: 0, offset: 0 }));
         self.present();
+
+        // Clear the current position so we're forced
+        // to move it on the first print after resuming.
+        self.current_position.lock().ok().take();
 
         // Terminal destructor cleans up for us.
         if let Ok(mut guard) = self.output.lock() {
