@@ -37,7 +37,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
         let content = vec![
             format!("Amp v{}", env!("CARGO_PKG_VERSION")),
             String::from("© 2015-2018 Jordan MacDonald"),
-            String::new(),
+            String::from(" "),
             String::from("Press \"?\" to view quick start guide")
         ];
         let line_count = content.iter().count();
