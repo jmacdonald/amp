@@ -637,7 +637,7 @@ pub fn remove_trailing_whitespace(app: &mut Application) -> Result {
             offset = 0;
             space_count = 0;
         } else {
-            if character == ' ' {
+            if character == ' ' || character == '\t' {
                 // We've run into a space; track it.
                 space_count += 1;
             } else {
@@ -1148,6 +1148,22 @@ mod tests {
         // Ensure that trailing whitespace is removed.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
                    "  amp\n\neditor");
+    }
+
+    #[test]
+    fn remove_trailing_whitespace_works_with_tab() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("\t\tamp\n\t\t\neditor\t");
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        super::remove_trailing_whitespace(&mut app).unwrap();
+
+        // Ensure that trailing whitespace is removed.
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "\t\tamp\n\neditor");
     }
 
     #[test]
