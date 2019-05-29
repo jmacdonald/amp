@@ -55,6 +55,10 @@ Key           | Action
 
 By default, Amp's open mode doesn't index `.git` directories. If you'd like to change that behaviour, [you can redefine the exclusion patterns](configuration.md#excluding-filesdirectories) in the application preferences.
 
+### Working with open files
+
+If you want to switch between open buffers you can either use `Tab` to switch to the next buffer or `Ctrl+l` to show a list of currently open buffers. You can also use `Ctrl+k` to show a list of modified buffers.
+
 ### Closing
 
 From normal mode press `q` to close the current buffer. If the file has

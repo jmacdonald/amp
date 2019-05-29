@@ -76,6 +76,8 @@ normal:
   ctrl-r: buffer::reload
   ctrl-z: application::suspend
   ctrl-c: application::exit
+  ctrl-l: application::switch_to_buffer_mode
+  ctrl-k: application::switch_to_modified_buffer_mode
   "?": application::display_quick_start_guide
 
 insert:

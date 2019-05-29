@@ -62,15 +62,18 @@ and they can be in any order. Once you've found a match, hit "enter". If it's
 further down the list, you can use the up/down keys, or hit "esc" and use the
 "jk" keys, instead. You can leave open mode by hitting "esc" again.
 
-If you'd like to create a new file, start by opening a new, empty buffer by 
+If you'd like to create a new file, start by opening a new, empty buffer by
 pressing "B".
 
 Managing Files
 ==============
 
-You can switch between open files using the "tab" key. Press "s" to save the 
-current buffer. If you're done with a buffer, you can close it by hitting "q". 
+You can switch between open files using the "tab" key. Press "s" to save the
+current buffer. If you're done with a buffer, you can close it by hitting "q".
 Amp will warn you if there are unsaved changes before closing the buffer.
+
+If you want to open a search view similar to the one you get when opening files
+you can hit "ctrl+l". If you want to see the currently modified files use "ctrl+k"
 
 Exiting
 =======

@@ -32,6 +32,7 @@ pub enum Mode {
     Path(PathMode),
     Normal,
     Open(OpenMode),
+    Buffer(BufferMode),
     Select(SelectMode),
     SelectLine(SelectLineMode),
     Search(SearchMode),
@@ -111,6 +112,11 @@ impl Application {
             Mode::Open(ref mut mode) => {
                 presenters::modes::search_select::display(&mut self.workspace, mode, &mut self.view)
             }
+            Mode::Buffer(ref mut mode) => {
+                presenters::modes::search_select::display(&mut self.workspace,
+                                                          mode,
+                                                          &mut self.view)
+            }
             Mode::Search(ref mode) => {
                 presenters::modes::search::display(&mut self.workspace, mode, &mut self.view)
             }
@@ -182,6 +188,11 @@ impl Application {
                 Some("search_select")
             },
             Mode::Open(ref mode) => if mode.insert_mode() {
+                Some("search_select_insert")
+            } else {
+                Some("search_select")
+            },
+            Mode::Buffer(ref mode) => if mode.insert_mode() {
                 Some("search_select_insert")
             } else {
                 Some("search_select")
