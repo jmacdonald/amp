@@ -7,6 +7,7 @@ mod preferences;
 pub use self::clipboard::ClipboardContent;
 pub use self::event::Event;
 pub use self::preferences::Preferences;
+pub use self::preferences::THEME_DEFAULT;
 
 use self::clipboard::Clipboard;
 use self::modes::*;
