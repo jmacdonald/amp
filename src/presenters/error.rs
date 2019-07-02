@@ -3,9 +3,9 @@ use scribe::Workspace;
 use crate::view::{Colors, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, view: &mut View, error: &Error) {
+    let data;
     let mut presenter = view.build_presenter().unwrap();
 
-    let mut data = String::new();
     if let Some(buffer) = workspace.current_buffer() {
         data = buffer.data();
         let _ = presenter.print_buffer(buffer, &data, None, None);

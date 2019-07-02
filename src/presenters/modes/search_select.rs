@@ -10,12 +10,12 @@ use crate::view::{Colors, StatusLineData, Style, View};
 use unicode_segmentation::UnicodeSegmentation;
 
 pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMode<T>, view: &mut View) -> Result<()> {
+    let data;
+    let padded_message;
     let mut presenter = view.build_presenter()?;
     let mode_config = mode.config().clone();
-    let mut padded_message = String::new();
     let mut padded_content = Vec::new();
     let mut remaining_lines = Vec::new();
-    let mut data;
 
     let buffer_status = current_buffer_status_line_data(workspace);
 
