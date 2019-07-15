@@ -1,3 +1,29 @@
+### 0.6.0
+
+* Added more information to quick start guide (thanks, John M-W!)
+* Added snapcraft build file (thanks, Alan Pope!)
+* Added proper delete key support (thanks, Jérôme Martin!)
+* Added https support to GitHub URL generation command (thanks, king6cong!)
+* Use a vendored version of OpenSSL (thanks, Cecile Tonglet!)
+* Fixed buffer::outdent_line when using hard tabs (thanks, Gaby!)
+* Fixed an issue where user syntax definitions were loaded after argument buffers (#122)
+* Update to compile with Rust 2018 edition
+* Added keybindings to support jumping directly into symbol and open modes from search mode
+* Handle missing themes gracefully, falling back to default (#149)
+* Migrate from termbox library to termion
+  * Removes termbox's build process Python dependency
+  * Adds 24-bit colour support
+  * Built a TerminalBuffer to allow successive screen updates within a single
+    render cycle without introducing screen flicker.
+    * Improves support for UTF-8 grapheme clusters.
+      * Since termbox uses 32-bit char values to represent cells, anything larger
+        than 32 bits, even if spilled over into adjacent cells, will be overwritten
+        by adjacent characters. The new TerminalBuffer type uses Cow<&str> values,
+        allowing arbitrary-length cells, which will be streamed to the terminal
+        and overlaid as a single visible "character", without any loss of data.
+    * Created a new Presenter type to hold the contents of this buffer, as well
+      as extract common bits of functionality from various mode-specific presenters.
+
 ### 0.5.2
 
 * Fixed a regression that would raise an error when trying to open Amp with a
