@@ -17,7 +17,8 @@ For a full overview, along with documentation and installation instructions, vis
 ![Amp screenshot](screenshot.png?raw=true "Amp")
 
 # Installation
-If you have Cargo installed:
+If you have Rust >= 1.31.1 installed:
 ```
 cargo install amp
 ```
+
