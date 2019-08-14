@@ -45,6 +45,15 @@ pub fn accept(app: &mut Application) -> Result {
                 bail!("Couldn't move to the selected symbol's position");
             }
         },
+        Mode::Syntax(ref mut mode) => {
+            let name = mode.selection().ok_or("No syntax selected")?;
+            let syntax =
+                app.workspace.syntax_set.find_syntax_by_name(name).and_then(|s|
+                    Some(s.clone())
+                );
+            let mut buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+            buffer.syntax_definition = syntax;
+        },
         _ => bail!("Can't accept selection outside of search select mode."),
     }
 
@@ -59,6 +68,7 @@ pub fn search(app: &mut Application) -> Result {
         Mode::Open(ref mut mode) => mode.search(),
         Mode::Theme(ref mut mode) => mode.search(),
         Mode::SymbolJump(ref mut mode) => mode.search(),
+        Mode::Syntax(ref mut mode) => mode.search(),
         _ => bail!("Can't search outside of search select mode."),
     };
 
@@ -71,6 +81,7 @@ pub fn select_next(app: &mut Application) -> Result {
         Mode::Open(ref mut mode) => mode.select_next(),
         Mode::Theme(ref mut mode) => mode.select_next(),
         Mode::SymbolJump(ref mut mode) => mode.select_next(),
+        Mode::Syntax(ref mut mode) => mode.select_next(),
         _ => bail!("Can't change selection outside of search select mode."),
     }
 
@@ -83,6 +94,7 @@ pub fn select_previous(app: &mut Application) -> Result {
         Mode::Open(ref mut mode) => mode.select_previous(),
         Mode::Theme(ref mut mode) => mode.select_previous(),
         Mode::SymbolJump(ref mut mode) => mode.select_previous(),
+        Mode::Syntax(ref mut mode) => mode.select_previous(),
         _ => bail!("Can't change selection outside of search select mode."),
     }
 
@@ -95,6 +107,7 @@ pub fn enable_insert(app: &mut Application) -> Result {
         Mode::Open(ref mut mode) => mode.set_insert_mode(true),
         Mode::Theme(ref mut mode) => mode.set_insert_mode(true),
         Mode::SymbolJump(ref mut mode) => mode.set_insert_mode(true),
+        Mode::Syntax(ref mut mode) => mode.set_insert_mode(true),
         _ => bail!("Can't change search insert state outside of search select mode"),
     }
 
@@ -107,6 +120,7 @@ pub fn disable_insert(app: &mut Application) -> Result {
         Mode::Open(ref mut mode) => mode.set_insert_mode(false),
         Mode::Theme(ref mut mode) => mode.set_insert_mode(false),
         Mode::SymbolJump(ref mut mode) => mode.set_insert_mode(false),
+        Mode::Syntax(ref mut mode) => mode.set_insert_mode(false),
         _ => bail!("Can't change search insert state outside of search select mode"),
     }
 
@@ -120,6 +134,7 @@ pub fn push_search_char(app: &mut Application) -> Result {
             Mode::Open(ref mut mode) => mode.push_search_char(c),
             Mode::Theme(ref mut mode) => mode.push_search_char(c),
             Mode::SymbolJump(ref mut mode) => mode.push_search_char(c),
+            Mode::Syntax(ref mut mode) => mode.push_search_char(c),
             _ => bail!("Can't push search character outside of search select mode"),
         }
     }
@@ -134,6 +149,7 @@ pub fn pop_search_token(app: &mut Application) -> Result {
         Mode::Open(ref mut mode) => mode.pop_search_token(),
         Mode::Theme(ref mut mode) => mode.pop_search_token(),
         Mode::SymbolJump(ref mut mode) => mode.pop_search_token(),
+        Mode::Syntax(ref mut mode) => mode.pop_search_token(),
         _ => bail!("Can't pop search token outside of search select mode"),
     }
 
@@ -147,6 +163,7 @@ pub fn step_back(app: &mut Application) -> Result {
         Mode::Open(ref mut mode) => mode.results().count(),
         Mode::Theme(ref mut mode) => mode.results().count(),
         Mode::SymbolJump(ref mut mode) => mode.results().count(),
+        Mode::Syntax(ref mut mode) => mode.results().count(),
         _ => bail!("Can't pop search token outside of search select mode"),
     };
 

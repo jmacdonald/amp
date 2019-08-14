@@ -139,7 +139,15 @@ keymap:
 
 ## Format/Language Support
 
-Most popular formats/languages have syntax highlighting and symbol support out of the box. If you're editing a file that doesn't, you can extend the built-in set with a custom syntax definition. Amp uses Sublime Text's [`.sublime-syntax`](https://www.sublimetext.com/docs/3/syntax.html) files, which can be placed in Amp's `syntaxes` configuration subdirectory.
+Most popular formats and languages have syntax highlighting and symbol support out of the box. If you have a file open that _isn't_ higlighted, there are a few things you can do.
+
+### Manually Picking a Definition
+
+It's possible Amp has a syntax definition for the current file, but it's not being applied because it doesn't recognize the current filename or extension as having been associated with the definition. You can explicitly apply a definition by pressing `#` to enter syntax mode, and searching by the language/format name. Unfortunately, as of this writing, this selection isn't persistent; you'll need to re-apply it every time you open the file.
+
+### Adding a New Definition
+
+If the language/format you're using isn't highlighted, and you can't find its definition using the manual selection tool described above, you'll need to add it. You can extend the built-in set with custom syntax definitions. Amp uses Sublime Text's [`.sublime-syntax`](https://www.sublimetext.com/docs/3/syntax.html) files, which can be placed in Amp's `syntaxes` configuration subdirectory.
 
 !!! tip
     If you're not sure where to look, run the `preferences::edit` command.

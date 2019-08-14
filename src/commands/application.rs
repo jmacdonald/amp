@@ -189,6 +189,25 @@ pub fn switch_to_path_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
+pub fn switch_to_syntax_mode(app: &mut Application) -> Result {
+    // We'll need a buffer to apply the syntax,
+    // so check before entering syntax mode.
+    let _ = app.workspace
+        .current_buffer()
+        .ok_or("Switching syntaxes requires an open buffer")?;
+
+    let config = app.preferences.borrow().search_select_config();
+    app.mode = Mode::Syntax(
+        SyntaxMode::new(
+            app.workspace.syntax_set.syntaxes().iter().map(|syntax| syntax.name.clone()).collect(),
+            config
+        ),
+    );
+    commands::search_select::search(app)?;
+
+    Ok(())
+}
+
 pub fn display_default_keymap(app: &mut Application) -> Result {
     commands::workspace::new_buffer(app)?;
 
