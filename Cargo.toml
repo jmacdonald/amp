@@ -21,7 +21,6 @@ scribe = "0.7.2"
 pad = "0.1.4"
 bloodhound = "0.5.4"
 luthor = "0.1.7"
-git2 = "0.8"
 fragment = "0.3.1"
 regex = "^0.1"
 libc = "0.2.4"
@@ -39,12 +38,14 @@ mio = "0.6"
 version = "0.1.9"
 features = ["mio-support"]
 
+[dependencies.git2]
+version = "0.10.1"
+# We use very little of the Git crate. Disabling its default features makes it
+# as bare as possible, and sidesteps its openssl dependency, among others.
+default-features = false # removes unused openssl dependency
+
 [dev-dependencies]
 criterion = "0.2.0"
-
-[features]
-bench = []
-vendored-openssl = ["git2/vendored-openssl"]
 
 [[bench]]
 name = "draw_buffer"
