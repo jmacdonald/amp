@@ -1,3 +1,11 @@
+### 0.6.1
+
+* Added the ability to choose a syntax definition for the current buffer
+* Updated `git2` dependency
+* Disabled unused `git2` features, removing transitive openssl dependency
+* Fixed an issue where tabs were ignored when removing trailing whitespace (thanks, BearOve!)
+* Specified Rust 1.31.1 (2018 Edition) as the minimum required version
+
 ### 0.6.0
 
 * Added more information to quick start guide (thanks, John M-W!)
