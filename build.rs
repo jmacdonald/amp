@@ -1,10 +1,12 @@
-extern crate syntex_syntax as syntax;
-
+use regex::Regex;
 use std::env;
-use std::fs::File;
+use std::fs::{self, File, read_to_string};
 use std::io::Write;
-use crate::syntax::parse::{parse_crate_from_file, ParseSess};
-use crate::syntax::ast::{ItemKind, Visibility};
+use std::path::Path;
+use std::result::Result;
+
+const COMMAND_REGEX: &'static str =
+    r"pub fn (.*)\(app: &mut Application\) -> Result";
 
 fn main() {
     generate_commands();
@@ -16,54 +18,64 @@ fn main() {
 /// command referencing via string, which is required for command mode, as well
 /// as user-defined keymaps.
 fn generate_commands() {
-    // Create the output file and write the opening lines.
-    let current_dir = env::current_dir().expect("Couldn't get the current directory");
+    let mut output = create_output_file().unwrap();
+    write_commands(&mut output).unwrap();
+    finalize_output_file(&mut output).unwrap();
+}
+
+fn create_output_file() -> Result<File, String> {
     let out_dir = env::var("OUT_DIR").expect("The compiler did not provide $OUT_DIR");
     let out_file: std::path::PathBuf = [&out_dir, "hash_map"].iter().collect();
-    let mut output = File::create(&out_file)
-        .expect(&format!("Couldn't create output file: {}", out_file.to_string_lossy()));
-    output
+    let mut file = File::create(&out_file).map_err(|_| {
+        format!("Couldn't create output file: {}", out_file.to_string_lossy())
+    })?;
+    file
         .write("{\n    let mut commands: HashMap<&'static str, Command> = HashMap::new();\n"
                    .as_bytes())
-        .expect("Failed to write command hash init");
+        .map_err(|_| "Failed to write command hash init")?;
 
-    // Parse the crate and get a reference to the command module.
-    let session = ParseSess::new();
-    let parsed_crate =
-        parse_crate_from_file(&current_dir.join("src/lib.rs"), &session)
-        .expect("Couldn't parse amp crate");
-    let ref command_module = parsed_crate
-        .module
-        .items
-        .iter()
-        .find(|m| m.ident.name.as_str().starts_with("command"))
-        .expect("Couldn't find command module")
-        .node;
+    Ok(file)
+}
 
-    // Locate any public methods under the command module
-    // and generate String => Command map entries for them.
-    if let &ItemKind::Mod(ref module) = command_module {
-        for module_item in module.items.iter() {
-            if let ItemKind::Mod(ref submodule) = module_item.node {
-                for submodule_item in submodule.items.iter() {
-                    if submodule_item.node.descriptive_variant() == "function" &&
-                       submodule_item.vis == Visibility::Public {
-                        output
-                            .write(format!("    commands.insert(\"{}::{}\", {}::{});\n",
-                                           module_item.ident.name.as_str(),
-                                           submodule_item.ident.name.as_str(),
-                                           module_item.ident.name.as_str(),
-                                           submodule_item.ident.name.as_str())
-                                           .as_bytes())
-                            .expect("Failed to write command");
-                    }
-                }
-            }
+fn write_commands(output: &mut File) -> Result<(), &str> {
+    let expression = Regex::new(COMMAND_REGEX)
+        .expect("Failed to compile command matching regex");
+    let entries = fs::read_dir("./src/commands/")
+        .map_err(|_| "Failed to read command module directory")?;
+    for entry in entries {
+        let path = entry
+            .map_err(|_| "Failed to read command module directory entry")?.path();
+        let module_name = module_name(&path).unwrap();
+        let content = read_to_string(&path)
+            .map_err(|_| "Failed to read command module data")?;
+        for captures in expression.captures_iter(&content) {
+            let function_name = captures.get(1).unwrap().as_str();
+            write_command(output, &module_name, function_name)?;
         }
     }
 
-    // Finalize the output file.
-    output
-        .write("    commands\n}\n".as_bytes())
-        .expect("Failed to write command hash return");
+    Ok(())
+}
+
+fn write_command(output: &mut File, module_name: &str, function_name: &str) -> Result<usize, &'static str> {
+    output.write(
+        format!(
+            "    commands.insert(\"{}::{}\", {}::{});\n",
+            module_name,
+            function_name,
+            module_name,
+            function_name
+        ).as_bytes()
+    ).map_err(|_| "Failed to write command")
+}
+
+fn finalize_output_file(output: &mut File) -> Result<usize, &str> {
+    output.write("    commands\n}\n".as_bytes())
+        .map_err(|_| "Failed to write command hash return")
+}
+
+fn module_name(path: &Path) -> Result<String, &str> {
+    path.file_name().and_then(|name| {
+        name.to_string_lossy().split(".").next().map(|n| n.to_string())
+    }).ok_or_else(|| "Unable to parse command module from file name")
 }
