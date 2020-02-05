@@ -1,3 +1,8 @@
+### 0.6.2
+
+* Rewrote the build script's command parsing to work with Rust 1.41
+  * See https://github.com/jmacdonald/amp/issues/173 for details
+
 ### 0.6.1
 
 * Added the ability to choose a syntax definition for the current buffer
