@@ -9,7 +9,7 @@ use scribe::buffer::Position;
 use crate::view::{Colors, StatusLineData, Style, View};
 use unicode_segmentation::UnicodeSegmentation;
 
-pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut SearchSelectMode<T>, view: &mut View) -> Result<()> {
+pub fn display<D: Display, T: SearchSelectMode<D>>(workspace: &mut Workspace, mode: &mut T, view: &mut View) -> Result<()> {
     let data;
     let padded_message;
     let mut presenter = view.build_presenter()?;
