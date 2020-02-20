@@ -35,10 +35,11 @@ brew install jmacdonald/amp/amp
 * `openssl`
 * `zlib`
 
-### Build Dependencies
+### Build dependencies
 
 * `cmake`
 * `rust`
+* `python3` if building on Linux
 
 ### Building
 
