@@ -35,7 +35,7 @@ use syntect::highlighting::ThemeSet;
 const RENDER_CACHE_FREQUENCY: usize = 100;
 
 pub struct View {
-    terminal: Arc<Box<Terminal + Sync + Send + 'static>>,
+    terminal: Arc<Box<dyn Terminal + Sync + Send + 'static>>,
     scrollable_regions: HashMap<usize, ScrollableRegion>,
     render_caches: HashMap<usize, Rc<RefCell<HashMap<usize, RenderState>>>>,
     pub theme_set: ThemeSet,

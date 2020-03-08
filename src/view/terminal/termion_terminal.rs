@@ -334,7 +334,7 @@ fn create_output_instance() -> BufWriter<RawTerminal<Stdout>> {
     BufWriter::with_capacity(1_048_576, stdout().into_raw_mode().unwrap())
 }
 
-fn map_style(style: Style) -> Option<Box<Display>> {
+fn map_style(style: Style) -> Option<Box<dyn Display>> {
     match style {
         Style::Default => None,
         Style::Bold => Some(Box::new(style::Bold)),

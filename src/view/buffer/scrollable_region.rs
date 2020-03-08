@@ -8,12 +8,12 @@ use crate::view::terminal::Terminal;
 /// Used to determine visible ranges of lines based on previous state,
 /// explicit line focus, and common scrolling implementation behaviours.
 pub struct ScrollableRegion {
-    terminal: Arc<Box<Terminal + Sync + Send + 'static>>,
+    terminal: Arc<Box<dyn Terminal + Sync + Send + 'static>>,
     line_offset: usize,
 }
 
 impl ScrollableRegion {
-    pub fn new(terminal: Arc<Box<Terminal + Sync + Send + 'static>>) -> ScrollableRegion {
+    pub fn new(terminal: Arc<Box<dyn Terminal + Sync + Send + 'static>>) -> ScrollableRegion {
         ScrollableRegion {
             terminal,
             line_offset: 0,

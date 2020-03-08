@@ -32,14 +32,14 @@ pub struct BufferRenderer<'a, 'p> {
     render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>,
     screen_position: Position,
     scroll_offset: usize,
-    terminal: &'a Terminal,
+    terminal: &'a dyn Terminal,
     terminal_buffer: &'a mut TerminalBuffer<'p>,
     theme: &'a Theme,
 }
 
 impl<'a, 'p> BufferRenderer<'a, 'p> {
     pub fn new(buffer: &'a Buffer, highlights: Option<&'a [Range]>,
-    scroll_offset: usize, terminal: &'a Terminal, theme: &'a Theme,
+    scroll_offset: usize, terminal: &'a dyn Terminal, theme: &'a Theme,
     preferences: &'a Preferences,
     render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>,
     terminal_buffer: &'a mut TerminalBuffer<'p>) -> BufferRenderer<'a, 'p> {
@@ -216,7 +216,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
         !self.before_visible_content() && !self.after_visible_content()
     }
 
-    pub fn render(&mut self, lines: LineIterator<'p>, mut lexeme_mapper: Option<&mut LexemeMapper>) -> Result<Option<Position>> {
+    pub fn render(&mut self, lines: LineIterator<'p>, mut lexeme_mapper: Option<&mut dyn LexemeMapper>) -> Result<Option<Position>> {
         self.terminal.set_cursor(None);
         // Print the first line number. Others will
         // be handled as newlines are encountered.
