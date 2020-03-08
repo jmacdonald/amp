@@ -30,9 +30,9 @@ impl ScrollableRegion {
         } else {
             // Calculate and apply the absolute line
             // offset based on the cursor location.
-            let starting_line = (buffer.cursor.line).checked_sub(
+            let starting_line = (buffer.cursor.line).saturating_sub(
                 self.preceding_line_count(&buffer, self.height())
-            ).unwrap_or(0);
+            );
 
             if starting_line > self.line_offset {
                 self.line_offset = starting_line;
@@ -44,9 +44,9 @@ impl ScrollableRegion {
     pub fn scroll_to_center(&mut self, buffer: &Buffer) {
         let limit = (self.height() as f32 / 2.0).ceil() as usize;
 
-        self.line_offset = buffer.cursor.line.checked_sub(
+        self.line_offset = buffer.cursor.line.saturating_sub(
             self.preceding_line_count(&buffer, limit)
-        ).unwrap_or(0);
+        );
     }
 
     /// The number of lines the region has scrolled over.
@@ -83,7 +83,7 @@ impl ScrollableRegion {
         let gutter_width = LineNumbers::new(&buffer, None).width() + 1;
 
         let end = buffer.cursor.line + 1;
-        let start = end.checked_sub(limit).unwrap_or(0);
+        let start = end.saturating_sub(limit);
         let line_count = end - start;
 
         let visual_line_counts: Vec<usize> = buffer

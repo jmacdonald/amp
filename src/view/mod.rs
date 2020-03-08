@@ -100,11 +100,11 @@ impl View {
         // Limit scrolling to 50% of the screen beyond the end of the buffer.
         let max = if line_count > half_screen_height {
             let visible_line_count =
-                line_count.checked_sub(current_offset).unwrap_or(0);
+                line_count.saturating_sub(current_offset);
 
             // Of the visible lines, allow scrolling down by however
             // many lines are beyond the halfway point of the screen.
-            visible_line_count.checked_sub(half_screen_height).unwrap_or(0)
+            visible_line_count.saturating_sub(half_screen_height)
         } else {
             0
         };

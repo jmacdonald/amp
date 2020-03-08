@@ -209,7 +209,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
     }
 
     fn after_visible_content(&self) -> bool {
-        self.screen_position.line >= self.terminal.height().checked_sub(1).unwrap_or(0)
+        self.screen_position.line >= self.terminal.height().saturating_sub(1)
     }
 
     fn inside_visible_content(&mut self) -> bool {

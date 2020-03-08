@@ -450,8 +450,7 @@ pub fn outdent_line(app: &mut Application) -> Result {
                 // Figure out where the cursor should sit, guarding against underflow.
                 let target_offset = buffer.cursor
                                           .offset
-                                          .checked_sub(space_char_count)
-                                          .unwrap_or(0);
+                                          .saturating_sub(space_char_count);
                 let target_line = buffer.cursor.line;
 
                 buffer.cursor.move_to(Position {
