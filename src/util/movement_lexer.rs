@@ -15,6 +15,7 @@ fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
                     lexer.advance();
                     return Some(StateFunction(whitespace));
                 }
+                '`' |
                 '=' |
                 '_' |
                 '-' |
