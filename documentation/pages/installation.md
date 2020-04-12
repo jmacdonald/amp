@@ -23,7 +23,7 @@ makepkg -isr
 Available via [Homebrew](https://brew.sh):
 
 ```bash
-brew tap jmacdonald/amp && brew install amp
+brew install jmacdonald/amp/amp
 ```
 
 ## Manual installation
