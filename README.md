@@ -13,12 +13,22 @@ have been built as a separate crate: [scribe](https://github.com/jmacdonald/scri
 
 For a full overview, along with documentation and installation instructions, visit [amp.rs](https://amp.rs).
 
-
 ![Amp screenshot](screenshot.png?raw=true "Amp")
 
 # Installation
+
+## Cargo
+
 If you have Rust >= 1.33.0 installed:
+
 ```
 cargo install amp
 ```
 
+## Homebrew
+
+You can install Amp using Homebrew:
+
+```
+brew install amp
+```
