@@ -11,7 +11,7 @@ pub enum Direction {
 pub fn adjacent_token_position(buffer: &mut Buffer,
                            whitespace: bool,
                            direction: Direction)
-                           -> Option<(Position)> {
+                           -> Option<Position> {
     let mut line = 0;
     let mut offset = 0;
     let mut previous_position = Position {
