@@ -45,8 +45,8 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
 
         for (line_no, line) in content.iter().enumerate() {
             let position = Position{
-                line: presenter.height() / 2 + line_no - vertical_offset,
-                offset: presenter.width() / 2 - line.chars().count() / 2
+                line: (presenter.height() / 2 + line_no).saturating_sub(vertical_offset),
+                offset: (presenter.width() / 2).saturating_sub(line.chars().count() / 2)
             };
 
             presenter.print(&position, Style::Default, Colors::Default, line);
