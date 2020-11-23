@@ -80,8 +80,8 @@ impl Terminal for TestTerminal {
         }
     }
     fn present(&self) { }
-    fn width(&self) -> usize { 10 }
-    fn height(&self) -> usize { 10 }
+    fn width(&self) -> usize { WIDTH }
+    fn height(&self) -> usize { HEIGHT }
     fn set_cursor(&self, position: Option<Position>) {
         let mut cursor = self.cursor.lock().unwrap();
         *cursor = position;
@@ -96,7 +96,7 @@ impl Terminal for TestTerminal {
 
         for (i, c) in string_content.chars().enumerate() {
             // Ignore characters beyond visible width.
-            if i+position.offset >= 10 { break; }
+            if i+position.offset >= WIDTH { break; }
 
             data[position.line][i+position.offset] = Some((c, colors));
         }
