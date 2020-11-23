@@ -202,13 +202,13 @@ impl Terminal for TermionTerminal {
     fn width(&self) -> usize {
         let (width, _) = terminal_size();
 
-        width
+        width.max(super::MIN_WIDTH)
     }
 
     fn height(&self) -> usize {
         let (_, height) = terminal_size();
 
-        height
+        height.max(super::MIN_HEIGHT)
     }
 
     fn set_cursor(&self, position: Option<Position>) {

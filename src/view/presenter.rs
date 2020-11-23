@@ -101,7 +101,7 @@ impl<'p> Presenter<'p> {
                 2 => {
                     if index == entries.len() - 1 {
                         // Expand the last element to fill the remaining width.
-                        element.content.pad_to_width(self.view.terminal.width() - offset)
+                        element.content.pad_to_width(self.view.terminal.width().saturating_sub(offset))
                     } else {
                         element.content.clone()
                     }
@@ -109,7 +109,8 @@ impl<'p> Presenter<'p> {
                 _ => {
                     if index == entries.len() - 2 {
                         // Before-last element extends to fill unused space.
-                        element.content.pad_to_width(self.view.terminal.width() - offset - entries[index+1].content.len())
+                        let space = offset + entries[index+1].content.len();
+                        element.content.pad_to_width(self.view.terminal.width().saturating_sub(space))
                     } else {
                         element.content.clone()
                     }
