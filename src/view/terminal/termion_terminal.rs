@@ -12,6 +12,7 @@ use self::termion::color::{Bg, Fg};
 use self::termion::{color, cursor};
 use self::termion::input::{Keys, TermRead};
 use self::termion::raw::{IntoRawMode, RawTerminal};
+use self::termion::screen::AlternateScreen;
 use self::termion::style;
 use std::io::{BufWriter, Stdin, stdin, stdout, Write};
 use std::fmt::Display;
@@ -33,7 +34,7 @@ pub struct TermionTerminal {
     event_listener: Poll,
     signals: Signals,
     input: Mutex<Option<Keys<Stdin>>>,
-    output: Mutex<Option<BufWriter<RawTerminal<Stdout>>>>,
+    output: Mutex<Option<BufWriter<RawTerminal<AlternateScreen<Stdout>>>>>,
     current_style: Mutex<Option<Style>>,
     current_colors: Mutex<Option<Colors>>,
     current_position: Mutex<Option<Position>>,
@@ -275,6 +276,10 @@ impl Terminal for TermionTerminal {
             guard.take();
         }
 
+        // Flush the terminal before suspending to cause the switch from the
+        // alternate screen to main screen to properly restore the terminal.
+        let _ = stdout().flush();
+
         unsafe {
             // Stop the amp process.
             libc::raise(libc::SIGSTOP);
@@ -329,9 +334,11 @@ fn create_event_listener() -> Result<(Poll, Signals)> {
     Ok((event_listener, signals))
 }
 
-fn create_output_instance() -> BufWriter<RawTerminal<Stdout>> {
+fn create_output_instance() -> BufWriter<RawTerminal<AlternateScreen<Stdout>>> {
+    let screen = AlternateScreen::from(stdout());
+
     // Use a 1MB buffered writer for stdout.
-    BufWriter::with_capacity(1_048_576, stdout().into_raw_mode().unwrap())
+    BufWriter::with_capacity(1_048_576, screen.into_raw_mode().unwrap())
 }
 
 fn map_style(style: Style) -> Option<Box<dyn Display>> {
