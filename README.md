@@ -19,7 +19,7 @@ For a full overview, along with documentation and installation instructions, vis
 
 ## Cargo
 
-If you have Rust >= 1.33.0 installed:
+If you have Rust >= 1.38.0 installed:
 
 ```
 cargo install amp

@@ -46,7 +46,7 @@ brew install amp
 !!! info "Supported Release Channels"
     Amp's automated test suite is run using Rust's **stable** release channel;
     beta and nightly release channels are not officially supported. The oldest
-    version of Rust currently supported is **1.33.0**.
+    version of Rust currently supported is **1.38.0**.
 
 1. Install Rust, either through your system's package manager or using [Rust's `rustup` toolchain management utility](https://www.rust-lang.org/en-US/install.html).
 2. Install both the regular and build dependencies listed above.
