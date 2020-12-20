@@ -62,6 +62,7 @@ normal:
   ",": view::scroll_up
   ">": buffer::indent_line
   "<": buffer::outdent_line
+  "[": buffer::toggle_line_comment
   "=": git::add
   escape: view::scroll_cursor_to_center
   page_up: view::scroll_up
@@ -265,6 +266,7 @@ select_line:
   ",": view::scroll_up
   ">": buffer::indent_line
   "<": buffer::outdent_line
+  "[": buffer::toggle_line_comment
   page_up: view::scroll_up
   page_down: view::scroll_down
   escape: application::switch_to_normal_mode
