@@ -1,5 +1,4 @@
 use crate::errors::*;
-use crate::models::application;
 use crate::view::buffer::{BufferRenderer, LexemeMapper};
 use crate::view::color::{ColorMap, Colors};
 use crate::view::StatusLineData;
@@ -26,7 +25,6 @@ impl<'p> Presenter<'p> {
             let theme_name = preferences.theme();
             let theme = view.theme_set.themes
                 .get(theme_name)
-                .or_else(|| view.theme_set.themes.get(application::THEME_DEFAULT))
                 .ok_or_else(|| format!("Couldn't find \"{}\" theme", theme_name))?;
             theme.clone()
         };

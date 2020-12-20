@@ -1,0 +1,9 @@
+theme: solarized_dark
+tab_width: 2
+soft_tabs: true
+line_length_guide: 80
+line_wrapping: true
+
+open_mode:
+  exclusions:
+    - "**/.git"
