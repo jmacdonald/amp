@@ -468,6 +468,102 @@ pub fn outdent_line(app: &mut Application) -> Result {
     Ok(())
 }
 
+pub fn toggle_line_comment(app: &mut Application) -> Result {
+    let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+    let original_cursor = *buffer.cursor.clone();
+
+    let comment_prefix = {
+        let path = buffer.path.as_ref().ok_or(BUFFER_PATH_MISSING)?;
+        let prefix = app.preferences.borrow().line_comment_prefix(path)
+            .ok_or("No line comment prefix for the current buffer")?;
+
+        prefix + " " // implicitly add trailing space
+    };
+
+    // Get the range of lines we'll comment based on
+    // either the current selection or cursor line.
+    let line_numbers = match app.mode {
+        Mode::SelectLine(ref mode) => {
+            if mode.anchor >= buffer.cursor.line {
+                buffer.cursor.line..mode.anchor + 1
+            } else {
+                mode.anchor..buffer.cursor.line + 1
+            }
+        }
+        _ => buffer.cursor.line..buffer.cursor.line + 1,
+    };
+
+    let buffer_range = Range::new(
+        Position { line: line_numbers.start, offset: 0 },
+        Position { line: line_numbers.end, offset: 0 }
+    );
+
+    let buffer_range_content = buffer.read(&buffer_range).ok_or(CURRENT_LINE_MISSING)?;
+
+    // Produce a collection of (<line number>, <line content>) tuples, but only for
+    // non-empty lines.
+    let lines: Vec<(usize, &str)> = line_numbers
+        .zip(buffer_range_content.split("\n"))     // produces (<line number>, <line content>)
+        .filter(|(_, line)| line.trim().len() > 0) // filter out any empty (non-whitespace-only) lines
+        .collect();
+
+    // We look at all lines to see if they start with `comment_prefix` or not.
+    // If even a single line does not, we need to comment all lines out,
+    // otherwise remove `comment_prefix` on the start of each line.
+    let (toggle, offset) = lines.iter()
+        // Map (<line number>, <line content>) to (<has comment>, <number of spaces at line start>)
+        .map(|(_, line)| {
+            let content = line.trim_start();
+            (content.starts_with(&comment_prefix), line.len() - content.len())
+        })
+        // Now fold it into a single (<comment in or out>, <comment offset>) tuple.
+        // As soon as <has comment> is `false` a single time, <comment in or out>
+        // will result in `false`.
+        .fold((true, usize::MAX), |(folded_toggle, folded_offset), (has_comment, offset)| {
+            (folded_toggle & has_comment, folded_offset.min(offset))
+        });
+
+    // Move to the start of each of the line's content and
+    // insert/remove the comments, as a single operation.
+    buffer.start_operation_group();
+    if !toggle {
+        add_line_comment(buffer, &lines, offset, &comment_prefix);
+    } else {
+        remove_line_comment(buffer, &lines, &comment_prefix);
+    }
+    buffer.end_operation_group();
+
+    // Restore original cursor
+    buffer.cursor.move_to(original_cursor);
+
+    Ok(())
+}
+
+fn add_line_comment(buffer: &mut Buffer, lines: &[(usize, &str)], offset: usize, prefix: &str) {
+    for (line_number, _) in lines {
+        let target = Position { line: *line_number, offset };
+
+        buffer.cursor.move_to(target);
+        buffer.insert(prefix);
+    }
+}
+
+fn remove_line_comment(buffer: &mut Buffer, lines: &[(usize, &str)], prefix: &str) {
+    for (line_number, line) in lines {
+        let start = Position {
+            line: *line_number,
+            offset: line.len() - line.trim_start().len(),
+        };
+
+        let end = Position {
+            line: *line_number,
+            offset: start.offset + prefix.len(),
+        };
+
+        buffer.delete_range(Range::new(start, end));
+    }
+}
+
 pub fn change_token(app: &mut Application) -> Result {
     commands::buffer::delete_token(app)?;
     commands::application::switch_to_insert_mode(app)?;
