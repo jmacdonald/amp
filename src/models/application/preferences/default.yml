@@ -7,3 +7,39 @@ line_wrapping: true
 open_mode:
   exclusions:
     - "**/.git"
+
+types:
+  rs:
+    line_comment_prefix: //
+  c:
+    line_comment_prefix: //
+  cc:
+    line_comment_prefix: //
+  cpp:
+    line_comment_prefix: //
+  cxx:
+    line_comment_prefix: //
+  cmake:
+    line_comment_prefix: '#'
+  go:
+    line_comment_prefix: //
+  js:
+    line_comment_prefix: //
+  lua:
+    line_comment_prefix: --
+  Makefile:
+    line_comment_prefix: '#'
+  py:
+    line_comment_prefix: '#'
+  sh:
+    line_comment_prefix: '#'
+  swift:
+    line_comment_prefix: //
+  tex:
+    line_comment_prefix: '%'
+  toml:
+    line_comment_prefix: '#'
+  yaml:
+    line_comment_prefix: '#'
+  yml:
+    line_comment_prefix: '#'

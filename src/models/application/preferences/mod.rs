@@ -15,6 +15,7 @@ const APP_INFO: AppInfo = AppInfo {
     author: "Jordan MacDonald",
 };
 const FILE_NAME: &str = "config.yml";
+const LINE_COMMENT_PREFIX_KEY: &str = "line_comment_prefix";
 const LINE_LENGTH_GUIDE_KEY: &str = "line_length_guide";
 const LINE_WRAPPING_KEY: &str = "line_wrapping";
 const OPEN_MODE_KEY: &str = "open_mode";
@@ -255,6 +256,16 @@ impl Preferences {
         } else {
             self.default_open_mode_exclusions()
         }
+    }
+
+    pub fn line_comment_prefix(&self, path: &PathBuf) -> Option<String> {
+        let extension = path_extension(Some(path))?;
+
+        self.data
+            .as_ref()
+            .and_then(|data| data[TYPES_KEY][extension][LINE_COMMENT_PREFIX_KEY].as_str())
+            .or_else(|| self.default[TYPES_KEY][extension][LINE_COMMENT_PREFIX_KEY].as_str())
+            .map(|prefix| prefix.to_owned())
     }
 
     fn default_open_mode_exclusions(&self) -> Result<Option<Vec<ExclusionPattern>>> {
@@ -527,6 +538,40 @@ mod tests {
         let preferences = Preferences::new(data.into_iter().nth(0));
 
         assert!(preferences.open_mode_exclusions().unwrap().is_none());
+    }
+
+    #[test]
+    fn line_comment_prefix_returns_correct_default_type_specific_data() {
+        let preferences = Preferences::new(None);
+
+        assert_eq!(preferences.line_comment_prefix(&PathBuf::from("preferences.rs")),
+                   Some("//".into()));
+    }
+
+    #[test]
+    fn line_comment_prefix_returns_correct_user_defined_type_specific_data() {
+        let data = YamlLoader::load_from_str("types:\n  rs:\n    line_comment_prefix: $$").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.line_comment_prefix(&PathBuf::from("preferences.rs")),
+                   Some("$$".into()));
+    }
+
+    #[test]
+    fn line_comment_prefix_returns_correct_user_defined_type_specific_data_with_no_default() {
+        let data = YamlLoader::load_from_str("types:\n  abc:\n    line_comment_prefix: $$").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.line_comment_prefix(&PathBuf::from("preferences.abc")),
+                   Some("$$".into()));
+    }
+
+    #[test]
+    fn line_comment_prefix_returns_none_for_non_existing_type() {
+        let preferences = Preferences::new(None);
+
+        assert_eq!(preferences.line_comment_prefix(&PathBuf::from("preferences.abc")),
+                   None);
     }
 
     #[test]

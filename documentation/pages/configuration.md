@@ -80,6 +80,17 @@ types:
     soft_tabs: false
 ```
 
+### Line Commenting
+```yaml
+types:
+  rs:
+    line_comment_prefix: //
+```
+
+This can be used to set the character (sequence) used by the `buffer::toggle_line_comment`
+command for adding (or removing) single-line comments on a per-extension or per-file basis.
+An additional whitespace character will also be inserted between prefix and line content.
+
 ## Key Bindings
 
 In Amp, key bindings are simple key/command associations, scoped to a specific mode. You can define custom key bindings by defining a keymap in your preferences file:
