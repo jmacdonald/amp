@@ -1766,4 +1766,188 @@ mod tests {
         app.workspace.next_buffer();
         assert_eq!(app.workspace.current_buffer().unwrap().data(), "two");
     }
+
+    #[test]
+    fn toggle_line_comment_add_single_in_normal_mode() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("\tamp\n\teditor\n");
+        buffer.cursor.move_to(Position {
+            line: 0,
+            offset: 1
+        });
+        buffer.path = Some("test.rs".into());
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        super::toggle_line_comment(&mut app).unwrap();
+
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "\t// amp\n\teditor\n");
+        assert_eq!(app.workspace.current_buffer().unwrap().cursor.position,
+                   Position { line: 0, offset: 1 });
+    }
+
+    #[test]
+    fn toggle_line_comment_add_multiple_in_select_line_mode() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("\tamp\n\t\teditor\n");
+        buffer.cursor.move_to(Position {
+            line: 0,
+            offset: 1,
+        });
+        buffer.path = Some("test.rs".into());
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+        app.workspace.current_buffer().unwrap().cursor.move_to(Position {
+            line: 1,
+            offset: 1,
+        });
+
+        super::toggle_line_comment(&mut app).unwrap();
+
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "\t// amp\n\t// \teditor\n");
+        assert_eq!(app.workspace.current_buffer().unwrap().cursor.position,
+                   Position { line: 1, offset: 1 });
+    }
+
+    #[test]
+    fn toggle_line_comment_remove_single_in_normal_mode() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("\t// amp\n\teditor\n");
+        buffer.cursor.move_to(Position {
+            line: 0,
+            offset: 1,
+        });
+        buffer.path = Some("test.rs".into());
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        super::toggle_line_comment(&mut app).unwrap();
+
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "\tamp\n\teditor\n");
+        assert_eq!(app.workspace.current_buffer().unwrap().cursor.position,
+                   Position { line: 0, offset: 1 });
+    }
+
+    #[test]
+    fn toggle_line_comment_remove_multiple_in_select_line_mode() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("\t// amp\n\t// \teditor\n");
+        buffer.cursor.move_to(Position {
+            line: 0,
+            offset: 1,
+        });
+        buffer.path = Some("test.rs".into());
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+        app.workspace.current_buffer().unwrap().cursor.move_to(Position {
+            line: 1,
+            offset: 1,
+        });
+
+        super::toggle_line_comment(&mut app).unwrap();
+
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "\tamp\n\t\teditor\n");
+        assert_eq!(app.workspace.current_buffer().unwrap().cursor.position,
+                   Position { line: 1, offset: 1 });
+    }
+
+    #[test]
+    fn toggle_line_comment_remove_multiple_with_unequal_indent_in_select_line_mode() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("\t// amp\n\t\t// editor\n");
+        buffer.cursor.move_to(Position {
+            line: 0,
+            offset: 1,
+        });
+        buffer.path = Some("test.rs".into());
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+        app.workspace.current_buffer().unwrap().cursor.move_to(Position {
+            line: 1,
+            offset: 1,
+        });
+
+        super::toggle_line_comment(&mut app).unwrap();
+
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "\tamp\n\t\teditor\n");
+        assert_eq!(app.workspace.current_buffer().unwrap().cursor.position,
+                   Position { line: 1, offset: 1 });
+    }
+
+    #[test]
+    fn toggle_line_comment_add_correctly_preserves_empty_lines() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("\tamp\n\n\teditor\n");
+        buffer.cursor.move_to(Position {
+            line: 0,
+            offset: 0,
+        });
+        buffer.path = Some("test.rs".into());
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+        app.workspace.current_buffer().unwrap().cursor.move_to(Position {
+            line: 2,
+            offset: 0,
+        });
+
+        super::toggle_line_comment(&mut app).unwrap();
+
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "\t// amp\n\n\t// editor\n");
+        assert_eq!(app.workspace.current_buffer().unwrap().cursor.position,
+                   Position { line: 2, offset: 0 });
+    }
+
+    #[test]
+    fn toggle_line_comment_remove_correctly_preserves_empty_lines() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("\t// amp\n\n\t// editor\n");
+        buffer.cursor.move_to(Position {
+            line: 0,
+            offset: 0,
+        });
+        buffer.path = Some("test.rs".into());
+
+        // Now that we've set up the buffer, add it
+        // to the application and call the command.
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+        app.workspace.current_buffer().unwrap().cursor.move_to(Position {
+            line: 2,
+            offset: 0,
+        });
+
+        super::toggle_line_comment(&mut app).unwrap();
+
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "\tamp\n\n\teditor\n");
+        assert_eq!(app.workspace.current_buffer().unwrap().cursor.position,
+                   Position { line: 2, offset: 0 });
+    }
 }
