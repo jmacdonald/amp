@@ -15,17 +15,15 @@ const APP_INFO: AppInfo = AppInfo {
     author: "Jordan MacDonald",
 };
 const FILE_NAME: &str = "config.yml";
-const LINE_LENGTH_GUIDE_DEFAULT: usize = 80;
+const LINE_COMMENT_PREFIX_KEY: &str = "line_comment_prefix";
 const LINE_LENGTH_GUIDE_KEY: &str = "line_length_guide";
-const LINE_WRAPPING_DEFAULT: bool = true;
 const LINE_WRAPPING_KEY: &str = "line_wrapping";
+const OPEN_MODE_KEY: &str = "open_mode";
+const OPEN_MODE_EXCLUSIONS_KEY: &str = "exclusions";
 const SEARCH_SELECT_KEY: &str = "search_select";
-const SOFT_TABS_DEFAULT: bool = true;
 const SOFT_TABS_KEY: &str = "soft_tabs";
 const SYNTAX_PATH: &str = "syntaxes";
-const TAB_WIDTH_DEFAULT: usize = 2;
 const TAB_WIDTH_KEY: &str = "tab_width";
-pub const THEME_DEFAULT: &str = "solarized_dark";
 const THEME_KEY: &str = "theme";
 const THEME_PATH: &str = "themes";
 const TYPES_KEY: &str = "types";
@@ -34,6 +32,7 @@ const TYPES_KEY: &str = "types";
 /// Values are immutable once loaded, with the exception of those that provide
 /// expicit setter methods (e.g. `theme`).
 pub struct Preferences {
+    default: Yaml,
     data: Option<Yaml>,
     keymap: KeyMap,
     theme: Option<String>,
@@ -43,6 +42,7 @@ impl Preferences {
     /// Builds a new in-memory instance with default values.
     pub fn new(data: Option<Yaml>) -> Preferences {
         Preferences {
+            default: load_default_document().expect("Failed to load default preferences!"),
             data,
             keymap: KeyMap::default().expect("Failed to load default keymap!"),
             theme: None
@@ -51,21 +51,24 @@ impl Preferences {
 
     /// Loads preferences from disk, returning any filesystem or parse errors.
     pub fn load() -> Result<Preferences> {
+        let default = load_default_document()?;
         let data = load_document()?;
         let keymap = load_keymap(
             data.as_ref().and_then(|data| data["keymap"].as_hash())
         )?;
 
-        Ok(Preferences { data, keymap, theme: None })
+        Ok(Preferences { default, data, keymap, theme: None })
     }
 
     /// Reloads all user preferences from disk and merges them with defaults.
     pub fn reload(&mut self) -> Result<()> {
+        let default = load_default_document()?;
         let data = load_document()?;
         let keymap = load_keymap(
             data.as_ref().and_then(|data| data["keymap"].as_hash())
         )?;
 
+        self.default = default;
         self.data = data;
         self.keymap = keymap;
         self.theme = None;
@@ -123,7 +126,9 @@ impl Preferences {
                       } else {
                           None
                       })
-            .unwrap_or(THEME_DEFAULT)
+            .unwrap_or_else(|| {
+                self.default[THEME_KEY].as_str().expect("Couldn't find default theme name!")
+            })
     }
 
     /// Returns the theme path, making sure the directory exists.
@@ -153,7 +158,10 @@ impl Preferences {
 
                 None
             })
-            .unwrap_or(TAB_WIDTH_DEFAULT)
+            .unwrap_or_else(|| {
+                self.default[TAB_WIDTH_KEY].as_i64()
+                    .expect("Couldn't find default tab width setting!") as usize
+            })
     }
 
     pub fn search_select_config(&self) -> SearchSelectConfig {
@@ -182,7 +190,10 @@ impl Preferences {
 
                 None
             })
-            .unwrap_or(SOFT_TABS_DEFAULT)
+            .unwrap_or_else(|| {
+                self.default[SOFT_TABS_KEY].as_bool()
+                    .expect("Couldn't find default soft tabs setting!")
+            })
     }
 
     pub fn line_length_guide(&self) -> Option<usize> {
@@ -191,14 +202,18 @@ impl Preferences {
             .and_then(|data| match data[LINE_LENGTH_GUIDE_KEY] {
                           Yaml::Integer(line_length) => Some(line_length as usize),
                           Yaml::Boolean(line_length_guide) => {
+                              let default = self.default[LINE_LENGTH_GUIDE_KEY].as_i64()
+                                  .expect("Couldn't find default line length guide setting!");
+
                               if line_length_guide {
-                                  Some(LINE_LENGTH_GUIDE_DEFAULT)
+                                  Some(default as usize)
                               } else {
                                   None
                               }
                           }
                           _ => None,
                       })
+
     }
 
     pub fn line_wrapping(&self) -> bool {
@@ -209,7 +224,10 @@ impl Preferences {
                       } else {
                           None
                       })
-            .unwrap_or(LINE_WRAPPING_DEFAULT)
+            .unwrap_or_else(|| {
+                self.default[LINE_WRAPPING_KEY].as_bool()
+                    .expect("Couldn't find default line wrapping setting!")
+            })
     }
 
     pub fn tab_content(&self, path: Option<&PathBuf>) -> String {
@@ -221,7 +239,11 @@ impl Preferences {
     }
 
     pub fn open_mode_exclusions(&self) -> Result<Option<Vec<ExclusionPattern>>> {
-        if let Some(exclusion_data) = self.data.as_ref().map(|data| &data["open_mode"]["exclusions"]) {
+        let exclusion_data = self.data
+            .as_ref()
+            .map(|data| &data[OPEN_MODE_KEY][OPEN_MODE_EXCLUSIONS_KEY]);
+
+        if let Some(exclusion_data) = exclusion_data {
             match *exclusion_data {
                 Yaml::Array(ref exclusions) => {
                     open::exclusions::parse(exclusions)
@@ -229,12 +251,31 @@ impl Preferences {
                         .map(Some)
                 },
                 Yaml::Boolean(_) => Ok(None),
-                _ => default_open_mode_exclusions(), // Preference is unset or invalid YAML
+                _ => self.default_open_mode_exclusions(),
             }
         } else {
-            // No user preference data was provided.
-            default_open_mode_exclusions()
+            self.default_open_mode_exclusions()
         }
+    }
+
+    pub fn line_comment_prefix(&self, path: &PathBuf) -> Option<String> {
+        let extension = path_extension(Some(path))?;
+
+        self.data
+            .as_ref()
+            .and_then(|data| data[TYPES_KEY][extension][LINE_COMMENT_PREFIX_KEY].as_str())
+            .or_else(|| self.default[TYPES_KEY][extension][LINE_COMMENT_PREFIX_KEY].as_str())
+            .map(|prefix| prefix.to_owned())
+    }
+
+    fn default_open_mode_exclusions(&self) -> Result<Option<Vec<ExclusionPattern>>> {
+        let exclusions = self.default[OPEN_MODE_KEY][OPEN_MODE_EXCLUSIONS_KEY]
+            .as_vec()
+            .chain_err(|| "Couldn't find default open mode exclusions settings!")?;
+
+        open::exclusions::parse(exclusions)
+            .chain_err(|| "Failed to parse default open mode exclusions")
+            .map(Some)
     }
 }
 
@@ -264,6 +305,13 @@ fn load_document() -> Result<Option<Yaml>> {
     Ok(parsed_data.into_iter().nth(0))
 }
 
+fn load_default_document() -> Result<Yaml> {
+    YamlLoader::load_from_str(include_str!("default.yml"))
+        .chain_err(|| "Couldn't parse default config file")?
+        .into_iter().nth(0)
+        .chain_err(|| "No default preferences document found")
+}
+
 /// Loads default keymaps, merging in the provided overrides.
 fn load_keymap(keymap_overrides: Option<&Hash>) -> Result<KeyMap> {
     let mut keymap = KeyMap::default()?;
@@ -283,18 +331,12 @@ fn path_extension(path: Option<&PathBuf>) -> Option<&str> {
         .and_then(|e| e.to_str())
 }
 
-fn default_open_mode_exclusions() -> Result<Option<Vec<ExclusionPattern>>> {
-    let default_pattern = ExclusionPattern::new("**/.git")
-        .chain_err(|| "Failed to parse default git directory exclusion pattern")?;
-    Ok(Some(vec![default_pattern]))
-}
-
 #[cfg(test)]
 mod tests {
     use super::{ExclusionPattern, Preferences, YamlLoader};
     use std::path::PathBuf;
     use crate::input::KeyMap;
-    use crate::yaml::yaml::Hash;
+    use crate::yaml::yaml::{Hash, Yaml};
 
     #[test]
     fn preferences_returns_user_defined_theme_name() {
@@ -310,6 +352,13 @@ mod tests {
         preferences.set_theme("new_in_memory_theme");
 
         assert_eq!(preferences.theme(), "new_in_memory_theme");
+    }
+
+    #[test]
+    fn preferences_returns_default_theme_when_user_defined_data_not_found() {
+        let preferences = Preferences::new(None);
+
+        assert_eq!(preferences.theme(), "solarized_dark");
     }
 
     #[test]
@@ -340,6 +389,13 @@ mod tests {
     }
 
     #[test]
+    fn preferences_returns_default_tab_width_when_user_defined_data_not_found() {
+        let preferences = Preferences::new(None);
+
+        assert_eq!(preferences.tab_width(None), 2);
+    }
+
+    #[test]
     fn soft_tabs_returns_user_defined_data() {
         let data = YamlLoader::load_from_str("soft_tabs: false").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
@@ -361,6 +417,13 @@ mod tests {
         let preferences = Preferences::new(data.into_iter().nth(0));
 
         assert_eq!(preferences.soft_tabs(Some(PathBuf::from("preferences.rs")).as_ref()), false);
+    }
+
+    #[test]
+    fn preferences_returns_default_soft_tabs_when_user_defined_data_not_found() {
+        let preferences = Preferences::new(None);
+
+        assert_eq!(preferences.soft_tabs(None), true);
     }
 
     #[test]
@@ -401,6 +464,13 @@ mod tests {
         let preferences = Preferences::new(data.into_iter().nth(0));
 
         assert_eq!(preferences.line_wrapping(), false);
+    }
+
+    #[test]
+    fn preferences_returns_default_line_wrapping_when_user_defined_data_not_found() {
+        let preferences = Preferences::new(None);
+
+        assert_eq!(preferences.line_wrapping(), true);
     }
 
     #[test]
@@ -471,6 +541,40 @@ mod tests {
     }
 
     #[test]
+    fn line_comment_prefix_returns_correct_default_type_specific_data() {
+        let preferences = Preferences::new(None);
+
+        assert_eq!(preferences.line_comment_prefix(&PathBuf::from("preferences.rs")),
+                   Some("//".into()));
+    }
+
+    #[test]
+    fn line_comment_prefix_returns_correct_user_defined_type_specific_data() {
+        let data = YamlLoader::load_from_str("types:\n  rs:\n    line_comment_prefix: $$").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.line_comment_prefix(&PathBuf::from("preferences.rs")),
+                   Some("$$".into()));
+    }
+
+    #[test]
+    fn line_comment_prefix_returns_correct_user_defined_type_specific_data_with_no_default() {
+        let data = YamlLoader::load_from_str("types:\n  abc:\n    line_comment_prefix: $$").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.line_comment_prefix(&PathBuf::from("preferences.abc")),
+                   Some("$$".into()));
+    }
+
+    #[test]
+    fn line_comment_prefix_returns_none_for_non_existing_type() {
+        let preferences = Preferences::new(None);
+
+        assert_eq!(preferences.line_comment_prefix(&PathBuf::from("preferences.abc")),
+                   None);
+    }
+
+    #[test]
     fn reload_clears_in_memory_theme() {
         // Create an on-disk preferences file first, if one doesn't already exist.
         if Preferences::load().is_err() {
@@ -483,7 +587,7 @@ mod tests {
 
         // Reload preferences and verify that we're no longer using the in-memory theme.
         preferences.reload().unwrap();
-        assert_eq!(preferences.theme(), super::THEME_DEFAULT);
+        assert_eq!(preferences.theme(), "solarized_dark");
     }
 
     #[test]
@@ -494,7 +598,8 @@ mod tests {
         }
 
         // Build a preferences instance with an empty keymap.
-        let mut preferences = Preferences{
+        let mut preferences = Preferences {
+            default: Yaml::Null,
             data: None,
             keymap: KeyMap::from(&Hash::new()).unwrap(),
             theme: None
