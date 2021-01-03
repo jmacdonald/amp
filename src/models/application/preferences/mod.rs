@@ -357,7 +357,7 @@ fn path_extension(path: Option<&PathBuf>) -> Option<&str> {
 #[cfg(test)]
 mod tests {
     use super::{ExclusionPattern, Preferences, YamlLoader};
-    use std::path::PathBuf;
+    use std::path::{Path, PathBuf};
     use crate::input::KeyMap;
     use crate::yaml::yaml::{Hash, Yaml};
 
@@ -455,6 +455,42 @@ mod tests {
         let preferences = Preferences::new(data.into_iter().nth(0));
 
         assert_eq!(preferences.soft_tabs(Some(PathBuf::from("Makefile")).as_ref()), false);
+    }
+
+    #[test]
+    fn syntax_definition_name_returns_user_defined_syntax_by_extension_for_full_filename() {
+        let data = YamlLoader::load_from_str("types:\n  xyz:\n    syntax: Rust").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.syntax_definition_name(&Path::new("test.xyz")),
+                   Some("Rust".to_owned()));
+    }
+
+    #[test]
+    fn syntax_definition_name_returns_user_defined_syntax_by_extension_for_deep_filename() {
+        let data = YamlLoader::load_from_str("types:\n  xyz:\n    syntax: Rust").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.syntax_definition_name(&Path::new("src/test.xyz")),
+                   Some("Rust".to_owned()));
+    }
+
+    #[test]
+    fn syntax_definition_name_returns_user_defined_syntax_for_full_filename_without_extension() {
+        let data = YamlLoader::load_from_str("types:\n  Makefile:\n    syntax: Makefile").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.syntax_definition_name(&Path::new("Makefile")),
+                   Some("Makefile".to_owned()));
+    }
+
+    #[test]
+    fn syntax_definition_name_returns_user_defined_syntax_for_full_filename_with_extension() {
+        let data = YamlLoader::load_from_str("types:\n  Makefile.lib:\n    syntax: Makefile").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.syntax_definition_name(&Path::new("Makefile.lib")),
+                   Some("Makefile".to_owned()));
     }
 
     #[test]

@@ -300,9 +300,16 @@ fn create_workspace(view: &mut View, preferences: &Preferences, args: &Vec<Strin
 #[cfg(test)]
 mod tests {
     use super::Application;
+    use crate::view::View;
+    use super::preferences::Preferences;
+
+    use yaml::YamlLoader;
     use scribe::Buffer;
+    use std::cell::RefCell;
     use std::env;
     use std::path::Path;
+    use std::rc::Rc;
+    use std::sync::mpsc;
 
     #[test]
     fn application_uses_file_arguments_to_load_contents_into_buffers_when_files_exist() {
@@ -330,5 +337,21 @@ mod tests {
             Some(env::current_dir().unwrap().join("non_existent_file"))
         );
         assert_eq!(application.workspace.current_buffer().unwrap().data(), "");
+    }
+
+    #[test]
+    fn create_workspace_correctly_applies_user_defined_syntax_when_opening_buffer_from_command_line() {
+        let data = YamlLoader::load_from_str("types:\n  xyz:\n    syntax: Rust").unwrap();
+        let preferences = Rc::new(RefCell::new(Preferences::new(data.into_iter().nth(0))));
+        let (event_channel, _) = mpsc::channel();
+        let mut view = View::new(preferences.clone(), event_channel.clone()).unwrap();
+
+        let args = vec![String::new(), String::from("src/test.xyz")];
+        let mut workspace = super::create_workspace(&mut view, &preferences.borrow(), &args).unwrap();
+
+        assert_eq!(
+            workspace.current_buffer().unwrap().syntax_definition.as_ref().unwrap().name,
+            "Rust"
+        );
     }
 }
