@@ -6,7 +6,7 @@ use crate::models::application::modes::open;
 use scribe::Buffer;
 use std::fs::OpenOptions;
 use std::io::Read;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use crate::yaml::yaml::{Hash, Yaml, YamlLoader};
 use crate::models::application::modes::SearchSelectConfig;
 
@@ -27,6 +27,7 @@ const TAB_WIDTH_KEY: &str = "tab_width";
 const THEME_KEY: &str = "theme";
 const THEME_PATH: &str = "themes";
 const TYPES_KEY: &str = "types";
+const TYPES_SYNTAX_KEY: &str = "syntax";
 
 /// Loads, creates, and provides default values for application preferences.
 /// Values are immutable once loaded, with the exception of those that provide
@@ -266,6 +267,28 @@ impl Preferences {
             .and_then(|data| data[TYPES_KEY][extension][LINE_COMMENT_PREFIX_KEY].as_str())
             .or_else(|| self.default[TYPES_KEY][extension][LINE_COMMENT_PREFIX_KEY].as_str())
             .map(|prefix| prefix.to_owned())
+    }
+
+    pub fn syntax_definition_name(&self, path: &Path) -> Option<String> {
+        self.data
+            .as_ref()
+            .and_then(|data| {
+                // First try to match the file extension
+                if let Some(extension) = path.extension().and_then(|ext| ext.to_str()) {
+                    if let Some(syntax) = data[TYPES_KEY][extension][TYPES_SYNTAX_KEY].as_str() {
+                        return Some(syntax.to_owned());
+                    }
+                }
+
+                // If matching the file extension fails, try matching the whole filename
+                if let Some(path) = path.file_name().and_then(|name| name.to_str()) {
+                    if let Some(syntax) = data[TYPES_KEY][path][TYPES_SYNTAX_KEY].as_str() {
+                        return Some(syntax.to_owned());
+                    }
+                }
+
+                None
+            })
     }
 
     fn default_open_mode_exclusions(&self) -> Result<Option<Vec<ExclusionPattern>>> {
