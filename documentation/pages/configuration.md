@@ -154,7 +154,15 @@ Most popular formats and languages have syntax highlighting and symbol support o
 
 ### Manually Picking a Definition
 
-It's possible Amp has a syntax definition for the current file, but it's not being applied because it doesn't recognize the current filename or extension as having been associated with the definition. You can explicitly apply a definition by pressing `#` to enter syntax mode, and searching by the language/format name. Unfortunately, as of this writing, this selection isn't persistent; you'll need to re-apply it every time you open the file.
+It's possible Amp has a syntax definition for the current file, but it's not being applied because it doesn't recognize the current filename or extension as having been associated with the definition. You can explicitly apply a definition by pressing `#` to enter syntax mode, and searching by the language/format name.
+
+To make this syntax selection permanent, you can specify it in your preferences file:
+
+```yaml
+types:
+  rs:
+    syntax: Rust
+```
 
 ### Adding a New Definition
 
