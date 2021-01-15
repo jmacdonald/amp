@@ -485,6 +485,15 @@ mod tests {
     }
 
     #[test]
+    fn syntax_definition_name_returns_user_defined_syntax_for_full_deep_filename() {
+        let data = YamlLoader::load_from_str("types:\n  Makefile:\n    syntax: Makefile").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.syntax_definition_name(&Path::new("src/Makefile")),
+                   Some("Makefile".to_owned()));
+    }
+
+    #[test]
     fn syntax_definition_name_returns_user_defined_syntax_for_full_filename_with_extension() {
         let data = YamlLoader::load_from_str("types:\n  Makefile.lib:\n    syntax: Makefile").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
