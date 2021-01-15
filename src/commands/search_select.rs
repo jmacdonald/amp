@@ -24,10 +24,24 @@ pub fn accept(app: &mut Application) -> Result {
                 .selection()
                 .ok_or("Couldn't find a selected path to open")?;
 
+            let syntax_definition =
+                app.preferences.borrow().syntax_definition_name(&path).and_then(|name| {
+                    app.workspace.syntax_set.find_syntax_by_name(&name).cloned()
+                });
+
             app.workspace
                 .open_buffer(&path)
                 .chain_err(|| "Couldn't open a buffer for the specified path.")?;
-            app.view.initialize_buffer(app.workspace.current_buffer().unwrap())?;
+
+            let buffer = app.workspace.current_buffer().unwrap();
+
+            // Only override the default syntax definition if the user provided
+            // a valid one in their preferences.
+            if syntax_definition.is_some() {
+                buffer.syntax_definition = syntax_definition;
+            }
+
+            app.view.initialize_buffer(buffer)?;
 
         },
         Mode::Theme(ref mut mode) => {

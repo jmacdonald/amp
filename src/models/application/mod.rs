@@ -62,7 +62,7 @@ impl Application {
         let clipboard = Clipboard::new();
 
         // Set up a workspace in the current directory.
-        let workspace = create_workspace(&mut view, args)?;
+        let workspace = create_workspace(&mut view, &preferences.borrow(), args)?;
 
         Ok(Application {
             mode: Mode::Normal,
@@ -224,7 +224,7 @@ fn initialize_preferences() -> Rc<RefCell<Preferences>> {
     ))
 }
 
-fn create_workspace(view: &mut View, args: &Vec<String>) -> Result<Workspace> {
+fn create_workspace(view: &mut View, preferences: &Preferences, args: &Vec<String>) -> Result<Workspace> {
     // Discard the executable portion of the argument list.
     let mut path_args = args.iter().skip(1).peekable();
 
@@ -262,12 +262,23 @@ fn create_workspace(view: &mut View, args: &Vec<String>) -> Result<Workspace> {
 
         if path.is_dir() { continue; }
 
+        // Check if the user has provided any syntax preference for this file.
+        // If not, a default one will be applied on calling workspace.add_buffer()
+        let syntax_definition =
+            preferences.syntax_definition_name(&path).and_then(|name| {
+                workspace.syntax_set.find_syntax_by_name(&name).cloned()
+            });
+
         // Open the specified path if it exists, or
         // create a new buffer pointing to it if it doesn't.
         let argument_buffer = if path.exists() {
-            Buffer::from_file(path)?
+            let mut buffer = Buffer::from_file(path)?;
+            buffer.syntax_definition = syntax_definition;
+
+            buffer
         } else {
             let mut buffer = Buffer::new();
+            buffer.syntax_definition = syntax_definition;
 
             // Point the buffer to the path, ensuring that it's absolute.
             if path.is_absolute() {
@@ -278,6 +289,7 @@ fn create_workspace(view: &mut View, args: &Vec<String>) -> Result<Workspace> {
 
             buffer
         };
+
         workspace.add_buffer(argument_buffer);
         view.initialize_buffer(workspace.current_buffer().unwrap())?;
     }
@@ -288,9 +300,16 @@ fn create_workspace(view: &mut View, args: &Vec<String>) -> Result<Workspace> {
 #[cfg(test)]
 mod tests {
     use super::Application;
+    use crate::view::View;
+    use super::preferences::Preferences;
+
+    use yaml::YamlLoader;
     use scribe::Buffer;
+    use std::cell::RefCell;
     use std::env;
     use std::path::Path;
+    use std::rc::Rc;
+    use std::sync::mpsc;
 
     #[test]
     fn application_uses_file_arguments_to_load_contents_into_buffers_when_files_exist() {
@@ -318,5 +337,21 @@ mod tests {
             Some(env::current_dir().unwrap().join("non_existent_file"))
         );
         assert_eq!(application.workspace.current_buffer().unwrap().data(), "");
+    }
+
+    #[test]
+    fn create_workspace_correctly_applies_user_defined_syntax_when_opening_buffer_from_command_line() {
+        let data = YamlLoader::load_from_str("types:\n  xyz:\n    syntax: Rust").unwrap();
+        let preferences = Rc::new(RefCell::new(Preferences::new(data.into_iter().nth(0))));
+        let (event_channel, _) = mpsc::channel();
+        let mut view = View::new(preferences.clone(), event_channel.clone()).unwrap();
+
+        let args = vec![String::new(), String::from("src/test.xyz")];
+        let mut workspace = super::create_workspace(&mut view, &preferences.borrow(), &args).unwrap();
+
+        assert_eq!(
+            workspace.current_buffer().unwrap().syntax_definition.as_ref().unwrap().name,
+            "Rust"
+        );
     }
 }
