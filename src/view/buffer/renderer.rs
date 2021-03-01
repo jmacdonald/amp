@@ -76,10 +76,10 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
 
     fn print_rest_of_line(&mut self) {
         let on_cursor_line = self.on_cursor_line();
-        let guide_offset = self.length_guide_offset();
+        let guide_offsets = self.length_guide_offsets();
 
         for offset in self.screen_position.offset..self.terminal.width() {
-            let colors = if on_cursor_line || guide_offset.map(|go| go == offset).unwrap_or(false) {
+            let colors = if on_cursor_line || guide_offsets.contains(&offset) {
                 Colors::Focused
             } else {
                 Colors::Default
@@ -92,8 +92,10 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
         }
     }
 
-    fn length_guide_offset(&self) -> Option<usize> {
-        self.preferences.line_length_guide().map(|offset| self.gutter_width + offset)
+    fn length_guide_offsets(&self) -> Vec<usize> {
+        self.preferences.line_length_guides().into_iter()
+            .map(|offset| self.gutter_width + offset)
+            .collect()
     }
 
     fn advance_to_next_line(&mut self) {
