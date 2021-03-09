@@ -4,6 +4,10 @@ soft_tabs: true
 line_length_guide: 80
 line_wrapping: true
 
+use_editorconfig: true
+remove_trailing_whitespace: true
+ensure_trailing_newline: true
+
 open_mode:
   exclusions:
     - "**/.git"

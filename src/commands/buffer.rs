@@ -707,6 +707,11 @@ pub fn paste_above(app: &mut Application) -> Result {
 
 pub fn remove_trailing_whitespace(app: &mut Application) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+
+    if !app.preferences.borrow().remove_trailing_whitespace(buffer.path.as_ref()) {
+        return Ok(());
+    }
+
     let mut line = 0;
     let mut offset = 0;
     let mut space_count = 0;
@@ -770,6 +775,10 @@ pub fn remove_trailing_whitespace(app: &mut Application) -> Result {
 
 pub fn ensure_trailing_newline(app: &mut Application) -> Result {
     let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+
+    if !app.preferences.borrow().ensure_trailing_newline(buffer.path.as_ref()) {
+        return Ok(());
+    }
 
     // Find end of buffer position.
     let data = buffer.data();

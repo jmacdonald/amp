@@ -57,6 +57,36 @@ line_wrapping: true
 
 When set to `true`, lines extending beyond the visible region are wrapped to the line below.
 
+### Remove Trailing Whitespace On Saving
+
+```yaml
+remove_trailing_whitespace: true
+```
+
+When set to `true`, files will be checked upon saving if they contain lines with trailing whitespaces and removes trims these whitespaces.
+
+### Ensure Trailing Newline On Saving
+
+```yaml
+ensure_trailing_newline: true
+```
+
+When set to `true`, files will be checked upon saving if they contain a final newline and if not, inserts one.
+
+### Use .editorconfig Configuration
+
+```yaml
+use_editorconfig: true
+```
+
+When set to `true`, amp will try to load a [.editorconfig](https://editorconfig.org) file from the workspace root if present.
+All preferences for files with a matching rule will be applied will be used for the workspace.
+
+This will potentially overwrite the following rules on a per-file basis: `soft_tabs`, `tab_width`, `remove_trailing_whitespace` and `ensure_trailing_newline`.
+
+__Any other rules specified by .editorconfig files will be currently ignored, including nested .editorconfig files.__
+
+
 ## File Format-Specific Options
 
 The `tab_width` and `soft_tabs` options can be configured on a per-extension basis:
