@@ -103,6 +103,24 @@ pub fn switch_to_open_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
+pub fn switch_to_buffer_mode(app: &mut Application) -> Result {
+    let config = app.preferences.borrow().search_select_config();
+    app.mode = Mode::Buffer(BufferMode::new(&mut app.workspace, config));
+    commands::search_select::search(app)?;
+
+    Ok(())
+}
+
+pub fn switch_to_modified_buffer_mode(app: &mut Application) -> Result {
+    let config = app.preferences.borrow().search_select_config();
+    let mut buffer_mode = BufferMode::new(&mut app.workspace, config);
+    buffer_mode.apply_filter("No modified buffers found".into(), |b| b.is_modified);
+    app.mode = Mode::Buffer(buffer_mode);
+    commands::search_select::search(app)?;
+
+    Ok(())
+}
+
 pub fn switch_to_command_mode(app: &mut Application) -> Result {
     let config = app.preferences.borrow().search_select_config();
     app.mode = Mode::Command(CommandMode::new(config));

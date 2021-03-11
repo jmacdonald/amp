@@ -17,7 +17,7 @@ regex = "1.3.4"
 
 [dependencies]
 app_dirs = "1.2.1"
-scribe = "0.7.2"
+scribe = "0.7.3"
 pad = "0.1.4"
 bloodhound = "0.5.4"
 luthor = "0.1.7"

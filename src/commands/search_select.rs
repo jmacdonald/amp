@@ -44,6 +44,27 @@ pub fn accept(app: &mut Application) -> Result {
             app.view.initialize_buffer(buffer)?;
 
         },
+        Mode::Buffer(ref mode) => {
+            let selection = mode
+                .selection()
+                .ok_or("No buffer selected")?;
+
+            let mut found_buffer_id = None;
+            for buffer in app.workspace.iter_buffers() {
+                if buffer.id.unwrap() == selection.id {
+                    buffer.make_current();
+                    found_buffer_id = Some(selection.id);
+                    break;
+                }
+            }
+
+            if found_buffer_id.is_some() {
+                let buffer = app.workspace.current_buffer().unwrap();
+                app.view.initialize_buffer(buffer)?;
+            } else {
+                return Err("Failed to locate the selected buffer".into());
+            }
+        },
         Mode::Theme(ref mut mode) => {
             let theme_key = mode.selection().ok_or("No theme selected")?;
             app.preferences.borrow_mut().set_theme(theme_key.as_str());
@@ -80,6 +101,7 @@ pub fn search(app: &mut Application) -> Result {
     match app.mode {
         Mode::Command(ref mut mode) => mode.search(),
         Mode::Open(ref mut mode) => mode.search(),
+        Mode::Buffer(ref mut mode) => mode.search(),
         Mode::Theme(ref mut mode) => mode.search(),
         Mode::SymbolJump(ref mut mode) => mode.search(),
         Mode::Syntax(ref mut mode) => mode.search(),
@@ -93,6 +115,7 @@ pub fn select_next(app: &mut Application) -> Result {
     match app.mode {
         Mode::Command(ref mut mode) => mode.select_next(),
         Mode::Open(ref mut mode) => mode.select_next(),
+        Mode::Buffer(ref mut mode) => mode.select_next(),
         Mode::Theme(ref mut mode) => mode.select_next(),
         Mode::SymbolJump(ref mut mode) => mode.select_next(),
         Mode::Syntax(ref mut mode) => mode.select_next(),
@@ -106,6 +129,7 @@ pub fn select_previous(app: &mut Application) -> Result {
     match app.mode {
         Mode::Command(ref mut mode) => mode.select_previous(),
         Mode::Open(ref mut mode) => mode.select_previous(),
+        Mode::Buffer(ref mut mode) => mode.select_previous(),
         Mode::Theme(ref mut mode) => mode.select_previous(),
         Mode::SymbolJump(ref mut mode) => mode.select_previous(),
         Mode::Syntax(ref mut mode) => mode.select_previous(),
@@ -119,6 +143,7 @@ pub fn enable_insert(app: &mut Application) -> Result {
     match app.mode {
         Mode::Command(ref mut mode) => mode.set_insert_mode(true),
         Mode::Open(ref mut mode) => mode.set_insert_mode(true),
+        Mode::Buffer(ref mut mode) => mode.set_insert_mode(true),
         Mode::Theme(ref mut mode) => mode.set_insert_mode(true),
         Mode::SymbolJump(ref mut mode) => mode.set_insert_mode(true),
         Mode::Syntax(ref mut mode) => mode.set_insert_mode(true),
@@ -132,6 +157,7 @@ pub fn disable_insert(app: &mut Application) -> Result {
     match app.mode {
         Mode::Command(ref mut mode) => mode.set_insert_mode(false),
         Mode::Open(ref mut mode) => mode.set_insert_mode(false),
+        Mode::Buffer(ref mut mode) => mode.set_insert_mode(false),
         Mode::Theme(ref mut mode) => mode.set_insert_mode(false),
         Mode::SymbolJump(ref mut mode) => mode.set_insert_mode(false),
         Mode::Syntax(ref mut mode) => mode.set_insert_mode(false),
@@ -146,6 +172,7 @@ pub fn push_search_char(app: &mut Application) -> Result {
         match app.mode {
             Mode::Command(ref mut mode) => mode.push_search_char(c),
             Mode::Open(ref mut mode) => mode.push_search_char(c),
+            Mode::Buffer(ref mut mode) => mode.push_search_char(c),
             Mode::Theme(ref mut mode) => mode.push_search_char(c),
             Mode::SymbolJump(ref mut mode) => mode.push_search_char(c),
             Mode::Syntax(ref mut mode) => mode.push_search_char(c),
@@ -161,6 +188,7 @@ pub fn pop_search_token(app: &mut Application) -> Result {
     match app.mode {
         Mode::Command(ref mut mode) => mode.pop_search_token(),
         Mode::Open(ref mut mode) => mode.pop_search_token(),
+        Mode::Buffer(ref mut mode) => mode.pop_search_token(),
         Mode::Theme(ref mut mode) => mode.pop_search_token(),
         Mode::SymbolJump(ref mut mode) => mode.pop_search_token(),
         Mode::Syntax(ref mut mode) => mode.pop_search_token(),
@@ -175,6 +203,7 @@ pub fn step_back(app: &mut Application) -> Result {
     let result_count = match app.mode {
         Mode::Command(ref mut mode) => mode.results().count(),
         Mode::Open(ref mut mode) => mode.results().count(),
+        Mode::Buffer(ref mut mode) => mode.results().count(),
         Mode::Theme(ref mut mode) => mode.results().count(),
         Mode::SymbolJump(ref mut mode) => mode.results().count(),
         Mode::Syntax(ref mut mode) => mode.results().count(),
