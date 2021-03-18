@@ -16,7 +16,7 @@ edition="2018"
 regex = "1.3.4"
 
 [dependencies]
-app_dirs = "1.2.1"
+app_dirs = { package = "app_dirs2", version = "2.3" }
 scribe = "0.7.2"
 pad = "0.1.4"
 bloodhound = "0.5.4"
