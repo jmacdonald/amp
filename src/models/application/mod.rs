@@ -57,7 +57,10 @@ impl Application {
     /// Initialize an empty application in normal mode with any discovered
     /// repository, and default preferences.
     pub fn new(args: &Vec<String>) -> Result<Application> {
-        let preferences = initialize_preferences();
+        let preferences =
+            Rc::new(RefCell::new(
+                Preferences::load().unwrap_or_else(|_| Preferences::new(None)),
+            ));
 
         let (event_channel, events) = mpsc::channel();
         let mut view = View::new(preferences.clone(), event_channel.clone())?;
@@ -218,12 +221,6 @@ impl Application {
             Mode::Exit => None,
         }
     }
-}
-
-fn initialize_preferences() -> Rc<RefCell<Preferences>> {
-    Rc::new(RefCell::new(
-        Preferences::load().unwrap_or_else(|_| Preferences::new(None)),
-    ))
 }
 
 fn create_workspace(view: &mut View, preferences: &Preferences, args: &Vec<String>) -> Result<Workspace> {
