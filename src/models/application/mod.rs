@@ -54,6 +54,8 @@ pub struct Application {
 }
 
 impl Application {
+    /// Initialize an empty application in normal mode with any discovered
+    /// repository, and default preferences.
     pub fn new(args: &Vec<String>) -> Result<Application> {
         let preferences = initialize_preferences();
 
