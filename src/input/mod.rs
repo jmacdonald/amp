@@ -4,6 +4,7 @@ mod key_map;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Key {
+    // Keyboard:
     Backspace,
     Left,
     Right,
@@ -21,4 +22,7 @@ pub enum Key {
     AnyChar,
     Char(char),
     Ctrl(char),
+    // Mouse:
+    ScrollUp,
+    ScrollDown,
 }
