@@ -193,23 +193,25 @@ fn parse_key(data: &str) -> Result<Key> {
     } else {
         // No modifier; just get the key.
         Ok(match component {
-            "space"     => Key::Char(' '),
-            "backspace" => Key::Backspace,
-            "left"      => Key::Left,
-            "right"     => Key::Right,
-            "up"        => Key::Up,
-            "down"      => Key::Down,
-            "home"      => Key::Home,
-            "end"       => Key::End,
-            "page_up"   => Key::PageUp,
-            "page_down" => Key::PageDown,
-            "delete"    => Key::Delete,
-            "insert"    => Key::Insert,
-            "escape"    => Key::Esc,
-            "tab"       => Key::Tab,
-            "enter"     => Key::Enter,
-            "_"         => Key::AnyChar,
-            _           => Key::Char(
+            "space"         => Key::Char(' '),
+            "backspace"     => Key::Backspace,
+            "left"          => Key::Left,
+            "right"         => Key::Right,
+            "up"            => Key::Up,
+            "down"          => Key::Down,
+            "home"          => Key::Home,
+            "end"           => Key::End,
+            "page_up"       => Key::PageUp,
+            "page_down"     => Key::PageDown,
+            "delete"        => Key::Delete,
+            "insert"        => Key::Insert,
+            "escape"        => Key::Esc,
+            "tab"           => Key::Tab,
+            "enter"         => Key::Enter,
+            "scroll_up"     => Key::ScrollUp,
+            "scroll_down"   => Key::ScrollDown,
+            "_"             => Key::AnyChar,
+            _               => Key::Char(
                 // It's not a keyword; take its first character, if available.
                 component.chars().nth(0).ok_or_else(||
                     format!("Keymap key \"{}\" is invalid", component)

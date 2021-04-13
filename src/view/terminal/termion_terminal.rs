@@ -10,7 +10,8 @@ use std::os::unix::io::AsRawFd;
 use scribe::buffer::{Distance, Position};
 use self::termion::color::{Bg, Fg};
 use self::termion::{color, cursor};
-use self::termion::input::{Keys, TermRead};
+use self::termion::event::{MouseEvent, MouseButton};
+use self::termion::input::{TermRead, MouseTerminal};
 use self::termion::raw::{IntoRawMode, RawTerminal};
 use self::termion::screen::AlternateScreen;
 use self::termion::style;
@@ -23,6 +24,8 @@ use crate::view::{Colors, Style};
 use unicode_segmentation::UnicodeSegmentation;
 use signal_hook::iterator::Signals;
 
+use self::termion::event::Event as TermEvent;
+use self::termion::input::Events as TermEvents;
 use self::termion::event::Key as TermionKey;
 use crate::input::Key;
 use crate::models::application::Event;
@@ -33,8 +36,8 @@ const RESIZE: Token = Token(1);
 pub struct TermionTerminal {
     event_listener: Poll,
     signals: Signals,
-    input: Mutex<Option<Keys<Stdin>>>,
-    output: Mutex<Option<BufWriter<RawTerminal<AlternateScreen<Stdout>>>>>,
+    input: Mutex<Option<TermEvents<Stdin>>>,
+    output: Mutex<Option<RawTerminal<MouseTerminal<AlternateScreen<BufWriter<Stdout>>>>>>,
     current_style: Mutex<Option<Style>>,
     current_colors: Mutex<Option<Colors>>,
     current_position: Mutex<Option<Position>>,
@@ -48,7 +51,7 @@ impl TermionTerminal {
         Ok(TermionTerminal {
             event_listener,
             signals,
-            input: Mutex::new(Some(stdin().keys())),
+            input: Mutex::new(Some(stdin().events())),
             output: Mutex::new(Some(create_output_instance())),
             current_style: Mutex::new(None),
             current_colors: Mutex::new(None),
@@ -140,26 +143,33 @@ impl Terminal for TermionTerminal {
                     let mut guard = self.input.lock().ok()?;
                     let input_handle = guard.as_mut()?;
                     let input_data = input_handle.next()?;
-                    let key = input_data.ok()?;
+                    let event = input_data.ok()?;
 
-                    match key {
-                        TermionKey::Backspace => Some(Event::Key(Key::Backspace)),
-                        TermionKey::Left => Some(Event::Key(Key::Left)),
-                        TermionKey::Right => Some(Event::Key(Key::Right)),
-                        TermionKey::Up => Some(Event::Key(Key::Up)),
-                        TermionKey::Down => Some(Event::Key(Key::Down)),
-                        TermionKey::Home => Some(Event::Key(Key::Home)),
-                        TermionKey::End => Some(Event::Key(Key::End)),
-                        TermionKey::PageUp => Some(Event::Key(Key::PageUp)),
-                        TermionKey::PageDown => Some(Event::Key(Key::PageDown)),
-                        TermionKey::Delete => Some(Event::Key(Key::Delete)),
-                        TermionKey::Insert => Some(Event::Key(Key::Insert)),
-                        TermionKey::Esc => Some(Event::Key(Key::Esc)),
-                        TermionKey::Char('\n') => Some(Event::Key(Key::Enter)),
-                        TermionKey::Char('\t') => Some(Event::Key(Key::Tab)),
-                        TermionKey::Char(c) => Some(Event::Key(Key::Char(c))),
-                        TermionKey::Ctrl(c) => Some(Event::Key(Key::Ctrl(c))),
-                        _ => None,
+                    match event {
+                        TermEvent::Key(TermionKey::Backspace) => Some(Event::Key(Key::Backspace)),
+                        TermEvent::Key(TermionKey::Left) => Some(Event::Key(Key::Left)),
+                        TermEvent::Key(TermionKey::Right) => Some(Event::Key(Key::Right)),
+                        TermEvent::Key(TermionKey::Up) => Some(Event::Key(Key::Up)),
+                        TermEvent::Key(TermionKey::Down) => Some(Event::Key(Key::Down)),
+                        TermEvent::Key(TermionKey::Home) => Some(Event::Key(Key::Home)),
+                        TermEvent::Key(TermionKey::End) => Some(Event::Key(Key::End)),
+                        TermEvent::Key(TermionKey::PageUp) => Some(Event::Key(Key::PageUp)),
+                        TermEvent::Key(TermionKey::PageDown) => Some(Event::Key(Key::PageDown)),
+                        TermEvent::Key(TermionKey::Delete) => Some(Event::Key(Key::Delete)),
+                        TermEvent::Key(TermionKey::Insert) => Some(Event::Key(Key::Insert)),
+                        TermEvent::Key(TermionKey::Esc) => Some(Event::Key(Key::Esc)),
+                        TermEvent::Key(TermionKey::Char('\n')) => Some(Event::Key(Key::Enter)),
+                        TermEvent::Key(TermionKey::Char('\t')) => Some(Event::Key(Key::Tab)),
+                        TermEvent::Key(TermionKey::Char(c)) => Some(Event::Key(Key::Char(c))),
+                        TermEvent::Key(TermionKey::Ctrl(c)) => Some(Event::Key(Key::Ctrl(c))),
+                        TermEvent::Mouse(MouseEvent::Press(MouseButton::WheelUp, _x, _y)) =>
+                            Some(Event::Key(Key::ScrollUp)),
+                        TermEvent::Mouse(MouseEvent::Press(MouseButton::WheelDown, _x, _y)) =>
+                            Some(Event::Key(Key::ScrollDown)),
+                        x => {
+                            println!("Unknown {:?}", x);
+                            None
+                        },
                     }
                 },
                 RESIZE => {
@@ -289,7 +299,7 @@ impl Terminal for TermionTerminal {
             guard.replace(create_output_instance());
         }
         if let Ok(mut guard) = self.input.lock() {
-            guard.replace(stdin().keys());
+            guard.replace(stdin().events());
         }
     }
 }
@@ -334,11 +344,13 @@ fn create_event_listener() -> Result<(Poll, Signals)> {
     Ok((event_listener, signals))
 }
 
-fn create_output_instance() -> BufWriter<RawTerminal<AlternateScreen<Stdout>>> {
-    let screen = AlternateScreen::from(stdout());
-
+fn create_output_instance() -> RawTerminal<MouseTerminal<AlternateScreen<BufWriter<Stdout>>>> {
+    let stdout = stdout();
     // Use a 1MB buffered writer for stdout.
-    BufWriter::with_capacity(1_048_576, screen.into_raw_mode().unwrap())
+    let stdout = BufWriter::with_capacity(1_048_576, stdout);
+    let stdout = AlternateScreen::from(stdout);
+    let stdout = MouseTerminal::from(stdout);
+    stdout.into_raw_mode().unwrap()
 }
 
 fn map_style(style: Style) -> Option<Box<dyn Display>> {
