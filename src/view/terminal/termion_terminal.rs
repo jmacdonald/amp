@@ -166,10 +166,7 @@ impl Terminal for TermionTerminal {
                             Some(Event::Key(Key::ScrollUp)),
                         TermEvent::Mouse(MouseEvent::Press(MouseButton::WheelDown, _x, _y)) =>
                             Some(Event::Key(Key::ScrollDown)),
-                        x => {
-                            println!("Unknown {:?}", x);
-                            None
-                        },
+                        _ => None
                     }
                 },
                 RESIZE => {
