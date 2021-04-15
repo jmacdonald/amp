@@ -23,32 +23,6 @@ pub fn delete(app: &mut Application) -> Result {
     Ok(())
 }
 
-/// Get the selected range from an application in a selection mode. *Requires*
-/// that the application has a buffer and is in mode Select, SelectLine, or
-/// Search.
-fn range_from(app: &mut Application) -> Range {
-    let buffer = app.workspace.current_buffer();
-    let buffer = buffer.unwrap();
-
-    match app.mode {
-        Mode::Select(ref select_mode) => {
-            Range::new(*buffer.cursor.clone(), select_mode.anchor)
-        }
-        Mode::SelectLine(ref select_line_mode) => {
-            select_line_mode.to_range(&*buffer.cursor)
-        }
-        Mode::Search(ref mode) => {
-            mode.results
-            .as_ref()
-            .and_then(|r| r.selection())
-            .ok_or("Cannot get selection outside of select mode.")
-            .unwrap()
-            .clone()
-        }
-        _ => panic!("Cannot get selection outside of select mode."),
-    }
-}
-
 pub fn copy_and_delete(app: &mut Application) -> Result {
     let _ = copy_to_clipboard(app);
     delete(app)
@@ -112,6 +86,32 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
     };
 
     Ok(())
+}
+
+/// Get the selected range from an application in a selection mode. *Requires*
+/// that the application has a buffer and is in mode Select, SelectLine, or
+/// Search.
+fn range_from(app: &mut Application) -> Range {
+    let buffer = app.workspace.current_buffer();
+    let buffer = buffer.unwrap();
+
+    match app.mode {
+        Mode::Select(ref select_mode) => {
+            Range::new(*buffer.cursor.clone(), select_mode.anchor)
+        }
+        Mode::SelectLine(ref select_line_mode) => {
+            select_line_mode.to_range(&*buffer.cursor)
+        }
+        Mode::Search(ref mode) => {
+            mode.results
+            .as_ref()
+            .and_then(|r| r.selection())
+            .ok_or("Cannot get selection outside of select mode.")
+            .unwrap()
+            .clone()
+        }
+        _ => panic!("Cannot get selection outside of select mode."),
+    }
 }
 
 #[cfg(test)]
