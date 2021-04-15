@@ -9,26 +9,13 @@ pub fn delete(app: &mut Application) -> Result {
     if app.workspace.current_buffer().is_none() {
         bail!(BUFFER_MISSING);
     }
-    let buffer = app.workspace.current_buffer().unwrap();
-
     match app.mode {
-        Mode::Select(ref select_mode) => {
-            let cursor_position = *buffer.cursor.clone();
-            let delete_range = Range::new(cursor_position, select_mode.anchor);
+        Mode::Select(_) | Mode::SelectLine(_) | Mode::Search(_) => {
+            let delete_range = range_from(app);
+            let buffer = app.workspace.current_buffer().unwrap();
+
             buffer.delete_range(delete_range.clone());
             buffer.cursor.move_to(delete_range.start());
-        }
-        Mode::SelectLine(ref mode) => {
-            let delete_range = mode.to_range(&*buffer.cursor);
-            buffer.delete_range(delete_range.clone());
-            buffer.cursor.move_to(delete_range.start());
-        }
-        Mode::Search(ref mode) => {
-            let selection = mode.results
-                .as_ref()
-                .and_then(|r| r.selection())
-                .ok_or("Can't delete in search mode without a selected result")?;
-            buffer.delete_range(selection.clone());
         }
         _ => bail!("Can't delete selections outside of select mode"),
     };
