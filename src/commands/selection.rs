@@ -6,33 +6,60 @@ use crate::commands::{self, Result};
 use crate::util;
 
 pub fn delete(app: &mut Application) -> Result {
-    if let Some(buffer) = app.workspace.current_buffer() {
-        match app.mode {
-            Mode::Select(ref select_mode) => {
-                let cursor_position = *buffer.cursor.clone();
-                let delete_range = Range::new(cursor_position, select_mode.anchor);
-                buffer.delete_range(delete_range.clone());
-                buffer.cursor.move_to(delete_range.start());
-            }
-            Mode::SelectLine(ref mode) => {
-                let delete_range = mode.to_range(&*buffer.cursor);
-                buffer.delete_range(delete_range.clone());
-                buffer.cursor.move_to(delete_range.start());
-            }
-            Mode::Search(ref mode) => {
-                let selection = mode.results
-                    .as_ref()
-                    .and_then(|r| r.selection())
-                    .ok_or("Can't delete in search mode without a selected result")?;
-                buffer.delete_range(selection.clone());
-            }
-            _ => bail!("Can't delete selections outside of select mode"),
-        };
-    } else {
+    if app.workspace.current_buffer().is_none() {
         bail!(BUFFER_MISSING);
     }
+    let buffer = app.workspace.current_buffer().unwrap();
+
+    match app.mode {
+        Mode::Select(ref select_mode) => {
+            let cursor_position = *buffer.cursor.clone();
+            let delete_range = Range::new(cursor_position, select_mode.anchor);
+            buffer.delete_range(delete_range.clone());
+            buffer.cursor.move_to(delete_range.start());
+        }
+        Mode::SelectLine(ref mode) => {
+            let delete_range = mode.to_range(&*buffer.cursor);
+            buffer.delete_range(delete_range.clone());
+            buffer.cursor.move_to(delete_range.start());
+        }
+        Mode::Search(ref mode) => {
+            let selection = mode.results
+                .as_ref()
+                .and_then(|r| r.selection())
+                .ok_or("Can't delete in search mode without a selected result")?;
+            buffer.delete_range(selection.clone());
+        }
+        _ => bail!("Can't delete selections outside of select mode"),
+    };
 
     Ok(())
+}
+
+/// Get the selected range from an application in a selection mode. *Requires*
+/// that the application has a buffer and is in mode Select, SelectLine, or
+/// Search.
+fn range_from(app: &mut Application) -> Range {
+    let buffer = app.workspace.current_buffer();
+    let buffer = buffer.unwrap();
+
+    match app.mode {
+        Mode::Select(ref select_mode) => {
+            Range::new(*buffer.cursor.clone(), select_mode.anchor)
+        }
+        Mode::SelectLine(ref select_line_mode) => {
+            select_line_mode.to_range(&*buffer.cursor)
+        }
+        Mode::Search(ref mode) => {
+            mode.results
+            .as_ref()
+            .and_then(|r| r.selection())
+            .ok_or("Cannot get selection outside of select mode.")
+            .unwrap()
+            .clone()
+        }
+        _ => panic!("Cannot get selection outside of select mode."),
+    }
 }
 
 pub fn copy_and_delete(app: &mut Application) -> Result {
