@@ -149,7 +149,7 @@ fn justify_string(text: &String) -> String {
 
         while paragraph.peek().is_some() {
             for word in (&mut paragraph).take_while(|s| {
-                len += s.len();
+                len += s.len() + 1;
                 if len > 80 {
                     len = s.len();
                     false
