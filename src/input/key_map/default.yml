@@ -226,6 +226,7 @@ select:
   ctrl-a: selection::select_all
   ctrl-z: application::suspend
   ctrl-c: application::exit
+  a: selection::justify
 
 select_line:
   up: cursor::move_up

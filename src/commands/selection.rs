@@ -30,10 +30,20 @@ pub fn justify(app: &mut Application) -> Result {
 
     let range = match app.mode {
         Mode::Select(_) | Mode::SelectLine(_) | Mode::Search(_) => {
-            range_from(app);
+            range_from(app)
         }
         _ => bail!("Can't justify without selection"),
     };
+
+    // delete and save the range, then justify that range
+    let buffer = app.workspace.current_buffer().unwrap();
+    let text = buffer.read(&range);
+    buffer.delete_range(range.clone());
+    buffer.cursor.move_to(range.start());
+
+    if let Some(text) = &text {
+        buffer.insert(&justify_string(text));
+    }
 
     Ok(())
 }
@@ -127,6 +137,20 @@ fn range_from(app: &mut Application) -> Range {
         }
         _ => panic!("Cannot get selection outside of select mode."),
     }
+}
+
+/// Justify a string: for each paragraph, transform it to break off at a character
+/// limit
+fn justify_string(text: &String) -> String {
+    let mut justified = String::new();
+    for paragraph in text.split("\n\n") {
+        for line in paragraph.split(|c: char| c.is_whitespace()) {
+            justified += line;
+            justified.push('\n');
+        }
+    }
+
+    justified
 }
 
 #[cfg(test)]
