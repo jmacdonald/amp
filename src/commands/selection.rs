@@ -23,6 +23,21 @@ pub fn delete(app: &mut Application) -> Result {
     Ok(())
 }
 
+pub fn justify(app: &mut Application) -> Result {
+    if app.workspace.current_buffer().is_none() {
+        bail!(BUFFER_MISSING);
+    }
+
+    let range = match app.mode {
+        Mode::Select(_) | Mode::SelectLine(_) | Mode::Search(_) => {
+            range_from(app);
+        }
+        _ => bail!("Can't justify without selection"),
+    };
+
+    Ok(())
+}
+
 pub fn copy_and_delete(app: &mut Application) -> Result {
     let _ = copy_to_clipboard(app);
     delete(app)
