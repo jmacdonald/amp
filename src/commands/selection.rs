@@ -144,8 +144,19 @@ fn range_from(app: &mut Application) -> Range {
 fn justify_string(text: &String) -> String {
     let mut justified = String::new();
     for paragraph in text.split("\n\n") {
-        for line in paragraph.split(|c: char| c.is_whitespace()) {
-            justified += line;
+        let mut paragraph = paragraph.split_whitespace().peekable();
+        let mut len = 0;
+
+        while paragraph.peek().is_some() {
+            justified += &((&mut paragraph).take_while(|s| {
+                len += s.len();
+                if len > 80 {
+                    len = s.len();
+                    false
+                } else {
+                    true
+                }
+            }).collect::<String>())[..];
             justified.push('\n');
         }
     }
