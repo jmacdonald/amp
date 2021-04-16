@@ -148,7 +148,7 @@ fn justify_string(text: &String) -> String {
         let mut len = 0;
 
         while paragraph.peek().is_some() {
-            justified += &((&mut paragraph).take_while(|s| {
+            for word in (&mut paragraph).take_while(|s| {
                 len += s.len();
                 if len > 80 {
                     len = s.len();
@@ -156,7 +156,10 @@ fn justify_string(text: &String) -> String {
                 } else {
                     true
                 }
-            }).collect::<String>())[..];
+            }) {
+                justified += word;
+                justified.push(' ');
+            }
             justified.push('\n');
         }
     }
@@ -282,5 +285,18 @@ mod tests {
             app.workspace.current_buffer().unwrap().data(),
             String::from("amp\nitor\nbuffer")
         )
+    }
+
+    #[test]
+    fn justify_justifies() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("this is a very long line with no breaks, even though it should have breaks.\n");
+        app.workspace.add_buffer(buffer);
+        commands::selection::select_all(&mut app).unwrap();
+        commands::selection::justify(&mut app).unwrap();
+
+        let buffer = app.workspace.current_buffer().unwrap().data();
+        println!("DATA: {}", buffer);
     }
 }
