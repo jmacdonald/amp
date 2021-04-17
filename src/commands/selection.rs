@@ -37,12 +37,11 @@ pub fn justify(app: &mut Application) -> Result {
 
     // delete and save the range, then justify that range
     let buffer = app.workspace.current_buffer().unwrap();
-    let text = buffer.read(&range);
-    buffer.delete_range(range.clone());
-    buffer.cursor.move_to(range.start());
+    if let Some(text) = buffer.read(&range.clone()) {
+        buffer.delete_range(range.clone());
+        buffer.cursor.move_to(range.start());
 
-    if let Some(text) = &text {
-        buffer.insert(&justify_string(text));
+        buffer.insert(&justify_string(&text));
     }
 
     Ok(())
@@ -147,20 +146,16 @@ fn justify_string(text: &String) -> String {
         let mut paragraph = paragraph.split_whitespace().peekable();
         let mut len = 0;
 
-        while paragraph.peek().is_some() {
-            for word in (&mut paragraph).take_while(|s| {
-                len += s.len() + 1;
-                if len > 80 {
-                    len = s.len();
-                    false
-                } else {
-                    true
-                }
-            }) {
+        for word in paragraph {
+            len += word.len() + 1;
+            if len > 80 {
+                len = word.len();
+                justified.push('\n');
+                justified += word;
+            } else {
                 justified += word;
                 justified.push(' ');
             }
-            justified.push('\n');
         }
     }
 
@@ -291,12 +286,15 @@ mod tests {
     fn justify_justifies() {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
-        buffer.insert("this is a very long line with no breaks, even though it should have breaks.\n");
+        buffer.insert("\nthis is a very \n long line with inconsistent line \nbreaks, even though it should have breaks.\n");
         app.workspace.add_buffer(buffer);
+        println!("DATA: {}", app.workspace.current_buffer().unwrap().data());
         commands::selection::select_all(&mut app).unwrap();
         commands::selection::justify(&mut app).unwrap();
 
-        let buffer = app.workspace.current_buffer().unwrap().data();
-        println!("DATA: {}", buffer);
+        assert_eq!(
+            app.workspace.current_buffer().unwrap().data(),
+            String::from("this is a very long line with inconsistent line breaks, even though it should\nhave breaks")
+        );
     }
 }
