@@ -143,7 +143,7 @@ fn range_from(app: &mut Application) -> Range {
 fn justify_string(text: &String) -> String {
     let mut justified = String::new();
     for paragraph in text.split("\n\n") {
-        let mut paragraph = paragraph.split_whitespace().peekable();
+        let paragraph = paragraph.split_whitespace();
         let mut len = 0;
 
         for word in paragraph {
