@@ -49,7 +49,8 @@ pub fn justify(app: &mut Application) -> Result {
                 match app.preferences.borrow().line_length_guide() {
                     Some(l) => l,
                     None => 80,
-                }
+                },
+                Regex::new(r"#|//|/\*|///").unwrap(),
             )
         );
     }
@@ -148,19 +149,17 @@ fn range_from(app: &mut Application) -> Range {
     }
 }
 
-/// Justify a string: for each paragraph, transform it to break off at a character
-/// limit
-fn justify_string(text: &String, max_len: usize) -> String {
-    let comment_prefix = Regex::new("//|///|#|/\\*").unwrap();
-
+/// Wrap a string at a given maximum length (generally 80 characters). If the
+/// line begins with a comment (matches potential_prefix), the text is wrapped
+/// around it.
+fn justify_string(text: &String, max_len: usize, potential_prefix: Regex) -> String {
     let mut justified = String::new();
     for paragraph in text.split("\n\n") {
         let mut paragraph = paragraph.split_whitespace().peekable();
-        // if the paragraph begins with a prefix
         let prefix;
         let max_len_with_prefix;
         if paragraph.peek().is_some()
-           && comment_prefix.is_match(paragraph.peek().unwrap())
+           && potential_prefix.is_match(paragraph.peek().unwrap())
         {
             prefix = paragraph.next().unwrap().to_owned() + " ";
             max_len_with_prefix = max_len - prefix.len();
