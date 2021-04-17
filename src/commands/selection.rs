@@ -151,11 +151,9 @@ fn justify_string(text: &String) -> String {
             if len > 80 {
                 len = word.len();
                 justified.push('\n');
-                justified += word;
-            } else {
-                justified += word;
-                justified.push(' ');
             }
+            justified += word;
+            justified.push(' ');
         }
 
         justified += "\n\n"; // add the paragraph delim
@@ -286,17 +284,12 @@ mod tests {
 
     #[test]
     fn justify_justifies() {
-        let mut app = Application::new(&Vec::new()).unwrap();
-        let mut buffer = Buffer::new();
-        buffer.insert("\nthis is a very \n long line with inconsistent line \nbreaks, even though it should have breaks.\n");
-        app.workspace.add_buffer(buffer);
-        println!("DATA: {}", app.workspace.current_buffer().unwrap().data());
-        commands::selection::select_all(&mut app).unwrap();
-        commands::selection::justify(&mut app).unwrap();
-
+        let text = String::from(
+            "\nthis is a very \n long line with inconsistent line \nbreaks, even though it should have breaks.\n"
+        );
         assert_eq!(
-            app.workspace.current_buffer().unwrap().data(),
-            String::from("this is a very long line with inconsistent line breaks, even though it should\nhave breaks")
+            super::justify_string(&text),
+            String::from("this is a very long line with inconsistent line breaks, even though it should \nhave breaks. \n\n")
         );
     }
 }
