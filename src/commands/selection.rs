@@ -41,7 +41,15 @@ pub fn justify(app: &mut Application) -> Result {
         buffer.delete_range(range.clone());
         buffer.cursor.move_to(range.start());
 
-        buffer.insert(&justify_string(&text));
+        buffer.insert(
+            &justify_string(
+                &text,
+                match app.preferences.borrow().line_length_guide() {
+                    Some(l) => l,
+                    None => 80,
+                }
+            )
+        );
     }
 
     Ok(())
@@ -140,7 +148,7 @@ fn range_from(app: &mut Application) -> Range {
 
 /// Justify a string: for each paragraph, transform it to break off at a character
 /// limit
-fn justify_string(text: &String) -> String {
+fn justify_string(text: &String, max_len: usize) -> String {
     let mut justified = String::new();
     for paragraph in text.split("\n\n") {
         let paragraph = paragraph.split_whitespace();
@@ -148,7 +156,7 @@ fn justify_string(text: &String) -> String {
 
         for word in paragraph {
             len += word.len() + 1;
-            if len > 80 {
+            if len > max_len {
                 len = word.len();
                 justified.push('\n');
             }
@@ -288,7 +296,7 @@ mod tests {
             "\nthis is a very \n long line with inconsistent line \nbreaks, even though it should have breaks.\n"
         );
         assert_eq!(
-            super::justify_string(&text),
+            super::justify_string(&text, 80),
             String::from("this is a very long line with inconsistent line breaks, even though it should \nhave breaks. \n\n")
         );
     }
