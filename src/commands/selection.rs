@@ -5,6 +5,8 @@ use crate::errors::*;
 use crate::commands::{self, Result};
 use crate::util;
 
+use regex::Regex;
+
 pub fn delete(app: &mut Application) -> Result {
     if app.workspace.current_buffer().is_none() {
         bail!(BUFFER_MISSING);
@@ -149,16 +151,37 @@ fn range_from(app: &mut Application) -> Range {
 /// Justify a string: for each paragraph, transform it to break off at a character
 /// limit
 fn justify_string(text: &String, max_len: usize) -> String {
+    let comment_prefix = Regex::new("//|///|#|/\\*").unwrap();
+
     let mut justified = String::new();
     for paragraph in text.split("\n\n") {
-        let paragraph = paragraph.split_whitespace();
+        let mut paragraph = paragraph.split_whitespace().peekable();
+        // if the paragraph begins with a prefix
+        let prefix;
+        let max_len_with_prefix;
+        if paragraph.peek().is_some()
+           && comment_prefix.is_match(paragraph.peek().unwrap())
+        {
+            prefix = paragraph.next().unwrap().to_owned() + " ";
+            max_len_with_prefix = max_len - prefix.len();
+            justified += &prefix;
+        } else {
+            prefix = String::new();
+            max_len_with_prefix = max_len;
+        }
+
         let mut len = 0;
 
         for word in paragraph {
+            if word == prefix {
+                continue;
+            }
+
             len += word.len() + 1;
-            if len > max_len {
+            if len > max_len_with_prefix {
                 len = word.len();
                 justified.push('\n');
+                justified += &prefix;
             }
             justified += word;
             justified.push(' ');
