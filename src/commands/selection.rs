@@ -157,6 +157,8 @@ fn justify_string(text: &String) -> String {
                 justified.push(' ');
             }
         }
+
+        justified += "\n\n"; // add the paragraph delim
     }
 
     justified
