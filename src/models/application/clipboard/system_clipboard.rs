@@ -1,17 +1,7 @@
 use crate::errors::*;
-use clipboard::{ClipboardContext, ClipboardProvider};
+use super::ClipboardContent;
 
-/// In-app content can be captured in both regular and full-line selection
-/// modes. This type describes the structure of said content, based on the
-/// context in which it was captured. When OS-level clipboard contents are
-/// used, they are always represented as inline, as we cannot infer block
-/// style without the copy context.
-#[derive(Debug, PartialEq)]
-pub enum ClipboardContent {
-    Inline(String),
-    Block(String),
-    None,
-}
+use clipboard::{ClipboardContext, ClipboardProvider};
 
 /// Qualifies in-app copy/paste content with structural information, and
 /// synchronizes said content with the OS-level clipboard (preferring it
