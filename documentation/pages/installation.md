@@ -31,15 +31,21 @@ brew install amp
 ### Dependencies
 
 * `git`
-* `libxcb` (X11 clipboard support)
+* `libxcb` if building on Linux (X11 clipboard support)
 * `openssl`
 * `zlib`
+
+The dependency on `libxcb` can be avoided by excluding the `clipboard` feature when building Amp, useful for e.g. headless machines.
 
 ### Build dependencies
 
 * `cmake`
 * `rust`
 * `python3` if building on Linux
+
+### Feature flags
+
+* `clipboard`, enabled by default.
 
 ### Building
 
@@ -54,4 +60,10 @@ brew install amp
 
     ```
     cargo install amp
+    ```
+
+    To build and install Amp without any of its optional features:
+
+    ```
+    cargo install --no-default-features amp
     ```
