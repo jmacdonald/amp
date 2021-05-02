@@ -20,8 +20,10 @@ extra:
     accent: 'red'
 markdown_extensions:
   - admonition
-  - codehilite(guess_lang=false)
-  - toc(permalink=true)
+  - codehilite:
+      guess_lang: false
+  - toc:
+      permalink: true
   - pymdownx.smartsymbols
 extra_css:
   - 'stylesheets/extra.css'
