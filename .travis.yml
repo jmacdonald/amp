@@ -10,4 +10,5 @@ branches:
 addons:
   apt:
     packages:
-    - libxmu-dev
+    - libxcb-shape0-dev
+    - libxcb-xfixes0-dev
