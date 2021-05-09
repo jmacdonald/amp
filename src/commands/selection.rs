@@ -149,7 +149,7 @@ fn range_from(app: &mut Application) -> Range {
 /// Wrap a string at a given maximum length (generally 80 characters). If the
 /// line begins with a comment (matches potential_prefix), the text is wrapped
 /// around it.
-fn justify_string(text: &String, max_len: usize, potential_prefix: Regex) -> String {
+fn justify_string(text: &str, max_len: usize, potential_prefix: Regex) -> String {
     let mut justified = String::with_capacity(text.len());
     for paragraph in text.split("\n\n") {
         let mut paragraph = paragraph.split_whitespace().peekable();
