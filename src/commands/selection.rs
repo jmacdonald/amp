@@ -6,30 +6,45 @@ use crate::commands::{self, Result};
 use crate::util;
 
 pub fn delete(app: &mut Application) -> Result {
-    if let Some(buffer) = app.workspace.current_buffer() {
-        match app.mode {
-            Mode::Select(ref select_mode) => {
-                let cursor_position = *buffer.cursor.clone();
-                let delete_range = Range::new(cursor_position, select_mode.anchor);
-                buffer.delete_range(delete_range.clone());
-                buffer.cursor.move_to(delete_range.start());
-            }
-            Mode::SelectLine(ref mode) => {
-                let delete_range = mode.to_range(&*buffer.cursor);
-                buffer.delete_range(delete_range.clone());
-                buffer.cursor.move_to(delete_range.start());
-            }
-            Mode::Search(ref mode) => {
-                let selection = mode.results
-                    .as_ref()
-                    .and_then(|r| r.selection())
-                    .ok_or("Can't delete in search mode without a selected result")?;
-                buffer.delete_range(selection.clone());
-            }
-            _ => bail!("Can't delete selections outside of select mode"),
-        };
-    } else {
+    if app.workspace.current_buffer().is_none() {
         bail!(BUFFER_MISSING);
+    }
+    match app.mode {
+        Mode::Select(_) | Mode::SelectLine(_) | Mode::Search(_) => {
+            let delete_range = range_from(app)?;
+            let buffer = app.workspace.current_buffer().unwrap();
+
+            buffer.delete_range(delete_range.clone());
+            buffer.cursor.move_to(delete_range.start());
+        }
+        _ => bail!("Can't delete selections outside of select mode"),
+    };
+
+    Ok(())
+}
+
+pub fn justify(app: &mut Application) -> Result {
+    if app.workspace.current_buffer().is_none() {
+        bail!(BUFFER_MISSING);
+    }
+
+    let range = range_from(app)?;
+
+    // delete and save the range, then justify that range
+    let path = &app.workspace.path.clone();
+    let buffer = app.workspace.current_buffer().unwrap();
+
+    if let Some(text) = buffer.read(&range.clone()) {
+        buffer.delete_range(range.clone());
+        buffer.cursor.move_to(range.start());
+
+        buffer.insert(
+            &justify_string(
+                &text,
+                app.preferences.borrow().line_length_guide().unwrap_or(80),
+                &app.preferences.borrow().line_comment_prefix(path).unwrap_or("".to_string()),
+            )
+        );
     }
 
     Ok(())
@@ -98,6 +113,81 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
     };
 
     Ok(())
+}
+
+/// Get the selected range from an application in a selection mode. *Requires*
+/// that the application has a buffer and is in mode Select, SelectLine, or
+/// Search.
+fn range_from(app: &mut Application) -> std::result::Result<Range, Error> {
+    let buffer = app.workspace.current_buffer();
+    let buffer = buffer.unwrap();
+
+    Ok(match app.mode {
+        Mode::Select(ref select_mode) => {
+            Range::new(*buffer.cursor.clone(), select_mode.anchor)
+        }
+        Mode::SelectLine(ref select_line_mode) => {
+            select_line_mode.to_range(&*buffer.cursor)
+        }
+        Mode::Search(ref mode) => {
+            mode.results
+            .as_ref()
+            .and_then(|r| r.selection())
+            .ok_or("Cannot get selection outside of select mode.")
+            .unwrap()
+            .clone()
+        }
+        _ => bail!("Cannot get selection outside of select mode."),
+    })
+}
+
+/// Wrap a string at a given maximum length (generally 80 characters). If the
+/// line begins with a comment (matches potential_prefix), the text is wrapped
+/// around it.
+fn justify_string(text: &str, max_len: usize, potential_prefix: &str) -> String {
+    let mut justified = String::with_capacity(text.len());
+    let mut paragraphs = text.split("\n\n").peekable();
+    while let Some(paragraph) = paragraphs.next() {
+        let mut paragraph = paragraph.split_whitespace().peekable();
+        let prefix;
+        let max_len_with_prefix;
+        if paragraph.peek().is_some()
+           && (Some(&potential_prefix) == paragraph.peek())
+        {
+            prefix = paragraph.next().unwrap().to_owned() + " ";
+            max_len_with_prefix = max_len - prefix.len();
+            justified += &prefix;
+        } else {
+            prefix = String::new();
+            max_len_with_prefix = max_len;
+        }
+
+        let mut len = 0;
+
+        while let Some(word) = paragraph.next() {
+            if word == prefix {
+                continue;
+            }
+
+            len += word.len() + 1;
+            if len > max_len_with_prefix {
+                len = word.len();
+                justified.push('\n');
+                justified += &prefix;
+            }
+            justified += word;
+
+            if paragraph.peek().is_some() {
+                justified.push(' ');
+            }
+        }
+
+        if paragraphs.peek().is_some() {
+            justified += "\n\n"; // add the paragraph delim
+        }
+    }
+
+    justified
 }
 
 #[cfg(test)]
@@ -218,5 +308,49 @@ mod tests {
             app.workspace.current_buffer().unwrap().data(),
             String::from("amp\nitor\nbuffer")
         )
+    }
+
+    #[test]
+    fn justify_justifies() {
+        let text = String::from(
+            "\nthis is a very \n long line with inconsistent line \nbreaks, even though it should have breaks.\n"
+        );
+        assert_eq!(
+            super::justify_string(&text, 80, "//"),
+            String::from("this is a very long line with inconsistent line breaks, even though it should \nhave breaks.")
+        );
+    }
+
+    #[test]
+    fn justify_justifies_with_comment() {
+        let text = String::from(
+            "\n// this is a very \n long line with inconsistent line \nbreaks, even though it should have breaks.\n"
+        );
+        assert_eq!(
+            super::justify_string(&text, 80, "//"),
+            String::from("// this is a very long line with inconsistent line breaks, even though it \n// should have breaks.")
+        );
+    }
+
+    #[test]
+    fn justify_justifies_paragraphs() {
+        let text = String::from(
+            "\nthis is a very \n long \n\n line with inconsistent line \nbreaks, even though it should have breaks.\n"
+        );
+        assert_eq!(
+            super::justify_string(&text, 80, "//"),
+            String::from("this is a very long\n\nline with inconsistent line breaks, even though it should have breaks.")
+        );
+    }
+
+    #[test]
+    fn justify_justifies_paragraphs_with_comment() {
+        let text = String::from(
+            "// this is a very \n long \n\n line with inconsistent line \nbreaks, even though it should have breaks.\n"
+        );
+        assert_eq!(
+            super::justify_string(&text, 80, "//"),
+            String::from("// this is a very long\n\nline with inconsistent line breaks, even though it should have breaks.")
+        );
     }
 }

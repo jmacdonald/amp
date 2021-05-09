@@ -46,8 +46,14 @@ pub struct View {
 }
 
 impl View {
-    pub fn new(preferences: Rc<RefCell<Preferences>>, event_channel: Sender<Event>) -> Result<View> {
-        let terminal = build_terminal().chain_err(|| "Failed to initialize terminal")?;
+    /// Return a new view. This will initialize the terminal, load the theme,
+    /// and begin to listen for events.
+    pub fn new(
+        preferences: Rc<RefCell<Preferences>>,
+        event_channel: Sender<Event>
+    ) -> Result<View> {
+        let terminal = build_terminal()
+                       .chain_err(|| "Failed to initialize terminal")?;
         let theme_path = preferences.borrow().theme_path()?;
         let theme_set = ThemeLoader::new(theme_path).load()?;
 
