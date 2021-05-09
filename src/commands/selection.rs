@@ -46,10 +46,7 @@ pub fn justify(app: &mut Application) -> Result {
         buffer.insert(
             &justify_string(
                 &text,
-                match app.preferences.borrow().line_length_guide() {
-                    Some(l) => l,
-                    None => 80,
-                },
+                app.preferences.borrow().line_length_guide().unwrap_or(80),
                 app.preferences.borrow().line_comment_prefix().unwrap_or(""),
             )
         );
