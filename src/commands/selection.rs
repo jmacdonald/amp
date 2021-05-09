@@ -145,7 +145,7 @@ fn range_from(app: &mut Application) -> Range {
             .unwrap()
             .clone()
         }
-        _ => panic!("Cannot get selection outside of select mode."),
+        _ => bail!("Cannot get selection outside of select mode."),
     }
 }
 
