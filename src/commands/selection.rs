@@ -5,8 +5,6 @@ use crate::errors::*;
 use crate::commands::{self, Result};
 use crate::util;
 
-use regex::Regex;
-
 pub fn delete(app: &mut Application) -> Result {
     if app.workspace.current_buffer().is_none() {
         bail!(BUFFER_MISSING);
@@ -33,7 +31,9 @@ pub fn justify(app: &mut Application) -> Result {
     let range = range_from(app)?;
 
     // delete and save the range, then justify that range
+    let path = &app.workspace.path.clone();
     let buffer = app.workspace.current_buffer().unwrap();
+
     if let Some(text) = buffer.read(&range.clone()) {
         buffer.delete_range(range.clone());
         buffer.cursor.move_to(range.start());
@@ -42,7 +42,7 @@ pub fn justify(app: &mut Application) -> Result {
             &justify_string(
                 &text,
                 app.preferences.borrow().line_length_guide().unwrap_or(80),
-                app.preferences.borrow().line_comment_prefix().unwrap_or(""),
+                &app.preferences.borrow().line_comment_prefix(path).unwrap_or("".to_string()),
             )
         );
     }
@@ -144,14 +144,14 @@ fn range_from(app: &mut Application) -> std::result::Result<Range, Error> {
 /// Wrap a string at a given maximum length (generally 80 characters). If the
 /// line begins with a comment (matches potential_prefix), the text is wrapped
 /// around it.
-fn justify_string(text: &str, max_len: usize, potential_prefix: Regex) -> String {
+fn justify_string(text: &str, max_len: usize, potential_prefix: &str) -> String {
     let mut justified = String::with_capacity(text.len());
     for paragraph in text.split("\n\n") {
         let mut paragraph = paragraph.split_whitespace().peekable();
         let prefix;
         let max_len_with_prefix;
         if paragraph.peek().is_some()
-           && potential_prefix.is_match(paragraph.peek().unwrap())
+           && (Some(&potential_prefix) == paragraph.peek())
         {
             prefix = paragraph.next().unwrap().to_owned() + " ";
             max_len_with_prefix = max_len - prefix.len();
@@ -310,7 +310,7 @@ mod tests {
             "\nthis is a very \n long line with inconsistent line \nbreaks, even though it should have breaks.\n"
         );
         assert_eq!(
-            super::justify_string(&text, 80, super::Regex::new("//").unwrap()),
+            super::justify_string(&text, 80, "//"),
             String::from("this is a very long line with inconsistent line breaks, even though it should \nhave breaks. \n\n")
         );
     }
