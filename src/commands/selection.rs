@@ -47,7 +47,7 @@ pub fn justify(app: &mut Application) -> Result {
         );
     }
 
-    Ok(())
+    application::switch_to_normal_mode(app)
 }
 
 pub fn copy_and_delete(app: &mut Application) -> Result {
