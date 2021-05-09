@@ -47,7 +47,7 @@ pub fn justify(app: &mut Application) -> Result {
         );
     }
 
-    application::switch_to_normal_mode(app)
+    Ok(())
 }
 
 pub fn copy_and_delete(app: &mut Application) -> Result {
@@ -146,7 +146,8 @@ fn range_from(app: &mut Application) -> std::result::Result<Range, Error> {
 /// around it.
 fn justify_string(text: &str, max_len: usize, potential_prefix: &str) -> String {
     let mut justified = String::with_capacity(text.len());
-    for paragraph in text.split("\n\n") {
+    let mut paragraphs = text.split("\n\n").peekable();
+    while let Some(paragraph) = paragraphs.next() {
         let mut paragraph = paragraph.split_whitespace().peekable();
         let prefix;
         let max_len_with_prefix;
@@ -163,7 +164,7 @@ fn justify_string(text: &str, max_len: usize, potential_prefix: &str) -> String 
 
         let mut len = 0;
 
-        for word in paragraph {
+        while let Some(word) = paragraph.next() {
             if word == prefix {
                 continue;
             }
@@ -175,10 +176,15 @@ fn justify_string(text: &str, max_len: usize, potential_prefix: &str) -> String 
                 justified += &prefix;
             }
             justified += word;
-            justified.push(' ');
+
+            if paragraph.peek().is_some() {
+                justified.push(' ');
+            }
         }
 
-        justified += "\n\n"; // add the paragraph delim
+        if paragraphs.peek().is_some() {
+            justified += "\n\n"; // add the paragraph delim
+        }
     }
 
     justified
@@ -311,7 +317,7 @@ mod tests {
         );
         assert_eq!(
             super::justify_string(&text, 80, "//"),
-            String::from("this is a very long line with inconsistent line breaks, even though it should \nhave breaks. \n\n")
+            String::from("this is a very long line with inconsistent line breaks, even though it should \nhave breaks.")
         );
     }
 
@@ -322,7 +328,29 @@ mod tests {
         );
         assert_eq!(
             super::justify_string(&text, 80, "//"),
-            String::from("// this is a very long line with inconsistent line breaks, even though it \n// should have breaks. \n\n")
+            String::from("// this is a very long line with inconsistent line breaks, even though it \n// should have breaks.")
+        );
+    }
+
+    #[test]
+    fn justify_justifies_paragraphs() {
+        let text = String::from(
+            "\nthis is a very \n long \n\n line with inconsistent line \nbreaks, even though it should have breaks.\n"
+        );
+        assert_eq!(
+            super::justify_string(&text, 80, "//"),
+            String::from("this is a very long\n\nline with inconsistent line breaks, even though it should have breaks.")
+        );
+    }
+
+    #[test]
+    fn justify_justifies_paragraphs_with_comment() {
+        let text = String::from(
+            "// this is a very \n long \n\n line with inconsistent line \nbreaks, even though it should have breaks.\n"
+        );
+        assert_eq!(
+            super::justify_string(&text, 80, "//"),
+            String::from("// this is a very long\n\nline with inconsistent line breaks, even though it should have breaks.")
         );
     }
 }
