@@ -314,4 +314,15 @@ mod tests {
             String::from("this is a very long line with inconsistent line breaks, even though it should \nhave breaks. \n\n")
         );
     }
+
+    #[test]
+    fn justify_justifies_with_comment() {
+        let text = String::from(
+            "\n// this is a very \n long line with inconsistent line \nbreaks, even though it should have breaks.\n"
+        );
+        assert_eq!(
+            super::justify_string(&text, 80, "//"),
+            String::from("// this is a very long line with inconsistent line breaks, even though it \n// should have breaks. \n\n")
+        );
+    }
 }
