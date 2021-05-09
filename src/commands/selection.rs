@@ -50,7 +50,7 @@ pub fn justify(app: &mut Application) -> Result {
                     Some(l) => l,
                     None => 80,
                 },
-                Regex::new(r"#|//|/\*|///").unwrap(),
+                app.preferences.borrow().line_comment_prefix().unwrap_or(""),
             )
         );
     }
