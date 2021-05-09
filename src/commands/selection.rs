@@ -13,7 +13,7 @@ pub fn delete(app: &mut Application) -> Result {
     }
     match app.mode {
         Mode::Select(_) | Mode::SelectLine(_) | Mode::Search(_) => {
-            let delete_range = range_from(app);
+            let delete_range = range_from(app)?;
             let buffer = app.workspace.current_buffer().unwrap();
 
             buffer.delete_range(delete_range.clone());
@@ -30,12 +30,7 @@ pub fn justify(app: &mut Application) -> Result {
         bail!(BUFFER_MISSING);
     }
 
-    let range = match app.mode {
-        Mode::Select(_) | Mode::SelectLine(_) | Mode::Search(_) => {
-            range_from(app)
-        }
-        _ => bail!("Can't justify without selection"),
-    };
+    let range = range_from(app)?;
 
     // delete and save the range, then justify that range
     let buffer = app.workspace.current_buffer().unwrap();
@@ -123,11 +118,11 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
 /// Get the selected range from an application in a selection mode. *Requires*
 /// that the application has a buffer and is in mode Select, SelectLine, or
 /// Search.
-fn range_from(app: &mut Application) -> Range {
+fn range_from(app: &mut Application) -> std::result::Result<Range, Error> {
     let buffer = app.workspace.current_buffer();
     let buffer = buffer.unwrap();
 
-    match app.mode {
+    Ok(match app.mode {
         Mode::Select(ref select_mode) => {
             Range::new(*buffer.cursor.clone(), select_mode.anchor)
         }
@@ -143,7 +138,7 @@ fn range_from(app: &mut Application) -> Range {
             .clone()
         }
         _ => bail!("Cannot get selection outside of select mode."),
-    }
+    })
 }
 
 /// Wrap a string at a given maximum length (generally 80 characters). If the
