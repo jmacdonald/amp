@@ -119,8 +119,7 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
 /// that the application has a buffer and is in mode Select, SelectLine, or
 /// Search.
 fn range_from(app: &mut Application) -> std::result::Result<Range, Error> {
-    let buffer = app.workspace.current_buffer();
-    let buffer = buffer.unwrap();
+    let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
     Ok(match app.mode {
         Mode::Select(ref select_mode) => {
