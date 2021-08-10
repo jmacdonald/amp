@@ -100,6 +100,39 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
     Ok(())
 }
 
+fn justify(txt: impl AsRef<str>, limit: usize) -> String {
+    let txt = txt.as_ref();
+    let mut justified = String::with_capacity(txt.len());
+    let mut pars = txt.split("\n\n").peekable();
+
+    let space_delims = ["", " ", "\n"];
+    while let Some(par) = pars.next() {
+	let mut words = par.split_whitespace();
+	let mut len = 0;
+	let mut first = true;
+
+	while let Some(word) = words.next() {
+	    len += word.len();
+
+	    let over = len > limit;
+	    let u_over = over as usize;
+	    justified += space_delims[((!first as usize) * u_over) + !first as usize];
+
+	    justified += word;
+	    
+	    len += 1; // account for the delim
+	    len *= 1 - u_over;
+	    first = false;
+	}
+
+	if pars.peek().is_some() {
+	    justified += "\n\n"; // add back the paragraph break.
+	}
+    }
+
+    justified
+}
+
 #[cfg(test)]
 mod tests {
     use crate::commands;
@@ -218,5 +251,19 @@ mod tests {
             app.workspace.current_buffer().unwrap().data(),
             String::from("amp\nitor\nbuffer")
         )
+    }
+
+    // as simple as it gets: one character words for easy debugging.
+    #[test]
+    fn justify_simple() {
+	let txt = "\
+a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a";
+	let jt = super::justify(txt, 80);
+	assert_eq!(
+	    jt,
+	    "\
+a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a
+a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a"
+	);
     }
 }
