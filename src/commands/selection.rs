@@ -114,15 +114,14 @@ fn justify(txt: impl AsRef<str>, limit: usize) -> String {
 	while let Some(word) = words.next() {
 	    len += word.len();
 
-	    let over = len >= limit;
+	    let over = len > limit;
 	    let u_over = over as usize;
 	    let idx = (!first as usize) * u_over + !first as usize;
 	    
 	    justified += space_delims[idx];
 	    justified += word;
 	    
-	    len += 1;
-	    len = len * (1 - u_over) + word.len() * u_over;
+	    len = (len + 1) * (1 - u_over) + (word.len() + 1) * u_over;
 	    first = false;
 	}
 
@@ -280,6 +279,40 @@ it wasn't obvious.";
 these are words to be used as demos for the thing that this is. this is text
 reflowing and justification over a few lines. this is just filler text in case
 it wasn't obvious."
+	);
+    }
+
+    #[test]
+    fn justify_multiple_pars() {
+	let txt = "\
+Here's more filler text! So fun fact of the day, I was trying to just copy paste \
+some lorem ipsum to annoy my latin student friends, but honestly it broke the \
+M-q 'justify' function in emacs, which makes it a bit difficult to work with. \
+Overall, it's just not that great with code!
+
+Fun fact of the day number two, writing random paragraphs of text is honestly \
+taking way more effort than I anticipated, and I deeply apologize for the lack \
+of sanity and coherence here!
+
+Fun fact of the day number three is that I spent three hours getting this to not \
+branch. There is no way that that micro-optimization will actuall save three \
+hours worth of time, but I did it anyway because I'm actually just stupid!";
+	let jt = super::justify(txt, 80);
+
+	assert_eq!(
+	    jt, "\
+Here's more filler text! So fun fact of the day, I was trying to just copy paste
+some lorem ipsum to annoy my latin student friends, but honestly it broke the
+M-q 'justify' function in emacs, which makes it a bit difficult to work with.
+Overall, it's just not that great with code!
+
+Fun fact of the day number two, writing random paragraphs of text is honestly
+taking way more effort than I anticipated, and I deeply apologize for the lack
+of sanity and coherence here!
+
+Fun fact of the day number three is that I spent three hours getting this to not
+branch. There is no way that that micro-optimization will actuall save three
+hours worth of time, but I did it anyway because I'm actually just stupid!"
 	);
     }
 }
