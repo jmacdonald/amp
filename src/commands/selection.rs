@@ -114,14 +114,15 @@ fn justify(txt: impl AsRef<str>, limit: usize) -> String {
 	while let Some(word) = words.next() {
 	    len += word.len();
 
-	    let over = len > limit;
+	    let over = len >= limit;
 	    let u_over = over as usize;
-	    justified += space_delims[((!first as usize) * u_over) + !first as usize];
-
+	    let idx = (!first as usize) * u_over + !first as usize;
+	    
+	    justified += space_delims[idx];
 	    justified += word;
 	    
-	    len += 1; // account for the delim
-	    len *= 1 - u_over;
+	    len += 1;
+	    len = len * (1 - u_over) + word.len() * u_over;
 	    first = false;
 	}
 
@@ -264,6 +265,21 @@ a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a 
 	    "\
 a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a
 a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a"
+	);
+    }
+
+    #[test]
+    fn justify_paragraph() {
+	let txt = "\
+these are words to be used as demos for the thing that this is. this is text \
+reflowing and justification over a few lines. this is just filler text in case \
+it wasn't obvious.";
+	let jt = super::justify(txt, 80);
+	assert_eq!(
+	    jt, "\
+these are words to be used as demos for the thing that this is. this is text
+reflowing and justification over a few lines. this is just filler text in case
+it wasn't obvious."
 	);
     }
 }
