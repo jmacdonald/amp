@@ -79,6 +79,24 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
     Ok(())
 }
 
+pub fn justify(app: &mut Application) -> Result {
+    let rng = sel_to_range(app)?;
+    let buf = app.workspace.current_buffer().unwrap();
+
+    let txt = buf.read(&rng).unwrap();
+    let tar = match app.preferences.borrow().line_length_guide() {
+	Some(n) => n,
+	None => bail!("Justification requires a line_length_guide."),
+    };
+    
+    let jtxt = justify_str(txt, tar);
+    buf.delete_range(rng.clone());
+    buf.cursor.move_to(rng.start());
+    buf.insert(jtxt);
+
+    Ok(())
+}
+
 fn justify_str(txt: impl AsRef<str>, limit: usize) -> String {
     let txt = txt.as_ref();
     let mut justified = String::with_capacity(txt.len());
@@ -112,7 +130,7 @@ fn justify_str(txt: impl AsRef<str>, limit: usize) -> String {
     justified
 }
 
-pub fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
+fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
     let buf = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
     match app.mode {
