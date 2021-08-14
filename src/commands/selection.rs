@@ -89,7 +89,7 @@ pub fn justify(app: &mut Application) -> Result {
 	None => bail!("Justification requires a line_length_guide."),
     };
     
-    let jtxt = justify_str(txt, tar);
+    let jtxt = justify_str(txt, "", tar);
     buf.delete_range(rng.clone());
     buf.cursor.move_to(rng.start());
     buf.insert(jtxt);
@@ -97,7 +97,7 @@ pub fn justify(app: &mut Application) -> Result {
     Ok(())
 }
 
-fn justify_str(txt: impl AsRef<str>, limit: usize) -> String {
+fn justify_str(txt: impl AsRef<str>, _prefix: &str, limit: usize) -> String {
     let txt = txt.as_ref();
     let mut justified = String::with_capacity(txt.len());
     let mut pars = txt.split("\n\n").peekable();
@@ -286,7 +286,7 @@ mod tests {
     fn justify_simple() {
 	let txt = "\
 a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a";
-	let jt = super::justify_str(txt, 80);
+	let jt = super::justify_str(txt, "", 80);
 	assert_eq!(
 	    jt,
 	    "\
@@ -301,7 +301,7 @@ a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a"
 these are words to be used as demos for the thing that this is. this is text \
 reflowing and justification over a few lines. this is just filler text in case \
 it wasn't obvious.";
-	let jt = super::justify_str(txt, 80);
+	let jt = super::justify_str(txt, "", 80);
 	assert_eq!(
 	    jt, "\
 these are words to be used as demos for the thing that this is. this is text
@@ -325,7 +325,7 @@ of sanity and coherence here!
 Fun fact of the day number three is that I spent three hours getting this to not \
 branch. There is no way that that micro-optimization will actuall save three \
 hours worth of time, but I did it anyway because I'm actually just stupid!";
-	let jt = super::justify_str(txt, 80);
+	let jt = super::justify_str(txt, "", 80);
 
 	assert_eq!(
 	    jt, "\
