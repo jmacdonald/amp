@@ -97,27 +97,42 @@ pub fn justify(app: &mut Application) -> Result {
     Ok(())
 }
 
-fn justify_str(txt: impl AsRef<str>, _prefix: &str, limit: usize) -> String {
+fn justify_str(txt: impl AsRef<str>, prefix: &str, mut limit: usize) -> String {
     let txt = txt.as_ref();
     let mut justified = String::with_capacity(txt.len());
     let mut pars = txt.split("\n\n").peekable();
 
-    let space_delims = ["", " ", "\n"];
+    let mut space_delims = ["".to_string(), " ".to_string(), "\n".to_string()];
+    if prefix != "" {
+	space_delims[0] += prefix;
+	space_delims[0] += " ";
+	space_delims[2] += prefix;
+	space_delims[2] += " ";
+	limit -= prefix.len() + 1;
+    }
+    
     while let Some(par) = pars.next() {
 	let mut words = par.split_whitespace();
 	let mut len = 0;
 	let mut first = true;
 
 	while let Some(word) = words.next() {
+	    if word == prefix {
+		continue;
+	    }
+	    
 	    len += word.len();
 
 	    let over = len > limit;
 	    let u_over = over as usize;
 	    let idx = (!first as usize) * u_over + !first as usize;
 	    
-	    justified += space_delims[idx];
+	    justified += &space_delims[idx];
 	    justified += word;
-	    
+
+	    // if we're over, set the length to 0, otherwise increment it
+	    // properly. This just does that mith multiplication by 0 instead of
+	    // branching.
 	    len = (len + 1) * (1 - u_over) + (word.len() + 1) * u_over;
 	    first = false;
 	}
@@ -343,4 +358,18 @@ branch. There is no way that that micro-optimization will actuall save three
 hours worth of time, but I did it anyway because I'm actually just stupid!"
 	);
     }
+
+    #[test]
+    fn justify_simple_prefix() {
+	let txt = "\
+a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a";
+	let jt = super::justify_str(txt, "#", 80);
+	assert_eq!(
+	    jt,
+	    "\
+# a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a
+# a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a"
+	);
+    }
+
 }
