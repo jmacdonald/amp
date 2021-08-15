@@ -84,17 +84,30 @@ pub fn justify(app: &mut Application) -> Result {
     let buf = app.workspace.current_buffer().unwrap();
 
     let txt = buf.read(&rng).unwrap();
+    let prefix = infer_prefix(&txt)?;
+    
     let tar = match app.preferences.borrow().line_length_guide() {
 	Some(n) => n,
 	None => bail!("Justification requires a line_length_guide."),
     };
     
-    let jtxt = justify_str(txt, "", tar);
+    let jtxt = justify_str(txt, &prefix, tar);
     buf.delete_range(rng.clone());
     buf.cursor.move_to(rng.start());
     buf.insert(jtxt);
 
     Ok(())
+}
+
+fn infer_prefix(txt: &str) -> std::result::Result<String, Error> {
+    match txt.split_whitespace().next() {
+	Some(n) => if n.chars().next().unwrap().is_alphanumeric() {
+	    Ok("".to_string())
+	} else {
+	    Ok(n.to_string())
+	},
+	None => bail!("Selection is empty."),
+    }
 }
 
 fn justify_str(txt: impl AsRef<str>, prefix: &str, mut limit: usize) -> String {
