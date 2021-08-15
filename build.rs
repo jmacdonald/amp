@@ -5,7 +5,7 @@ use std::io::Write;
 use std::path::Path;
 use std::result::Result;
 
-const COMMAND_REGEX: &'static str =
+const COMMAND_REGEX: &str =
     r"pub fn (.*)\(app: &mut Application\) -> Result";
 
 fn main() {
@@ -76,6 +76,6 @@ fn finalize_output_file(output: &mut File) -> Result<usize, &str> {
 
 fn module_name(path: &Path) -> Result<String, &str> {
     path.file_name().and_then(|name| {
-        name.to_string_lossy().split(".").next().map(|n| n.to_string())
-    }).ok_or_else(|| "Unable to parse command module from file name")
+        name.to_string_lossy().split('.').next().map(|n| n.to_string())
+    }).ok_or("Unable to parse command module from file name")
 }
