@@ -372,4 +372,21 @@ a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a 
 	);
     }
 
+    #[test]
+    fn justify_paragraph_prefix() {
+	let txt ="\
+// filler text meant
+// to do stuff and things that  end up with text nicely \
+wrappped around a comment delimiter such as the double slashes in c-style \
+languages.";
+	let jt = super::justify_str(txt, "//", 80);
+	assert_eq!(
+	    jt,
+	    "\
+// filler text meant to do stuff and things that end up with text nicely
+// wrappped around a comment delimiter such as the double slashes in c-style
+// languages.",
+	);
+    }
+
 }
