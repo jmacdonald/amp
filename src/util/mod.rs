@@ -2,6 +2,7 @@ pub use self::selectable_vec::SelectableVec;
 
 pub mod movement_lexer;
 mod selectable_vec;
+pub mod reflow;
 pub mod token;
 
 use crate::errors::*;

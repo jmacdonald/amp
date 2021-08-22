@@ -4,6 +4,7 @@ use super::application;
 use crate::errors::*;
 use crate::commands::{self, Result};
 use crate::util;
+use crate::util::reflow::Reflow;
 
 pub fn delete(app: &mut Application) -> Result {
     let rng = sel_to_range(app)?;
@@ -81,81 +82,17 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
 
 pub fn justify(app: &mut Application) -> Result {
     let rng = sel_to_range(app)?;
-    let buf = app.workspace.current_buffer().unwrap();
+    let mut buf = app.workspace.current_buffer().unwrap();
 
-    let txt = buf.read(&rng).unwrap();
-    let prefix = infer_prefix(&txt)?;
-    
     let tar = match app.preferences.borrow().line_length_guide() {
-	Some(n) => n,
-	None => bail!("Justification requires a line_length_guide."),
+    	Some(n) => n,
+    	None => bail!("Justification requires a line_length_guide."),
     };
-    
-    let jtxt = justify_str(txt, &prefix, tar);
-    buf.delete_range(rng.clone());
-    buf.cursor.move_to(rng.start());
-    buf.insert(jtxt);
+
+    let rfl = Reflow::new(&mut buf, rng, tar);
+    rfl.apply()?;
 
     Ok(())
-}
-
-fn infer_prefix(txt: &str) -> std::result::Result<String, Error> {
-    match txt.split_whitespace().next() {
-	Some(n) => if n.chars().next().unwrap().is_alphanumeric() {
-	    Ok("".to_string())
-	} else {
-	    Ok(n.to_string())
-	},
-	None => bail!("Selection is empty."),
-    }
-}
-
-fn justify_str(txt: impl AsRef<str>, prefix: &str, mut limit: usize) -> String {
-    let txt = txt.as_ref();
-    let mut justified = String::with_capacity(txt.len());
-    let mut pars = txt.split("\n\n").peekable();
-
-    let mut space_delims = ["".to_string(), " ".to_string(), "\n".to_string()];
-    if prefix != "" {
-	space_delims[0] += prefix;
-	space_delims[0] += " ";
-	space_delims[2] += prefix;
-	space_delims[2] += " ";
-	limit -= prefix.len() + 1;
-    }
-    
-    while let Some(par) = pars.next() {
-	let mut words = par.split_whitespace();
-	let mut len = 0;
-	let mut first = true;
-
-	while let Some(word) = words.next() {
-	    if word == prefix {
-		continue;
-	    }
-	    
-	    len += word.len();
-
-	    let over = len > limit;
-	    let u_over = over as usize;
-	    let idx = (!first as usize) * u_over + !first as usize;
-	    
-	    justified += &space_delims[idx];
-	    justified += word;
-
-	    // if we're over, set the length to 0, otherwise increment it
-	    // properly. This just does that mith multiplication by 0 instead of
-	    // branching.
-	    len = (len + 1) * (1 - u_over) + (word.len() + 1) * u_over;
-	    first = false;
-	}
-
-	if pars.peek().is_some() {
-	    justified += "\n\n"; // add back the paragraph break.
-	}
-    }
-
-    justified
 }
 
 fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
@@ -168,10 +105,10 @@ fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
 	},
 	Mode::SelectLine(ref sel) => {
 	    Ok(util::inclusive_range(
-		&LineRange::new(
-		    sel.anchor,
-		    buf.cursor.line
-		),
+    		&LineRange::new(
+    		    sel.anchor,
+    		    buf.cursor.line
+    		),
 		buf
 	    ))
 	},
@@ -308,98 +245,4 @@ mod tests {
             String::from("amp\nitor\nbuffer")
         )
     }
-
-    // as simple as it gets: one character words for easy debugging.
-    #[test]
-    fn justify_simple() {
-	let txt = "\
-a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a";
-	let jt = super::justify_str(txt, "", 80);
-	assert_eq!(
-	    jt,
-	    "\
-a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a
-a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a"
-	);
-    }
-
-    #[test]
-    fn justify_paragraph() {
-	let txt = "\
-these are words to be used as demos for the thing that this is. this is text \
-reflowing and justification over a few lines. this is just filler text in case \
-it wasn't obvious.";
-	let jt = super::justify_str(txt, "", 80);
-	assert_eq!(
-	    jt, "\
-these are words to be used as demos for the thing that this is. this is text
-reflowing and justification over a few lines. this is just filler text in case
-it wasn't obvious."
-	);
-    }
-
-    #[test]
-    fn justify_multiple_pars() {
-	let txt = "\
-Here's more filler text! So fun fact of the day, I was trying to just copy paste \
-some lorem ipsum to annoy my latin student friends, but honestly it broke the \
-M-q 'justify' function in emacs, which makes it a bit difficult to work with. \
-Overall, it's just not that great with code!
-
-Fun fact of the day number two, writing random paragraphs of text is honestly \
-taking way more effort than I anticipated, and I deeply apologize for the lack \
-of sanity and coherence here!
-
-Fun fact of the day number three is that I spent three hours getting this to not \
-branch. There is no way that that micro-optimization will actuall save three \
-hours worth of time, but I did it anyway because I'm actually just stupid!";
-	let jt = super::justify_str(txt, "", 80);
-
-	assert_eq!(
-	    jt, "\
-Here's more filler text! So fun fact of the day, I was trying to just copy paste
-some lorem ipsum to annoy my latin student friends, but honestly it broke the
-M-q 'justify' function in emacs, which makes it a bit difficult to work with.
-Overall, it's just not that great with code!
-
-Fun fact of the day number two, writing random paragraphs of text is honestly
-taking way more effort than I anticipated, and I deeply apologize for the lack
-of sanity and coherence here!
-
-Fun fact of the day number three is that I spent three hours getting this to not
-branch. There is no way that that micro-optimization will actuall save three
-hours worth of time, but I did it anyway because I'm actually just stupid!"
-	);
-    }
-
-    #[test]
-    fn justify_simple_prefix() {
-	let txt = "\
-a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a";
-	let jt = super::justify_str(txt, "#", 80);
-	assert_eq!(
-	    jt,
-	    "\
-# a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a
-# a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a"
-	);
-    }
-
-    #[test]
-    fn justify_paragraph_prefix() {
-	let txt ="\
-// filler text meant
-// to do stuff and things that  end up with text nicely \
-wrappped around a comment delimiter such as the double slashes in c-style \
-languages.";
-	let jt = super::justify_str(txt, "//", 80);
-	assert_eq!(
-	    jt,
-	    "\
-// filler text meant to do stuff and things that end up with text nicely
-// wrappped around a comment delimiter such as the double slashes in c-style
-// languages.",
-	);
-    }
-
 }
