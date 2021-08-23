@@ -11,9 +11,14 @@ pub struct Reflow<'a> {
 impl<'a> Reflow<'a> {
     /// Create a reflow instance, where buffer and range determine the target,
     /// and the limit is the maximum length of a line, regardless of prefixes.
-    pub fn new(buf: &'a mut Buffer, rng: Range, lmt: usize) -> Self {
-        let txt = buf.read(&rng).unwrap();
-        Self { buf, rng, txt, lmt }
+    pub fn new(
+        buf: &'a mut Buffer, rng: Range, lmt: usize
+    ) -> std::result::Result<Self, Error> {
+        let txt = match buf.read(&rng) {
+            Some(t) => t,
+            None => bail!("Selection is invalid."),
+        };
+        Ok(Self { buf, rng, txt, lmt })
     }
 
     pub fn apply(mut self) -> std::result::Result<(), Error> {
@@ -106,7 +111,7 @@ a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a 
                 scribe::buffer::Position { line: 1, offset: 0 },
             ),
             80,
-        ).apply().unwrap();
+        ).unwrap().apply().unwrap();
 
         assert_eq!(
             buf.data(),
@@ -132,7 +137,7 @@ it wasn't obvious.\n"
                 scribe::buffer::Position { line: 1, offset: 0 },
             ),
             80,
-        ).apply().unwrap();
+        ).unwrap().apply().unwrap();
     	assert_eq!(
     	    buf.data(), "\
 these are words to be used as demos for the thing that this is. this is text
@@ -166,7 +171,7 @@ hours worth of time, but I did it anyway for no good reason!\n"
                 scribe::buffer::Position { line: 5, offset: 0 },
             ),
             80,
-        ).apply().unwrap();
+        ).unwrap().apply().unwrap();
 
     	assert_eq!(
     	    buf.data(), "\
@@ -198,7 +203,7 @@ hours worth of time, but I did it anyway for no good reason!"
                 scribe::buffer::Position { line: 1, offset: 0 },
             ),
             80,
-        ).apply().unwrap();
+        ).unwrap().apply().unwrap();
 
     	assert_eq!(
     	    buf.data(), "\
@@ -224,7 +229,7 @@ languages.\n"
                 scribe::buffer::Position { line: 2, offset: 0 },
             ),
             80,
-        ).apply().unwrap();
+        ).unwrap().apply().unwrap();
 
     	assert_eq!(
     	    buf.data(), "\

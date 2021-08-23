@@ -89,7 +89,7 @@ pub fn justify(app: &mut Application) -> Result {
     	None => bail!("Justification requires a line_length_guide."),
     };
 
-    let rfl = Reflow::new(&mut buf, rng, tar);
+    let rfl = Reflow::new(&mut buf, rng, tar)?;
     rfl.apply()?;
 
     Ok(())
