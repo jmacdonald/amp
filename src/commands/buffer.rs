@@ -790,7 +790,7 @@ pub fn ensure_trailing_newline(app: &mut Application) -> Result {
                 buffer.insert("\n");
                 buffer.cursor.move_to(original_position);
             } else {
-                bail!("Couldn't move to end of buffer");
+                bail!("Couldn't move to the end of the buffer and insert a newline.");
             }
         }
     } else {
