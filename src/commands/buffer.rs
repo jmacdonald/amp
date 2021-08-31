@@ -783,7 +783,7 @@ pub fn ensure_trailing_newline(app: &mut Application) -> Result {
             let original_position = *buffer.cursor;
             let target_position = Position {
                 line: line_no,
-                offset: line.len(),
+                offset: line.chars().count(),
             };
 
             if buffer.cursor.move_to(target_position) {
@@ -794,7 +794,7 @@ pub fn ensure_trailing_newline(app: &mut Application) -> Result {
             }
         }
     } else {
-        buffer.insert("\n"); // Empty buffer
+        buffer.insert('\n'); // Empty buffer
     }
 
     Ok(())
@@ -1275,6 +1275,18 @@ mod tests {
         // Ensure that trailing whitespace is removed.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
                    "amp\neditor\n");
+    }
+
+    #[test]
+    fn save_adds_newline_with_unicode() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("amp    \n∴ editor ");
+        app.workspace.add_buffer(buffer);
+        super::save(&mut app).ok();
+
+        assert_eq!(app.workspace.current_buffer().unwrap().data(),
+                   "amp\n∴ editor\n");
     }
 
     #[test]
