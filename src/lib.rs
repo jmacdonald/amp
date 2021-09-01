@@ -8,7 +8,6 @@ extern crate fragment;
 extern crate git2;
 extern crate luthor;
 extern crate mio;
-extern crate pad;
 extern crate regex;
 extern crate scribe;
 extern crate signal_hook;

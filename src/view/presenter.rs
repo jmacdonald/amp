@@ -5,7 +5,6 @@ use crate::view::StatusLineData;
 use crate::view::style::Style;
 use crate::view::terminal::{Cell, TerminalBuffer};
 use crate::view::View;
-use pad::PadStr;
 use scribe::buffer::{Buffer, Position, Range};
 use scribe::util::LineIterator;
 use std::borrow::Cow;
@@ -92,27 +91,30 @@ impl<'p> Presenter<'p> {
 
         entries.iter().enumerate().fold(0, |offset, (index, element)| {
             let content = match entries.len() {
-                1 => {
-                    // There's only one element; have it fill the line.
-                    element.content.pad_to_width(self.view.terminal.width())
+                // There's onyl one element; have it fill the line.
+                1 => format!(
+                    "{:width$}",
+                    element.content,
+                    width=self.view.terminal.width(),
+                ),
+
+                // Expand the last element to fill the remaining width.
+                2 if index == entries.len() - 1 => format!(
+                    "{:width$}",
+                    element.content,
+                    width=self.view.terminal.width().saturating_sub(offset),
+                ),
+                2 => element.content.clone(),
+
+                _ if index == entries.len() - 2 => {
+                    let space = offset + entries[index+1].content.len();
+                    format!(
+                        "{:width$}",
+                        element.content,
+                        width=self.view.terminal.width().saturating_sub(space),
+                    )
                 },
-                2 => {
-                    if index == entries.len() - 1 {
-                        // Expand the last element to fill the remaining width.
-                        element.content.pad_to_width(self.view.terminal.width().saturating_sub(offset))
-                    } else {
-                        element.content.clone()
-                    }
-                },
-                _ => {
-                    if index == entries.len() - 2 {
-                        // Before-last element extends to fill unused space.
-                        let space = offset + entries[index+1].content.len();
-                        element.content.pad_to_width(self.view.terminal.width().saturating_sub(space))
-                    } else {
-                        element.content.clone()
-                    }
-                }
+                _ => element.content.clone(),
             };
 
             // Update the tracked offset.
