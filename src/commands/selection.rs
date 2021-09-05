@@ -104,13 +104,7 @@ fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
 	    Ok(Range::new(cursor_position, sel.anchor))
 	},
 	Mode::SelectLine(ref sel) => {
-	    Ok(util::inclusive_range(
-    		&LineRange::new(
-    		    sel.anchor,
-    		    buf.cursor.line
-    		),
-		buf
-	    ))
+	    Ok(sel.to_range(&*buf.cursor))
 	},
 	Mode::Search(ref search) => {
 	    Ok(search
