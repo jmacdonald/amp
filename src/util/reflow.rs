@@ -14,10 +14,7 @@ impl<'a> Reflow<'a> {
     pub fn new(
         buf: &'a mut Buffer, rng: Range, lmt: usize
     ) -> std::result::Result<Self, Error> {
-        let txt = match buf.read(&rng) {
-            Some(t) => t,
-            None => bail!("Selection is invalid."),
-        };
+        let txt = buf.read(&rng).ok_or("Selection is invalid.")?;
         Ok(Self { buf, rng, txt, lmt })
     }
 
