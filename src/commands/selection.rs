@@ -81,16 +81,15 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
 }
 
 pub fn justify(app: &mut Application) -> Result {
-    let rng = sel_to_range(app)?;
-    let mut buf = app.workspace.current_buffer().unwrap();
+    let range = sel_to_range(app)?;
+    let mut buffer = app.workspace.current_buffer().unwrap();
 
-    let tar = match app.preferences.borrow().line_length_guide() {
+    let limit = match app.preferences.borrow().line_length_guide() {
     	Some(n) => n,
     	None => bail!("Justification requires a line_length_guide."),
     };
 
-    let rfl = Reflow::new(&mut buf, rng, tar)?;
-    rfl.apply()?;
+    Reflow::new(&mut buf, range, limit)?.apply()?;
 
     Ok(())
 }
