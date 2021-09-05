@@ -112,8 +112,7 @@ fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
 		.as_ref()
 		.and_then(|r| r.selection())
 		.ok_or("A selection is required.")?
-		.map(|s| s.clone())
-	     )
+		.clone())
 	}
 	_ => bail!("A selection is required."),
     }
