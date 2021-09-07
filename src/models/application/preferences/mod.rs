@@ -4,11 +4,13 @@ use crate::errors::*;
 use crate::input::KeyMap;
 use crate::models::application::modes::open;
 use scribe::Buffer;
+use std::env;
 use std::fs::OpenOptions;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 use crate::yaml::yaml::{Hash, Yaml, YamlLoader};
 use crate::models::application::modes::SearchSelectConfig;
+use crate::models::application::editorconfig::EditorConfig;
 
 const APP_INFO: AppInfo = AppInfo {
     name: "amp",
@@ -18,8 +20,8 @@ const FILE_NAME: &str = "config.yml";
 const LINE_COMMENT_PREFIX_KEY: &str = "line_comment_prefix";
 const LINE_LENGTH_GUIDE_KEY: &str = "line_length_guide";
 const LINE_WRAPPING_KEY: &str = "line_wrapping";
-const OPEN_MODE_KEY: &str = "open_mode";
 const OPEN_MODE_EXCLUSIONS_KEY: &str = "exclusions";
+const OPEN_MODE_KEY: &str = "open_mode";
 const SEARCH_SELECT_KEY: &str = "search_select";
 const SOFT_TABS_KEY: &str = "soft_tabs";
 const SYNTAX_PATH: &str = "syntaxes";
@@ -31,12 +33,13 @@ const TYPES_SYNTAX_KEY: &str = "syntax";
 
 /// Loads, creates, and provides default values for application preferences.
 /// Values are immutable once loaded, with the exception of those that provide
-/// expicit setter methods (e.g. `theme`).
+/// explicit setter methods (e.g. `theme`).
 pub struct Preferences {
     default: Yaml,
     data: Option<Yaml>,
     keymap: KeyMap,
     theme: Option<String>,
+    editorconfig: Option<EditorConfig>,
 }
 
 impl Preferences {
@@ -46,7 +49,8 @@ impl Preferences {
             default: load_default_document().expect("Failed to load default preferences!"),
             data,
             keymap: KeyMap::default().expect("Failed to load default keymap!"),
-            theme: None
+            theme: None,
+            editorconfig: None,
         }
     }
 
@@ -57,8 +61,15 @@ impl Preferences {
         let keymap = load_keymap(
             data.as_ref().and_then(|data| data["keymap"].as_hash())
         )?;
+        let editorconfig = load_editorconfig()?;
 
-        Ok(Preferences { default, data, keymap, theme: None })
+        Ok(Preferences {
+            default,
+            data,
+            keymap,
+            theme: None,
+            editorconfig,
+        })
     }
 
     /// Reloads all user preferences from disk and merges them with defaults.
@@ -68,11 +79,13 @@ impl Preferences {
         let keymap = load_keymap(
             data.as_ref().and_then(|data| data["keymap"].as_hash())
         )?;
+        let editorconfig = load_editorconfig()?;
 
         self.default = default;
         self.data = data;
         self.keymap = keymap;
         self.theme = None;
+        self.editorconfig = editorconfig;
 
         Ok(())
     }
@@ -345,6 +358,14 @@ fn load_keymap(keymap_overrides: Option<&Hash>) -> Result<KeyMap> {
     }
 
     Ok(keymap)
+}
+
+/// Loads a .editorconfig from workspace directory if present.
+fn load_editorconfig() -> Result<Option<EditorConfig>> {
+    let workspace_path = env::current_dir()
+        .chain_err(|| "Couldn't retreive current working directory")?;
+
+    EditorConfig::from_directory(workspace_path)
 }
 
 /// Maps a path to its file extension.
@@ -670,7 +691,8 @@ mod tests {
             default: Yaml::Null,
             data: None,
             keymap: KeyMap::from(&Hash::new()).unwrap(),
-            theme: None
+            theme: None,
+            editorconfig: None,
         };
 
         // Reload the preferences, ensuring that it refreshes the keymap.

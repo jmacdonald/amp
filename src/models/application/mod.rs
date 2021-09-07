@@ -1,4 +1,5 @@
 mod clipboard;
+mod editorconfig;
 mod event;
 pub mod modes;
 mod preferences;
