@@ -477,7 +477,33 @@ mod tests {
     }
 
     #[test]
-    fn glob_ranges() {
+    fn project_editorconfig() {
+        let config = EditorConfig::from_directory(
+            Path::new(env!("CARGO_MANIFEST_DIR"))
+        ).unwrap();
+
+        let md = config.get("README.md").unwrap();
+        assert_eq!(md.regex.as_str(), r"[^/]*\.md$");
+
+        let all = config.get("src/main.rs").unwrap();
+        assert_eq!(all.regex.as_str(), r"[^/]*$");
+
+        assert!(md.is_match("README.md"));
+        assert!(all.is_match("README.md"));
+        assert!(all.is_match("src/models/application/editorconfig.rs"));
+
+        assert!(!md.trim_trailing_whitespace.unwrap());
+
+        assert!(all.insert_final_newline.unwrap());
+        assert!(all.trim_trailing_whitespace.unwrap());
+        assert_eq!(all.end_of_line.unwrap(), EndOfLine::Lf);
+        assert_eq!(all.charset.unwrap(), Charset::Utf8);
+        assert_eq!(all.indent_style.unwrap(), IndentStyle::Space);
+        assert_eq!(all.indent_size.unwrap(), IndentSize::Width(4));
+    }
+
+    #[test]
+    fn glob_range() {
         assert_eq!(create_regex_range("0", "3"), Some("(0|1|2|3)".into()));
         assert_eq!(create_regex_range("0", "0"), Some("(0)".into()));
         assert_eq!(create_regex_range("4", "2"), Some("(2|3|4)".into()));
