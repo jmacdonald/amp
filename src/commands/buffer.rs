@@ -9,8 +9,7 @@ use crate::models::application::modes::ConfirmMode;
 use scribe::buffer::{Buffer, Position, Range};
 
 pub fn save(app: &mut Application) -> Result {
-    remove_trailing_whitespace(app)?;
-    ensure_trailing_newline(app)?;
+    apply_preferences(app)?;
 
     // Slight duplication here, but we need to check for a buffer path without
     // borrowing the buffer for the full scope of this save command. That will
@@ -36,6 +35,25 @@ pub fn save(app: &mut Application) -> Result {
 
         Ok(())
     }
+}
+
+fn apply_preferences(app: &mut Application) -> Result {
+    let path = app
+        .workspace
+        .current_buffer()
+        .ok_or(BUFFER_MISSING)?
+        .path
+        .clone();
+
+    if app.preferences.borrow().remove_trailing_whitespace(path.as_ref()) {
+        remove_trailing_whitespace(app)?;
+    }
+
+    if app.preferences.borrow().ensure_trailing_newline(path.as_ref()) {
+        ensure_trailing_newline(app)?;
+    }
+
+    Ok(())
 }
 
 pub fn reload(app: &mut Application) -> Result {
