@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/jmacdonald/amp.svg?branch=master)](https://travis-ci.org/jmacdonald/amp)
+[![CI](../../actions/workflows/ci.yml/badge.svg)](../../actions/workflows/ci.yml)
+[![CI (w/o features)](../../actions/workflows/ci-without-features.yml/badge.svg)](../../actions/workflows/ci-without-features.yml)
 
 # Amp: A text editor for your terminal.
 
