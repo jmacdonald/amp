@@ -57,6 +57,40 @@ line_wrapping: true
 
 When set to `true`, lines extending beyond the visible region are wrapped to the line below.
 
+### Remove Trailing Whitespace
+
+```yaml
+remove_trailing_whitespace: true
+```
+
+When set to `true`, whitespace characters found at the end of a line will be removed when the buffer is saved.
+
+### Ensure Trailing Newline
+
+```yaml
+ensure_trailing_newline: true
+```
+
+When set to `true`, and a newline does not exist at the end of the buffer, one will be inserted when the buffer is saved.
+
+### Use EditorConfig
+
+```yaml
+use_editorconfig: true
+```
+
+When set to `true`, amp will try to load a [.editorconfig](https://editorconfig.org) file from the workspace root if present.
+
+!!! warning
+    **Only a subset of the EditorConfig spec is supported**. More specifically, the following Amp configuration options can be overridden by their EditorConfig equivalents:
+
+    * `soft_tabs`
+    * `tab_width`
+    * `remove_trailing_whitespace`
+    * `ensure_trailing_newline`
+
+    Any other rules will be ignored, including nested .editorconfig files.
+
 ## File Format-Specific Options
 
 The `tab_width` and `soft_tabs` options can be configured on a per-extension basis:
