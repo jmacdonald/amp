@@ -3,33 +3,33 @@ use super::*;
 /// Encapsulate reflow logic for buffer manipulation.
 pub struct Reflow<'a> {
     buf: &'a mut Buffer,
-    rng: Range,
-    txt: String,
-    lmt: usize,
+    range: Range,
+    text: String,
+    limit: usize,
 }
 
 impl<'a> Reflow<'a> {
     /// Create a reflow instance, where buffer and range determine the target,
     /// and the limit is the maximum length of a line, regardless of prefixes.
     pub fn new(
-        buf: &'a mut Buffer, rng: Range, lmt: usize
+        buf: &'a mut Buffer, range: Range, limit: usize
     ) -> std::result::Result<Self, Error> {
-        let txt = buf.read(&rng).ok_or("Selection is invalid.")?;
-        Ok(Self { buf, rng, txt, lmt })
+        let text = buf.read(&range).ok_or("Selection is invalid.")?;
+        Ok(Self { buf, range, text, limit })
     }
 
     pub fn apply(mut self) -> std::result::Result<(), Error> {
         let prefix = self.infer_prefix()?;
         let jtxt = self.justify_str(&prefix);
-        self.buf.delete_range(self.rng.clone());
-        self.buf.cursor.move_to(self.rng.start());
+        self.buf.delete_range(self.range.clone());
+        self.buf.cursor.move_to(self.range.start());
         self.buf.insert(jtxt);
 
         Ok(())
     }
 
     fn infer_prefix(&self) -> std::result::Result<String, Error> {
-        match self.txt.split_whitespace().next() {
+        match self.text.split_whitespace().next() {
         	Some(n) => if n.chars().next().unwrap().is_alphanumeric() {
         	    Ok("".to_string())
         	} else {
@@ -41,10 +41,10 @@ impl<'a> Reflow<'a> {
 
 
     fn justify_str(&mut self, prefix: &str) -> String {
-        let txt = self.buf.read(&self.rng).unwrap();
-        let mut limit = self.lmt;
-        let mut justified = String::with_capacity(txt.len());
-        let mut pars = txt.split("\n\n").peekable();
+        let text = self.buf.read(&self.range).unwrap();
+        let mut limit = self.limit;
+        let mut justified = String::with_capacity(text.len());
+        let mut pars = text.split("\n\n").peekable();
 
         let mut space_delims = ["".to_string(), " ".to_string(), "\n".to_string()];
         if prefix != "" {
