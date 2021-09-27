@@ -98,28 +98,29 @@ fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
     let buf = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
     match app.mode {
-	Mode::Select(ref sel) => {
-	    let cursor_position = *buf.cursor.clone();
-	    Ok(Range::new(cursor_position, sel.anchor))
-	},
-	Mode::SelectLine(ref sel) => {
-	    Ok(util::inclusive_range(
-    		&LineRange::new(
-    		    sel.anchor,
-    		    buf.cursor.line
-    		),
-		buf
-	    ))
-	},
-	Mode::Search(ref search) => {
-	    Ok(search
-		.results
-		.as_ref()
-		.and_then(|r| r.selection())
-		.ok_or("A selection is required.")?
-		.clone())
-	}
-	_ => bail!("A selection is required."),
+    	Mode::Select(ref sel) => {
+    	    let cursor_position = *buf.cursor.clone();
+    	    Ok(Range::new(cursor_position, sel.anchor))
+    	},
+    	Mode::SelectLine(ref sel) => {
+    	    Ok(util::inclusive_range(
+        		&LineRange::new(
+        		    sel.anchor,
+        		    buf.cursor.line
+        		),
+    		    buf
+    	    ))
+    	},
+    	Mode::Search(ref search) => {
+    	    Ok(search
+    		   .results
+    		   .as_ref()
+    		   .and_then(|r| r.selection())
+    		   .ok_or("A selection is required.")?
+    		   .clone()
+		   )
+    	}
+    	_ => bail!("A selection is required."),
     }
 }
 
