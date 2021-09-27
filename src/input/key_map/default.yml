@@ -218,6 +218,8 @@ select:
   R: git::copy_remote_url
   m: view::scroll_down
   f: application::switch_to_second_stage_jump_mode
+  z: application::suspend
+  Z: selection::justify
   "'": application::switch_to_jump_mode
   ",": view::scroll_up
   page_up: view::scroll_up
@@ -263,6 +265,8 @@ select_line:
   R: git::copy_remote_url
   m: view::scroll_down
   f: application::switch_to_second_stage_jump_mode
+  z: application::suspend
+  Z: selection::justify
   ",": view::scroll_up
   ">": buffer::indent_line
   "<": buffer::outdent_line
