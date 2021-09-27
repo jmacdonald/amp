@@ -98,21 +98,21 @@ fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
     let buf = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
     match app.mode {
-    	Mode::Select(ref sel) => {
+    	Mode::Select(ref mode) => {
     	    let cursor_position = *buf.cursor.clone();
-    	    Ok(Range::new(cursor_position, sel.anchor))
+    	    Ok(Range::new(cursor_position, mode.anchor))
     	},
-    	Mode::SelectLine(ref sel) => {
+    	Mode::SelectLine(ref mode) => {
     	    Ok(util::inclusive_range(
         		&LineRange::new(
-        		    sel.anchor,
+        		    mode.anchor,
         		    buf.cursor.line
         		),
     		    buf
     	    ))
     	},
-    	Mode::Search(ref search) => {
-    	    Ok(search
+    	Mode::Search(ref mode) => {
+    	    Ok(mode
     		   .results
     		   .as_ref()
     		   .and_then(|r| r.selection())
