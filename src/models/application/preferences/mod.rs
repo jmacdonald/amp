@@ -10,10 +10,13 @@ use std::path::{Path, PathBuf};
 use crate::yaml::yaml::{Hash, Yaml, YamlLoader};
 use crate::models::application::modes::SearchSelectConfig;
 
+use lazy_static;
+
 const APP_INFO: AppInfo = AppInfo {
     name: "amp",
     author: "Jordan MacDonald",
 };
+
 const FILE_NAME: &str = "config.yml";
 const LINE_COMMENT_PREFIX_KEY: &str = "line_comment_prefix";
 const LINE_LENGTH_GUIDE_KEY: &str = "line_length_guide";
@@ -29,11 +32,20 @@ const THEME_PATH: &str = "themes";
 const TYPES_KEY: &str = "types";
 const TYPES_SYNTAX_KEY: &str = "syntax";
 
+lazy_static! {
+    static ref DEFAULT_PREFERENCES: Yaml = {
+        YamlLoader::load_from_str(include_str!("default.yml"))
+            .expect("Unparseable default preferences file!")
+            .into_iter()
+            .next()
+            .expect("Invalid default preferences file!")
+    };
+}
+
 /// Loads, creates, and provides default values for application preferences.
 /// Values are immutable once loaded, with the exception of those that provide
 /// expicit setter methods (e.g. `theme`).
 pub struct Preferences {
-    default: Yaml,
     data: Option<Yaml>,
     keymap: KeyMap,
     theme: Option<String>,
@@ -43,7 +55,6 @@ impl Preferences {
     /// Builds a new in-memory instance with default values.
     pub fn new(data: Option<Yaml>) -> Preferences {
         Preferences {
-            default: load_default_document().expect("Failed to load default preferences!"),
             data,
             keymap: KeyMap::default().expect("Failed to load default keymap!"),
             theme: None
@@ -52,24 +63,21 @@ impl Preferences {
 
     /// Loads preferences from disk, returning any filesystem or parse errors.
     pub fn load() -> Result<Preferences> {
-        let default = load_default_document()?;
         let data = load_document()?;
         let keymap = load_keymap(
             data.as_ref().and_then(|data| data["keymap"].as_hash())
         )?;
 
-        Ok(Preferences { default, data, keymap, theme: None })
+        Ok(Preferences { data, keymap, theme: None })
     }
 
     /// Reloads all user preferences from disk and merges them with defaults.
     pub fn reload(&mut self) -> Result<()> {
-        let default = load_default_document()?;
         let data = load_document()?;
         let keymap = load_keymap(
             data.as_ref().and_then(|data| data["keymap"].as_hash())
         )?;
 
-        self.default = default;
         self.data = data;
         self.keymap = keymap;
         self.theme = None;
@@ -128,7 +136,7 @@ impl Preferences {
                           None
                       })
             .unwrap_or_else(|| {
-                self.default[THEME_KEY].as_str().expect("Couldn't find default theme name!")
+                DEFAULT_PREFERENCES[THEME_KEY].as_str().expect("Couldn't find default theme name!")
             })
     }
 
@@ -160,7 +168,7 @@ impl Preferences {
                 None
             })
             .unwrap_or_else(|| {
-                self.default[TAB_WIDTH_KEY].as_i64()
+                DEFAULT_PREFERENCES[TAB_WIDTH_KEY].as_i64()
                     .expect("Couldn't find default tab width setting!") as usize
             })
     }
@@ -192,7 +200,7 @@ impl Preferences {
                 None
             })
             .unwrap_or_else(|| {
-                self.default[SOFT_TABS_KEY].as_bool()
+                DEFAULT_PREFERENCES[SOFT_TABS_KEY].as_bool()
                     .expect("Couldn't find default soft tabs setting!")
             })
     }
@@ -203,7 +211,7 @@ impl Preferences {
             .and_then(|data| match data[LINE_LENGTH_GUIDE_KEY] {
                           Yaml::Integer(line_length) => Some(line_length as usize),
                           Yaml::Boolean(line_length_guide) => {
-                              let default = self.default[LINE_LENGTH_GUIDE_KEY].as_i64()
+                              let default = DEFAULT_PREFERENCES[LINE_LENGTH_GUIDE_KEY].as_i64()
                                   .expect("Couldn't find default line length guide setting!");
 
                               if line_length_guide {
@@ -226,7 +234,7 @@ impl Preferences {
                           None
                       })
             .unwrap_or_else(|| {
-                self.default[LINE_WRAPPING_KEY].as_bool()
+                DEFAULT_PREFERENCES[LINE_WRAPPING_KEY].as_bool()
                     .expect("Couldn't find default line wrapping setting!")
             })
     }
@@ -265,7 +273,7 @@ impl Preferences {
         self.data
             .as_ref()
             .and_then(|data| data[TYPES_KEY][extension][LINE_COMMENT_PREFIX_KEY].as_str())
-            .or_else(|| self.default[TYPES_KEY][extension][LINE_COMMENT_PREFIX_KEY].as_str())
+            .or_else(|| DEFAULT_PREFERENCES[TYPES_KEY][extension][LINE_COMMENT_PREFIX_KEY].as_str())
             .map(|prefix| prefix.to_owned())
     }
 
@@ -292,7 +300,7 @@ impl Preferences {
     }
 
     fn default_open_mode_exclusions(&self) -> Result<Option<Vec<ExclusionPattern>>> {
-        let exclusions = self.default[OPEN_MODE_KEY][OPEN_MODE_EXCLUSIONS_KEY]
+        let exclusions = DEFAULT_PREFERENCES[OPEN_MODE_KEY][OPEN_MODE_EXCLUSIONS_KEY]
             .as_vec()
             .chain_err(|| "Couldn't find default open mode exclusions settings!")?;
 
@@ -328,13 +336,6 @@ fn load_document() -> Result<Option<Yaml>> {
     Ok(parsed_data.into_iter().nth(0))
 }
 
-fn load_default_document() -> Result<Yaml> {
-    YamlLoader::load_from_str(include_str!("default.yml"))
-        .chain_err(|| "Couldn't parse default config file")?
-        .into_iter().nth(0)
-        .chain_err(|| "No default preferences document found")
-}
-
 /// Loads default keymaps, merging in the provided overrides.
 fn load_keymap(keymap_overrides: Option<&Hash>) -> Result<KeyMap> {
     let mut keymap = KeyMap::default()?;
@@ -359,7 +360,7 @@ mod tests {
     use super::{ExclusionPattern, Preferences, YamlLoader};
     use std::path::{Path, PathBuf};
     use crate::input::KeyMap;
-    use crate::yaml::yaml::{Hash, Yaml};
+    use crate::yaml::yaml::{Hash};
 
     #[test]
     fn preferences_returns_user_defined_theme_name() {
@@ -667,7 +668,6 @@ mod tests {
 
         // Build a preferences instance with an empty keymap.
         let mut preferences = Preferences {
-            default: Yaml::Null,
             data: None,
             keymap: KeyMap::from(&Hash::new()).unwrap(),
             theme: None
