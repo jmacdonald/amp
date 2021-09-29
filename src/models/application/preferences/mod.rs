@@ -124,12 +124,7 @@ impl Preferences {
         // Return the mutable in-memory value, if set.
         if let Some(ref theme) = self.theme { return theme; }
 
-        match self.data[THEME_KEY] {
-            Yaml::String(ref theme) => theme.as_str(),
-            _ => DEFAULT_PREFERENCES[THEME_KEY]
-                  .as_str()
-                  .expect("Theme not present in default preferences."),
-        }
+        self.value(THEME_KEY, None, None).as_str().expect("No valid theme was found!")
     }
 
     /// Returns the theme path, making sure the directory exists.
@@ -144,20 +139,9 @@ impl Preferences {
     }
 
     pub fn tab_width(&self, path: Option<&PathBuf>) -> usize {
-        if let Some(extension) = path_extension(path) {
-            if let Yaml::Integer(x) = self.data[TYPES_KEY][extension][TAB_WIDTH_KEY] {
-                return x as usize;
-            }
-        }
-
-        if let Yaml::Integer(x) = self.data[TAB_WIDTH_KEY] {
-            return x as usize;
-        }
-
-        match DEFAULT_PREFERENCES[TAB_WIDTH_KEY] {
-            Yaml::Integer(x) => x as usize,
-            _ => panic!("Default preferences file doesn't contain a tab width setting."),
-        }
+        self.value(
+            TAB_WIDTH_KEY, path_extension(path), path.and_then(|x| x.to_str())
+        ).as_i64().expect("No vaild tab width was found!") as usize
     }
 
     pub fn search_select_config(&self) -> SearchSelectConfig {
@@ -169,19 +153,9 @@ impl Preferences {
     }
 
     pub fn soft_tabs(&self, path: Option<&PathBuf>) -> bool {
-        if let Some(extension) = path_extension(path) {
-            if let Yaml::Boolean(b) = self.data[TYPES_KEY][extension][SOFT_TABS_KEY] {
-                return b;
-            }
-        }
-
-        match self.data[SOFT_TABS_KEY] {
-            Yaml::Boolean(b) => b,
-            _ => match DEFAULT_PREFERENCES[SOFT_TABS_KEY] {
-                Yaml::Boolean(b) => b,
-                _ => panic!("Default preferences file doesn't contain a soft tabs setting."),
-            },
-        }
+        self.value(
+            SOFT_TABS_KEY, path_extension(path), path.and_then(|x| x.to_str())
+        ).as_bool().expect("No vaild soft tabs setting was found!")
     }
 
     pub fn line_length_guide(&self) -> Option<usize> {
@@ -196,13 +170,8 @@ impl Preferences {
     }
 
     pub fn line_wrapping(&self) -> bool {
-        match self.data[LINE_WRAPPING_KEY] {
-            Yaml::Boolean(l) => l,
-            _ => match DEFAULT_PREFERENCES[LINE_WRAPPING_KEY] {
-                Yaml::Boolean(l) => l,
-                _ => panic!("Default preferences file doesn't contain a line wrap setting.")
-            },
-        }
+        self.value(LINE_WRAPPING_KEY, None, None)
+            .as_bool().expect("No valid line wrapping setting was found.")
     }
 
     pub fn tab_content(&self, path: Option<&PathBuf>) -> String {
@@ -246,6 +215,29 @@ impl Preferences {
                 self.data[TYPES_KEY][path][TYPES_SYNTAX_KEY].as_str().and_then(|x| Some(x.to_owned()))
             )
         )
+    }
+
+    /// Locate the value for a given key. Searches, in this order:
+    /// 1. File name specific settings (skipped if given as None)
+    /// 2. File extension specific settings (skipped if given as None)
+    /// 3. Global options.
+    /// 4. DEFAULT_PREFERENCES
+    fn value<'a, 'b>(
+        &'a self, key: &'b str, ext: Option<&'b str>, name: Option<&'b str>
+    ) -> &'a Yaml {
+        if name.is_some() && !matches!(
+            &self.data[TYPES_KEY][name.unwrap()][key], Yaml::Null | Yaml::BadValue
+        ) {
+            &self.data[TYPES_KEY][name.unwrap()][key]
+        } else if ext.is_some() && !matches!(
+            &self.data[TYPES_KEY][ext.unwrap()][key], Yaml::Null | Yaml::BadValue
+        ) {
+            &self.data[TYPES_KEY][ext.unwrap()][key]
+        } else if !matches!(&self.data[key], Yaml::Null | Yaml::BadValue) {
+            &self.data[key]
+        } else {
+            &DEFAULT_PREFERENCES[key]
+        }
     }
 
     fn default_open_mode_exclusions(&self) -> Result<Option<Vec<ExclusionPattern>>> {
