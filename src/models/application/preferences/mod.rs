@@ -9,6 +9,7 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 use crate::yaml::yaml::{Hash, Yaml, YamlLoader};
 use crate::models::application::modes::SearchSelectConfig;
+use linked_hash_map::LinkedHashMap;
 
 use lazy_static;
 
@@ -48,16 +49,14 @@ lazy_static! {
 pub struct Preferences {
     data: Yaml,
     keymap: KeyMap,
-    theme: Option<String>,
 }
 
 impl Preferences {
     /// Builds a new in-memory instance with default values.
     pub fn new(data: Option<Yaml>) -> Preferences {
         Preferences {
-            data: data.unwrap_or(Yaml::Null),
+            data: data.unwrap_or(Yaml::Hash(LinkedHashMap::new())),
             keymap: KeyMap::default().expect("Failed to load default keymap!"),
-            theme: None
         }
     }
 
@@ -66,7 +65,7 @@ impl Preferences {
         let data = load_document()?;
         let keymap = load_keymap(data["keymap"].as_hash())?;
 
-        Ok(Preferences { data, keymap, theme: None })
+        Ok(Preferences { data, keymap, })
     }
 
     /// Reloads all user preferences from disk and merges them with defaults.
@@ -76,7 +75,6 @@ impl Preferences {
 
         self.data = data;
         self.keymap = keymap;
-        self.theme = None;
 
         Ok(())
     }
@@ -121,9 +119,6 @@ impl Preferences {
     /// If set, returns the in-memory theme, falling back to the value set via
     /// the configuration file, and then the default value.
     pub fn theme(&self) -> &str {
-        // Return the mutable in-memory value, if set.
-        if let Some(ref theme) = self.theme { return theme; }
-
         self.value(THEME_KEY, None, None).as_str().expect("No valid theme was found!")
     }
 
@@ -135,7 +130,8 @@ impl Preferences {
 
     /// Updates the in-memory theme value.
     pub fn set_theme<T: Into<String>>(&mut self, theme: T) {
-        self.theme = Some(theme.into());
+        self.data.as_hash_mut().expect("Settings are invalid")
+            .insert(Yaml::String(THEME_KEY.to_string()), Yaml::String(theme.into()));
     }
 
     pub fn tab_width(&self, path: Option<&PathBuf>) -> usize {
@@ -612,7 +608,6 @@ mod tests {
         let mut preferences = Preferences {
             data: Yaml::Null,
             keymap: KeyMap::from(&Hash::new()).unwrap(),
-            theme: None
         };
 
         // Reload the preferences, ensuring that it refreshes the keymap.
