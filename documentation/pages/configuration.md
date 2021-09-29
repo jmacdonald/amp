@@ -176,7 +176,7 @@ If the language/format you're using isn't highlighted, and you can't find its de
 
 ## Themes
 
-Amp includes [Solarized](http://ethanschoonover.com/solarized) dark and light themes by default. You can extend the built-in set with custom themes of your own. Amp uses Text Mate's `.tmTheme` format, many of which can be found [here](http://wiki.macromates.com/Themes/UserSubmittedThemes). They should be placed in Amp's `themes` configuration subdirectory.
+Amp includes [Solarized](http://ethanschoonover.com/solarized) dark and light themes by default. You can extend the built-in set with custom themes of your own. Amp uses Text Mate's `.tmTheme` format, many of which can be found [here](https://github.com/filmgirl/TextMate-Themes). They should be placed in Amp's `themes` configuration subdirectory.
 
 !!! tip
     If you're not sure where to look, run the `preferences::edit` command.
