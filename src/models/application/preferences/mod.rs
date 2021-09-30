@@ -155,10 +155,10 @@ impl Preferences {
     }
 
     pub fn line_length_guide(&self) -> Option<usize> {
-        match self.data[LINE_LENGTH_GUIDE_KEY] {
-            Yaml::Integer(x) => Some(x as usize),
-            Yaml::Boolean(x) if x => match DEFAULT_PREFERENCES[LINE_LENGTH_GUIDE_KEY] {
-                Yaml::Integer(x) => Some(x as usize),
+        match self.value(LINE_LENGTH_GUIDE_KEY, None, None) {
+            Yaml::Integer(ref x) => Some(*x as usize),
+            Yaml::Boolean(ref x) if *x => match DEFAULT_PREFERENCES[LINE_LENGTH_GUIDE_KEY] {
+                Yaml::Integer(ref x) => Some(*x as usize),
                 _ => panic!("No default line length gudie specified."),
             }
             _ => None,
