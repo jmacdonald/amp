@@ -221,19 +221,8 @@ impl Preferences {
     fn value<'a, 'b>(
         &'a self, key: &'b str, ext: Option<&'b str>, name: Option<&'b str>
     ) -> &'a Yaml {
-        if name.is_some() && !matches!(
-            &self.data[TYPES_KEY][name.unwrap()][key], Yaml::Null | Yaml::BadValue
-        ) {
-            &self.data[TYPES_KEY][name.unwrap()][key]
-        } else if ext.is_some() && !matches!(
-            &self.data[TYPES_KEY][ext.unwrap()][key], Yaml::Null | Yaml::BadValue
-        ) {
-            &self.data[TYPES_KEY][ext.unwrap()][key]
-        } else if !matches!(&self.data[key], Yaml::Null | Yaml::BadValue) {
-            &self.data[key]
-        } else {
-            &DEFAULT_PREFERENCES[key]
-        }
+        find_with_precedence(&self.data, key, ext, name)
+            .borrowed_or(find_with_precedence(&DEFAULT_PREFERENCES, key, ext, name))
     }
 
     fn default_open_mode_exclusions(&self) -> Result<Option<Vec<ExclusionPattern>>> {
@@ -245,6 +234,20 @@ impl Preferences {
             .chain_err(|| "Failed to parse default open mode exclusions")
             .map(Some)
     }
+}
+
+fn find_with_precedence<'a, 'b>(
+    doc: &'a Yaml, key: &'b str, ext: Option<&'b str>, name: Option<&'b str>
+) -> &'a Yaml {
+    let name_match = if let Some(name) = name {
+        &doc[TYPES_KEY][name][key]
+    } else { &Yaml::Null };
+    let ext_match = if let Some(ext) = ext {
+        &doc[TYPES_KEY][ext][key]
+    } else { &Yaml::Null };
+    let general_match = &doc[key];
+
+    name_match.borrowed_or(ext_match).borrowed_or(general_match)
 }
 
 /// Loads the first YAML document in the user's config file. Will return

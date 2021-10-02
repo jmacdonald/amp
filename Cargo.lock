@@ -60,7 +60,7 @@ dependencies = [
  "syntect",
  "termion",
  "unicode-segmentation",
- "yaml-rust 0.4.5 (git+https://github.com/lincolnauster/yaml-rust?branch=mutable)",
+ "yaml-rust 0.4.5 (git+https://github.com/lincolnauster/yaml-rust?branch=all)",
 ]
 
 [[package]]
@@ -1406,7 +1406,7 @@ dependencies = [
 [[package]]
 name = "yaml-rust"
 version = "0.4.5"
-source = "git+https://github.com/lincolnauster/yaml-rust?branch=mutable#7c1b8caa55595ae8b277de21e743761d3b0b51df"
+source = "git+https://github.com/lincolnauster/yaml-rust?branch=all#bc9b503f38856994803e7ab2beb425cfecee9d8d"
 dependencies = [
  "linked-hash-map",
 ]
