@@ -193,24 +193,19 @@ impl Preferences {
     }
 
     pub fn line_comment_prefix(&self, path: &PathBuf) -> Option<String> {
-        let extension = path_extension(Some(path))?;
-
-        match &self.data[TYPES_KEY][extension][LINE_COMMENT_PREFIX_KEY] {
-            Yaml::String(prefix) => Some(prefix.to_owned()),
-            _ => DEFAULT_PREFERENCES[TYPES_KEY][extension][LINE_COMMENT_PREFIX_KEY]
-                .as_str().map(|x| x.to_owned())
-        }
+        self.value(
+            LINE_COMMENT_PREFIX_KEY,
+            path.extension().and_then(|x| x.to_str()),
+            path.file_name().and_then(|x| x.to_str()),
+        ).as_str().and_then(|x| Some(x.to_owned()))
     }
 
     pub fn syntax_definition_name(&self, path: &Path) -> Option<String> {
-        path.extension().and_then(|ext| ext.to_str()).and_then(|ext|
-            self.data[TYPES_KEY][ext][TYPES_SYNTAX_KEY].as_str().and_then(|x| Some(x.to_owned()))
-        ).or(
-            // If matching the file extension fails, try matching the whole filename
-            path.file_name().and_then(|name| name.to_str()).and_then(|path|
-                self.data[TYPES_KEY][path][TYPES_SYNTAX_KEY].as_str().and_then(|x| Some(x.to_owned()))
-            )
-        )
+        self.value(
+            TYPES_SYNTAX_KEY,
+            path.extension().and_then(|x| x.to_str()),
+            path.file_name().and_then(|x| x.to_str())
+        ).as_str().and_then(|x| Some(x.to_owned()))
     }
 
     /// Locate the value for a given key. Searches, in this order:
