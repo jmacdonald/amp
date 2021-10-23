@@ -84,7 +84,7 @@ pub fn justify(app: &mut Application) -> Result {
     let range = sel_to_range(app)?;
     let mut buffer = app.workspace.current_buffer().unwrap();
 
-    let limit = match app.preferences.borrow().line_length_guide() {
+    let limit = match app.preferences.borrow().line_length_guide(buffer.path.as_ref()) {
     	Some(n) => n,
     	None => bail!("Justification requires a line_length_guide."),
     };

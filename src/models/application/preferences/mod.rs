@@ -154,8 +154,14 @@ impl Preferences {
         ).as_bool().expect("No vaild soft tabs setting was found!")
     }
 
-    pub fn line_length_guide(&self) -> Option<usize> {
-        match self.value(LINE_LENGTH_GUIDE_KEY, None, None) {
+    pub fn line_length_guide<'a, 'b>(
+        &'a self, path: Option<&'b PathBuf>
+    ) -> Option<usize> {
+        match self.value(
+            LINE_LENGTH_GUIDE_KEY,
+            path_extension(path),
+            path.and_then(|x| x.to_str()),
+        ) {
             Yaml::Integer(ref x) => Some(*x as usize),
             Yaml::Boolean(ref x) if *x => match DEFAULT_PREFERENCES[LINE_LENGTH_GUIDE_KEY] {
                 Yaml::Integer(ref x) => Some(*x as usize),
@@ -444,7 +450,7 @@ mod tests {
         let data = YamlLoader::load_from_str("line_length_guide: 100").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.line_length_guide(), Some(100));
+        assert_eq!(preferences.line_length_guide(None), Some(100));
     }
 
     #[test]
@@ -452,7 +458,7 @@ mod tests {
         let data = YamlLoader::load_from_str("line_length_guide: false").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.line_length_guide(), None);
+        assert_eq!(preferences.line_length_guide(None), None);
     }
 
     #[test]
@@ -460,7 +466,7 @@ mod tests {
         let data = YamlLoader::load_from_str("line_length_guide: true").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.line_length_guide(), Some(80));
+        assert_eq!(preferences.line_length_guide(None), Some(80));
     }
 
     #[test]
