@@ -50,7 +50,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut dyn SearchSelec
                 Position{ line, offset: 0 },
                 style,
                 colors,
-                format!("{:width$}", content, width=presenter.width()),
+                format!("{:width$}", content, width = presenter.width()),
             ));
         }
 
