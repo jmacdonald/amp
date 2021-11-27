@@ -33,7 +33,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut dyn SearchSelec
     }
 
     if let Some(message) = mode.message() {
-        padded_message = format!("{:width$}", message, width=presenter.width());
+        padded_message = format!("{:width$}", message, width = presenter.width());
         presenter.print(&Position{ line: 0, offset: 0 },
                    Style::Default,
                    Colors::Default,
