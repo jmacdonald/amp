@@ -91,7 +91,7 @@ impl<'p> Presenter<'p> {
 
         entries.iter().enumerate().fold(0, |offset, (index, element)| {
             let content = match entries.len() {
-                // There's onyl one element; have it fill the line.
+                // There's only one element; have it fill the line.
                 1 => format!(
                     "{:width$}",
                     element.content,
