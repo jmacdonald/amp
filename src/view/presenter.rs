@@ -95,7 +95,7 @@ impl<'p> Presenter<'p> {
                 1 => format!(
                     "{:width$}",
                     element.content,
-                    width=self.view.terminal.width(),
+                    width = self.view.terminal.width(),
                 ),
 
                 // Expand the last element to fill the remaining width.
