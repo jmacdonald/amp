@@ -111,7 +111,7 @@ impl<'p> Presenter<'p> {
                     format!(
                         "{:width$}",
                         element.content,
-                        width=self.view.terminal.width().saturating_sub(space),
+                        width = self.view.terminal.width().saturating_sub(space),
                     )
                 },
                 _ => element.content.clone(),
