@@ -102,7 +102,7 @@ impl<'p> Presenter<'p> {
                 2 if index == entries.len() - 1 => format!(
                     "{:width$}",
                     element.content,
-                    width=self.view.terminal.width().saturating_sub(offset),
+                    width = self.view.terminal.width().saturating_sub(offset),
                 ),
                 2 => element.content.clone(),
 
