@@ -81,7 +81,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut dyn SearchSelec
         Colors::Inverted
     };
 
-    let padded_content = format!("{:width$}", mode.query(), width=presenter.width());
+    let padded_content = format!("{:width$}", mode.query(), width = presenter.width());
 
     presenter.print(&Position{ line, offset: 0 },
                Style::Bold,
