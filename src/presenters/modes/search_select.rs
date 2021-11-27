@@ -65,7 +65,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut dyn SearchSelec
            Position{ line, offset: 0 },
            Style::Default,
            Colors::Default,
-           format!("{:width$}", ' ', width=presenter.width()),
+           format!("{:width$}", ' ', width = presenter.width()),
         ));
     }
 
