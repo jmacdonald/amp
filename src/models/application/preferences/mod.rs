@@ -9,11 +9,15 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 use crate::yaml::yaml::{Hash, Yaml, YamlLoader};
 use crate::models::application::modes::SearchSelectConfig;
+use linked_hash_map::LinkedHashMap;
+
+use lazy_static;
 
 const APP_INFO: AppInfo = AppInfo {
     name: "amp",
     author: "Jordan MacDonald",
 };
+
 const FILE_NAME: &str = "config.yml";
 const LINE_COMMENT_PREFIX_KEY: &str = "line_comment_prefix";
 const LINE_LENGTH_GUIDE_KEY: &str = "line_length_guide";
@@ -29,50 +33,53 @@ const THEME_PATH: &str = "themes";
 const TYPES_KEY: &str = "types";
 const TYPES_SYNTAX_KEY: &str = "syntax";
 
+lazy_static! {
+    static ref DEFAULT_PREFERENCES: Yaml = {
+        YamlLoader::load_from_str(include_str!("default.yml"))
+            .expect("Unparseable default preferences file!")
+            .into_iter()
+            .next()
+            .expect("Invalid default preferences file!")
+    };
+}
+
 /// Loads, creates, and provides default values for application preferences.
 /// Values are immutable once loaded, with the exception of those that provide
 /// expicit setter methods (e.g. `theme`).
 pub struct Preferences {
-    default: Yaml,
-    data: Option<Yaml>,
+    data: Yaml,
     keymap: KeyMap,
-    theme: Option<String>,
+
+    // Store in-memory overrides for settings. This shouldn't be more than a
+    // few values (i.e., what the user can specify on the command line).
+    overrides: Vec<(String, String)>
 }
 
 impl Preferences {
     /// Builds a new in-memory instance with default values.
     pub fn new(data: Option<Yaml>) -> Preferences {
         Preferences {
-            default: load_default_document().expect("Failed to load default preferences!"),
-            data,
+            data: data.unwrap_or(Yaml::Hash(LinkedHashMap::new())),
             keymap: KeyMap::default().expect("Failed to load default keymap!"),
-            theme: None
+            overrides: Vec::new(),
         }
     }
 
     /// Loads preferences from disk, returning any filesystem or parse errors.
-    pub fn load() -> Result<Preferences> {
-        let default = load_default_document()?;
+    pub fn load(overrides: Vec<(String, String)>) -> Result<Preferences> {
         let data = load_document()?;
-        let keymap = load_keymap(
-            data.as_ref().and_then(|data| data["keymap"].as_hash())
-        )?;
+        let keymap = load_keymap(data["keymap"].as_hash())?;
 
-        Ok(Preferences { default, data, keymap, theme: None })
+        Ok(Preferences { data, keymap, overrides, })
     }
 
     /// Reloads all user preferences from disk and merges them with defaults.
     pub fn reload(&mut self) -> Result<()> {
-        let default = load_default_document()?;
         let data = load_document()?;
-        let keymap = load_keymap(
-            data.as_ref().and_then(|data| data["keymap"].as_hash())
-        )?;
+        let keymap = load_keymap(data["keymap"].as_hash())?;
 
-        self.default = default;
         self.data = data;
         self.keymap = keymap;
-        self.theme = None;
 
         Ok(())
     }
@@ -116,20 +123,9 @@ impl Preferences {
 
     /// If set, returns the in-memory theme, falling back to the value set via
     /// the configuration file, and then the default value.
-    pub fn theme(&self) -> &str {
-        // Return the mutable in-memory value, if set.
-        if let Some(ref theme) = self.theme { return theme; }
-
-        self.data
-            .as_ref()
-            .and_then(|data| if let Yaml::String(ref theme) = data[THEME_KEY] {
-                          Some(theme.as_str())
-                      } else {
-                          None
-                      })
-            .unwrap_or_else(|| {
-                self.default[THEME_KEY].as_str().expect("Couldn't find default theme name!")
-            })
+    pub fn theme(&self) -> String {
+        self.value(THEME_KEY, None, None)
+            .as_str().expect("No valid theme was found!").to_string()
     }
 
     /// Returns the theme path, making sure the directory exists.
@@ -140,95 +136,60 @@ impl Preferences {
 
     /// Updates the in-memory theme value.
     pub fn set_theme<T: Into<String>>(&mut self, theme: T) {
-        self.theme = Some(theme.into());
+        self.data.as_hash_mut().expect("Settings are invalid")
+            .insert(Yaml::String(THEME_KEY.to_string()), Yaml::String(theme.into()));
     }
 
     pub fn tab_width(&self, path: Option<&PathBuf>) -> usize {
-        self.data
-            .as_ref()
-            .and_then(|data| {
-                if let Some(extension) = path_extension(path) {
-                    if let Yaml::Integer(tab_width) = data[TYPES_KEY][extension][TAB_WIDTH_KEY] {
-                        return Some(tab_width as usize);
-                    } else if let Yaml::Integer(tab_width) = data[TAB_WIDTH_KEY] {
-                        return Some(tab_width as usize);
-                    }
-                } else if let Yaml::Integer(tab_width) = data[TAB_WIDTH_KEY] {
-                    return Some(tab_width as usize);
-                }
-
-                None
-            })
-            .unwrap_or_else(|| {
-                self.default[TAB_WIDTH_KEY].as_i64()
-                    .expect("Couldn't find default tab width setting!") as usize
-            })
+        match self.value(
+            TAB_WIDTH_KEY, path_extension(path), path.and_then(|x| x.to_str())
+        ) {
+            Yaml::String(s) => s.parse().expect("No valid tab width was found!"),
+            Yaml::Integer(i) => i as usize,
+            _ => panic!("No valid tab width was found!"),
+        }
     }
+
 
     pub fn search_select_config(&self) -> SearchSelectConfig {
         let mut result = SearchSelectConfig::default();
-        if let Some(ref data) = self.data {
-            if let Yaml::Integer(max_results) = data[SEARCH_SELECT_KEY]["max_results"] {
-                result.max_results = max_results as usize;
-            }
+        if let Yaml::Integer(max_results) = self.data[SEARCH_SELECT_KEY]["max_results"] {
+            result.max_results = max_results as usize;
         }
         result
     }
 
     pub fn soft_tabs(&self, path: Option<&PathBuf>) -> bool {
-        self.data
-            .as_ref()
-            .and_then(|data| {
-                if let Some(extension) = path_extension(path) {
-                    if let Yaml::Boolean(soft_tabs) = data[TYPES_KEY][extension][SOFT_TABS_KEY] {
-                        return Some(soft_tabs);
-                    } else if let Yaml::Boolean(soft_tabs) = data[SOFT_TABS_KEY] {
-                        return Some(soft_tabs);
-                    }
-                } else if let Yaml::Boolean(soft_tabs) = data[SOFT_TABS_KEY] {
-                    return Some(soft_tabs);
-                }
-
-                None
-            })
-            .unwrap_or_else(|| {
-                self.default[SOFT_TABS_KEY].as_bool()
-                    .expect("Couldn't find default soft tabs setting!")
-            })
+        match self.value(
+            SOFT_TABS_KEY, path_extension(path), path.and_then(|x| x.to_str())
+        ) {
+            Yaml::Boolean(b) => b,
+            Yaml::String(s) => s == "true",
+            _ => panic!("No valid soft tabs setting was found!"),
+        }
     }
 
-    pub fn line_length_guide(&self) -> Option<usize> {
-        self.data
-            .as_ref()
-            .and_then(|data| match data[LINE_LENGTH_GUIDE_KEY] {
-                          Yaml::Integer(line_length) => Some(line_length as usize),
-                          Yaml::Boolean(line_length_guide) => {
-                              let default = self.default[LINE_LENGTH_GUIDE_KEY].as_i64()
-                                  .expect("Couldn't find default line length guide setting!");
-
-                              if line_length_guide {
-                                  Some(default as usize)
-                              } else {
-                                  None
-                              }
-                          }
-                          _ => None,
-                      })
-
+    pub fn line_length_guide<'a, 'b>(
+        &'a self, path: Option<&'b PathBuf>
+    ) -> Option<usize> {
+        match self.value(
+            LINE_LENGTH_GUIDE_KEY,
+            path_extension(path),
+            path.and_then(|x| x.to_str()),
+        ) {
+            Yaml::Integer(ref x) => Some(*x as usize),
+            Yaml::String(ref x) => x.parse().ok(),
+            Yaml::Boolean(ref x) if *x => match DEFAULT_PREFERENCES[LINE_LENGTH_GUIDE_KEY] {
+                Yaml::Integer(ref x) => Some(*x as usize),
+                _ => panic!("No default line length guide specified."),
+            }
+            _ => None,
+        }
     }
 
     pub fn line_wrapping(&self) -> bool {
-        self.data
-            .as_ref()
-            .and_then(|data| if let Yaml::Boolean(wrapping) = data[LINE_WRAPPING_KEY] {
-                          Some(wrapping)
-                      } else {
-                          None
-                      })
-            .unwrap_or_else(|| {
-                self.default[LINE_WRAPPING_KEY].as_bool()
-                    .expect("Couldn't find default line wrapping setting!")
-            })
+        self.value(LINE_WRAPPING_KEY, None, None)
+            .as_bool().expect("No valid line wrapping setting was found.")
     }
 
     pub fn tab_content(&self, path: Option<&PathBuf>) -> String {
@@ -240,59 +201,56 @@ impl Preferences {
     }
 
     pub fn open_mode_exclusions(&self) -> Result<Option<Vec<ExclusionPattern>>> {
-        let exclusion_data = self.data
-            .as_ref()
-            .map(|data| &data[OPEN_MODE_KEY][OPEN_MODE_EXCLUSIONS_KEY]);
+        let exclusion_data = &self.data[OPEN_MODE_KEY][OPEN_MODE_EXCLUSIONS_KEY];
 
-        if let Some(exclusion_data) = exclusion_data {
-            match *exclusion_data {
-                Yaml::Array(ref exclusions) => {
-                    open::exclusions::parse(exclusions)
-                        .chain_err(|| "Failed to parse user-defined open mode exclusions")
-                        .map(Some)
-                },
-                Yaml::Boolean(_) => Ok(None),
-                _ => self.default_open_mode_exclusions(),
-            }
-        } else {
-            self.default_open_mode_exclusions()
+        match *exclusion_data {
+            Yaml::Array(ref exclusions) => {
+                open::exclusions::parse(exclusions)
+                    .chain_err(|| "Failed to parse user-defined open mode exclusions")
+                    .map(Some)
+            },
+            Yaml::Boolean(_) => Ok(None),
+            _ => self.default_open_mode_exclusions(),
         }
     }
 
     pub fn line_comment_prefix(&self, path: &PathBuf) -> Option<String> {
-        let extension = path_extension(Some(path))?;
-
-        self.data
-            .as_ref()
-            .and_then(|data| data[TYPES_KEY][extension][LINE_COMMENT_PREFIX_KEY].as_str())
-            .or_else(|| self.default[TYPES_KEY][extension][LINE_COMMENT_PREFIX_KEY].as_str())
-            .map(|prefix| prefix.to_owned())
+        self.value(
+            LINE_COMMENT_PREFIX_KEY,
+            path.extension().and_then(|x| x.to_str()),
+            path.file_name().and_then(|x| x.to_str()),
+        ).as_str().and_then(|x| Some(x.to_owned()))
     }
 
     pub fn syntax_definition_name(&self, path: &Path) -> Option<String> {
-        self.data
-            .as_ref()
-            .and_then(|data| {
-                // First try to match the file extension
-                if let Some(extension) = path.extension().and_then(|ext| ext.to_str()) {
-                    if let Some(syntax) = data[TYPES_KEY][extension][TYPES_SYNTAX_KEY].as_str() {
-                        return Some(syntax.to_owned());
-                    }
-                }
+        self.value(
+            TYPES_SYNTAX_KEY,
+            path.extension().and_then(|x| x.to_str()),
+            path.file_name().and_then(|x| x.to_str())
+        ).as_str().and_then(|x| Some(x.to_owned()))
+    }
 
-                // If matching the file extension fails, try matching the whole filename
-                if let Some(path) = path.file_name().and_then(|name| name.to_str()) {
-                    if let Some(syntax) = data[TYPES_KEY][path][TYPES_SYNTAX_KEY].as_str() {
-                        return Some(syntax.to_owned());
-                    }
-                }
+    /// Locate the value for a given key. Searches, in this order:
+    /// 1. File name specific settings (skipped if given as None)
+    /// 2. File extension specific settings (skipped if given as None)
+    /// 3. Global options.
+    /// 4. DEFAULT_PREFERENCES
+    fn value<'a, 'b>(
+        &'a self, key: &'b str, ext: Option<&'b str>, name: Option<&'b str>
+    ) -> Yaml {
+        for (ok, ov) in &self.overrides {
+            if ok == key {
+                return Yaml::String(ov.to_string());
+            }
+        }
 
-                None
-            })
+        find_with_precedence(&self.data, key, ext, name)
+            .borrowed_or(find_with_precedence(&DEFAULT_PREFERENCES, key, ext, name))
+            .clone()
     }
 
     fn default_open_mode_exclusions(&self) -> Result<Option<Vec<ExclusionPattern>>> {
-        let exclusions = self.default[OPEN_MODE_KEY][OPEN_MODE_EXCLUSIONS_KEY]
+        let exclusions = DEFAULT_PREFERENCES[OPEN_MODE_KEY][OPEN_MODE_EXCLUSIONS_KEY]
             .as_vec()
             .chain_err(|| "Couldn't find default open mode exclusions settings!")?;
 
@@ -302,8 +260,23 @@ impl Preferences {
     }
 }
 
-/// Loads the first YAML document in the user's config file.
-fn load_document() -> Result<Option<Yaml>> {
+fn find_with_precedence<'a, 'b>(
+    doc: &'a Yaml, key: &'b str, ext: Option<&'b str>, name: Option<&'b str>
+) -> &'a Yaml {
+    let name_match = if let Some(name) = name {
+        &doc[TYPES_KEY][name][key]
+    } else { &Yaml::Null };
+    let ext_match = if let Some(ext) = ext {
+        &doc[TYPES_KEY][ext][key]
+    } else { &Yaml::Null };
+    let general_match = &doc[key];
+
+    name_match.borrowed_or(ext_match).borrowed_or(general_match)
+}
+
+/// Loads the first YAML document in the user's config file. Will return
+/// `Yaml::Null` if none exists.
+fn load_document() -> Result<Yaml> {
     // Build a path to the config file.
     let mut config_path =
         get_app_root(AppDataType::UserConfig, &APP_INFO)
@@ -325,14 +298,7 @@ fn load_document() -> Result<Option<Yaml>> {
     // Parse the config file's contents and get the first YAML document inside.
     let parsed_data = YamlLoader::load_from_str(&data)
         .chain_err(|| "Couldn't parse config file")?;
-    Ok(parsed_data.into_iter().nth(0))
-}
-
-fn load_default_document() -> Result<Yaml> {
-    YamlLoader::load_from_str(include_str!("default.yml"))
-        .chain_err(|| "Couldn't parse default config file")?
-        .into_iter().nth(0)
-        .chain_err(|| "No default preferences document found")
+    Ok(parsed_data.into_iter().next().unwrap_or(Yaml::Null))
 }
 
 /// Loads default keymaps, merging in the provided overrides.
@@ -356,10 +322,10 @@ fn path_extension(path: Option<&PathBuf>) -> Option<&str> {
 
 #[cfg(test)]
 mod tests {
-    use super::{ExclusionPattern, Preferences, YamlLoader};
+    use super::{ExclusionPattern, Preferences, YamlLoader, Yaml};
     use std::path::{Path, PathBuf};
     use crate::input::KeyMap;
-    use crate::yaml::yaml::{Hash, Yaml};
+    use crate::yaml::yaml::{Hash};
 
     #[test]
     fn preferences_returns_user_defined_theme_name() {
@@ -507,7 +473,7 @@ mod tests {
         let data = YamlLoader::load_from_str("line_length_guide: 100").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.line_length_guide(), Some(100));
+        assert_eq!(preferences.line_length_guide(None), Some(100));
     }
 
     #[test]
@@ -515,7 +481,7 @@ mod tests {
         let data = YamlLoader::load_from_str("line_length_guide: false").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.line_length_guide(), None);
+        assert_eq!(preferences.line_length_guide(None), None);
     }
 
     #[test]
@@ -523,7 +489,7 @@ mod tests {
         let data = YamlLoader::load_from_str("line_length_guide: true").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.line_length_guide(), Some(80));
+        assert_eq!(preferences.line_length_guide(None), Some(80));
     }
 
     #[test]
@@ -645,7 +611,7 @@ mod tests {
     #[test]
     fn reload_clears_in_memory_theme() {
         // Create an on-disk preferences file first, if one doesn't already exist.
-        if Preferences::load().is_err() {
+        if Preferences::load(Vec::new()).is_err() {
             Preferences::edit().unwrap().save().unwrap();
         }
 
@@ -661,16 +627,15 @@ mod tests {
     #[test]
     fn reload_refreshes_in_memory_keymap() {
         // Create an on-disk preferences file first, if one doesn't already exist.
-        if Preferences::load().is_err() {
+        if Preferences::load(Vec::new()).is_err() {
             Preferences::edit().unwrap().save().unwrap();
         }
 
         // Build a preferences instance with an empty keymap.
         let mut preferences = Preferences {
-            default: Yaml::Null,
-            data: None,
+            data: Yaml::Null,
             keymap: KeyMap::from(&Hash::new()).unwrap(),
-            theme: None
+            overrides: Vec::new(),
         };
 
         // Reload the preferences, ensuring that it refreshes the keymap.

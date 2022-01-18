@@ -825,7 +825,7 @@ mod tests {
 
     #[test]
     fn insert_newline_uses_current_line_indentation() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
 
         // Insert data with indentation and move to the end of the line.
@@ -858,7 +858,7 @@ mod tests {
 
     #[test]
     fn insert_newline_uses_nearest_line_indentation_when_current_line_blank() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
 
         // Insert data with indentation and move to the end of the line.
@@ -891,7 +891,7 @@ mod tests {
 
     #[test]
     fn change_rest_of_line_removes_content_and_switches_to_insert_mode() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
 
         // Insert data with indentation and move to the end of the line.
@@ -926,7 +926,7 @@ mod tests {
 
     #[test]
     fn delete_token_deletes_current_token_and_trailing_whitespace() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp editor");
 
@@ -941,7 +941,7 @@ mod tests {
 
     #[test]
     fn delete_token_does_not_delete_newline_characters() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
 
@@ -956,7 +956,7 @@ mod tests {
 
     #[test]
     fn delete_current_line_deletes_current_line() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
 
         // Insert data with indentation and move to the end of the line.
@@ -978,7 +978,7 @@ mod tests {
 
     #[test]
     fn indent_line_inserts_two_spaces_at_start_of_line() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
         buffer.cursor.move_to(Position {
@@ -998,7 +998,7 @@ mod tests {
 
     #[test]
     fn indent_line_works_in_select_line_mode() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\n  editor");
 
@@ -1016,7 +1016,7 @@ mod tests {
 
     #[test]
     fn indent_line_moves_cursor_in_insert_mode() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
         buffer.cursor.move_to(Position {
@@ -1040,7 +1040,7 @@ mod tests {
 
     #[test]
     fn indent_line_does_not_move_cursor_in_normal_mode() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
         buffer.cursor.move_to(Position {
@@ -1063,7 +1063,7 @@ mod tests {
 
     #[test]
     fn indent_line_groups_multi_line_indents_as_a_single_operation() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\n  editor");
 
@@ -1086,7 +1086,7 @@ mod tests {
 
     #[test]
     fn indent_line_works_with_reversed_selections() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
 
@@ -1105,7 +1105,7 @@ mod tests {
 
     #[test]
     fn outdent_line_removes_two_spaces_from_start_of_line() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\n  editor");
         buffer.cursor.move_to(Position {
@@ -1133,7 +1133,7 @@ mod tests {
     #[test]
     fn outdent_line_removes_as_much_space_as_it_can_from_start_of_line_if_less_than_full_indent
         () {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\n editor");
         buffer.cursor.move_to(Position {
@@ -1153,7 +1153,7 @@ mod tests {
 
     #[test]
     fn outdent_does_nothing_if_there_is_no_leading_whitespace() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
 
         // Add some trailing whitespace to trip up naive implementations.
@@ -1171,7 +1171,7 @@ mod tests {
 
     #[test]
     fn outdent_line_works_in_select_line_mode() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("  amp\n  editor");
 
@@ -1189,7 +1189,7 @@ mod tests {
 
     #[test]
     fn outdent_line_groups_multi_line_indents_as_a_single_operation() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("  amp\n  editor");
 
@@ -1212,7 +1212,7 @@ mod tests {
 
     #[test]
     fn outdent_line_works_with_reversed_selections() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("  amp\n  editor");
 
@@ -1231,7 +1231,7 @@ mod tests {
 
     #[test]
     fn remove_trailing_whitespace_works() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("  amp\n  \neditor ");
 
@@ -1247,7 +1247,7 @@ mod tests {
 
     #[test]
     fn remove_trailing_whitespace_works_with_tab() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\t\tamp\n\t\t\neditor\t");
 
@@ -1263,7 +1263,7 @@ mod tests {
 
     #[test]
     fn save_removes_trailing_whitespace_and_adds_newlines() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp  \neditor ");
 
@@ -1279,7 +1279,7 @@ mod tests {
 
     #[test]
     fn save_adds_newline_with_unicode() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp    \n∴ editor ");
         app.workspace.add_buffer(buffer);
@@ -1291,7 +1291,7 @@ mod tests {
 
     #[test]
     fn save_switches_to_path_mode_when_path_is_missing() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let buffer = Buffer::new();
 
         // Now that we've set up the buffer, add it
@@ -1308,7 +1308,7 @@ mod tests {
 
     #[test]
     fn save_sets_save_on_accept_when_switching_to_path_mode() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let buffer = Buffer::new();
 
         // Now that we've set up the buffer, add it
@@ -1326,7 +1326,7 @@ mod tests {
 
     #[test]
     fn paste_inserts_at_cursor_when_pasting_inline_data() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
 
@@ -1346,7 +1346,7 @@ mod tests {
 
     #[test]
     fn paste_inserts_on_line_below_when_pasting_block_data() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
         buffer.cursor.move_to(Position {
@@ -1369,7 +1369,7 @@ mod tests {
 
     #[test]
     fn paste_works_at_end_of_buffer_when_pasting_block_data() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
         buffer.cursor.move_to(Position {
@@ -1393,7 +1393,7 @@ mod tests {
 
     #[test]
     fn paste_works_on_trailing_newline_when_pasting_block_data() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\n");
         buffer.cursor.move_to(Position {
@@ -1418,7 +1418,7 @@ mod tests {
 
     #[test]
     fn backspace_outdents_line_if_line_is_whitespace() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\n        ");
         buffer.cursor.move_to(Position {
@@ -1438,7 +1438,7 @@ mod tests {
 
     #[test]
     fn merge_next_line_joins_current_and_next_lines_with_a_space() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
 
@@ -1460,7 +1460,7 @@ mod tests {
 
     #[test]
     fn merge_next_line_does_nothing_if_there_is_no_next_line() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp editor");
 
@@ -1482,7 +1482,7 @@ mod tests {
 
     #[test]
     fn merge_next_line_works_when_the_next_line_has_a_line_after_it() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\ntest");
 
@@ -1498,7 +1498,7 @@ mod tests {
 
     #[test]
     fn merge_next_line_works_when_the_first_line_has_leading_whitespace() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\n amp\neditor");
         buffer.cursor.move_to(Position {
@@ -1518,7 +1518,7 @@ mod tests {
 
     #[test]
     fn merge_next_line_removes_leading_whitespace_from_second_line() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\n    editor");
 
@@ -1533,7 +1533,7 @@ mod tests {
 
     #[test]
     fn ensure_trailing_newline_adds_newlines_when_missing() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
 
@@ -1549,7 +1549,7 @@ mod tests {
 
     #[test]
     fn ensure_trailing_newline_does_nothing_when_already_present() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\n");
 
@@ -1565,7 +1565,7 @@ mod tests {
 
     #[test]
     fn paste_with_inline_content_replaces_selection() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp");
         app.clipboard.set_content(ClipboardContent::Inline("editor".to_string())).unwrap();
@@ -1587,7 +1587,7 @@ mod tests {
 
     #[test]
     fn paste_with_block_content_replaces_selection() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
         app.clipboard.set_content(ClipboardContent::Block("paste amp\n".to_string())).unwrap();
@@ -1609,7 +1609,7 @@ mod tests {
 
     #[test]
     fn paste_above_inserts_clipboard_contents_on_a_new_line_above() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         let original_position = Position {
             line: 0,
@@ -1632,7 +1632,7 @@ mod tests {
 
     #[test]
     fn close_displays_confirmation_when_buffer_is_modified() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("data");
 
@@ -1649,7 +1649,7 @@ mod tests {
 
     #[test]
     fn close_skips_confirmation_when_buffer_is_empty() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let buffer = Buffer::new();
 
         // Empty the workspace.
@@ -1665,7 +1665,7 @@ mod tests {
 
     #[test]
     fn close_skips_confirmation_when_buffer_is_unmodified() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let buffer = Buffer::from_file(Path::new("LICENSE")).unwrap();
 
         // Empty the workspace.
@@ -1681,7 +1681,7 @@ mod tests {
 
     #[test]
     fn close_others_skips_confirmation_when_all_other_buffers_are_empty_or_unmodified() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let buffer_1 = Buffer::new();
         let buffer_2 = Buffer::from_file(Path::new("LICENSE")).unwrap();
         let mut buffer_3 = Buffer::new();
@@ -1704,7 +1704,7 @@ mod tests {
 
     #[test]
     fn close_others_displays_confirmation_before_closing_modified_buffer() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let buffer = Buffer::new();
         let mut modified_buffer = Buffer::new();
         modified_buffer.insert("data");
@@ -1733,7 +1733,7 @@ mod tests {
 
     #[test]
     fn close_others_works_when_current_buffer_is_last() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer_1 = Buffer::new();
         let mut buffer_2 = Buffer::new();
         let mut buffer_3 = Buffer::new();
@@ -1757,7 +1757,7 @@ mod tests {
 
     #[test]
     fn close_others_works_when_current_buffer_is_not_last() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer_1 = Buffer::new();
         let mut buffer_2 = Buffer::new();
         let mut buffer_3 = Buffer::new();
@@ -1780,7 +1780,7 @@ mod tests {
 
     #[test]
     fn toggle_line_comment_add_single_in_normal_mode() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\tamp\n\teditor\n");
         buffer.cursor.move_to(Position {
@@ -1802,7 +1802,7 @@ mod tests {
 
     #[test]
     fn toggle_line_comment_add_multiple_in_select_line_mode() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\tamp\n\t\teditor\n");
         buffer.cursor.move_to(Position {
@@ -1830,7 +1830,7 @@ mod tests {
 
     #[test]
     fn toggle_line_comment_remove_single_in_normal_mode() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\t// amp\n\teditor\n");
         buffer.cursor.move_to(Position {
@@ -1852,7 +1852,7 @@ mod tests {
 
     #[test]
     fn toggle_line_comment_remove_multiple_in_select_line_mode() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\t// amp\n\t// \teditor\n");
         buffer.cursor.move_to(Position {
@@ -1880,7 +1880,7 @@ mod tests {
 
     #[test]
     fn toggle_line_comment_remove_multiple_with_unequal_indent_in_select_line_mode() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\t// amp\n\t\t// editor\n");
         buffer.cursor.move_to(Position {
@@ -1908,7 +1908,7 @@ mod tests {
 
     #[test]
     fn toggle_line_comment_add_correctly_preserves_empty_lines() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\tamp\n\n\teditor\n");
         buffer.cursor.move_to(Position {
@@ -1936,7 +1936,7 @@ mod tests {
 
     #[test]
     fn toggle_line_comment_remove_correctly_preserves_empty_lines() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\t// amp\n\n\t// editor\n");
         buffer.cursor.move_to(Position {

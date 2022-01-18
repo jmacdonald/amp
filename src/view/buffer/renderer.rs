@@ -93,7 +93,9 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
     }
 
     fn length_guide_offset(&self) -> Option<usize> {
-        self.preferences.line_length_guide().map(|offset| self.gutter_width + offset)
+        self.preferences
+            .line_length_guide(self.buffer.path.as_ref())
+            .map(|offset| self.gutter_width + offset)
     }
 
     fn advance_to_next_line(&mut self) {

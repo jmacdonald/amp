@@ -40,9 +40,9 @@ impl KeyMap {
     }
 
     /// Searches the keymap for the specified key.
+    ///
     /// Character keys will fall back to wildcard character bindings
     /// if the specific character binding cannot be found.
-    ///
     pub fn commands_for(&self, mode: &str, key: &Key) -> Option<SmallVec<[Command; 4]>> {
         self.0.get(mode).and_then(|mode_keymap| {
             if let Key::Char(_) = *key {
@@ -77,6 +77,7 @@ impl KeyMap {
     ///
     /// e.g.
     ///
+    /// ```yml
     /// normal:
     ///     k: "cursor::move_up"
     ///
@@ -86,13 +87,16 @@ impl KeyMap {
     ///     j: "cursor::move_down"
     /// unknown:
     ///     l: "cursor::move_right"
+    /// ```
     ///
     /// becomes this:
     ///
-    ///   "normal" => {
-    ///       Key::Char('k') => commands::cursor::move_up
-    ///       Key::Char('j') => commands::cursor::move_down
-    ///   }
+    /// ```ignore
+    /// "normal" => {
+    ///     Key::Char('k') => commands::cursor::move_up
+    ///     Key::Char('j') => commands::cursor::move_down
+    /// }
+    /// ```
     ///
     pub fn merge(&mut self, mut key_map: KeyMap) {
         // Step through the specified key map's modes.
