@@ -226,7 +226,7 @@ fn initialize_preferences() -> Rc<RefCell<Preferences>> {
 
 fn create_workspace(view: &mut View, preferences: &Preferences, args: &Vec<String>) -> Result<Workspace> {
     // Discard the executable portion of the argument list.
-    let mut path_args = args.iter().skip(1).peekable();
+    let mut path_args = args.iter().peekable();
 
     // Move into an argument-specified directory, if present.
     let initial_dir = env::current_dir()?;
