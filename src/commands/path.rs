@@ -63,7 +63,7 @@ mod tests {
 
     #[test]
     fn accept_path_sets_buffer_path_based_on_input_and_switches_to_normal_mode() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
 
         let buffer = Buffer::new();
         app.workspace.add_buffer(buffer);
@@ -88,7 +88,7 @@ mod tests {
 
     #[test]
     fn accept_path_respects_save_on_accept_flag() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
 
         let buffer = Buffer::new();
         app.workspace.add_buffer(buffer);
@@ -106,7 +106,7 @@ mod tests {
 
     #[test]
     fn accept_path_doesnt_set_buffer_path_for_empty_input_and_doesnt_change_modes() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
 
         let buffer = Buffer::new();
         app.workspace.add_buffer(buffer);
@@ -129,7 +129,7 @@ mod tests {
 
     #[test]
     fn accept_path_updates_syntax() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
 
         let buffer = Buffer::new();
         app.workspace.add_buffer(buffer);

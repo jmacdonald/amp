@@ -24,7 +24,7 @@ impl<'p> Presenter<'p> {
             let preferences = view.preferences.borrow();
             let theme_name = preferences.theme();
             let theme = view.theme_set.themes
-                .get(theme_name)
+                .get(&theme_name)
                 .ok_or_else(|| format!("Couldn't find \"{}\" theme", theme_name))?;
             theme.clone()
         };

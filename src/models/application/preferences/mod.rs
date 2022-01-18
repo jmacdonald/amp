@@ -49,6 +49,10 @@ lazy_static! {
 pub struct Preferences {
     data: Yaml,
     keymap: KeyMap,
+
+    // Store in-memory overrides for settings. This shouldn't be more than a
+    // few values (i.e., what the user can specify on the command line).
+    overrides: Vec<(String, String)>
 }
 
 impl Preferences {
@@ -57,15 +61,16 @@ impl Preferences {
         Preferences {
             data: data.unwrap_or(Yaml::Hash(LinkedHashMap::new())),
             keymap: KeyMap::default().expect("Failed to load default keymap!"),
+            overrides: Vec::new(),
         }
     }
 
     /// Loads preferences from disk, returning any filesystem or parse errors.
-    pub fn load() -> Result<Preferences> {
+    pub fn load(overrides: Vec<(String, String)>) -> Result<Preferences> {
         let data = load_document()?;
         let keymap = load_keymap(data["keymap"].as_hash())?;
 
-        Ok(Preferences { data, keymap, })
+        Ok(Preferences { data, keymap, overrides, })
     }
 
     /// Reloads all user preferences from disk and merges them with defaults.
@@ -118,8 +123,9 @@ impl Preferences {
 
     /// If set, returns the in-memory theme, falling back to the value set via
     /// the configuration file, and then the default value.
-    pub fn theme(&self) -> &str {
-        self.value(THEME_KEY, None, None).as_str().expect("No valid theme was found!")
+    pub fn theme(&self) -> String {
+        self.value(THEME_KEY, None, None)
+            .as_str().expect("No valid theme was found!").to_string()
     }
 
     /// Returns the theme path, making sure the directory exists.
@@ -135,10 +141,15 @@ impl Preferences {
     }
 
     pub fn tab_width(&self, path: Option<&PathBuf>) -> usize {
-        self.value(
+        match self.value(
             TAB_WIDTH_KEY, path_extension(path), path.and_then(|x| x.to_str())
-        ).as_i64().expect("No vaild tab width was found!") as usize
+        ) {
+            Yaml::String(s) => s.parse().expect("No valid tab width was found!"),
+            Yaml::Integer(i) => i as usize,
+            _ => panic!("No valid tab width was found!"),
+        }
     }
+
 
     pub fn search_select_config(&self) -> SearchSelectConfig {
         let mut result = SearchSelectConfig::default();
@@ -149,9 +160,13 @@ impl Preferences {
     }
 
     pub fn soft_tabs(&self, path: Option<&PathBuf>) -> bool {
-        self.value(
+        match self.value(
             SOFT_TABS_KEY, path_extension(path), path.and_then(|x| x.to_str())
-        ).as_bool().expect("No vaild soft tabs setting was found!")
+        ) {
+            Yaml::Boolean(b) => b,
+            Yaml::String(s) => s == "true",
+            _ => panic!("No valid soft tabs setting was found!"),
+        }
     }
 
     pub fn line_length_guide<'a, 'b>(
@@ -163,9 +178,10 @@ impl Preferences {
             path.and_then(|x| x.to_str()),
         ) {
             Yaml::Integer(ref x) => Some(*x as usize),
+            Yaml::String(ref x) => x.parse().ok(),
             Yaml::Boolean(ref x) if *x => match DEFAULT_PREFERENCES[LINE_LENGTH_GUIDE_KEY] {
                 Yaml::Integer(ref x) => Some(*x as usize),
-                _ => panic!("No default line length gudie specified."),
+                _ => panic!("No default line length guide specified."),
             }
             _ => None,
         }
@@ -221,9 +237,16 @@ impl Preferences {
     /// 4. DEFAULT_PREFERENCES
     fn value<'a, 'b>(
         &'a self, key: &'b str, ext: Option<&'b str>, name: Option<&'b str>
-    ) -> &'a Yaml {
+    ) -> Yaml {
+        for (ok, ov) in &self.overrides {
+            if ok == key {
+                return Yaml::String(ov.to_string());
+            }
+        }
+
         find_with_precedence(&self.data, key, ext, name)
             .borrowed_or(find_with_precedence(&DEFAULT_PREFERENCES, key, ext, name))
+            .clone()
     }
 
     fn default_open_mode_exclusions(&self) -> Result<Option<Vec<ExclusionPattern>>> {
@@ -588,7 +611,7 @@ mod tests {
     #[test]
     fn reload_clears_in_memory_theme() {
         // Create an on-disk preferences file first, if one doesn't already exist.
-        if Preferences::load().is_err() {
+        if Preferences::load(Vec::new()).is_err() {
             Preferences::edit().unwrap().save().unwrap();
         }
 
@@ -604,7 +627,7 @@ mod tests {
     #[test]
     fn reload_refreshes_in_memory_keymap() {
         // Create an on-disk preferences file first, if one doesn't already exist.
-        if Preferences::load().is_err() {
+        if Preferences::load(Vec::new()).is_err() {
             Preferences::edit().unwrap().save().unwrap();
         }
 
@@ -612,6 +635,7 @@ mod tests {
         let mut preferences = Preferences {
             data: Yaml::Null,
             keymap: KeyMap::from(&Hash::new()).unwrap(),
+            overrides: Vec::new(),
         };
 
         // Reload the preferences, ensuring that it refreshes the keymap.

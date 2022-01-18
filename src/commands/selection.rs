@@ -133,7 +133,7 @@ mod tests {
 
     #[test]
     fn select_all_selects_the_entire_buffer() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
 
         // Insert data with indentation and move to the end of the line.
@@ -165,7 +165,7 @@ mod tests {
 
     #[test]
     fn delete_removes_the_selection_in_select_mode() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
 
         // Insert data with indentation and move to the end of the line.
@@ -192,7 +192,7 @@ mod tests {
 
     #[test]
     fn delete_removes_the_selected_line_in_select_line_mode() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
 
         // Insert data with indentation and move to the end of the line.
@@ -218,7 +218,7 @@ mod tests {
 
     #[test]
     fn delete_removes_the_current_result_in_search_mode() {
-        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut app = Application::new(&Vec::new(), Vec::new()).unwrap();
         let mut buffer = Buffer::new();
 
         // Insert data with indentation and move to the end of the line.

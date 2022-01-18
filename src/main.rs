@@ -5,9 +5,13 @@ use std::env;
 
 static USAGE: &'static str = "\
 Usage:
-  amp --help       Show this help message.
-  amp <directory>  Launch Amp in the given directory.
-  amp <file>       Launch Amp to edit the given file.";
+  amp --help              Show this help message.
+  amp [opts] <directory>  Launch Amp in the given directory.
+  amp [opts] <file>       Launch Amp to edit the given file.
+
+[opts] are a (potentially empty) set of options that override config values,
+for instance `amp --line_length_guide 72 <filename>`. These take precedence over
+all values in the config file.";
 
 enum Action {
     Help,
@@ -22,8 +26,10 @@ fn main() {
 
     match action {
         Action::Help => println!("{}", USAGE),
-        Action::Run { paths, options: _, } =>
-            if let Err(e) = Application::new(&paths).and_then(|mut app| app.run()) {
+        Action::Run { paths, options } =>
+            if let Err(e) = Application::new(
+                &paths, options
+            ).and_then(|mut app| app.run()) {
                 handle_error(&e)
             },
     }

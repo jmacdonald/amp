@@ -54,8 +54,8 @@ pub struct Application {
 }
 
 impl Application {
-    pub fn new(args: &Vec<String>) -> Result<Application> {
-        let preferences = initialize_preferences();
+    pub fn new(args: &Vec<String>, opts: Vec<(String, String)>) -> Result<Application> {
+        let preferences = initialize_preferences(opts);
 
         let (event_channel, events) = mpsc::channel();
         let mut view = View::new(preferences.clone(), event_channel.clone())?;
@@ -218,9 +218,10 @@ impl Application {
     }
 }
 
-fn initialize_preferences() -> Rc<RefCell<Preferences>> {
+fn initialize_preferences(overrides: Vec<(String, String)>) -> Rc<RefCell<Preferences>> {
     Rc::new(RefCell::new(
-        Preferences::load().unwrap_or_else(|_| Preferences::new(None)),
+        Preferences::load(overrides)
+            .unwrap_or_else(|_| Preferences::new(None)),
     ))
 }
 
@@ -314,7 +315,7 @@ mod tests {
     #[test]
     fn application_uses_file_arguments_to_load_contents_into_buffers_when_files_exist() {
         let mut application =
-            Application::new(&vec![String::new(), String::from("Cargo.lock")]).unwrap();
+            Application::new(&vec![String::from("Cargo.lock")], Vec::new()).unwrap();
         let buffer = Buffer::from_file(Path::new("Cargo.lock")).unwrap();
 
         assert_eq!(
@@ -330,7 +331,7 @@ mod tests {
     #[test]
     fn application_uses_file_arguments_to_create_new_buffers_when_files_do_not_exist() {
         let mut application =
-            Application::new(&vec![String::new(), String::from("non_existent_file")]).unwrap();
+            Application::new(&vec![String::from("non_existent_file")], Vec::new()).unwrap();
 
         assert_eq!(
             application.workspace.current_buffer().unwrap().path,
