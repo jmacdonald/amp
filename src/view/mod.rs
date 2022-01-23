@@ -70,6 +70,10 @@ impl View {
         Presenter::new(self)
     }
 
+    pub fn height(&self) -> usize {
+        self.terminal.height()
+    }
+
     ///
     /// Scrollable region delegation methods.
     ///
