@@ -1,7 +1,11 @@
 use crate::errors::*;
 use scribe::Workspace;
 use scribe::buffer::Position;
-use crate::presenters::{current_buffer_status_line_data, git_status_line_data};
+use crate::presenters::{
+    current_buffer_status_line_data,
+    git_status_line_data,
+    percentage_cursor_indicator_line_data
+};
 use git2::Repository;
 use crate::view::{Colors, StatusLineData, Style, View};
 
@@ -33,6 +37,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
             ],
             &[
                 git_status_line_data(&repo, &buf.path),
+                percentage_cursor_indicator_line_data(workspace),
             ],
         );
 

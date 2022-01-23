@@ -14,13 +14,6 @@ fn current_buffer_status_line_data(workspace: &mut Workspace) -> StatusLineData 
     let buffer = workspace.current_buffer();
     let modified = buffer.as_ref().map(|b| b.modified()).unwrap_or(false);
 
-    let line_perc = buffer.map(|b| {
-        let line_total = b.line_count();
-        let line_at = b.cursor.position.line + 1;
-        let line_perc = (line_at * 100) / line_total;
-        format!("[{:2}%]", line_perc)
-    }).unwrap_or(String::new());
-
     let (content, style) = workspace.current_buffer_path().map(|path| {
         let mut title = path_as_title(path);
         let mut style = Style::Default;
@@ -30,13 +23,28 @@ fn current_buffer_status_line_data(workspace: &mut Workspace) -> StatusLineData 
             style = Style::Bold;
         }
 
-        (format!(" {}{}", line_perc, title), style)
+        (format!(" {}", title), style)
     }).unwrap_or((String::new(), Style::Default));
 
     StatusLineData {
         content,
         style,
         colors: Colors::Focused,
+    }
+}
+
+fn percentage_cursor_indicator_line_data(workspace: &mut Workspace) -> StatusLineData {
+    let content = workspace.current_buffer().map(|b| {
+        let line_total = b.line_count();
+        let line_at = b.cursor.position.line + 1;
+        let line_perc = (line_at * 100) / line_total;
+        format!(" [{:2}%]", line_perc)
+    }).unwrap_or(String::new());
+
+    StatusLineData {
+        content,
+        style: Style::Default,
+        colors: Colors::Default,
     }
 }
 
@@ -61,6 +69,7 @@ fn git_status_line_data(repo: &Option<Repository>, path: &Option<PathBuf>) -> St
         colors: Colors::Focused,
     }
 }
+
 fn presentable_status(status: &Status) -> &str {
     if status.contains(git2::Status::WT_NEW) {
         if status.contains(git2::Status::INDEX_NEW) {
