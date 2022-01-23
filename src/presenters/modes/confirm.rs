@@ -12,13 +12,16 @@ pub fn display(workspace: &mut Workspace, view: &mut View) -> Result<()> {
 
     // Draw the status line as a search prompt.
     let confirmation = "Are you sure? (y/n)".to_string();
-    presenter.print_status_line(&[
-        StatusLineData {
-            content: confirmation,
-            style: Style::Bold,
-            colors: Colors::Warning,
-        }
-    ]);
+    presenter.print_status_line(
+        &[
+            StatusLineData {
+                content: confirmation,
+                style: Style::Bold,
+                colors: Colors::Warning,
+            }
+        ],
+        &[],
+    );
 
     // Render the changes to the screen.
     presenter.present();

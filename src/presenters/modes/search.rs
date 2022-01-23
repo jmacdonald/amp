@@ -34,23 +34,27 @@ pub fn display(workspace: &mut Workspace, mode: &SearchMode, view: &mut View) ->
         mode_display.graphemes(true).count() +
         search_input.graphemes(true).count();
 
-    presenter.print_status_line(&[
-        StatusLineData {
-            content: mode_display,
-            style: Style::Default,
-            colors: Colors::SearchMode,
-        },
-        StatusLineData {
-            content: search_input,
-            style: Style::Default,
-            colors: Colors::Focused,
-        },
-        StatusLineData {
-            content: result_display,
-            style: Style::Default,
-            colors: Colors::Focused,
-        },
-    ]);
+    presenter.print_status_line(
+        &[
+            StatusLineData {
+                content: mode_display,
+                style: Style::Default,
+                colors: Colors::SearchMode,
+            },
+            StatusLineData {
+                content: search_input,
+                style: Style::Default,
+                colors: Colors::Focused,
+            },
+        ],
+        &[
+            StatusLineData {
+                content: result_display,
+                style: Style::Default,
+                colors: Colors::Focused,
+            },
+        ],
+    );
 
     // Move the cursor to the end of the search query input.
     if mode.insert {

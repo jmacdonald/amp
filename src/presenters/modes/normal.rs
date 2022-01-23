@@ -22,15 +22,19 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
         };
 
         // Build the status line mode and buffer title display.
-        presenter.print_status_line(&[
-            StatusLineData {
-                content: " NORMAL ".to_string(),
-                style: Style::Default,
-                colors,
-            },
-            buffer_status,
-            git_status_line_data(&repo, &buf.path)
-        ]);
+        presenter.print_status_line(
+            &[
+                StatusLineData {
+                    content: " NORMAL ".to_string(),
+                    style: Style::Default,
+                    colors,
+                },
+                buffer_status,
+            ],
+            &[
+                git_status_line_data(&repo, &buf.path),
+            ],
+        );
 
         presenter.present();
     } else {

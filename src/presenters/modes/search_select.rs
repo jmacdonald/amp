@@ -22,14 +22,17 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut dyn SearchSelec
         data = buf.data();
         presenter.print_buffer(buf, &data, None, None)?;
 
-        presenter.print_status_line(&[
-            StatusLineData {
-                content: format!(" {} ", mode),
-                style: Style::Default,
-                colors: Colors::Inverted,
-            },
-            buffer_status
-        ]);
+        presenter.print_status_line(
+            &[
+                StatusLineData {
+                    content: format!(" {} ", mode),
+                    style: Style::Default,
+                    colors: Colors::Inverted,
+                },
+                buffer_status
+            ],
+            &[],
+        );
     }
 
     if let Some(message) = mode.message() {

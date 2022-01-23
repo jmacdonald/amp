@@ -14,14 +14,17 @@ pub fn display(workspace: &mut Workspace, mode: &SelectLineMode, view: &mut View
     // Draw the visible set of tokens to the terminal.
     presenter.print_buffer(buf, &data, Some(&[selected_range]), None)?;
 
-    presenter.print_status_line(&[
-        StatusLineData {
-            content: " SELECT LINE ".to_string(),
-            style: Style::Default,
-            colors: Colors::SelectMode,
-        },
-        buffer_status
-    ]);
+    presenter.print_status_line(
+        &[
+            StatusLineData {
+                content: " SELECT LINE ".to_string(),
+                style: Style::Default,
+                colors: Colors::SelectMode,
+            },
+            buffer_status
+        ],
+        &[],
+    );
 
     // Render the changes to the screen.
     presenter.present();
