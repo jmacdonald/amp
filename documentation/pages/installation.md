@@ -48,6 +48,11 @@ brew install amp
     beta and nightly release channels are not officially supported. The oldest
     version of Rust currently supported is **1.38.0**.
 
+!!! info "FreeBSD"
+    Cargo has trouble locating native dependencies during the build. Set the
+    environment variable `RUSTFLAGS="-C link-args=-L/usr/local/lib"` to work
+    around it.
+
 1. Install Rust, either through your system's package manager or using [Rust's `rustup` toolchain management utility](https://www.rust-lang.org/en-US/install.html).
 2. Install both the regular and build dependencies listed above.
 3. Build and install:
