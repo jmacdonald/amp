@@ -44,7 +44,7 @@ fn percentage_cursor_indicator_line_data(workspace: &mut Workspace) -> StatusLin
     StatusLineData {
         content,
         style: Style::Default,
-        colors: Colors::Default,
+        colors: Colors::Focused,
     }
 }
 
