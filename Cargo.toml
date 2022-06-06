@@ -29,7 +29,7 @@ error-chain = "0.12.4"
 unicode-segmentation = "1.0.1"
 clipboard = "0.4.4"
 yaml-rust = ">= 0.4.5"
-smallvec = "0.4.3"
+smallvec = "0.6.13"
 lazy_static = "1.2.0"
 mio = "0.6"
 
