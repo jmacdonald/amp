@@ -12,7 +12,7 @@ use self::termion::color::{Bg, Fg};
 use self::termion::{color, cursor};
 use self::termion::input::{Keys, TermRead};
 use self::termion::raw::{IntoRawMode, RawTerminal};
-use self::termion::screen::AlternateScreen;
+use self::termion::screen::{AlternateScreen, IntoAlternateScreen};
 use self::termion::style;
 use std::io::{BufWriter, Stdin, stdin, stdout, Write};
 use std::fmt::Display;
@@ -335,7 +335,7 @@ fn create_event_listener() -> Result<(Poll, Signals)> {
 }
 
 fn create_output_instance() -> BufWriter<RawTerminal<AlternateScreen<Stdout>>> {
-    let screen = AlternateScreen::from(stdout());
+    let screen = stdout().into_alternate_screen().unwrap();
 
     // Use a 1MB buffered writer for stdout.
     BufWriter::with_capacity(1_048_576, screen.into_raw_mode().unwrap())
