@@ -30,8 +30,10 @@ impl EventListener {
 
     fn listen(&mut self) {
         loop {
-            if let Some(event) = self.terminal.listen() {
-                self.events.send(event).ok();
+            if let Some(events) = self.terminal.listen() {
+                for event in events {
+                    self.events.send(event).ok();
+                }
             } else if self.killswitch.try_recv().is_ok() {
                 break;
             }

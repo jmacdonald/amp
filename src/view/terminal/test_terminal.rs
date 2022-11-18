@@ -63,7 +63,7 @@ impl TestTerminal {
 }
 
 impl Terminal for TestTerminal {
-    fn listen(&self) -> Option<Event> {
+    fn listen(&self) -> Option<Vec<Event>> {
         // This implementation will return a key once, followed by nothing.
         // This allows us to test both scenarios, the latter being crucial
         // to stopping the application in test mode; the input listener only
@@ -73,7 +73,7 @@ impl Terminal for TestTerminal {
             None
         } else {
             *key_sent = true;
-            Some(Event::Key(Key::Char('A')))
+            Some(vec![Event::Key(Key::Char('A'))])
         }
     }
     fn clear(&self) {
