@@ -180,10 +180,27 @@ impl Application {
     }
 
     fn wait_for_event(&mut self) -> Result<()> {
+        // Main blocking wait
         let event = self
             .events
             .recv()
             .chain_err(|| "Error receiving application event")?;
+
+        self.handle_event(event);
+
+        // Handle any other events included in the batch before rendering
+        // and waiting again.
+        loop {
+            match self.events.try_recv() {
+                Ok(event) => self.handle_event(event),
+                _ => break,
+            }
+        }
+
+        Ok(())
+    }
+
+    fn handle_event(&mut self, event: Event) {
         match event {
             Event::Key(key) => {
                 self.view.last_key = Some(key);
@@ -200,8 +217,6 @@ impl Application {
                 }
             }
         }
-
-        Ok(())
     }
 
     pub fn mode_str(&self) -> Option<&'static str> {

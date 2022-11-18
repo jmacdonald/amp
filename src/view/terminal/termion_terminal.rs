@@ -10,10 +10,10 @@ use self::termion::{color, cursor};
 use super::Terminal;
 use crate::errors::*;
 use crate::view::{Colors, CursorType, Style};
-use mio::unix::EventedFd;
-use mio::{Events, Poll, PollOpt, Ready, Token};
+use mio::unix::SourceFd;
+use mio::{Events, Interest, Poll, Token};
 use scribe::buffer::{Distance, Position};
-use signal_hook::iterator::Signals;
+use signal_hook_mio::v1_0::Signals;
 use std::borrow::{Borrow, BorrowMut};
 use std::fmt::Display;
 use std::io::Stdout;
@@ -29,12 +29,13 @@ use self::termion::event::Key as TermionKey;
 use crate::input::Key;
 use crate::models::application::Event;
 
+const MAX_QUEUED_EVENTS: usize = 1024;
 const STDIN_INPUT: Token = Token(0);
 const RESIZE: Token = Token(1);
 
 pub struct TermionTerminal {
-    event_listener: Poll,
-    signals: Signals,
+    event_listener: Mutex<Poll>,
+    signals: Mutex<Signals>,
     input: Mutex<Option<Keys<Stdin>>>,
     output: Mutex<Option<BufWriter<RawTerminal<AlternateScreen<Stdout>>>>>,
     current_style: Mutex<Option<Style>>,
@@ -48,8 +49,8 @@ impl TermionTerminal {
         let (event_listener, signals) = create_event_listener()?;
 
         Ok(TermionTerminal {
-            event_listener,
-            signals,
+            signals: Mutex::new(signals),
+            event_listener: Mutex::new(event_listener),
             input: Mutex::new(Some(stdin().keys())),
             output: Mutex::new(Some(create_output_instance())),
             current_style: Mutex::new(None),
@@ -177,14 +178,19 @@ impl TermionTerminal {
 }
 
 impl Terminal for TermionTerminal {
-    fn listen(&self) -> Option<Event> {
+    fn listen(&self) -> Option<Vec<Event>> {
         // Check for events on stdin.
-        let mut events = Events::with_capacity(1);
+        let mut events = Events::with_capacity(MAX_QUEUED_EVENTS);
         self.event_listener
+            .lock()
+            .ok()?
             .poll(&mut events, Some(Duration::from_millis(100)))
             .ok()?;
-        if let Some(event) = events.iter().next() {
-            match event.token() {
+
+        let mut converted_events = Vec::new();
+
+        for event in &events {
+            if let Some(converted_event) = match event.token() {
                 STDIN_INPUT => {
                     let mut guard = self.input.lock().ok()?;
                     let input_handle = guard.as_mut()?;
@@ -213,14 +219,22 @@ impl Terminal for TermionTerminal {
                 }
                 RESIZE => {
                     // Consume the resize signal so it doesn't trigger again.
-                    self.signals.into_iter().next();
+                    self.signals.lock().ok()?.pending().next();
 
                     Some(Event::Resize)
                 }
                 _ => None,
+            } {
+                converted_events.push(converted_event);
             }
-        } else {
+        }
+
+        if converted_events.is_empty() {
+            debug_log!("[terminal] processed empty event set");
+
             None
+        } else {
+            Some(converted_events)
         }
     }
 
@@ -383,19 +397,20 @@ fn terminal_size() -> (usize, usize) {
 }
 
 fn create_event_listener() -> Result<(Poll, Signals)> {
-    let signals = Signals::new([signal_hook::SIGWINCH])
+    let mut signals = Signals::new([signal_hook::SIGWINCH])
         .chain_err(|| "Failed to initialize event listener signal")?;
     let event_listener = Poll::new().chain_err(|| "Failed to establish polling")?;
     event_listener
+        .registry()
         .register(
-            &EventedFd(&stdin().as_raw_fd()),
+            &mut SourceFd(&stdin().as_raw_fd()),
             STDIN_INPUT,
-            Ready::readable(),
-            PollOpt::level(),
+            Interest::READABLE,
         )
         .chain_err(|| "Failed to register stdin to event listener")?;
     event_listener
-        .register(&signals, RESIZE, Ready::readable(), PollOpt::level())
+        .registry()
+        .register(&mut signals, RESIZE, Interest::READABLE)
         .chain_err(|| "Failed to register resize signal to event listener")?;
 
     Ok((event_listener, signals))
