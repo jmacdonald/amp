@@ -65,7 +65,7 @@ pub fn accept(app: &mut Application) -> Result {
                 app.workspace.syntax_set.find_syntax_by_name(name).and_then(|s|
                     Some(s.clone())
                 );
-            let mut buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+            let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
             buffer.syntax_definition = syntax;
         },
         _ => bail!("Can't accept selection outside of search select mode."),
