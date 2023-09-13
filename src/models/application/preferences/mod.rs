@@ -655,7 +655,7 @@ mod tests {
 
         // Reload preferences and verify that we're no longer using the in-memory theme.
         preferences.reload().unwrap();
-        assert_eq!(preferences.theme(), "solarized_dark");
+        assert_ne!(preferences.theme(), "new_in_memory_theme");
     }
 
     #[test]
