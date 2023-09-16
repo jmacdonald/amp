@@ -10,6 +10,10 @@ use scribe::util::LineIterator;
 use std::borrow::Cow;
 use syntect::highlighting::Theme;
 
+/// The `Presenter` type forms the main view API for mode-specific presenters.
+/// It provides the ability to read view dimensions, draw individual character
+/// "cells", and render higher-level components like buffers. Writes are
+/// buffered and flushed to the terminal with the `present` method.
 pub struct Presenter<'p> {
     cursor_position: Option<Position>,
     terminal_buffer: TerminalBuffer<'p>,
