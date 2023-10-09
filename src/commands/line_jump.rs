@@ -14,7 +14,7 @@ pub fn accept_input(app: &mut Application) -> Result {
 
         // Ignore zero-value line numbers.
         if line_number > 0 {
-            let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+            let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
 
             // Input values won't be zero-indexed; map the value so
             // that we can use it for a zero-indexed buffer position.
@@ -103,7 +103,7 @@ mod tests {
         // Ensure that the cursor is in the right place.
         // NOTE: We look for a decremented version of the input line number
         //       because users won't be inputting zero-indexed line numbers.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
                    Position {
                        line: 2,
                        offset: 0,
@@ -139,7 +139,7 @@ mod tests {
         // Ensure that the cursor is in the right place.
         // NOTE: We look for a decremented version of the input line number
         //       because users won't be inputting zero-indexed line numbers.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
                    Position {
                        line: 2,
                        offset: 3,
@@ -169,7 +169,7 @@ mod tests {
         commands::line_jump::accept_input(&mut app).unwrap();
 
         // Ensure that the cursor is in the right place.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
                    Position {
                        line: 0,
                        offset: 0,

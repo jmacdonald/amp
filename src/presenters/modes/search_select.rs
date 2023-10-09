@@ -18,9 +18,9 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut dyn SearchSelec
 
     let buffer_status = current_buffer_status_line_data(workspace);
 
-    if let Some(buf) = workspace.current_buffer() {
+    if let Some(buf) = workspace.current_buffer.as_ref() {
         data = buf.data();
-        presenter.print_buffer(buf, &data, None, None)?;
+        presenter.print_buffer(buf, &data, &workspace.syntax_set, None, None)?;
 
         presenter.print_status_line(&[
             StatusLineData {

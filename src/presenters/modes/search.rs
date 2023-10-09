@@ -9,9 +9,9 @@ pub fn display(workspace: &mut Workspace, mode: &SearchMode, view: &mut View) ->
     let mut presenter = view.build_presenter()?;
 
     // Draw the visible set of tokens to the terminal.
-    let buffer = workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+    let buffer = workspace.current_buffer.as_ref().ok_or(BUFFER_MISSING)?;
     let data = buffer.data();
-    presenter.print_buffer(buffer, &data, mode.results.as_ref().map(|r| r.as_slice()), None)?;
+    presenter.print_buffer(buffer, &data, &workspace.syntax_set, mode.results.as_ref().map(|r| r.as_slice()), None)?;
 
     let mode_display = format!(" {} ", mode);
     let search_input = format!(

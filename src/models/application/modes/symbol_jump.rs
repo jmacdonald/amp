@@ -2,6 +2,7 @@ use fragment;
 use fragment::matching::AsStr;
 use scribe::buffer::{Position, Token, TokenSet};
 use syntect::highlighting::ScopeSelectors;
+use crate::errors::*;
 use crate::util::SelectableVec;
 use std::fmt;
 use std::iter::Iterator;
@@ -48,16 +49,16 @@ impl AsStr for Symbol {
 }
 
 impl SymbolJumpMode {
-    pub fn new(tokens: &TokenSet, config: SearchSelectConfig) -> SymbolJumpMode {
-        let symbols = symbols(tokens.iter());
+    pub fn new(tokens: &TokenSet, config: SearchSelectConfig) -> Result<SymbolJumpMode> {
+        let symbols = symbols(tokens.iter().chain_err(|| BUFFER_PARSE_FAILED)?);
 
-        SymbolJumpMode {
+        Ok(SymbolJumpMode {
             insert: true,
             input: String::new(),
             symbols,
             results: SelectableVec::new(Vec::new()),
             config,
-        }
+        })
     }
 }
 

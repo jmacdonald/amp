@@ -29,7 +29,7 @@ pub fn move_to_next_result(app: &mut Application) -> Result {
 
 pub fn move_to_current_result(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
-        let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+        let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
         let query = mode.input.as_ref().ok_or(SEARCH_QUERY_MISSING)?;
         let result = mode.results
             .as_mut()
@@ -104,7 +104,7 @@ pub fn pop_search_char(app: &mut Application) -> Result {
 pub fn run(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
         // Search the buffer.
-        let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+        let buffer = app.workspace.current_buffer.as_ref().ok_or(BUFFER_MISSING)?;
         mode.search(&buffer)?;
     } else {
         bail!("Can't run search outside of search mode");
@@ -116,7 +116,7 @@ pub fn run(app: &mut Application) -> Result {
 
 fn select_closest_result(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
-        let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+        let buffer = app.workspace.current_buffer.as_ref().ok_or(BUFFER_MISSING)?;
         let results = mode.results.as_mut().ok_or(NO_SEARCH_RESULTS)?;
 
         // Skip over previous entries.
@@ -163,7 +163,7 @@ mod tests {
         commands::search::move_to_previous_result(&mut app).unwrap();
 
         // Ensure the buffer cursor is at the expected position.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
                    Position {
                        line: 1,
                        offset: 0,
@@ -189,7 +189,7 @@ mod tests {
         commands::search::move_to_previous_result(&mut app).unwrap();
 
         // Ensure the buffer cursor is at the expected position.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
                    Position {
                        line: 2,
                        offset: 0,
@@ -215,7 +215,7 @@ mod tests {
         commands::search::move_to_next_result(&mut app).unwrap();
 
         // Ensure the buffer cursor is at the expected position.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
                    Position {
                        line: 1,
                        offset: 0,
@@ -246,7 +246,7 @@ mod tests {
         commands::search::move_to_next_result(&mut app).unwrap();
 
         // Ensure the buffer cursor is at the expected position.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
                    Position {
                        line: 0,
                        offset: 4,
@@ -279,7 +279,7 @@ mod tests {
         assert_eq!(app.search_query, Some("ed".to_string()));
 
         // Ensure the buffer cursor is at the expected position.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
                    Position {
                        line: 1,
                        offset: 0,

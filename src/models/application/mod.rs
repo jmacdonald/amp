@@ -241,17 +241,11 @@ fn create_workspace(view: &mut View, preferences: &Preferences, args: &Vec<Strin
     }
 
     let workspace_dir = env::current_dir()?;
-    let mut workspace = Workspace::new(&workspace_dir)?;
-
-    // Load user syntax definitions.
-    //
-    // It's important to do this before opening buffers, as that's when syntax
-    // definitions are associated; we want the complete set before that happens.
     let syntax_path = Preferences::syntax_path()?;
-    if let Err(e) = workspace.syntax_set.load_syntaxes(syntax_path, true) {
-        bail!("Failed to load user syntaxes: {:?}", e);
-    }
-    workspace.syntax_set.link_syntaxes();
+    let mut workspace = Workspace::new(
+        &workspace_dir,
+        Some(&syntax_path)
+    ).chain_err(|| WORKSPACE_INIT_FAILED)?;
 
     // If the first argument was a directory, we've navigated into
     // it; skip it before evaluating file args, lest we interpret
@@ -293,7 +287,7 @@ fn create_workspace(view: &mut View, preferences: &Preferences, args: &Vec<Strin
         };
 
         workspace.add_buffer(argument_buffer);
-        view.initialize_buffer(workspace.current_buffer().unwrap())?;
+        view.initialize_buffer(workspace.current_buffer.as_mut().unwrap())?;
     }
 
     Ok(workspace)
@@ -315,30 +309,30 @@ mod tests {
 
     #[test]
     fn application_uses_file_arguments_to_load_contents_into_buffers_when_files_exist() {
-        let mut application =
+        let application =
             Application::new(&vec![String::new(), String::from("Cargo.lock")]).unwrap();
         let buffer = Buffer::from_file(Path::new("Cargo.lock")).unwrap();
 
         assert_eq!(
-            application.workspace.current_buffer().unwrap().path,
+            application.workspace.current_buffer.as_ref().unwrap().path,
             buffer.path
         );
         assert_eq!(
-            application.workspace.current_buffer().unwrap().data(),
+            application.workspace.current_buffer.as_ref().unwrap().data(),
             buffer.data()
         );
     }
 
     #[test]
     fn application_uses_file_arguments_to_create_new_buffers_when_files_do_not_exist() {
-        let mut application =
+        let application =
             Application::new(&vec![String::new(), String::from("non_existent_file")]).unwrap();
 
         assert_eq!(
-            application.workspace.current_buffer().unwrap().path,
+            application.workspace.current_buffer.as_ref().unwrap().path,
             Some(env::current_dir().unwrap().join("non_existent_file"))
         );
-        assert_eq!(application.workspace.current_buffer().unwrap().data(), "");
+        assert_eq!(application.workspace.current_buffer.as_ref().unwrap().data(), "");
     }
 
     #[test]
@@ -349,10 +343,10 @@ mod tests {
         let mut view = View::new(preferences.clone(), event_channel.clone()).unwrap();
 
         let args = vec![String::new(), String::from("src/test.xyz")];
-        let mut workspace = super::create_workspace(&mut view, &preferences.borrow(), &args).unwrap();
+        let workspace = super::create_workspace(&mut view, &preferences.borrow(), &args).unwrap();
 
         assert_eq!(
-            workspace.current_buffer().unwrap().syntax_definition.as_ref().unwrap().name,
+            workspace.current_buffer.as_ref().unwrap().syntax_definition.as_ref().unwrap().name,
             "Rust"
         );
     }

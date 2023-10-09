@@ -11,7 +11,7 @@ fn path_as_title(path: &Path) -> String {
 }
 
 fn current_buffer_status_line_data(workspace: &mut Workspace) -> StatusLineData {
-    let modified = workspace.current_buffer().map(|b| b.modified()).unwrap_or(false);
+    let modified = workspace.current_buffer.as_ref().map(|b| b.modified()).unwrap_or(false);
 
     let (content, style) = workspace.current_buffer_path().map(|path| {
         // Determine buffer title styles based on its modification status.

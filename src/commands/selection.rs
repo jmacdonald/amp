@@ -8,7 +8,7 @@ use crate::util::reflow::Reflow;
 
 pub fn delete(app: &mut Application) -> Result {
     let rng = sel_to_range(app)?;
-    let buf = app.workspace.current_buffer().unwrap();
+    let buf = app.workspace.current_buffer.as_mut().unwrap();
     buf.delete_range(rng.clone());
     buf.cursor.move_to(rng.start());
 
@@ -34,13 +34,15 @@ pub fn copy(app: &mut Application) -> Result {
 
 pub fn select_all(app: &mut Application) -> Result {
     app.workspace
-        .current_buffer()
+        .current_buffer
+        .as_mut()
         .ok_or(BUFFER_MISSING)?
         .cursor
         .move_to_first_line();
     application::switch_to_select_line_mode(app)?;
     app.workspace
-        .current_buffer()
+        .current_buffer
+        .as_mut()
         .ok_or(BUFFER_MISSING)?
         .cursor
         .move_to_last_line();
@@ -49,7 +51,7 @@ pub fn select_all(app: &mut Application) -> Result {
 }
 
 fn copy_to_clipboard(app: &mut Application) -> Result {
-    let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+    let mut buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
 
     match app.mode {
         Mode::Select(ref select_mode) => {
@@ -67,7 +69,7 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
                     buffer.cursor
                     .line
                 ),
-                buffer
+                &mut buffer
             );
 
             let data = buffer.read(&selected_range.clone())
@@ -82,7 +84,7 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
 
 pub fn justify(app: &mut Application) -> Result {
     let range = sel_to_range(app)?;
-    let mut buffer = app.workspace.current_buffer().unwrap();
+    let mut buffer = app.workspace.current_buffer.as_mut().unwrap();
 
     let limit = match app.preferences.borrow().line_length_guide() {
     	Some(n) => n,
@@ -97,7 +99,7 @@ pub fn justify(app: &mut Application) -> Result {
 }
 
 fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
-    let buf = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+    let mut buf = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
 
     match app.mode {
     	Mode::Select(ref mode) => {
@@ -110,7 +112,7 @@ fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
         		    mode.anchor,
         		    buf.cursor.line
         		),
-    		    buf
+                &mut buf
     	    ))
     	},
     	Mode::Search(ref mode) => {
@@ -162,7 +164,7 @@ mod tests {
         }
 
         // Ensure that the cursor is moved to the last line of the buffer.
-        assert_eq!(app.workspace.current_buffer().unwrap().cursor.line, 2);
+        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().cursor.line, 2);
     }
 
     #[test]
@@ -187,7 +189,7 @@ mod tests {
 
         // Ensure that the cursor is moved to the last line of the buffer.
         assert_eq!(
-            app.workspace.current_buffer().unwrap().data(),
+            app.workspace.current_buffer.as_ref().unwrap().data(),
             String::from("amp\nditor\nbuffer")
         )
     }
@@ -213,7 +215,7 @@ mod tests {
 
         // Ensure that the cursor is moved to the last line of the buffer.
         assert_eq!(
-            app.workspace.current_buffer().unwrap().data(),
+            app.workspace.current_buffer.as_ref().unwrap().data(),
             String::from("amp\nbuffer")
         )
     }
@@ -241,7 +243,7 @@ mod tests {
 
         // Ensure that the cursor is moved to the last line of the buffer.
         assert_eq!(
-            app.workspace.current_buffer().unwrap().data(),
+            app.workspace.current_buffer.as_ref().unwrap().data(),
             String::from("amp\nitor\nbuffer")
         )
     }

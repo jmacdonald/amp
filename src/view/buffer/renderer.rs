@@ -13,7 +13,7 @@ use std::rc::Rc;
 use std::str::FromStr;
 use syntect::highlighting::{Highlighter, HighlightIterator, Theme};
 use syntect::highlighting::Style as ThemeStyle;
-use syntect::parsing::ScopeStack;
+use syntect::parsing::{ScopeStack, SyntaxSet};
 use unicode_segmentation::UnicodeSegmentation;
 use crate::errors::*;
 
@@ -32,6 +32,7 @@ pub struct BufferRenderer<'a, 'p> {
     render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>,
     screen_position: Position,
     scroll_offset: usize,
+    syntax_set: &'a SyntaxSet,
     terminal: &'a dyn Terminal,
     terminal_buffer: &'a mut TerminalBuffer<'p>,
     theme: &'a Theme,
@@ -42,6 +43,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
     scroll_offset: usize, terminal: &'a dyn Terminal, theme: &'a Theme,
     preferences: &'a Preferences,
     render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>,
+    syntax_set: &'a SyntaxSet,
     terminal_buffer: &'a mut TerminalBuffer<'p>) -> BufferRenderer<'a, 'p> {
         let line_numbers = LineNumbers::new(&buffer, Some(scroll_offset));
         let gutter_width = line_numbers.width() + 1;
@@ -64,6 +66,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
             render_cache,
             screen_position: Position{ line: 0, offset: 0 },
             scroll_offset,
+            syntax_set,
             terminal,
             terminal_buffer,
             theme,
@@ -238,7 +241,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
                     self.render_cache.borrow_mut().insert(line_no, state.clone());
                 }
 
-                let events = state.parse.parse_line(line);
+                let events = state.parse.parse_line(line, &self.syntax_set).chain_err(|| BUFFER_PARSE_FAILED)?;
                 let styled_lexemes = HighlightIterator::new(
                     &mut state.highlight,
                     &events,
@@ -402,12 +405,12 @@ mod tests {
     fn tabs_beyond_terminal_width_dont_panic() {
         // Set up a workspace and buffer; the workspace will
         // handle setting up the buffer's syntax definition.
-        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\t\t\t");
         workspace.add_buffer(buffer);
 
-        let data = workspace.current_buffer().unwrap().data();
+        let data = workspace.current_buffer.as_ref().unwrap().data();
         let lines = LineIterator::new(&data);
         let terminal = build_terminal().unwrap();
         let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
@@ -416,13 +419,14 @@ mod tests {
         let preferences = Preferences::new(Some(data));
 
         BufferRenderer::new(
-            workspace.current_buffer().unwrap(),
+            workspace.current_buffer.as_ref().unwrap(),
             None,
             0,
             &**terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
             &Rc::new(RefCell::new(HashMap::new())),
+            &workspace.syntax_set,
             &mut terminal_buffer
         ).render(lines, None).unwrap();
     }
@@ -431,14 +435,14 @@ mod tests {
     fn aligned_tabs_expand_to_correct_number_of_spaces() {
         // Set up a workspace and buffer; the workspace will
         // handle setting up the buffer's syntax definition.
-        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
         let mut buffer = Buffer::new();
         // The renderer will draw to the full width of the terminal, so we pad
         // the tabs with characters (which will also show us where the whitespace ends).
         buffer.insert("\t\txy");
         workspace.add_buffer(buffer);
 
-        let data = workspace.current_buffer().unwrap().data();
+        let data = workspace.current_buffer.as_ref().unwrap().data();
         let lines = LineIterator::new(&data);
         let terminal = build_terminal().unwrap();
         let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
@@ -447,13 +451,14 @@ mod tests {
         let preferences = Preferences::new(Some(data));
 
         BufferRenderer::new(
-            workspace.current_buffer().unwrap(),
+            workspace.current_buffer.as_ref().unwrap(),
             None,
             0,
             &**terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
             &Rc::new(RefCell::new(HashMap::new())),
+            &workspace.syntax_set,
             &mut terminal_buffer
         ).render(lines, None).unwrap();
 
@@ -469,14 +474,14 @@ mod tests {
     fn unaligned_tabs_expand_to_correct_number_of_spaces() {
         // Set up a workspace and buffer; the workspace will
         // handle setting up the buffer's syntax definition.
-        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
         let mut buffer = Buffer::new();
         // The renderer will draw to the full width of the terminal, so we pad
         // the tabs with characters (which will also show us where the whitespace ends).
         buffer.insert("\t \txy");
         workspace.add_buffer(buffer);
 
-        let data = workspace.current_buffer().unwrap().data();
+        let data = workspace.current_buffer.as_ref().unwrap().data();
         let lines = LineIterator::new(&data);
         let terminal = build_terminal().unwrap();
         let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
@@ -485,13 +490,14 @@ mod tests {
         let preferences = Preferences::new(Some(data));
 
         BufferRenderer::new(
-            workspace.current_buffer().unwrap(),
+            workspace.current_buffer.as_ref().unwrap(),
             None,
             0,
             &**terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
             &Rc::new(RefCell::new(HashMap::new())),
+            &workspace.syntax_set,
             &mut terminal_buffer
         ).render(lines, None).unwrap();
 
@@ -507,12 +513,12 @@ mod tests {
     fn render_wraps_lines_correctly() {
         // Set up a workspace and buffer; the workspace will
         // handle setting up the buffer's syntax definition.
-        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp editor\nsecond line\n");
         workspace.add_buffer(buffer);
 
-        let data = workspace.current_buffer().unwrap().data();
+        let data = workspace.current_buffer.as_ref().unwrap().data();
         let lines = LineIterator::new(&data);
         let terminal = build_terminal().unwrap();
         let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
@@ -520,13 +526,14 @@ mod tests {
         let preferences = Preferences::new(None);
 
         BufferRenderer::new(
-            workspace.current_buffer().unwrap(),
+            workspace.current_buffer.as_ref().unwrap(),
             None,
             0,
             &**terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
             &Rc::new(RefCell::new(HashMap::new())),
+            &workspace.syntax_set,
             &mut terminal_buffer
         ).render(lines, None).unwrap();
 
@@ -549,12 +556,12 @@ mod tests {
     fn render_uses_lexeme_mapper() {
         // Set up a workspace and buffer; the workspace will
         // handle setting up the buffer's syntax definition.
-        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("original");
         workspace.add_buffer(buffer);
 
-        let data = workspace.current_buffer().unwrap().data();
+        let data = workspace.current_buffer.as_ref().unwrap().data();
         let lines = LineIterator::new(&data);
         let terminal = build_terminal().unwrap();
         let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
@@ -562,13 +569,14 @@ mod tests {
         let preferences = Preferences::new(None);
 
         BufferRenderer::new(
-            workspace.current_buffer().unwrap(),
+            workspace.current_buffer.as_ref().unwrap(),
             None,
             0,
             &**terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
             &Rc::new(RefCell::new(HashMap::new())),
+            &workspace.syntax_set,
             &mut terminal_buffer
         ).render(lines, Some(&mut TestMapper{})).unwrap();
 
@@ -583,12 +591,12 @@ mod tests {
     fn render_returns_cursor_position_when_at_the_start_of_an_empty_line() {
         // Set up a workspace and buffer; the workspace will
         // handle setting up the buffer's syntax definition.
-        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\n");
         workspace.add_buffer(buffer);
 
-        let data = workspace.current_buffer().unwrap().data();
+        let data = workspace.current_buffer.as_ref().unwrap().data();
         let lines = LineIterator::new(&data);
         let terminal = build_terminal().unwrap();
         let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
@@ -596,13 +604,14 @@ mod tests {
         let preferences = Preferences::new(None);
 
         let cursor_position = BufferRenderer::new(
-            workspace.current_buffer().unwrap(),
+            workspace.current_buffer.as_ref().unwrap(),
             None,
             0,
             &**terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
             &Rc::new(RefCell::new(HashMap::new())),
+            &workspace.syntax_set,
             &mut terminal_buffer
         ).render(lines, None).unwrap();
 
@@ -613,7 +622,7 @@ mod tests {
     fn render_caches_state_using_correct_frequency_excluding_first_line() {
         // Set up a workspace and buffer; the workspace will
         // handle setting up the buffer's syntax definition.
-        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
         let mut buffer = Buffer::new();
 
         for _ in 0..500 {
@@ -621,7 +630,7 @@ mod tests {
         }
         workspace.add_buffer(buffer);
 
-        let data = workspace.current_buffer().unwrap().data();
+        let data = workspace.current_buffer.as_ref().unwrap().data();
         let lines = LineIterator::new(&data);
         let terminal = build_terminal().unwrap();
         let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
@@ -630,13 +639,14 @@ mod tests {
         let render_cache = Rc::new(RefCell::new(HashMap::new()));
 
         BufferRenderer::new(
-            workspace.current_buffer().unwrap(),
+            workspace.current_buffer.as_ref().unwrap(),
             None,
             495,
             &**terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
             &render_cache,
+            &workspace.syntax_set,
             &mut terminal_buffer
         ).render(lines, None).unwrap();
 
@@ -645,7 +655,7 @@ mod tests {
 
     #[test]
     fn render_uses_cached_state() {
-        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
         let mut buffer = Buffer::new();
         buffer.path = Some(PathBuf::from("test.rs"));
 
@@ -654,7 +664,7 @@ mod tests {
         }
         workspace.add_buffer(buffer);
 
-        let data = workspace.current_buffer().unwrap().data();
+        let data = workspace.current_buffer.as_ref().unwrap().data();
         let lines = LineIterator::new(&data);
         let terminal = build_terminal().unwrap();
         let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
@@ -665,13 +675,14 @@ mod tests {
         // Do an initial run to prime the cache with
         // an initial state that'll affect the second run.
         BufferRenderer::new(
-            workspace.current_buffer().unwrap(),
+            workspace.current_buffer.as_ref().unwrap(),
             None,
             95,
             &**terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
             &render_cache,
+            &workspace.syntax_set,
             &mut terminal_buffer
         ).render(lines, None).unwrap();
 
@@ -681,19 +692,20 @@ mod tests {
         // This changes the classification of *all* of the
         // text in the buffer; it's how we'll confirm that
         // the cache is being used.
-        workspace.current_buffer().unwrap().insert("\"");
+        workspace.current_buffer.as_mut().unwrap().insert("\"");
 
-        let data2 = workspace.current_buffer().unwrap().data();
+        let data2 = workspace.current_buffer.as_ref().unwrap().data();
         let lines2 = LineIterator::new(&data2);
 
         BufferRenderer::new(
-            workspace.current_buffer().unwrap(),
+            workspace.current_buffer.as_ref().unwrap(),
             None,
             495,
             &**terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
             &render_cache,
+            &workspace.syntax_set,
             &mut terminal_buffer
         ).render(lines2, None).unwrap();
 
@@ -705,7 +717,7 @@ mod tests {
 
     #[test]
     fn render_skips_lines_correctly_when_using_cached_state() {
-        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
         let mut buffer = Buffer::new();
         buffer.path = Some(PathBuf::from("test.rs"));
 
@@ -714,7 +726,7 @@ mod tests {
         }
         workspace.add_buffer(buffer);
 
-        let data = workspace.current_buffer().unwrap().data();
+        let data = workspace.current_buffer.as_ref().unwrap().data();
         let lines = LineIterator::new(&data);
         let terminal = build_terminal().unwrap();
         let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
@@ -725,13 +737,14 @@ mod tests {
         // Do an initial run to prime the cache with
         // an initial state that'll affect the second run.
         BufferRenderer::new(
-            workspace.current_buffer().unwrap(),
+            workspace.current_buffer.as_ref().unwrap(),
             None,
             95,
             &**terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
             &render_cache,
+            &workspace.syntax_set,
             &mut terminal_buffer
         ).render(lines, None).unwrap();
 
@@ -741,18 +754,19 @@ mod tests {
         // This changes the classification of *all* of the
         // text in the buffer; it's how we'll confirm that
         // the cache is being used.
-        workspace.current_buffer().unwrap().insert("\"");
-        let data2 = workspace.current_buffer().unwrap().data();
+        workspace.current_buffer.as_mut().unwrap().insert("\"");
+        let data2 = workspace.current_buffer.as_ref().unwrap().data();
         let lines2 = LineIterator::new(&data2);
 
         BufferRenderer::new(
-            workspace.current_buffer().unwrap(),
+            workspace.current_buffer.as_ref().unwrap(),
             None,
             200,
             &**terminal,
             &theme_set.themes["base16-ocean.dark"],
             &preferences,
             &render_cache,
+            &workspace.syntax_set,
             &mut terminal_buffer
         ).render(lines2, None).unwrap();
 

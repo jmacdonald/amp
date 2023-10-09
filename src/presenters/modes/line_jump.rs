@@ -6,9 +6,9 @@ use crate::view::{Colors, CursorType, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, mode: &LineJumpMode, view: &mut View) -> Result<()> {
     let mut presenter = view.build_presenter()?;
-    let buf = workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+    let buf = workspace.current_buffer.as_ref().ok_or(BUFFER_MISSING)?;
     let data = buf.data();
-    presenter.print_buffer(buf, &data, None, None)?;
+    presenter.print_buffer(buf, &data, &workspace.syntax_set, None, None)?;
 
     // Draw the status line as an input prompt.
     let input_prompt = format!("Go to line: {}", mode.input);

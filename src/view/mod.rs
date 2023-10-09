@@ -259,11 +259,11 @@ mod tests {
         let mut view = View::new(preferences, tx).unwrap();
 
         // Set up a buffer with a syntax definition and id.
-        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
         let mut buf = Buffer::new();
         buf.path = Some(PathBuf::from("rust.rs"));
         workspace.add_buffer(buf);
-        let mut buffer = workspace.current_buffer().unwrap();
+        let mut buffer = workspace.current_buffer.as_mut().unwrap();
 
         // Put some initial data in the buffer, and then initialize it.
         for _ in 0..200 {

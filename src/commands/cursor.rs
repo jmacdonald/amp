@@ -6,28 +6,29 @@ use scribe::buffer::Position;
 use super::{application, buffer};
 
 pub fn move_up(app: &mut Application) -> Result {
-    app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.cursor.move_up();
+    app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?.cursor.move_up();
     commands::view::scroll_to_cursor(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)
 }
 
 pub fn move_down(app: &mut Application) -> Result {
-    app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.cursor.move_down();
+    app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?.cursor.move_down();
     commands::view::scroll_to_cursor(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)
 }
 
 pub fn move_left(app: &mut Application) -> Result {
-    app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.cursor.move_left();
+    app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?.cursor.move_left();
     commands::view::scroll_to_cursor(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)
 }
 
 pub fn move_right(app: &mut Application) -> Result {
-    app.workspace.current_buffer().ok_or(BUFFER_MISSING)?.cursor.move_right();
+    app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?.cursor.move_right();
     commands::view::scroll_to_cursor(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)
 }
 
 pub fn move_to_start_of_line(app: &mut Application) -> Result {
     app.workspace
-        .current_buffer()
+        .current_buffer
+        .as_mut()
         .ok_or(BUFFER_MISSING)?
         .cursor
         .move_to_start_of_line();
@@ -36,7 +37,8 @@ pub fn move_to_start_of_line(app: &mut Application) -> Result {
 
 pub fn move_to_end_of_line(app: &mut Application) -> Result {
     app.workspace
-        .current_buffer()
+        .current_buffer
+        .as_mut()
         .ok_or(BUFFER_MISSING)?
         .cursor
         .move_to_end_of_line();
@@ -45,7 +47,8 @@ pub fn move_to_end_of_line(app: &mut Application) -> Result {
 
 pub fn move_to_first_line(app: &mut Application) -> Result {
     app.workspace
-        .current_buffer()
+        .current_buffer
+        .as_mut()
         .ok_or(BUFFER_MISSING)?
         .cursor
         .move_to_first_line();
@@ -54,7 +57,8 @@ pub fn move_to_first_line(app: &mut Application) -> Result {
 
 pub fn move_to_last_line(app: &mut Application) -> Result {
     app.workspace
-        .current_buffer()
+        .current_buffer
+        .as_mut()
         .ok_or(BUFFER_MISSING)?
         .cursor
         .move_to_last_line();
@@ -62,7 +66,7 @@ pub fn move_to_last_line(app: &mut Application) -> Result {
 }
 
 pub fn move_to_first_word_of_line(app: &mut Application) -> Result {
-    if let Some(buffer) = app.workspace.current_buffer() {
+    if let Some(buffer) = app.workspace.current_buffer.as_mut() {
         let data = buffer.data();
         let current_line = data
             .lines()
@@ -124,7 +128,8 @@ pub fn insert_with_newline(app: &mut Application) -> Result {
 pub fn insert_with_newline_above(app: &mut Application) -> Result {
     let current_line_number = app
         .workspace
-        .current_buffer()
+        .current_buffer
+        .as_mut()
         .map(|b| b.cursor.line)
         .ok_or(BUFFER_MISSING)?;
 
@@ -145,9 +150,9 @@ pub fn insert_with_newline_above(app: &mut Application) -> Result {
 }
 
 pub fn move_to_start_of_previous_token(app: &mut Application) -> Result {
-    if let Some(buffer) = app.workspace.current_buffer() {
+    if let Some(mut buffer) = app.workspace.current_buffer.as_mut() {
         let position = adjacent_token_position(
-            buffer,
+            &mut buffer,
             false,
             Direction::Backward
         ).ok_or("Couldn't find previous token")?;
@@ -160,9 +165,9 @@ pub fn move_to_start_of_previous_token(app: &mut Application) -> Result {
 }
 
 pub fn move_to_start_of_next_token(app: &mut Application) -> Result {
-    if let Some(buffer) = app.workspace.current_buffer() {
+    if let Some(mut buffer) = app.workspace.current_buffer.as_mut() {
         let position = adjacent_token_position(
-            buffer,
+            &mut buffer,
             false,
             Direction::Forward
         ).ok_or("Couldn't find next token")?;
@@ -175,9 +180,9 @@ pub fn move_to_start_of_next_token(app: &mut Application) -> Result {
 }
 
 pub fn move_to_end_of_current_token(app: &mut Application) -> Result {
-    if let Some(buffer) = app.workspace.current_buffer() {
+    if let Some(mut buffer) = app.workspace.current_buffer.as_mut() {
         let position = adjacent_token_position(
-            buffer,
+            &mut buffer,
             true,
             Direction::Forward
         ).ok_or("Couldn't find next token")?;
@@ -210,13 +215,13 @@ mod tests {
             line: 0,
             offset: 7,
         };
-        app.workspace.current_buffer().unwrap().cursor.move_to(position);
+        app.workspace.current_buffer.as_mut().unwrap().cursor.move_to(position);
 
         // Call the command.
         super::move_to_first_word_of_line(&mut app).unwrap();
 
         // Ensure that the cursor is moved to the start of the first word.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
                    Position {
                        line: 0,
                        offset: 4,
@@ -229,7 +234,7 @@ mod tests {
         let mut app = set_up_application("\namp editor");
 
         // Move past the first non-whitespace token.
-        app.workspace.current_buffer().unwrap().cursor.move_to(Position {
+        app.workspace.current_buffer.as_mut().unwrap().cursor.move_to(Position {
             line: 1,
             offset: 2,
         });
@@ -238,7 +243,7 @@ mod tests {
         super::move_to_start_of_previous_token(&mut app).unwrap();
 
         // Ensure that the cursor is moved to the start of the previous word.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
                    Position {
                        line: 1,
                        offset: 0,
@@ -251,7 +256,7 @@ mod tests {
         let mut app = set_up_application("\namp editor");
 
         // Move to the start of the second non-whitespace word.
-        app.workspace.current_buffer().unwrap().cursor.move_to(Position {
+        app.workspace.current_buffer.as_mut().unwrap().cursor.move_to(Position {
             line: 1,
             offset: 4,
         });
@@ -260,7 +265,7 @@ mod tests {
         super::move_to_start_of_previous_token(&mut app).unwrap();
 
         // Ensure that the cursor is moved to the start of the previous word.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
                    Position {
                        line: 1,
                        offset: 0,
@@ -273,7 +278,7 @@ mod tests {
         let mut app = set_up_application("\namp editor");
 
         // Move to the start of the first non-whitespace word.
-        app.workspace.current_buffer().unwrap().cursor.move_to(Position {
+        app.workspace.current_buffer.as_mut().unwrap().cursor.move_to(Position {
             line: 1,
             offset: 0,
         });
@@ -282,7 +287,7 @@ mod tests {
         super::move_to_start_of_next_token(&mut app).unwrap();
 
         // Ensure that the cursor is moved to the start of the next word.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
                    Position {
                        line: 1,
                        offset: 4,
@@ -295,7 +300,7 @@ mod tests {
         let mut app = set_up_application("\namp editor");
 
         // Move to the start of the first non-whitespace word.
-        app.workspace.current_buffer().unwrap().cursor.move_to(Position {
+        app.workspace.current_buffer.as_mut().unwrap().cursor.move_to(Position {
             line: 1,
             offset: 0,
         });
@@ -304,7 +309,7 @@ mod tests {
         super::move_to_end_of_current_token(&mut app).unwrap();
 
         // Ensure that the cursor is moved to the end of the current word.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
                    Position {
                        line: 1,
                        offset: 3,
@@ -317,7 +322,7 @@ mod tests {
         let mut app = set_up_application("\namp editor");
 
         // Move to the start of the first non-whitespace word.
-        app.workspace.current_buffer().unwrap().cursor.move_to(Position {
+        app.workspace.current_buffer.as_mut().unwrap().cursor.move_to(Position {
             line: 1,
             offset: 0,
         });
@@ -326,7 +331,7 @@ mod tests {
         super::append_to_current_token(&mut app).unwrap();
 
         // Ensure that the cursor is moved to the end of the current word.
-        assert_eq!(*app.workspace.current_buffer().unwrap().cursor,
+        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
                    Position {
                        line: 1,
                        offset: 3,
@@ -346,7 +351,8 @@ mod tests {
 
         // Move to the start of the first non-whitespace word.
         app.workspace
-            .current_buffer()
+            .current_buffer
+            .as_mut()
             .unwrap()
             .cursor
             .move_to(Position { line: 1, offset: 0 });
@@ -356,13 +362,13 @@ mod tests {
 
         // Ensure that a new line is inserted with indentation above.
         assert_eq!(
-            &*app.workspace.current_buffer().unwrap().data(),
+            &*app.workspace.current_buffer.as_ref().unwrap().data(),
             "    amp editor\n    \n"
         );
 
         // Ensure that the cursor is moved to the end of the indentation.
         assert_eq!(
-            *app.workspace.current_buffer().unwrap().cursor,
+            *app.workspace.current_buffer.as_ref().unwrap().cursor,
             Position { line: 1, offset: 4 }
         );
 

@@ -33,7 +33,7 @@ pub fn accept(app: &mut Application) -> Result {
                 .open_buffer(&path)
                 .chain_err(|| "Couldn't open a buffer for the specified path.")?;
 
-            let buffer = app.workspace.current_buffer().unwrap();
+            let mut buffer = app.workspace.current_buffer.as_mut().unwrap();
 
             // Only override the default syntax definition if the user provided
             // a valid one in their preferences.
@@ -41,7 +41,7 @@ pub fn accept(app: &mut Application) -> Result {
                 buffer.syntax_definition = syntax_definition;
             }
 
-            app.view.initialize_buffer(buffer)?;
+            app.view.initialize_buffer(&mut buffer)?;
 
         },
         Mode::Theme(ref mut mode) => {
@@ -49,7 +49,7 @@ pub fn accept(app: &mut Application) -> Result {
             app.preferences.borrow_mut().set_theme(theme_key.as_str());
         },
         Mode::SymbolJump(ref mut mode) => {
-            let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+            let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
             let position = mode
                 .selection()
                 .ok_or("Couldn't find a position for the selected symbol")?
@@ -65,7 +65,7 @@ pub fn accept(app: &mut Application) -> Result {
                 app.workspace.syntax_set.find_syntax_by_name(name).and_then(|s|
                     Some(s.clone())
                 );
-            let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+            let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
             buffer.syntax_definition = syntax;
         },
         _ => bail!("Can't accept selection outside of search select mode."),

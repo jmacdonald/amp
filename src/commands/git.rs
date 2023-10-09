@@ -7,7 +7,7 @@ use regex::Regex;
 
 pub fn add(app: &mut Application) -> Result {
     let repo = app.repository.as_ref().ok_or("No repository available")?;
-    let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+    let buffer = app.workspace.current_buffer.as_ref().ok_or(BUFFER_MISSING)?;
     let mut index = repo.index().chain_err(|| "Couldn't get the repository index")?;
     let buffer_path = buffer.path.as_ref().ok_or(BUFFER_PATH_MISSING)?;
     let repo_path = repo.workdir().ok_or("No path found for the repository")?;
@@ -21,7 +21,7 @@ pub fn add(app: &mut Application) -> Result {
 
 pub fn copy_remote_url(app: &mut Application) -> Result {
     if let Some(ref mut repo) = app.repository {
-        let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+        let buffer = app.workspace.current_buffer.as_ref().ok_or(BUFFER_MISSING)?;
         let buffer_path = buffer.path.as_ref().ok_or(BUFFER_PATH_MISSING)?;
         let remote = repo.find_remote("origin").chain_err(|| {
             "Couldn't find a remote \"origin\""

@@ -6,9 +6,9 @@ pub fn display(workspace: &mut Workspace, view: &mut View, error: &Error) -> Res
     let data;
     let mut presenter = view.build_presenter().unwrap();
 
-    if let Some(buffer) = workspace.current_buffer() {
+    if let Some(buffer) = workspace.current_buffer.as_ref() {
         data = buffer.data();
-        let _ = presenter.print_buffer(buffer, &data, None, None);
+        let _ = presenter.print_buffer(buffer, &data, &workspace.syntax_set, None, None);
     }
 
     presenter.print_status_line(&[StatusLineData {

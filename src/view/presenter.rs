@@ -9,6 +9,7 @@ use scribe::buffer::{Buffer, Position, Range};
 use scribe::util::LineIterator;
 use std::borrow::Cow;
 use syntect::highlighting::Theme;
+use syntect::parsing::SyntaxSet;
 
 /// The `Presenter` type forms the main view API for mode-specific presenters.
 /// It provides the ability to read view dimensions, draw individual character
@@ -78,7 +79,9 @@ impl<'p> Presenter<'p> {
         Ok(())
     }
 
-    pub fn print_buffer(&mut self, buffer: &Buffer, buffer_data: &'p str, highlights: Option<&[Range]>, lexeme_mapper: Option<&'p mut dyn LexemeMapper>) -> Result<()> {
+    pub fn print_buffer(&mut self, buffer: &Buffer, buffer_data: &'p str,
+    syntax_set: &'p SyntaxSet, highlights: Option<&[Range]>,
+    lexeme_mapper: Option<&'p mut dyn LexemeMapper>) -> Result<()> {
         let scroll_offset = self.view.get_region(buffer)?.line_offset();
         let lines = LineIterator::new(buffer_data);
 
@@ -90,6 +93,7 @@ impl<'p> Presenter<'p> {
             &self.theme,
             &self.view.preferences.borrow(),
             self.view.get_render_cache(buffer)?,
+            syntax_set,
             &mut self.terminal_buffer
         ).render(lines, lexeme_mapper)?;
 
@@ -168,7 +172,7 @@ mod tests {
         let mut view = View::new(preferences, tx).unwrap();
 
         // Set up a Rust-categorized buffer.
-        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
         let mut buffer = Buffer::new();
         buffer.id = Some(0);
         buffer.path = Some(PathBuf::from("rust.rs"));
@@ -183,19 +187,25 @@ mod tests {
         workspace.add_buffer(buffer);
 
         // Scroll down enough to trigger caching during the render process.
-        view.scroll_down(workspace.current_buffer().unwrap(), 105).unwrap();
+        view.scroll_down(workspace.current_buffer.as_ref().unwrap(), 105).unwrap();
 
         // Ensure there is nothing in the render cache for this buffer.
-        let mut cache = view.get_render_cache(workspace.current_buffer().unwrap()).unwrap();
+        let mut cache = view.get_render_cache(workspace.current_buffer.as_ref().unwrap()).unwrap();
         assert_eq!(cache.borrow().iter().count(), 0);
 
         // Draw the buffer.
         let mut presenter = view.build_presenter().unwrap();
-        let data = workspace.current_buffer().unwrap().data();
-        presenter.print_buffer(workspace.current_buffer().unwrap(), &data, None, None).unwrap();
+        let data = workspace.current_buffer.as_ref().unwrap().data();
+        presenter.print_buffer(
+            workspace.current_buffer.as_ref().unwrap(),
+            &data,
+            &workspace.syntax_set,
+            None,
+            None
+        ).unwrap();
 
         // Ensure there is something in the render cache for this buffer.
-        cache = view.get_render_cache(workspace.current_buffer().unwrap()).unwrap();
+        cache = view.get_render_cache(workspace.current_buffer.as_ref().unwrap()).unwrap();
         assert_ne!(cache.borrow().iter().count(), 0);
     }
 }

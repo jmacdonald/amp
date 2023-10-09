@@ -30,7 +30,7 @@ pub fn pop_char(app: &mut Application) -> Result {
 pub fn accept_path(app: &mut Application) -> Result {
     let save_on_accept =
         if let Mode::Path(ref mut mode) = app.mode {
-            let current_buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
+            let current_buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
             let path_name = mode.input.clone();
             if path_name.is_empty() {
                 bail!("Please provide a non-empty path")
@@ -41,9 +41,7 @@ pub fn accept_path(app: &mut Application) -> Result {
             bail!("Cannot accept path outside of path mode");
         };
 
-    app.workspace.update_current_syntax().chain_err(||
-        "Failed to update buffer's syntax definition"
-    )?;
+    app.workspace.update_current_syntax().chain_err(|| BUFFER_SYNTAX_UPDATE_FAILED)?;
     app.mode = Mode::Normal;
 
     if save_on_accept {
@@ -76,7 +74,7 @@ mod tests {
         super::accept_path(&mut app).unwrap();
 
         assert_eq!(
-            app.workspace.current_buffer().unwrap().path,
+            app.workspace.current_buffer.as_ref().unwrap().path,
             Some(PathBuf::from("new_path"))
         );
 
@@ -101,7 +99,7 @@ mod tests {
         }
         super::accept_path(&mut app).unwrap();
 
-        assert!(!app.workspace.current_buffer().unwrap().modified());
+        assert!(!app.workspace.current_buffer.as_ref().unwrap().modified());
     }
 
     #[test]
@@ -118,7 +116,7 @@ mod tests {
         }
         let result = super::accept_path(&mut app);
         assert!(result.is_err());
-        assert!(app.workspace.current_buffer().unwrap().path.is_none());
+        assert!(app.workspace.current_buffer.as_ref().unwrap().path.is_none());
 
         if let Mode::Path(_) = app.mode {
         } else {
@@ -142,7 +140,7 @@ mod tests {
         super::accept_path(&mut app).unwrap();
 
         assert_eq!(
-            app.workspace.current_buffer().unwrap().syntax_definition.as_ref().unwrap().name,
+            app.workspace.current_buffer.as_ref().unwrap().syntax_definition.as_ref().unwrap().name,
             "Rust"
         );
     }

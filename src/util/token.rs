@@ -8,7 +8,7 @@ pub enum Direction {
     Backward,
 }
 
-pub fn adjacent_token_position(buffer: &mut Buffer,
+pub fn adjacent_token_position(buffer: &Buffer,
                            whitespace: bool,
                            direction: Direction)
                            -> Option<Position> {
