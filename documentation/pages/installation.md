@@ -8,6 +8,19 @@ if desired).
 Adding support for your preferred distro is a great way to contribute to the
 project!
 
+## NixOS
+
+```bash
+# Nix3-based build
+nix build
+
+# Flake-based build
+nix build --flake
+
+# Interactive console
+nix develop
+```
+
 ## Arch Linux
 
 Available via [AUR](https://aur.archlinux.org/packages/amp):
