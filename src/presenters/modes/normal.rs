@@ -3,7 +3,7 @@ use scribe::Workspace;
 use scribe::buffer::Position;
 use crate::presenters::{current_buffer_status_line_data, git_status_line_data};
 use git2::Repository;
-use crate::view::{Colors, StatusLineData, Style, View};
+use crate::view::{Colors, CursorType, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Repository>) -> Result<()> {
     let mut presenter = view.build_presenter()?;
@@ -31,6 +31,9 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
             buffer_status,
             git_status_line_data(&repo, &buf.path)
         ]);
+
+        // Restore the default cursor, suggesting non-input mode.
+        presenter.set_cursor_type(CursorType::Block);
 
         presenter.present();
     } else {

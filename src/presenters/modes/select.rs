@@ -3,7 +3,7 @@ use crate::models::application::modes::SelectMode;
 use scribe::Workspace;
 use scribe::buffer::Range;
 use crate::presenters::current_buffer_status_line_data;
-use crate::view::{Colors, StatusLineData, Style, View};
+use crate::view::{Colors, CursorType, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, mode: &SelectMode, view: &mut View) -> Result<()> {
     let mut presenter = view.build_presenter()?;
@@ -23,6 +23,9 @@ pub fn display(workspace: &mut Workspace, mode: &SelectMode, view: &mut View) ->
         },
         buffer_status
     ]);
+
+    // Show a vertical bar to allow unambiguous/precise selection.
+    presenter.set_cursor_type(CursorType::Bar);
 
     // Render the changes to the screen.
     presenter.present();

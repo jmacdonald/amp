@@ -1,6 +1,7 @@
 mod buffer;
 mod buffer_iterator;
 mod cell;
+mod cursor;
 mod termion_terminal;
 
 #[cfg(any(test, feature = "bench"))]
@@ -15,6 +16,7 @@ use std::sync::Arc;
 pub use self::buffer::TerminalBuffer;
 pub use self::buffer_iterator::TerminalBufferIterator;
 pub use self::cell::Cell;
+pub use self::cursor::CursorType;
 pub use self::termion_terminal::TermionTerminal;
 
 #[cfg(any(test, feature = "bench"))]
@@ -30,6 +32,7 @@ pub trait Terminal {
     fn width(&self) -> usize;
     fn height(&self) -> usize;
     fn set_cursor(&self, _: Option<Position>);
+    fn set_cursor_type(&self, _: CursorType);
     fn print<'a>(&self, _: &Position, _: Style, _: Colors, _: &str);
     fn suspend(&self);
 }

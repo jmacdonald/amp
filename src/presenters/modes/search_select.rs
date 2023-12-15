@@ -5,7 +5,7 @@ use crate::models::application::modes::{SearchSelectMode};
 use crate::presenters::current_buffer_status_line_data;
 use scribe::Workspace;
 use scribe::buffer::Position;
-use crate::view::{Colors, StatusLineData, Style, View};
+use crate::view::{Colors, CursorType, StatusLineData, Style, View};
 use unicode_segmentation::UnicodeSegmentation;
 
 pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut dyn SearchSelectMode<T>, view: &mut View) -> Result<()> {
@@ -88,11 +88,20 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut dyn SearchSelec
                colors,
                &padded_content);
 
-    // Place the cursor on the search input line, right after its contents.
-    presenter.set_cursor(Some(Position {
-        line: mode_config.max_results,
-        offset: mode.query().graphemes(true).count(),
-    }));
+
+    if mode.insert_mode() {
+        // Place the cursor on the search input line, right after its contents.
+        presenter.set_cursor(Some(Position {
+            line: mode_config.max_results,
+            offset: mode.query().graphemes(true).count(),
+        }));
+
+        // Show a blinking, vertical bar indicating input.
+        presenter.set_cursor_type(CursorType::BlinkingBar);
+    } else {
+        // Hide the cursor.
+        presenter.set_cursor(None);
+    }
 
     // Render the changes to the screen.
     presenter.present();

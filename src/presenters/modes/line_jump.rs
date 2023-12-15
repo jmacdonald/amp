@@ -2,7 +2,7 @@ use crate::errors::*;
 use scribe::Workspace;
 use scribe::buffer::Position;
 use crate::models::application::modes::LineJumpMode;
-use crate::view::{Colors, StatusLineData, Style, View};
+use crate::view::{Colors, CursorType, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, mode: &LineJumpMode, view: &mut View) -> Result<()> {
     let mut presenter = view.build_presenter()?;
@@ -27,6 +27,9 @@ pub fn display(workspace: &mut Workspace, mode: &LineJumpMode, view: &mut View) 
         line: cursor_line,
         offset: input_prompt_len,
     }));
+
+    // Show a blinking, vertical bar indicating input.
+    presenter.set_cursor_type(CursorType::BlinkingBar);
 
     // Render the changes to the screen.
     presenter.present();

@@ -19,7 +19,7 @@ use std::fmt::Display;
 use std::ops::Drop;
 use std::sync::Mutex;
 use std::time::Duration;
-use crate::view::{Colors, Style};
+use crate::view::{Colors, CursorType, Style};
 use unicode_segmentation::UnicodeSegmentation;
 use signal_hook::iterator::Signals;
 
@@ -225,6 +225,18 @@ impl Terminal for TermionTerminal {
                         );
                     },
                     None => { let _ = write!(t, "{}", cursor::Hide); },
+                }
+            });
+        }
+    }
+
+    fn set_cursor_type(&self, cursor_type: CursorType) {
+        if let Ok(mut output) = self.output.lock() {
+            output.as_mut().map(|t| {
+                match cursor_type {
+                    CursorType::Bar => { let _ = write!(t, "{}", cursor::SteadyBar); },
+                    CursorType::BlinkingBar => { let _ = write!(t, "{}", cursor::BlinkingBar); },
+                    CursorType::Block => { let _ = write!(t, "{}", cursor::SteadyBlock); },
                 }
             });
         }

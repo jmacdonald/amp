@@ -3,7 +3,7 @@ use crate::models::application::Event;
 use scribe::buffer::Position;
 use std::sync::Mutex;
 use super::Terminal;
-use crate::view::{Colors, Style};
+use crate::view::{Colors, CursorType, Style};
 
 const WIDTH: usize = 10;
 const HEIGHT: usize = 10;
@@ -86,6 +86,7 @@ impl Terminal for TestTerminal {
         let mut cursor = self.cursor.lock().unwrap();
         *cursor = position;
     }
+    fn set_cursor_type(&self, _: CursorType) { }
     fn suspend(&self) { }
     fn print(&self, position: &Position, _: Style, colors: Colors, content: &str) {
         // Ignore lines beyond visible height.

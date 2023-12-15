@@ -1,7 +1,7 @@
 use crate::errors::*;
 use crate::presenters::current_buffer_status_line_data;
 use scribe::Workspace;
-use crate::view::{Colors, StatusLineData, Style, View};
+use crate::view::{Colors, CursorType, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, view: &mut View) -> Result<()> {
     let mut presenter = view.build_presenter()?;
@@ -20,6 +20,9 @@ pub fn display(workspace: &mut Workspace, view: &mut View) -> Result<()> {
         },
         buffer_status
     ]);
+
+    // Show a blinking, vertical bar indicating input.
+    presenter.set_cursor_type(CursorType::BlinkingBar);
 
     // Render the changes to the screen.
     presenter.present();

@@ -3,7 +3,7 @@ use scribe::Workspace;
 use scribe::buffer::Position;
 use crate::models::application::modes::PathMode;
 use unicode_segmentation::UnicodeSegmentation;
-use crate::view::{Colors, StatusLineData, Style, View};
+use crate::view::{Colors, CursorType, StatusLineData, Style, View};
 
 pub fn display(workspace: &mut Workspace, mode: &PathMode, view: &mut View) -> Result<()> {
     let mut presenter = view.build_presenter()?;
@@ -44,6 +44,9 @@ pub fn display(workspace: &mut Workspace, mode: &PathMode, view: &mut View) -> R
             offset: cursor_offset
         }));
     }
+
+    // Show a blinking, vertical bar indicating input.
+    presenter.set_cursor_type(CursorType::BlinkingBar);
 
     // Render the changes to the screen.
     presenter.present();

@@ -3,7 +3,7 @@ use crate::view::buffer::{BufferRenderer, LexemeMapper};
 use crate::view::color::{ColorMap, Colors};
 use crate::view::StatusLineData;
 use crate::view::style::Style;
-use crate::view::terminal::{Cell, TerminalBuffer};
+use crate::view::terminal::{Cell, CursorType, TerminalBuffer};
 use crate::view::View;
 use scribe::buffer::{Buffer, Position, Range};
 use scribe::util::LineIterator;
@@ -53,6 +53,10 @@ impl<'p> Presenter<'p> {
 
     pub fn set_cursor(&mut self, position: Option<Position>) {
         self.cursor_position = position;
+    }
+
+    pub fn set_cursor_type(&mut self, cursor_type: CursorType) {
+        self.view.terminal.set_cursor_type(cursor_type);
     }
 
     pub fn present(&mut self) {
