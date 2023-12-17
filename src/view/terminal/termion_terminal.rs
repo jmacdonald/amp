@@ -14,6 +14,7 @@ use self::termion::input::{Keys, TermRead};
 use self::termion::raw::{IntoRawMode, RawTerminal};
 use self::termion::screen::{AlternateScreen, IntoAlternateScreen};
 use self::termion::style;
+use std::borrow::BorrowMut;
 use std::io::{BufWriter, Stdin, stdin, stdout, Write};
 use std::fmt::Display;
 use std::ops::Drop;
@@ -57,60 +58,61 @@ impl TermionTerminal {
     }
 
     // Clears any pre-existing styles.
-    fn update_style(&self, style: Style) {
-        if let Ok(mut guard) = self.output.lock() {
-            if let Some(ref mut output) = *guard {
-                // Check if style has changed.
-                if let Ok(mut style_guard) = self.current_style.lock() {
-                    if Some(style) != *style_guard {
-                        if let Some(mapped_style) = map_style(style) {
-                            let _ = write!(output, "{}", mapped_style);
-                        } else {
-                            let _ = write!(
-                                output,
-                                "{}",
-                                style::Reset
-                            );
+    fn update_style(&self, new_style: Style) -> Result<()> {
+        let mut guard = self.output.lock().map_err(|_| LOCK_POISONED)?;
+        let output = guard.borrow_mut().as_mut().ok_or(LOCK_FAILED)?;
 
-                            // Resetting styles unfortunately clears active colors, too.
-                            if let Ok(color_guard) = self.current_colors.lock() {
-                                if let Some(ref current_colors) = *color_guard {
-                                    match *current_colors {
-                                        Colors::Default => { let _ = write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
-                                        Colors::Custom(fg, bg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(bg)); }
-                                        Colors::CustomForeground(fg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(color::Reset)); }
-                                        _ => (),
-                                    };
-                                }
-                            }
-                        }
+        // Push style changes to the terminal.
+        let mut current_style = self.current_style.lock().map_err(|_| LOCK_FAILED)?;
+        if Some(new_style) != *current_style {
+            // Store the new style state for comparison in the next pass.
+            current_style.replace(new_style);
 
-                        style_guard.replace(style);
-                    };
-                }
+            // Adding new styles are easy; write it and return early.
+            if let Some(mapped_style) = map_style(new_style) {
+                let _ = write!(output, "{}", mapped_style);
+
+                return Ok(())
             }
-        }
+
+            // Current text has no style; send a reset to the terminal.
+            let _ = write!(output, "{}", style::Reset);
+
+            // Resetting styles clears active colors, too; set those again.
+            let mut color_guard = self.current_colors.lock().map_err(|_| LOCK_POISONED)?;
+            let current_colors = color_guard.borrow_mut().as_mut().ok_or(LOCK_FAILED)?;
+            match *current_colors {
+                Colors::Default => { let _ = write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
+                Colors::Custom(fg, bg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(bg)); }
+                Colors::CustomForeground(fg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(color::Reset)); }
+                _ => (),
+            };
+        };
+
+        Ok(())
     }
 
     // Applies the current colors (as established via print) to the terminal.
-    fn update_colors(&self, colors: Colors) {
-        if let Ok(mut guard) = self.output.lock() {
-            if let Some(ref mut output) = *guard {
-                // Check if colors have changed.
-                if let Ok(mut color_guard) = self.current_colors.lock() {
-                    if Some(&colors) != color_guard.as_ref() {
-                        match colors {
-                            Colors::Default => { let _ = write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
-                            Colors::Custom(fg, bg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(bg)); }
-                            Colors::CustomForeground(fg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(color::Reset)); }
-                            _ => (),
-                        };
-                    }
+    fn update_colors(&self, new_colors: Colors) -> Result<()> {
+        // Borrow reference to the terminal.
+        let mut guard = self.output.lock().map_err(|_| LOCK_POISONED)?;
+        let output = guard.borrow_mut().as_mut().ok_or(LOCK_FAILED)?;
 
-                    color_guard.replace(colors);
-                }
-            }
+        // Push color changes to the terminal.
+        let mut current_colors = self.current_colors.lock().map_err(|_| LOCK_POISONED)?;
+        if Some(new_colors) != *current_colors {
+            // Store the new color state for comparison in the next pass.
+            current_colors.replace(new_colors);
+
+            match new_colors {
+                Colors::Default => { let _ = write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
+                Colors::Custom(fg, bg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(bg)); }
+                Colors::CustomForeground(fg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(color::Reset)); }
+                _ => (),
+            };
         }
+
+        Ok(())
     }
 
     fn restore_cursor(&self) {
@@ -243,8 +245,8 @@ impl Terminal for TermionTerminal {
     }
 
     fn print<'a>(&self, target_position: &Position, style: Style, colors: Colors, content: &str) {
-        self.update_style(style);
-        self.update_colors(colors);
+        let _ = self.update_style(style);
+        let _ = self.update_colors(colors);
 
         if let Ok(mut guard) = self.output.lock() {
             if let Some(ref mut output) = *guard {

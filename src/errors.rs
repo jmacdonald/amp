@@ -11,3 +11,5 @@ pub static BUFFER_MISSING: &str = "No buffer available";
 pub static BUFFER_PATH_MISSING: &str = "No path found for the current buffer";
 pub static CURRENT_LINE_MISSING: &str = "The current line couldn't be found in the buffer";
 pub static SCROLL_TO_CURSOR_FAILED: &str = "Failed to scroll to cursor position";
+pub static LOCK_FAILED: &str = "Failed to acquire lock";
+pub static LOCK_POISONED: &str = "Lock has been poisoned";
