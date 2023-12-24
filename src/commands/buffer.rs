@@ -630,6 +630,8 @@ pub fn redo(app: &mut Application) -> Result {
 }
 
 pub fn paste(app: &mut Application) -> Result {
+    ensure_trailing_newline(app)?;
+
     let insert_below = match app.mode {
         Mode::Select(_) | Mode::SelectLine(_) | Mode::Search(_) => {
             commands::selection::delete(app).chain_err(|| {
@@ -640,49 +642,29 @@ pub fn paste(app: &mut Application) -> Result {
         _ => true,
     };
 
-    // TODO: Clean up duplicate buffer.insert(content.clone()) calls.
-    if let Some(buffer) = app.workspace.current_buffer() {
-        match *app.clipboard.get_content() {
-            ClipboardContent::Inline(ref content) => buffer.insert(content.clone()),
-            ClipboardContent::Block(ref content) => {
-                let original_cursor_position = *buffer.cursor.clone();
-                let line = original_cursor_position.line;
+    let buffer = app.workspace.current_buffer().ok_or(BUFFER_MISSING)?;
 
-                if insert_below {
-                    buffer.cursor.move_to(Position {
-                        line: line + 1,
-                        offset: 0,
-                    });
+    if let Some(content) = match app.clipboard.get_content() {
+        ClipboardContent::Inline(ref content) => Some(content.clone()),
+        ClipboardContent::Block(ref content) => {
+            let original_cursor_position = *buffer.cursor.clone();
+            let line = original_cursor_position.line;
 
-                    if *buffer.cursor == original_cursor_position {
-                        // That didn't work because we're at the last line.
-                        // Move to the end of the line to insert the data.
-                        if let Some(line_content) = buffer.data().lines().nth(line) {
-                            buffer.cursor.move_to(Position {
-                                line,
-                                offset: line_content.len(),
-                            });
-                            buffer.insert(format!("\n{}", content));
-                            buffer.cursor.move_to(original_cursor_position);
-                        } else {
-                            // We're on a trailing newline, which doesn't
-                            // have any data; just insert the content here.
-                            buffer.insert(content.clone());
-                        }
-                    } else {
-                        buffer.insert(content.clone());
-                    }
-                } else {
-                    buffer.insert(content.clone());
-                }
+            if insert_below {
+                buffer.cursor.move_to(Position {
+                    line: line + 1,
+                    offset: 0,
+                });
             }
-            ClipboardContent::None => (),
-        }
-    } else {
-        bail!(BUFFER_MISSING);
-    }
-    commands::view::scroll_to_cursor(app)?;
 
+            Some(content.clone())
+        }
+        ClipboardContent::None => None,
+    } {
+        buffer.insert(content);
+    }
+
+    commands::view::scroll_to_cursor(app)?;
     Ok(())
 }
 
@@ -1328,7 +1310,7 @@ mod tests {
     fn paste_inserts_at_cursor_when_pasting_inline_data() {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
-        buffer.insert("amp\neditor");
+        buffer.insert("amp\neditor\n");
 
         // Now that we've set up the buffer, add it
         // to the application, copy the first line to
@@ -1341,14 +1323,14 @@ mod tests {
 
         // Ensure that the clipboard contents are pasted to the line below.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
-                   "aamp\neditor");
+                   "aamp\neditor\n");
     }
 
     #[test]
     fn paste_inserts_on_line_below_when_pasting_block_data() {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
-        buffer.insert("amp\neditor");
+        buffer.insert("amp\neditor\n");
         buffer.cursor.move_to(Position {
             line: 0,
             offset: 2,
@@ -1364,7 +1346,7 @@ mod tests {
 
         // Ensure that the clipboard contents are pasted to the line below.
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
-                   "amp\namp\neditor");
+                   "amp\namp\neditor\n");
     }
 
     #[test]
@@ -1567,7 +1549,7 @@ mod tests {
     fn paste_with_inline_content_replaces_selection() {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
-        buffer.insert("amp");
+        buffer.insert("amp\n");
         app.clipboard.set_content(ClipboardContent::Inline("editor".to_string())).unwrap();
 
         // Now that we've set up the buffer, add it to
@@ -1578,7 +1560,7 @@ mod tests {
         commands::buffer::paste(&mut app).unwrap();
 
         // Ensure that the content is replaced
-        assert_eq!(app.workspace.current_buffer().unwrap().data(), "editor");
+        assert_eq!(app.workspace.current_buffer().unwrap().data(), "editor\n");
 
         // TODO: Ensure that the operation is treated atomically.
         // commands::buffer::undo(&mut app);
@@ -1589,7 +1571,7 @@ mod tests {
     fn paste_with_block_content_replaces_selection() {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
-        buffer.insert("amp\neditor");
+        buffer.insert("amp\neditor\n");
         app.clipboard.set_content(ClipboardContent::Block("paste amp\n".to_string())).unwrap();
 
         // Now that we've set up the buffer, add it to
@@ -1600,7 +1582,7 @@ mod tests {
 
         // Ensure that the content is replaced
         assert_eq!(app.workspace.current_buffer().unwrap().data(),
-                   "paste amp\neditor");
+                   "paste amp\neditor\n");
 
         // TODO: Ensure that the operation is treated atomically.
         // commands::buffer::undo(&mut app);
