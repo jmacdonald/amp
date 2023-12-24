@@ -11,11 +11,16 @@ pub fn display(workspace: &mut Workspace, view: &mut View, error: &Error) -> Res
         let _ = presenter.print_buffer(buffer, &data, None, None);
     }
 
-    presenter.print_status_line(&[StatusLineData {
-        content: error.description().to_string(),
-        style: Style::Bold,
-        colors: Colors::Warning,
-    }]);
+    presenter.print_status_line(
+        &[
+            StatusLineData {
+                content: error.description().to_string(),
+                style: Style::Bold,
+                colors: Colors::Warning,
+            }
+        ],
+        &[],
+    );
 
     presenter.present()?;
 

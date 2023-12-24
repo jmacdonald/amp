@@ -13,13 +13,16 @@ pub fn display(workspace: &mut Workspace, mode: &LineJumpMode, view: &mut View) 
     // Draw the status line as an input prompt.
     let input_prompt = format!("Go to line: {}", mode.input);
     let input_prompt_len = input_prompt.len();
-    presenter.print_status_line(&[
-        StatusLineData {
-            content: input_prompt,
-            style: Style::Default,
-            colors: Colors::Default,
-        }
-    ]);
+    presenter.print_status_line(
+        &[
+            StatusLineData {
+                content: input_prompt,
+                style: Style::Default,
+                colors: Colors::Default,
+            }
+        ],
+        &[],
+    );
 
     // Move the cursor to the end of the search query input.
     let cursor_line = presenter.height() - 1;

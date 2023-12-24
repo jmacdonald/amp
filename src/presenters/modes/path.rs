@@ -23,18 +23,21 @@ pub fn display(workspace: &mut Workspace, mode: &PathMode, view: &mut View) -> R
         mode_display.graphemes(true).count() +
         search_input.graphemes(true).count();
 
-    presenter.print_status_line(&[
-        StatusLineData {
-            content: mode_display,
-            style: Style::Default,
-            colors: Colors::PathMode,
-        },
-        StatusLineData {
-            content: search_input,
-            style: Style::Default,
-            colors: Colors::Focused,
-        },
-    ]);
+    presenter.print_status_line(
+        &[
+            StatusLineData {
+                content: mode_display,
+                style: Style::Default,
+                colors: Colors::PathMode,
+            },
+            StatusLineData {
+                content: search_input,
+                style: Style::Default,
+                colors: Colors::Focused,
+            },
+        ],
+        &[],
+    );
 
     // Move the cursor to the end of the search query input.
     {

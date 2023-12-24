@@ -15,14 +15,17 @@ pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) 
     // Draw the visible set of tokens to the terminal.
     presenter.print_buffer(buf, &data, None, Some(mode))?;
 
-    presenter.print_status_line(&[
-        StatusLineData {
-            content: " JUMP ".to_string(),
-            style: Style::Default,
-            colors: Colors::Inverted,
-        },
-        buffer_status
-    ]);
+    presenter.print_status_line(
+        &[
+            StatusLineData {
+                content: " JUMP ".to_string(),
+                style: Style::Default,
+                colors: Colors::Inverted,
+            },
+            buffer_status
+        ],
+        &[],
+    );
 
     // Don't display a cursor.
     presenter.set_cursor(None);

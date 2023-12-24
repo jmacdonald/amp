@@ -92,49 +92,49 @@ impl<'p> Presenter<'p> {
         Ok(())
     }
 
-    pub fn print_status_line(&mut self, entries: &[StatusLineData]) {
+    pub fn print_status_line(
+        &mut self, left: &[StatusLineData], right: &[StatusLineData]
+    ) {
         let line = self.view.terminal.height() - 1;
 
-        entries.iter().enumerate().fold(0, |offset, (index, element)| {
-            let content = match entries.len() {
-                // There's only one element; have it fill the line.
-                1 => format!(
-                    "{:width$}",
-                    element.content,
-                    width = self.view.terminal.width(),
-                ),
+        let mut left_end = self.view.terminal.width();
+        for entry in right.iter().rev() {
+            left_end = left_end.saturating_sub(entry.content.len());
+            self.print(
+                &Position { line, offset: left_end },
+                entry.style,
+                entry.colors,
+                entry.content.clone(),
+            );
+        }
 
-                // Expand the last element to fill the remaining width.
-                2 if index == entries.len() - 1 => format!(
-                    "{:width$}",
-                    element.content,
-                    width = self.view.terminal.width().saturating_sub(offset),
-                ),
-                2 => element.content.clone(),
+        let mut left_start = 0;
 
-                _ if index == entries.len() - 2 => {
-                    let space = offset + entries[index+1].content.len();
+        for (i, entry) in left.iter().enumerate() {
+            if i == left.len() - 1 {
+                // The last element should fill the remaining the width.
+                let len = left_end.saturating_sub(left_start);
+                self.print(
+                    &Position { line, offset: left_start },
+                    entry.style,
+                    entry.colors,
                     format!(
                         "{:width$}",
-                        element.content,
-                        width = self.view.terminal.width().saturating_sub(space),
-                    )
-                },
-                _ => element.content.clone(),
-            };
+                        entry.content.clone(),
+                        width = len,
+                    ),
+                );
+            } else {
+                self.print(
+                    &Position { line, offset: left_start },
+                    entry.style,
+                    entry.colors,
+                    entry.content.clone(),
+                );
 
-            // Update the tracked offset.
-            let updated_offset = offset + content.len();
-
-            self.print(
-                &Position{ line, offset },
-                element.style,
-                element.colors,
-                content
-            );
-
-            updated_offset
-        });
+                left_start += entry.content.len();
+            }
+        }
     }
 
     pub fn print<C>(&mut self, position: &Position, style: Style, colors: Colors, content: C)
