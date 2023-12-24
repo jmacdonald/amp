@@ -35,7 +35,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
         // Restore the default cursor, suggesting non-input mode.
         presenter.set_cursor_type(CursorType::Block);
 
-        presenter.present();
+        presenter.present()?;
     } else {
         let content = vec![
             format!("Amp v{}", env!("CARGO_PKG_VERSION")),
@@ -56,7 +56,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
         }
 
         presenter.set_cursor(None);
-        presenter.present();
+        presenter.present()?;
     }
 
     Ok(())

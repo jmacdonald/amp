@@ -21,7 +21,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View) -> Result<()> {
     ]);
 
     // Render the changes to the screen.
-    presenter.present();
+    presenter.present()?;
 
     Ok(())
 }

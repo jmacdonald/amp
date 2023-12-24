@@ -1,3 +1,4 @@
+use crate::errors::*;
 use crate::input::Key;
 use crate::models::application::Event;
 use scribe::buffer::Position;
@@ -88,9 +89,9 @@ impl Terminal for TestTerminal {
     }
     fn set_cursor_type(&self, _: CursorType) { }
     fn suspend(&self) { }
-    fn print(&self, position: &Position, _: Style, colors: Colors, content: &str) {
+    fn print(&self, position: &Position, _: Style, colors: Colors, content: &str) -> Result<()> {
         // Ignore lines beyond visible height.
-        if position.line >= self.height() { return; }
+        if position.line >= self.height() { return Ok(()); }
 
         let mut data = self.data.lock().unwrap();
         let string_content = format!("{}", content);
@@ -101,6 +102,8 @@ impl Terminal for TestTerminal {
 
             data[position.line][i+position.offset] = Some((c, colors));
         }
+
+        Ok(())
     }
 }
 
@@ -114,7 +117,7 @@ mod tests {
     #[test]
     fn print_sets_terminal_data_correctly() {
         let terminal = Box::new(TestTerminal::new());
-        terminal.print(&Position{ line: 0, offset: 0 }, Style::Default, Colors::Default, &"data");
+        terminal.print(&Position{ line: 0, offset: 0 }, Style::Default, Colors::Default, &"data").unwrap();
 
         assert_eq!(terminal.content(), "data");
     }
@@ -124,8 +127,8 @@ mod tests {
         let terminal = Box::new(TestTerminal::new());
 
         // Setting a non-zero x coordinate on a previous line exercises column resetting.
-        terminal.print(&Position{ line: 0, offset: 2 }, Style::Default, Colors::Default, &"some");
-        terminal.print(&Position{ line: 2, offset: 5 }, Style::Default, Colors::Default, &"data");
+        terminal.print(&Position{ line: 0, offset: 2 }, Style::Default, Colors::Default, &"some").unwrap();
+        terminal.print(&Position{ line: 2, offset: 5 }, Style::Default, Colors::Default, &"data").unwrap();
 
         assert_eq!(terminal.content(), "  some\n\n     data");
     }

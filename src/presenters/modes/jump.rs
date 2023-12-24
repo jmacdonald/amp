@@ -28,7 +28,7 @@ pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) 
     presenter.set_cursor(None);
 
     // Render the changes to the screen.
-    presenter.present();
+    presenter.present()?;
 
     Ok(())
 }

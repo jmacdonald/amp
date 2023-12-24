@@ -59,17 +59,19 @@ impl<'p> Presenter<'p> {
         self.view.terminal.set_cursor_type(cursor_type);
     }
 
-    pub fn present(&mut self) {
+    pub fn present(&mut self) -> Result<()> {
         for (position, cell) in self.terminal_buffer.iter() {
             self.view.terminal.print(
                 &position,
                 cell.style,
                 self.theme.map_colors(cell.colors),
                 &cell.content,
-            );
+            )?;
         }
         self.view.terminal.set_cursor(self.cursor_position);
         self.view.terminal.present();
+
+        Ok(())
     }
 
     pub fn print_buffer(&mut self, buffer: &Buffer, buffer_data: &'p str, highlights: Option<&[Range]>, lexeme_mapper: Option<&'p mut dyn LexemeMapper>) -> Result<()> {

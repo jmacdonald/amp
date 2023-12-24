@@ -2,7 +2,7 @@ use crate::errors::*;
 use scribe::Workspace;
 use crate::view::{Colors, StatusLineData, Style, View};
 
-pub fn display(workspace: &mut Workspace, view: &mut View, error: &Error) {
+pub fn display(workspace: &mut Workspace, view: &mut View, error: &Error) -> Result<()> {
     let data;
     let mut presenter = view.build_presenter().unwrap();
 
@@ -17,5 +17,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, error: &Error) {
         colors: Colors::Warning,
     }]);
 
-    presenter.present();
+    presenter.present()?;
+
+    Ok(())
 }

@@ -244,9 +244,9 @@ impl Terminal for TermionTerminal {
         }
     }
 
-    fn print<'a>(&self, target_position: &Position, style: Style, colors: Colors, content: &str) {
-        let _ = self.update_style(style);
-        let _ = self.update_colors(colors);
+    fn print<'a>(&self, target_position: &Position, style: Style, colors: Colors, content: &str) -> Result<()> {
+        self.update_style(style)?;
+        self.update_colors(colors)?;
 
         if let Ok(mut guard) = self.output.lock() {
             if let Some(ref mut output) = *guard {
@@ -271,6 +271,8 @@ impl Terminal for TermionTerminal {
                 let _ = write!(output, "{}", content);
             }
         }
+
+        Ok(())
     }
 
     fn suspend(&self) {

@@ -80,7 +80,7 @@ impl Application {
 
     pub fn run(&mut self) -> Result<()> {
         loop {
-            self.render();
+            self.render()?;
             self.wait_for_event()?;
 
             if let Mode::Exit = self.mode {
@@ -91,13 +91,15 @@ impl Application {
         Ok(())
     }
 
-    fn render(&mut self) {
+    fn render(&mut self) -> Result<()> {
         if let Err(error) = self.present() {
-            presenters::error::display(&mut self.workspace, &mut self.view, &error);
+            presenters::error::display(&mut self.workspace, &mut self.view, &error)?;
         } else if let Some(ref error) = self.error {
             // Display an error from previous command invocation, if one exists.
-            presenters::error::display(&mut self.workspace, &mut self.view, error);
+            presenters::error::display(&mut self.workspace, &mut self.view, error)?;
         }
+
+        Ok(())
     }
 
     fn present(&mut self) -> Result<()> {

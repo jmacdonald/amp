@@ -24,7 +24,7 @@ pub fn display(workspace: &mut Workspace, mode: &SelectLineMode, view: &mut View
     ]);
 
     // Render the changes to the screen.
-    presenter.present();
+    presenter.present()?;
 
     Ok(())
 }

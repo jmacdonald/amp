@@ -33,7 +33,7 @@ pub trait Terminal {
     fn height(&self) -> usize;
     fn set_cursor(&self, _: Option<Position>);
     fn set_cursor_type(&self, _: CursorType);
-    fn print<'a>(&self, _: &Position, _: Style, _: Colors, _: &str);
+    fn print<'a>(&self, _: &Position, _: Style, _: Colors, _: &str) -> Result<()>;
     fn suspend(&self);
 }
 

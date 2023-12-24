@@ -28,7 +28,7 @@ pub fn display(workspace: &mut Workspace, mode: &SelectMode, view: &mut View) ->
     presenter.set_cursor_type(CursorType::Bar);
 
     // Render the changes to the screen.
-    presenter.present();
+    presenter.present()?;
 
     Ok(())
 }

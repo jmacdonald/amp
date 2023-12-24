@@ -104,7 +104,7 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut dyn SearchSelec
     }
 
     // Render the changes to the screen.
-    presenter.present();
+    presenter.present()?;
 
     Ok(())
 }

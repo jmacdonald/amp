@@ -25,7 +25,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View) -> Result<()> {
     presenter.set_cursor_type(CursorType::BlinkingBar);
 
     // Render the changes to the screen.
-    presenter.present();
+    presenter.present()?;
 
     Ok(())
 }

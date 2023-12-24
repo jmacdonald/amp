@@ -49,7 +49,7 @@ pub fn display(workspace: &mut Workspace, mode: &PathMode, view: &mut View) -> R
     presenter.set_cursor_type(CursorType::BlinkingBar);
 
     // Render the changes to the screen.
-    presenter.present();
+    presenter.present()?;
 
     Ok(())
 }
