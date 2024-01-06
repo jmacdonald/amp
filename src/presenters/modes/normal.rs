@@ -39,7 +39,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
     } else {
         let content = vec![
             format!("Amp v{}", env!("CARGO_PKG_VERSION")),
-            String::from("© 2015-2023 Jordan MacDonald"),
+            String::from("© 2015-2024 Jordan MacDonald"),
             String::from(" "),
             String::from("Press \"?\" to view quick start guide")
         ];
