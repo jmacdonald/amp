@@ -17,7 +17,7 @@ use crate::presenters;
 use scribe::{Buffer, Workspace};
 use std::cell::RefCell;
 use std::env;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender};
 use crate::view::View;
@@ -241,10 +241,10 @@ fn create_workspace(view: &mut View, preferences: &Preferences, args: &Vec<Strin
     }
 
     let workspace_dir = env::current_dir()?;
-    let syntax_path = Preferences::syntax_path()?;
+    let syntax_path = user_syntax_path()?;
     let mut workspace = Workspace::new(
         &workspace_dir,
-        Some(&syntax_path)
+        syntax_path.as_ref().map(|p| p.as_path())
     ).chain_err(|| WORKSPACE_INIT_FAILED)?;
 
     // If the first argument was a directory, we've navigated into
@@ -291,6 +291,19 @@ fn create_workspace(view: &mut View, preferences: &Preferences, args: &Vec<Strin
     }
 
     Ok(workspace)
+}
+
+#[cfg(not(any(test, feature = "bench")))]
+fn user_syntax_path() -> Result<Option<PathBuf>> {
+    Preferences::syntax_path().map(|p| Some(p))
+}
+
+// Building/linking user syntaxes is expensive, which is most obvious in the
+// test suite, as it creates application instances in rapid succession. Bypass
+// these in test and benchmark environments.
+#[cfg(any(test, feature = "bench"))]
+fn user_syntax_path() -> Result<Option<PathBuf>> {
+    Ok(None)
 }
 
 #[cfg(test)]
