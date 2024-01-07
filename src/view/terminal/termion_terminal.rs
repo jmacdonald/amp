@@ -14,7 +14,7 @@ use self::termion::input::{Keys, TermRead};
 use self::termion::raw::{IntoRawMode, RawTerminal};
 use self::termion::screen::{AlternateScreen, IntoAlternateScreen};
 use self::termion::style;
-use std::borrow::BorrowMut;
+use std::borrow::{Borrow, BorrowMut};
 use std::io::{BufWriter, Stdin, stdin, stdout, Write};
 use std::fmt::Display;
 use std::ops::Drop;
@@ -79,14 +79,15 @@ impl TermionTerminal {
             let _ = write!(output, "{}", style::Reset);
 
             // Resetting styles clears active colors, too; set those again.
-            let mut color_guard = self.current_colors.lock().map_err(|_| LOCK_POISONED)?;
-            let current_colors = color_guard.borrow_mut().as_mut().ok_or(LOCK_FAILED)?;
-            match *current_colors {
-                Colors::Default => { let _ = write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
-                Colors::Custom(fg, bg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(bg)); }
-                Colors::CustomForeground(fg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(color::Reset)); }
-                _ => (),
-            };
+            let color_guard = self.current_colors.lock().map_err(|_| LOCK_POISONED)?;
+            if let Some(current_colors) = color_guard.borrow().as_ref() {
+                match *current_colors {
+                    Colors::Default => { let _ = write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
+                    Colors::Custom(fg, bg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(bg)); }
+                    Colors::CustomForeground(fg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(color::Reset)); }
+                    _ => (),
+                };
+            }
         };
 
         Ok(())
