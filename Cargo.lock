@@ -28,7 +28,7 @@ dependencies = [
 
 [[package]]
 name = "amp"
-version = "0.6.2"
+version = "0.7.0"
 dependencies = [
  "app_dirs2",
  "bloodhound",

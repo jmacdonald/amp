@@ -1,3 +1,20 @@
+### 0.7.0
+
+* Lots of under-the-hood improvements to syntax highlighting, as well as:
+  * Replaced Oniguruma regex dependency with Rust-based fancy-regex
+  * Better error handling
+* Improved terminal renderer error handling
+* Cursor types now change based on mode
+* Added ability to build amp using Nix
+* Added Wayland clipboard support
+* Updated to build using Rust 2021 edition
+* Added ability to reflow text based on line length guide
+* Improved unicode support when adding trailing newline
+* Added ability to configure syntax overrides based on file extension
+* Added ability to comment out a selection of text
+* Improved handling of very small terminal sizes
+* Updated to correctly restore terminal contents after quitting
+
 ### 0.6.2
 
 * Rewrote the build script's command parsing to work with Rust 1.41
