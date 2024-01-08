@@ -60,10 +60,10 @@ impl TermionTerminal {
     // Clears any pre-existing styles.
     fn update_style(&self, new_style: Style) -> Result<()> {
         let mut guard = self.output.lock().map_err(|_| LOCK_POISONED)?;
-        let output = guard.borrow_mut().as_mut().ok_or(LOCK_FAILED)?;
+        let output = guard.borrow_mut().as_mut().ok_or(STDOUT_FAILED)?;
 
         // Push style changes to the terminal.
-        let mut current_style = self.current_style.lock().map_err(|_| LOCK_FAILED)?;
+        let mut current_style = self.current_style.lock().map_err(|_| LOCK_POISONED)?;
         if Some(new_style) != *current_style {
             // Store the new style state for comparison in the next pass.
             current_style.replace(new_style);
@@ -97,7 +97,7 @@ impl TermionTerminal {
     fn update_colors(&self, new_colors: Colors) -> Result<()> {
         // Borrow reference to the terminal.
         let mut guard = self.output.lock().map_err(|_| LOCK_POISONED)?;
-        let output = guard.borrow_mut().as_mut().ok_or(LOCK_FAILED)?;
+        let output = guard.borrow_mut().as_mut().ok_or(STDOUT_FAILED)?;
 
         // Push color changes to the terminal.
         let mut current_colors = self.current_colors.lock().map_err(|_| LOCK_POISONED)?;
