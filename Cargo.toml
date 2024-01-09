@@ -13,7 +13,7 @@ keywords = ["text", "editor", "terminal", "modal"]
 edition="2021"
 
 [build-dependencies]
-regex = "1.3.4"
+regex = "1.10.2"
 
 [dependencies]
 app_dirs = "1.2.1"
@@ -21,7 +21,7 @@ scribe = "~0.8"
 bloodhound = "0.5.4"
 luthor = "0.1.7"
 fragment = "0.3.1"
-regex = "^0.1"
+regex = "1.10.2"
 libc = "0.2.4"
 syntect = "~5"
 termion = "2.0"
