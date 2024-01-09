@@ -38,7 +38,7 @@ version = "0.1.9"
 features = ["mio-support"]
 
 [dependencies.git2]
-version = "0.10.1"
+version = "~0.18"
 # We use very little of the Git crate. Disabling its default features makes it
 # as bare as possible, and sidesteps its openssl dependency, among others.
 default-features = false # removes unused openssl dependency
