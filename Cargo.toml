@@ -44,7 +44,7 @@ version = "~0.18"
 default-features = false # removes unused openssl dependency
 
 [dev-dependencies]
-criterion = "0.2.0"
+criterion = "0.5.1"
 
 [[bench]]
 name = "draw_buffer"
