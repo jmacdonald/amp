@@ -99,9 +99,10 @@ fn get_gh_path(url: &str) -> errors::Result<&str> {
         static ref REGEX: Regex =
             Regex::new(r"^(?:https://|git@)github.com(?::|/)(.*?)(?:.git)?$").unwrap();
     }
-    REGEX.captures(url).and_then(|c| c.at(1)).chain_err(|| {
-        "Failed to capture remote repo path"
-    })
+    REGEX.captures(url)
+        .and_then(|c| c.get(1))
+        .map(|c| c.as_str())
+        .chain_err(|| { "Failed to capture remote repo path" })
 }
 
 #[test]
