@@ -1,4 +1,4 @@
-use app_dirs::{app_dir, app_root, get_app_root, AppDataType, AppInfo};
+use app_dirs2::{app_dir, app_root, get_app_root, AppDataType, AppInfo};
 use bloodhound::ExclusionPattern;
 use crate::errors::*;
 use crate::input::KeyMap;

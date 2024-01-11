@@ -16,7 +16,7 @@ edition="2021"
 regex = "1.10"
 
 [dependencies]
-app_dirs = "1.2"
+app_dirs2 = "2.5"
 scribe = "0.8"
 bloodhound = "0.5"
 luthor = "0.2"

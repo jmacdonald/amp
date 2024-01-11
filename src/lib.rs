@@ -2,7 +2,7 @@
 #![recursion_limit = "1024"]
 
 // External dependencies
-extern crate app_dirs;
+extern crate app_dirs2;
 extern crate bloodhound;
 extern crate fragment;
 extern crate git2;
