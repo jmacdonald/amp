@@ -312,7 +312,7 @@ mod tests {
     use crate::view::View;
     use super::preferences::Preferences;
 
-    use yaml::YamlLoader;
+    use yaml_rust::YamlLoader;
     use scribe::Buffer;
     use std::cell::RefCell;
     use std::env;

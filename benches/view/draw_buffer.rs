@@ -1,4 +1,3 @@
-extern crate amp;
 #[macro_use]
 extern crate criterion;
 

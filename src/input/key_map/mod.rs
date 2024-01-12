@@ -5,7 +5,7 @@ use smallvec::SmallVec;
 use std::collections::HashMap;
 use std::ops::{Deref, DerefMut};
 use std::convert::Into;
-use crate::yaml::yaml::{Hash, Yaml, YamlLoader};
+use yaml_rust::yaml::{Hash, Yaml, YamlLoader};
 
 /// Nested HashMap newtype that provides a more ergonomic interface.
 pub struct KeyMap(HashMap<String, HashMap<Key, SmallVec<[Command; 4]>>>);
@@ -241,7 +241,7 @@ impl Into<HashMap<String, HashMap<Key, SmallVec<[Command; 4]>>>> for KeyMap {
 
 #[cfg(test)]
 mod tests {
-    use crate::yaml::YamlLoader;
+    use yaml_rust::YamlLoader;
     use super::KeyMap;
     use crate::commands;
     use crate::input::Key;

@@ -7,7 +7,7 @@ use scribe::Buffer;
 use std::fs::OpenOptions;
 use std::io::Read;
 use std::path::{Path, PathBuf};
-use crate::yaml::yaml::{Hash, Yaml, YamlLoader};
+use yaml_rust::yaml::{Hash, Yaml, YamlLoader};
 use crate::models::application::modes::SearchSelectConfig;
 
 const APP_INFO: AppInfo = AppInfo {
@@ -359,7 +359,7 @@ mod tests {
     use super::{ExclusionPattern, Preferences, YamlLoader};
     use std::path::{Path, PathBuf};
     use crate::input::KeyMap;
-    use crate::yaml::yaml::{Hash, Yaml};
+    use yaml_rust::yaml::{Hash, Yaml};
 
     #[test]
     fn preferences_returns_user_defined_theme_name() {

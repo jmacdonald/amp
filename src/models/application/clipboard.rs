@@ -1,5 +1,5 @@
 use crate::errors::*;
-use clipboard::{ClipboardContext, ClipboardProvider};
+use cli_clipboard::{ClipboardContext, ClipboardProvider};
 
 /// In-app content can be captured in both regular and full-line selection
 /// modes. This type describes the structure of said content, based on the

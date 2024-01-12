@@ -1,4 +1,3 @@
-extern crate amp;
 use amp::Application;
 use amp::Error;
 use std::env;

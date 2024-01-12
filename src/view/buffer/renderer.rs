@@ -399,7 +399,7 @@ mod tests {
     use super::{BufferRenderer, LexemeMapper, MappedLexeme};
     use syntect::highlighting::ThemeSet;
     use crate::view::terminal::*;
-    use crate::yaml::yaml::YamlLoader;
+    use yaml_rust::yaml::YamlLoader;
 
     #[test]
     fn tabs_beyond_terminal_width_dont_panic() {
