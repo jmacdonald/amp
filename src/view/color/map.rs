@@ -27,7 +27,7 @@ impl ColorMap for Theme {
             unwrap_or(RGBColor(55, 55, 55));
 
         match colors {
-            Colors::Default => Colors::Custom(fg, bg),
+            Colors::Default => Colors::CustomForeground(fg),
             Colors::Focused => Colors::Custom(fg, alt_bg),
             Colors::Inverted => Colors::Custom(bg, fg),
             Colors::Insert => Colors::Custom(RGBColor(255, 255, 255), RGBColor(0, 180, 0)),
@@ -35,7 +35,7 @@ impl ColorMap for Theme {
             Colors::PathMode => Colors::Custom(RGBColor(255, 255, 255), RGBColor(255, 20, 147)),
             Colors::SearchMode => Colors::Custom(RGBColor(255, 255, 255), RGBColor(120, 0, 120)),
             Colors::SelectMode => Colors::Custom(RGBColor(255, 255, 255), RGBColor(0, 120, 160)),
-            Colors::CustomForeground(custom_fg) => Colors::Custom(custom_fg, bg),
+            Colors::CustomForeground(custom_fg) => Colors::CustomForeground(custom_fg),
             Colors::CustomFocusedForeground(custom_fg) => Colors::Custom(custom_fg, alt_bg),
             Colors::Custom(custom_fg, custom_bg) => Colors::Custom(custom_fg, custom_bg),
         }
