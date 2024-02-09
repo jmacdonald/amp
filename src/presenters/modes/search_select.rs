@@ -46,11 +46,20 @@ pub fn display<T: Display>(workspace: &mut Workspace, mode: &mut dyn SearchSelec
             } else {
                 (format!("  {}", result), Colors::Default, Style::Default)
             };
+
+            // Ensure content doesn't exceed the screen width
+            let trimmed_content: String = content
+                .graphemes(true)
+                .enumerate()
+                .take_while(|(i, _)| i < &presenter.width())
+                .map(|(_, g)| g)
+                .collect();
+
             padded_content.push((
                 Position{ line, offset: 0 },
                 style,
                 colors,
-                format!("{:width$}", content, width = presenter.width()),
+                format!("{:width$}", trimmed_content, width = presenter.width()),
             ));
         }
 
