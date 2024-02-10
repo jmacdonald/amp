@@ -6,11 +6,14 @@ error_chain! {
 }
 
 pub static BUFFER_MISSING: &str = "No buffer available";
-pub static BUFFER_PATH_MISSING: &str = "No path found for the current buffer";
-pub static BUFFER_TOKENS_FAILED: &str = "Failed to generate buffer tokens";
 pub static BUFFER_PARSE_FAILED: &str = "Failed to parse buffer";
+pub static BUFFER_PATH_MISSING: &str = "No path found for the current buffer";
+pub static BUFFER_RELOAD_FAILED: &str = "Unable to reload buffer";
+pub static BUFFER_SAVE_FAILED: &str = "Unable to save buffer";
 pub static BUFFER_SYNTAX_UPDATE_FAILED: &str = "Failed to update buffer syntax definition";
+pub static BUFFER_TOKENS_FAILED: &str = "Failed to generate buffer tokens";
 pub static CURRENT_LINE_MISSING: &str = "The current line couldn't be found in the buffer";
+pub static FORMAT_TOOL_MISSING: &str = "No format tool configured for this filetype";
 pub static LOCK_POISONED: &str = "Lock has been poisoned";
 pub static NO_SEARCH_RESULTS: &str = "No search results available";
 pub static SCROLL_TO_CURSOR_FAILED: &str = "Failed to scroll to cursor position";

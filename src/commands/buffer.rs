@@ -1,6 +1,8 @@
 use crate::errors::*;
 use crate::commands::{self, Result};
+use std::io::Write;
 use std::mem;
+use std::process::Stdio;
 use crate::input::Key;
 use crate::util;
 use crate::util::token::{Direction, adjacent_token_position};
@@ -12,37 +14,50 @@ pub fn save(app: &mut Application) -> Result {
     remove_trailing_whitespace(app)?;
     ensure_trailing_newline(app)?;
 
-    // Slight duplication here, but we need to check for a buffer path without
-    // borrowing the buffer for the full scope of this save command. That will
-    // allow us to hand the application object to the switch_to_path_mode
-    // command, if necessary.
-    let path_set = app
+    let path = app
         .workspace
         .current_buffer
         .as_ref()
         .ok_or(BUFFER_MISSING)?
-        .path.is_some();
+        .path.clone(); // clone instead of borrow as we call another command later
 
-    if path_set {
+    if path.is_some() {
+        // Save the buffer.
         app.workspace
             .current_buffer
             .as_mut()
-            .ok_or(BUFFER_MISSING)?
+            .unwrap()
             .save()
-            .chain_err(|| "Unable to save buffer")
+            .chain_err(|| BUFFER_SAVE_FAILED)?;
+
+        // Run the format command if one is defined.
+        if app.preferences.borrow().format_on_save(&path.unwrap()) {
+            format(app)?;
+
+            // Save the buffer again. We intentionally save twice because we
+            // don't want an invalid format tool configuration or failed
+            // execution to prevent saving the buffer.
+            app.workspace
+                .current_buffer
+                .as_mut()
+                .unwrap()
+                .save()
+                .chain_err(|| BUFFER_SAVE_FAILED)?;
+        }
     } else {
+        // Prompt the user to enter a path for the buffer instead of saving.
         commands::application::switch_to_path_mode(app)?;
         if let Mode::Path(ref mut mode) = app.mode {
             mode.save_on_accept = true;
         }
-
-        Ok(())
     }
+
+    Ok(())
 }
 
 pub fn reload(app: &mut Application) -> Result {
     app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?.reload().chain_err(|| {
-        "Unable to reload buffer."
+        BUFFER_RELOAD_FAILED
     })
 }
 
@@ -840,14 +855,54 @@ pub fn insert_tab(app: &mut Application) -> Result {
     Ok(())
 }
 
+pub fn format(app: &mut Application) -> Result {
+    let buf = app.workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?;
+
+    let path = buf.path.as_ref().ok_or(BUFFER_PATH_MISSING)?;
+    let mut format_command = app.preferences.borrow().format_command(&path).ok_or(FORMAT_TOOL_MISSING)?;
+    let data = buf.data();
+
+    // Run the command with the buffer path as an argument.
+    let mut process = format_command
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .chain_err(|| "Failed to spawn format tool")?;
+
+    let mut format_input = process.stdin.take().chain_err(|| "Failed to open stdin")?;
+    std::thread::spawn(move || {
+        format_input.write_all(data.as_bytes()).expect("Failed to write to stdin");
+    });
+
+    let output = process.wait_with_output().chain_err(|| "Failed to read stdout")?;
+
+    // Reload buffer or propagate errors.
+    if output.status.success() {
+        let content = String::from_utf8(output.stdout).chain_err(|| "Failed to parse format tool output as UTF8")?;
+        Ok(buf.replace(content))
+    } else {
+        let error = String::from_utf8(output.stderr)
+            .unwrap_or(String::from("Failed to parse stderr output as UTF8"));
+
+        return Err(Error::from(error)).chain_err(|| format!("Format tool failed with code {}", output.status));
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::commands;
     use crate::models::Application;
-    use crate::models::application::{ClipboardContent, Mode};
+    use crate::models::application::{ClipboardContent, Mode, Preferences};
     use scribe::Buffer;
     use scribe::buffer::Position;
+    use std::env;
+    use std::fs::File;
+    use std::io::Write;
     use std::path::Path;
+    use yaml_rust::yaml::YamlLoader;
 
     #[test]
     fn insert_newline_uses_current_line_indentation() {
@@ -1348,6 +1403,72 @@ mod tests {
         } else {
             panic!("Failed to switch to path mode");
         }
+    }
+
+    #[test]
+    fn save_does_not_run_format_tool_by_default() {
+        // Set up the application with a format command.
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let data = YamlLoader::load_from_str("
+            types:
+              rs:
+                format_tool:
+                  command: tr
+                  options: ['a', 'b']
+        ").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+        app.preferences.replace(preferences);
+
+        // Create a temp file with content and open it.
+        let path = format!("{}/format_tool.rs", env::temp_dir().display());
+        let mut temp_file = File::create(&path).unwrap();
+        write!(temp_file, "amp editor\n").unwrap();
+        app.workspace.open_buffer(&Path::new(&path)).unwrap();
+
+        super::save(&mut app).unwrap();
+
+        // Ensure that format tool was *not* run.
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp editor\n"
+        );
+    }
+
+    #[test]
+    fn save_runs_format_command_when_configured() {
+        // Set up the application with a format command.
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let data = YamlLoader::load_from_str("
+            types:
+              rs:
+                format_tool:
+                  command: tr
+                  options: ['a', 'b']
+                  run_on_save: true
+        ").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+        app.preferences.replace(preferences);
+
+        // Create a temp file with content and open it.
+        let path = format!("{}/format_tool.rs", env::temp_dir().display());
+        let mut temp_file = File::create(&path).unwrap();
+        write!(temp_file, "amp editor\n").unwrap();
+        app.workspace.open_buffer(&Path::new(&path)).unwrap();
+
+        super::save(&mut app).unwrap();
+
+        // Ensure that format tool *was* run.
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "bmp editor\n"
+        );
+
+        // Ensure that format tool output was saved to disk.
+        app.workspace.current_buffer.as_mut().unwrap().reload().unwrap();
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "bmp editor\n"
+        );
     }
 
     #[test]

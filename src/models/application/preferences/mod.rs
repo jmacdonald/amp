@@ -293,6 +293,15 @@ impl Preferences {
             })
     }
 
+    pub fn format_on_save(&self, path: &PathBuf) -> bool {
+        let Some(extension) = path_extension(Some(path)) else { return false; };
+
+        self.data
+            .as_ref()
+            .and_then(|data| data[TYPES_KEY][extension][FORMAT_TOOL_KEY]["run_on_save"].as_bool())
+            .unwrap_or(false)
+    }
+
     pub fn format_command(&self, path: &PathBuf) -> Option<process::Command> {
         let extension = path_extension(Some(path))?;
 
@@ -704,6 +713,30 @@ mod tests {
         // Reload the preferences, ensuring that it refreshes the keymap.
         preferences.reload().unwrap();
         assert!(preferences.keymap().get("normal").is_some());
+    }
+
+    #[test]
+    fn format_on_save_defaults_to_false() {
+        let preferences = Preferences::new(None);
+
+        assert!(
+            !preferences.format_on_save(&PathBuf::from("preferences.rs"))
+        );
+    }
+
+    #[test]
+    fn format_on_save_returns_type_specific_value() {
+        let data = YamlLoader::load_from_str("
+            types:
+              rs:
+                format_tool:
+                  run_on_save: true
+        ").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert!(
+            preferences.format_on_save(&PathBuf::from("preferences.rs"))
+        );
     }
 
     #[test]
