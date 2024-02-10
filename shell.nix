@@ -11,9 +11,4 @@ pkgs.mkShell {
   ];
 
   RUST_BACKTRACE = 1;
-
-  shellHook = ''
-    # Vi mode
-    set -o vi
-  '';
 }
