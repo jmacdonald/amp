@@ -7,6 +7,7 @@ use scribe::Buffer;
 use std::fs::OpenOptions;
 use std::io::Read;
 use std::path::{Path, PathBuf};
+use std::process;
 use yaml_rust::yaml::{Hash, Yaml, YamlLoader};
 use crate::models::application::modes::SearchSelectConfig;
 
@@ -15,6 +16,7 @@ const APP_INFO: AppInfo = AppInfo {
     author: "Jordan MacDonald",
 };
 const FILE_NAME: &str = "config.yml";
+const FORMAT_TOOL_KEY: &str = "format_tool";
 const LINE_COMMENT_PREFIX_KEY: &str = "line_comment_prefix";
 const LINE_LENGTH_GUIDE_KEY: &str = "line_length_guide";
 const LINE_WRAPPING_KEY: &str = "line_wrapping";
@@ -289,6 +291,32 @@ impl Preferences {
 
                 None
             })
+    }
+
+    pub fn format_command(&self, path: &PathBuf) -> Option<process::Command> {
+        let extension = path_extension(Some(path))?;
+
+        // Build a command using the command sub-key.
+        let Some(program) = self.data
+            .as_ref()
+            .and_then(|data| data[TYPES_KEY][extension][FORMAT_TOOL_KEY]["command"].as_str()) else {
+                return None;
+            };
+        let mut command = process::Command::new(program);
+
+        // Parse and add options to command, if present.
+        let option_data = self.data
+            .as_ref()
+            .and_then(|data| data[TYPES_KEY][extension][FORMAT_TOOL_KEY]["options"].as_vec());
+        if let Some(options) = option_data {
+            for option in options {
+                if let Some(o) = option.as_str() {
+                    command.arg(o);
+                }
+            }
+        }
+
+        Some(command)
     }
 
     fn default_open_mode_exclusions(&self) -> Result<Option<Vec<ExclusionPattern>>> {
@@ -676,5 +704,49 @@ mod tests {
         // Reload the preferences, ensuring that it refreshes the keymap.
         preferences.reload().unwrap();
         assert!(preferences.keymap().get("normal").is_some());
+    }
+
+    #[test]
+    fn format_command_correctly_handles_missing_type_specific_command() {
+        let preferences = Preferences::new(None);
+
+        assert!(
+            preferences.format_command(&PathBuf::from("preferences.rs")).is_none()
+        );
+    }
+
+    #[test]
+    fn format_command_returns_user_defined_type_specific_command_without_args() {
+        let data = YamlLoader::load_from_str("
+            types:
+              rs:
+                format_tool:
+                  command: rustfmt
+        ").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        let command = preferences.format_command(&PathBuf::from("preferences.rs")).unwrap();
+        assert_eq!(
+            command.get_program(),
+            "rustfmt"
+        );
+        assert_eq!(command.get_args().count(), 0);
+    }
+
+    #[test]
+    fn format_command_returns_user_defined_type_specific_command_with_args() {
+        let data = YamlLoader::load_from_str("
+            types:
+              rs:
+                format_tool:
+                  command: rustfmt
+                  options: [--check]
+        ").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        let command = preferences.format_command(&PathBuf::from("preferences.rs")).unwrap();
+        assert_eq!(command.get_program(), "rustfmt");
+        assert_eq!(command.get_args().count(), 1);
+        assert_eq!(command.get_args().next().and_then(|a| a.to_str()), Some("--check"));
     }
 }
