@@ -17,7 +17,6 @@ pub use self::buffer::TerminalBuffer;
 pub use self::buffer_iterator::TerminalBufferIterator;
 pub use self::cell::Cell;
 pub use self::cursor::CursorType;
-pub use self::termion_terminal::TermionTerminal;
 
 #[cfg(any(test, feature = "bench"))]
 pub use self::test_terminal::TestTerminal;
@@ -33,13 +32,13 @@ pub trait Terminal {
     fn height(&self) -> usize;
     fn set_cursor(&self, _: Option<Position>);
     fn set_cursor_type(&self, _: CursorType);
-    fn print<'a>(&self, _: &Position, _: Style, _: Colors, _: &str) -> Result<()>;
+    fn print(&self, _: &Position, _: Style, _: Colors, _: &str) -> Result<()>;
     fn suspend(&self);
 }
 
 #[cfg(not(any(test, feature = "bench")))]
 pub fn build_terminal() -> Result<Arc<Box<dyn Terminal + Sync + Send + 'static>>> {
-    Ok(Arc::new(Box::new(TermionTerminal::new()?)))
+    Ok(Arc::new(Box::new(termion_terminal::TermionTerminal::new()?)))
 }
 
 #[cfg(any(test, feature = "bench"))]

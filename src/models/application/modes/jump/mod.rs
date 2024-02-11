@@ -71,7 +71,7 @@ impl LexemeMapper for JumpMode {
     //
     // We also track jump tag locations so that tags can be
     // resolved to positions for performing the actual jump later on.
-    fn map<'a, 'b>(&'a mut self, lexeme: &'b str, position: Position) -> Vec<MappedLexeme<'a>> {
+    fn map<'a>(&'a mut self, lexeme: &str, position: Position) -> Vec<MappedLexeme<'a>> {
         self.mapped_lexeme_values = Vec::new();
         self.current_position = position;
 

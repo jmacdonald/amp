@@ -29,7 +29,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
                 colors,
             },
             buffer_status,
-            git_status_line_data(&repo, &buf.path)
+            git_status_line_data(repo, &buf.path)
         ]);
 
         // Restore the default cursor, suggesting non-input mode.
@@ -43,7 +43,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, repo: &Option<Reposit
             String::from(" "),
             String::from("Press \"?\" to view quick start guide")
         ];
-        let line_count = content.iter().count();
+        let line_count = content.len();
         let vertical_offset = line_count / 2;
 
         for (line_no, line) in content.iter().enumerate() {

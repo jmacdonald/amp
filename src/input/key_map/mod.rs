@@ -64,7 +64,7 @@ impl KeyMap {
             .nth(0)
             .ok_or("Couldn't locate a document in the default keymap")?;
 
-        KeyMap::from(&default_keymap_data.as_hash().unwrap())
+        KeyMap::from(default_keymap_data.as_hash().unwrap())
     }
 
     /// Returns the default YAML keymap data as a string.
@@ -180,7 +180,7 @@ fn parse_key(data: &str) -> Result<Key> {
 
     if let Some(key) = key_components.next() {
         // We have a modifier-qualified key; get the key.
-        let key_char = key.chars().nth(0).ok_or_else(|| format!(
+        let key_char = key.chars().next().ok_or_else(|| format!(
             "Keymap key \"{}\" is invalid",
             key
         ))?;
@@ -211,7 +211,7 @@ fn parse_key(data: &str) -> Result<Key> {
             "_"         => Key::AnyChar,
             _           => Key::Char(
                 // It's not a keyword; take its first character, if available.
-                component.chars().nth(0).ok_or_else(||
+                component.chars().next().ok_or_else(||
                     format!("Keymap key \"{}\" is invalid", component)
                 )?
             ),
@@ -233,9 +233,9 @@ impl DerefMut for KeyMap {
     }
 }
 
-impl Into<HashMap<String, HashMap<Key, SmallVec<[Command; 4]>>>> for KeyMap {
-    fn into(self) -> HashMap<String, HashMap<Key, SmallVec<[Command; 4]>>> {
-        self.0
+impl From<KeyMap> for HashMap<String, HashMap<Key, SmallVec<[Command; 4]>>> {
+    fn from(val: KeyMap) -> Self {
+        val.0
     }
 }
 

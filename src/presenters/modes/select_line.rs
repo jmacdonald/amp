@@ -8,7 +8,7 @@ pub fn display(workspace: &mut Workspace, mode: &SelectLineMode, view: &mut View
     let mut presenter = view.build_presenter()?;
     let buffer_status = current_buffer_status_line_data(workspace);
     let buf = workspace.current_buffer.as_ref().ok_or(BUFFER_MISSING)?;
-    let selected_range = mode.to_range(&*buf.cursor);
+    let selected_range = mode.to_range(&buf.cursor);
     let data = buf.data();
 
     // Draw the visible set of tokens to the terminal.

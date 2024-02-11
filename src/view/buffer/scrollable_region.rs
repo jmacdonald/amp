@@ -31,7 +31,7 @@ impl ScrollableRegion {
             // Calculate and apply the absolute line
             // offset based on the cursor location.
             let starting_line = (buffer.cursor.line).saturating_sub(
-                self.preceding_line_count(&buffer, self.height())
+                self.preceding_line_count(buffer, self.height())
             );
 
             if starting_line > self.line_offset {
@@ -45,7 +45,7 @@ impl ScrollableRegion {
         let limit = (self.height() as f32 / 2.0).ceil() as usize;
 
         self.line_offset = buffer.cursor.line.saturating_sub(
-            self.preceding_line_count(&buffer, limit)
+            self.preceding_line_count(buffer, limit)
         );
     }
 
@@ -56,10 +56,7 @@ impl ScrollableRegion {
     }
 
     pub fn scroll_up(&mut self, amount: usize) {
-        self.line_offset = match self.line_offset.checked_sub(amount) {
-            Some(amount) => amount,
-            None => 0,
-        };
+        self.line_offset = self.line_offset.saturating_sub(amount);
     }
 
     pub fn scroll_down(&mut self, amount: usize) {
@@ -80,7 +77,7 @@ impl ScrollableRegion {
 
         // The buffer renderer adds a single-column margin
         // to the right-hand side of the line number columns.
-        let gutter_width = LineNumbers::new(&buffer, None).width() + 1;
+        let gutter_width = LineNumbers::new(buffer, None).width() + 1;
 
         let end = buffer.cursor.line + 1;
         let start = end.saturating_sub(limit);

@@ -4,6 +4,7 @@ use crate::commands::{self, Result};
 use crate::models::application::{Application, ClipboardContent, Mode};
 use git2;
 use regex::Regex;
+use std::cmp::Ordering;
 
 pub fn add(app: &mut Application) -> Result {
     let repo = app.repository.as_ref().ok_or("No repository available")?;
@@ -63,12 +64,10 @@ pub fn copy_remote_url(app: &mut Application) -> Result {
                 let line_1 = buffer.cursor.line + 1;
                 let line_2 = s.anchor + 1;
 
-                if line_1 < line_2 {
-                    format!("#L{}-L{}", line_1, line_2)
-                } else if line_2 < line_1 {
-                    format!("#L{}-L{}", line_2, line_1)
-                } else {
-                    format!("#L{}", line_1)
+                match line_1.cmp(&line_2) {
+                    Ordering::Less => format!("#L{}-L{}", line_1, line_2),
+                    Ordering::Greater => format!("#L{}-L{}", line_2, line_1),
+                    Ordering::Equal => format!("#L{}", line_1),
                 }
             },
             _ => String::new(),

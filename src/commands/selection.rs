@@ -51,7 +51,7 @@ pub fn select_all(app: &mut Application) -> Result {
 }
 
 fn copy_to_clipboard(app: &mut Application) -> Result {
-    let mut buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+    let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
 
     match app.mode {
         Mode::Select(ref select_mode) => {
@@ -69,7 +69,7 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
                     buffer.cursor
                     .line
                 ),
-                &mut buffer
+                buffer
             );
 
             let data = buffer.read(&selected_range.clone())
@@ -84,7 +84,7 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
 
 pub fn justify(app: &mut Application) -> Result {
     let range = sel_to_range(app)?;
-    let mut buffer = app.workspace.current_buffer.as_mut().unwrap();
+    let buffer = app.workspace.current_buffer.as_mut().unwrap();
 
     let limit = match app.preferences.borrow().line_length_guide() {
     	Some(n) => n,
@@ -92,14 +92,14 @@ pub fn justify(app: &mut Application) -> Result {
     };
 
     buffer.start_operation_group();
-    Reflow::new(&mut buffer, range, limit)?.apply()?;
+    Reflow::new(buffer, range, limit)?.apply()?;
     buffer.end_operation_group();
 
     Ok(())
 }
 
 fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
-    let mut buf = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+    let buf = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
 
     match app.mode {
     	Mode::Select(ref mode) => {
@@ -112,7 +112,7 @@ fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
         		    mode.anchor,
         		    buf.cursor.line
         		),
-                &mut buf
+                buf
     	    ))
     	},
     	Mode::Search(ref mode) => {

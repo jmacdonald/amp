@@ -362,13 +362,13 @@ fn load_document() -> Result<Option<Yaml>> {
     // Parse the config file's contents and get the first YAML document inside.
     let parsed_data = YamlLoader::load_from_str(&data)
         .chain_err(|| "Couldn't parse config file")?;
-    Ok(parsed_data.into_iter().nth(0))
+    Ok(parsed_data.into_iter().next())
 }
 
 fn load_default_document() -> Result<Yaml> {
     YamlLoader::load_from_str(include_str!("default.yml"))
         .chain_err(|| "Couldn't parse default config file")?
-        .into_iter().nth(0)
+        .into_iter().next()
         .chain_err(|| "No default preferences document found")
 }
 

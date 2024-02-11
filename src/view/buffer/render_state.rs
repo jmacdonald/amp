@@ -10,7 +10,7 @@ pub struct RenderState {
 impl RenderState {
     pub fn new(highlighter: &Highlighter, syntax: &SyntaxReference) -> RenderState {
         RenderState{
-            highlight: HighlightState::new(&highlighter, ScopeStack::new()),
+            highlight: HighlightState::new(highlighter, ScopeStack::new()),
             parse: ParseState::new(syntax)
         }
     }

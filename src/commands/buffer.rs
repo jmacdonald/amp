@@ -175,12 +175,7 @@ pub fn close(app: &mut Application) -> Result {
         } else {
             bail!(BUFFER_MISSING);
         };
-    let confirm_mode =
-        if let Mode::Confirm(_) = app.mode {
-            true
-        } else {
-            false
-        };
+    let confirm_mode = matches!(app.mode, Mode::Confirm(_));
 
     if unmodified || empty || confirm_mode {
         // Clean up view-related data for the buffer.
@@ -457,9 +452,9 @@ pub fn outdent_line(app: &mut Application) -> Result {
             let mut space_char_count = 0;
 
             // Check for leading whitespace.
-            if tab_content.chars().next() == Some('\t') {
+            if tab_content.starts_with('\t') {
                 // We're looking for a tab character.
-                if content.chars().next() == Some('\t') {
+                if content.starts_with('\t') {
                     space_char_count = 1;
                 }
             } else {
@@ -507,7 +502,7 @@ pub fn outdent_line(app: &mut Application) -> Result {
 }
 
 pub fn toggle_line_comment(app: &mut Application) -> Result {
-    let mut buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+    let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
     let original_cursor = *buffer.cursor.clone();
 
     let comment_prefix = {
@@ -541,8 +536,8 @@ pub fn toggle_line_comment(app: &mut Application) -> Result {
     // Produce a collection of (<line number>, <line content>) tuples, but only for
     // non-empty lines.
     let lines: Vec<(usize, &str)> = line_numbers
-        .zip(buffer_range_content.split("\n"))     // produces (<line number>, <line content>)
-        .filter(|(_, line)| line.trim().len() > 0) // filter out any empty (non-whitespace-only) lines
+        .zip(buffer_range_content.split('\n'))     // produces (<line number>, <line content>)
+        .filter(|(_, line)| !line.trim().is_empty()) // filter out any empty (non-whitespace-only) lines
         .collect();
 
     // We look at all lines to see if they start with `comment_prefix` or not.
@@ -565,9 +560,9 @@ pub fn toggle_line_comment(app: &mut Application) -> Result {
     // insert/remove the comments, as a single operation.
     buffer.start_operation_group();
     if !toggle {
-        add_line_comment(&mut buffer, &lines, offset, &comment_prefix);
+        add_line_comment(buffer, &lines, offset, &comment_prefix);
     } else {
-        remove_line_comment(&mut buffer, &lines, &comment_prefix);
+        remove_line_comment(buffer, &lines, &comment_prefix);
     }
     buffer.end_operation_group();
 
@@ -862,7 +857,7 @@ pub fn format(app: &mut Application) -> Result {
         .ok_or(BUFFER_MISSING)?;
 
     let path = buf.path.as_ref().ok_or(BUFFER_PATH_MISSING)?;
-    let mut format_command = app.preferences.borrow().format_command(&path).ok_or(FORMAT_TOOL_MISSING)?;
+    let mut format_command = app.preferences.borrow().format_command(path).ok_or(FORMAT_TOOL_MISSING)?;
     let data = buf.data();
 
     // Run the command with the buffer path as an argument.
@@ -882,12 +877,14 @@ pub fn format(app: &mut Application) -> Result {
     // Reload buffer or propagate errors.
     if output.status.success() {
         let content = String::from_utf8(output.stdout).chain_err(|| "Failed to parse format tool output as UTF8")?;
-        Ok(buf.replace(content))
+        buf.replace(content);
+
+        Ok(())
     } else {
         let error = String::from_utf8(output.stderr)
             .unwrap_or(String::from("Failed to parse stderr output as UTF8"));
 
-        return Err(Error::from(error)).chain_err(|| format!("Format tool failed with code {}", output.status));
+        Err(Error::from(error)).chain_err(|| format!("Format tool failed with code {}", output.status))
     }
 }
 

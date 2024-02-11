@@ -20,20 +20,20 @@ pub fn accept(app: &mut Application) -> Result {
             (selection.command)(app)?;
         },
         Mode::Open(ref mut mode) => {
-            let &DisplayablePath(ref path) = mode
+            let DisplayablePath(path) = mode
                 .selection()
                 .ok_or("Couldn't find a selected path to open")?;
 
             let syntax_definition =
-                app.preferences.borrow().syntax_definition_name(&path).and_then(|name| {
+                app.preferences.borrow().syntax_definition_name(path).and_then(|name| {
                     app.workspace.syntax_set.find_syntax_by_name(&name).cloned()
                 });
 
             app.workspace
-                .open_buffer(&path)
+                .open_buffer(path)
                 .chain_err(|| "Couldn't open a buffer for the specified path.")?;
 
-            let mut buffer = app.workspace.current_buffer.as_mut().unwrap();
+            let buffer = app.workspace.current_buffer.as_mut().unwrap();
 
             // Only override the default syntax definition if the user provided
             // a valid one in their preferences.
@@ -41,7 +41,7 @@ pub fn accept(app: &mut Application) -> Result {
                 buffer.syntax_definition = syntax_definition;
             }
 
-            app.view.initialize_buffer(&mut buffer)?;
+            app.view.initialize_buffer(buffer)?;
 
         },
         Mode::Theme(ref mut mode) => {
@@ -62,9 +62,7 @@ pub fn accept(app: &mut Application) -> Result {
         Mode::Syntax(ref mut mode) => {
             let name = mode.selection().ok_or("No syntax selected")?;
             let syntax =
-                app.workspace.syntax_set.find_syntax_by_name(name).and_then(|s|
-                    Some(s.clone())
-                );
+                app.workspace.syntax_set.find_syntax_by_name(name).cloned();
             let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
             buffer.syntax_definition = syntax;
         },

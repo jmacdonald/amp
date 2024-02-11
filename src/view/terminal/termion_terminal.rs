@@ -217,7 +217,7 @@ impl Terminal for TermionTerminal {
 
     fn set_cursor(&self, position: Option<Position>) {
         if let Ok(mut output) = self.output.lock() {
-            output.as_mut().map(|t| {
+            if let Some(t) = output.as_mut() {
                 match position {
                     Some(ref pos) => {
                         let _ = write!(
@@ -229,19 +229,19 @@ impl Terminal for TermionTerminal {
                     },
                     None => { let _ = write!(t, "{}", cursor::Hide); },
                 }
-            });
+            }
         }
     }
 
     fn set_cursor_type(&self, cursor_type: CursorType) {
         if let Ok(mut output) = self.output.lock() {
-            output.as_mut().map(|t| {
+            if let Some(t) = output.as_mut() {
                 match cursor_type {
                     CursorType::Bar => { let _ = write!(t, "{}", cursor::SteadyBar); },
                     CursorType::BlinkingBar => { let _ = write!(t, "{}", cursor::BlinkingBar); },
                     CursorType::Block => { let _ = write!(t, "{}", cursor::SteadyBlock); },
                 }
-            });
+            }
         }
     }
 
@@ -332,7 +332,7 @@ fn terminal_size() -> (usize, usize) {
 }
 
 fn create_event_listener() -> Result<(Poll, Signals)> {
-    let signals = Signals::new(&[signal_hook::SIGWINCH])
+    let signals = Signals::new([signal_hook::SIGWINCH])
         .chain_err(|| "Failed to initialize event listener signal")?;
     let event_listener = Poll::new().chain_err(|| "Failed to establish polling")?;
     event_listener.register(

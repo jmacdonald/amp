@@ -11,7 +11,7 @@ pub fn handle_input(app: &mut Application) -> Result {
     // Listen for and respond to user input.
     let commands = app.view.last_key().as_ref().and_then(|key| {
         app.mode_str().and_then(|mode| {
-            app.preferences.borrow().keymap().commands_for(&mode, &key)
+            app.preferences.borrow().keymap().commands_for(mode, key)
         })
     });
 

@@ -47,7 +47,7 @@ impl<'a> Reflow<'a> {
         let mut pars = text.split("\n\n").peekable();
 
         let mut space_delims = ["".to_string(), " ".to_string(), "\n".to_string()];
-        if prefix != "" {
+        if !prefix.is_empty() {
         	space_delims[0] += prefix;
         	space_delims[0] += " ";
         	space_delims[2] += prefix;
@@ -56,11 +56,11 @@ impl<'a> Reflow<'a> {
         }
 
         while let Some(par) = pars.next() {
-        	let mut words = par.split_whitespace();
+        	let words = par.split_whitespace();
         	let mut len = 0;
         	let mut first = true;
 
-        	while let Some(word) = words.next() {
+        	for word in words {
         	    if word == prefix {
         		continue;
         	    }

@@ -54,7 +54,7 @@ pub struct Application {
 }
 
 impl Application {
-    pub fn new(args: &Vec<String>) -> Result<Application> {
+    pub fn new(args: &[String]) -> Result<Application> {
         let preferences = initialize_preferences();
 
         let (event_channel, events) = mpsc::channel();
@@ -70,7 +70,7 @@ impl Application {
             search_query: None,
             view,
             clipboard,
-            repository: Repository::discover(&env::current_dir()?).ok(),
+            repository: Repository::discover(env::current_dir()?).ok(),
             error: None,
             preferences,
             event_channel,
@@ -226,7 +226,7 @@ fn initialize_preferences() -> Rc<RefCell<Preferences>> {
     ))
 }
 
-fn create_workspace(view: &mut View, preferences: &Preferences, args: &Vec<String>) -> Result<Workspace> {
+fn create_workspace(view: &mut View, preferences: &Preferences, args: &[String]) -> Result<Workspace> {
     // Discard the executable portion of the argument list.
     let mut path_args = args.iter().skip(1).peekable();
 
@@ -244,7 +244,7 @@ fn create_workspace(view: &mut View, preferences: &Preferences, args: &Vec<Strin
     let syntax_path = user_syntax_path()?;
     let mut workspace = Workspace::new(
         &workspace_dir,
-        syntax_path.as_ref().map(|p| p.as_path())
+        syntax_path.as_deref()
     ).chain_err(|| WORKSPACE_INIT_FAILED)?;
 
     // If the first argument was a directory, we've navigated into
@@ -261,7 +261,7 @@ fn create_workspace(view: &mut View, preferences: &Preferences, args: &Vec<Strin
         // Check if the user has provided any syntax preference for this file.
         // If not, a default one will be applied on calling workspace.add_buffer()
         let syntax_definition =
-            preferences.syntax_definition_name(&path).and_then(|name| {
+            preferences.syntax_definition_name(path).and_then(|name| {
                 workspace.syntax_set.find_syntax_by_name(&name).cloned()
             });
 
@@ -295,7 +295,7 @@ fn create_workspace(view: &mut View, preferences: &Preferences, args: &Vec<Strin
 
 #[cfg(not(any(test, feature = "bench")))]
 fn user_syntax_path() -> Result<Option<PathBuf>> {
-    Preferences::syntax_path().map(|p| Some(p))
+    Preferences::syntax_path().map(Some)
 }
 
 // Building/linking user syntaxes is expensive, which is most obvious in the

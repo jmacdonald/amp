@@ -105,7 +105,7 @@ pub fn run(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
         // Search the buffer.
         let buffer = app.workspace.current_buffer.as_ref().ok_or(BUFFER_MISSING)?;
-        mode.search(&buffer)?;
+        mode.search(buffer)?;
     } else {
         bail!("Can't run search outside of search mode");
     }

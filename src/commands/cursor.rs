@@ -150,9 +150,9 @@ pub fn insert_with_newline_above(app: &mut Application) -> Result {
 }
 
 pub fn move_to_start_of_previous_token(app: &mut Application) -> Result {
-    if let Some(mut buffer) = app.workspace.current_buffer.as_mut() {
+    if let Some(buffer) = app.workspace.current_buffer.as_mut() {
         let position = adjacent_token_position(
-            &mut buffer,
+            buffer,
             false,
             Direction::Backward
         ).ok_or("Couldn't find previous token")?;
@@ -165,9 +165,9 @@ pub fn move_to_start_of_previous_token(app: &mut Application) -> Result {
 }
 
 pub fn move_to_start_of_next_token(app: &mut Application) -> Result {
-    if let Some(mut buffer) = app.workspace.current_buffer.as_mut() {
+    if let Some(buffer) = app.workspace.current_buffer.as_mut() {
         let position = adjacent_token_position(
-            &mut buffer,
+            buffer,
             false,
             Direction::Forward
         ).ok_or("Couldn't find next token")?;
@@ -180,9 +180,9 @@ pub fn move_to_start_of_next_token(app: &mut Application) -> Result {
 }
 
 pub fn move_to_end_of_current_token(app: &mut Application) -> Result {
-    if let Some(mut buffer) = app.workspace.current_buffer.as_mut() {
+    if let Some(buffer) = app.workspace.current_buffer.as_mut() {
         let position = adjacent_token_position(
-            &mut buffer,
+            buffer,
             true,
             Direction::Forward
         ).ok_or("Couldn't find next token")?;

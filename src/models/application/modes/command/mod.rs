@@ -37,7 +37,7 @@ impl fmt::Display for CommandMode {
 
 impl SearchSelectMode<DisplayableCommand> for CommandMode {
     fn search(&mut self) {
-        let commands: Vec<&'static str> = self.commands.keys().map(|k| *k).collect();
+        let commands: Vec<&'static str> = self.commands.keys().copied().collect();
 
         // Find the commands we're looking for using the query.
         let results = fragment::matching::find(

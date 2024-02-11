@@ -39,13 +39,14 @@ pub struct BufferRenderer<'a, 'p> {
 }
 
 impl<'a, 'p> BufferRenderer<'a, 'p> {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(buffer: &'a Buffer, highlights: Option<&'a [Range]>,
     scroll_offset: usize, terminal: &'a dyn Terminal, theme: &'a Theme,
     preferences: &'a Preferences,
     render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>,
     syntax_set: &'a SyntaxSet,
     terminal_buffer: &'a mut TerminalBuffer<'p>) -> BufferRenderer<'a, 'p> {
-        let line_numbers = LineNumbers::new(&buffer, Some(scroll_offset));
+        let line_numbers = LineNumbers::new(buffer, Some(scroll_offset));
         let gutter_width = line_numbers.width() + 1;
 
         // Build an initial style to start with,
@@ -162,7 +163,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
         (style, colors)
     }
 
-    pub fn print_lexeme<L: Into<Cow<'p, str>>>(&mut self, lexeme: L) {
+    fn print_lexeme<L: Into<Cow<'p, str>>>(&mut self, lexeme: L) {
         for character in lexeme.into().graphemes(true) {
             // Ignore newline characters.
             if character == "\n" { continue; }
@@ -225,7 +226,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
         // be handled as newlines are encountered.
         self.print_line_number();
 
-        let highlighter = Highlighter::new(&self.theme);
+        let highlighter = Highlighter::new(self.theme);
         let syntax_definition = self.buffer.syntax_definition.as_ref().ok_or("Buffer has no syntax definition")?;
 
         // Start or resume state from a previous cache point, if available.
@@ -241,7 +242,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
                     self.render_cache.borrow_mut().insert(line_no, state.clone());
                 }
 
-                let events = state.parse.parse_line(line, &self.syntax_set).chain_err(|| BUFFER_PARSE_FAILED)?;
+                let events = state.parse.parse_line(line, self.syntax_set).chain_err(|| BUFFER_PARSE_FAILED)?;
                 let styled_lexemes = HighlightIterator::new(
                     &mut state.highlight,
                     &events,

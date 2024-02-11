@@ -4,7 +4,9 @@ use crate::view::color::RGBColor;
 /// color combination. Provides generic/convenience variants to
 /// discourage color selection outside of the theme, whenever possible.
 #[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Default)]
 pub enum Colors {
+    #[default]
     Default,       // default/background
     Focused,       // default/alt background
     Inverted,      // background/default
@@ -18,8 +20,4 @@ pub enum Colors {
     Custom(RGBColor, RGBColor),
 }
 
-impl Default for Colors {
-    fn default() -> Self {
-        Colors::Default
-    }
-}
+

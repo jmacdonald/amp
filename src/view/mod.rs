@@ -66,7 +66,7 @@ impl View {
         })
     }
 
-    pub fn build_presenter<'a>(&'a mut self) -> Result<Presenter<'a>> {
+    pub fn build_presenter(&mut self) -> Result<Presenter<'_>> {
         Presenter::new(self)
     }
 
@@ -75,13 +75,13 @@ impl View {
     ///
 
     pub fn scroll_to_cursor(&mut self, buffer: &Buffer) -> Result<()> {
-        self.get_region(buffer)?.scroll_into_view(&buffer);
+        self.get_region(buffer)?.scroll_into_view(buffer);
 
         Ok(())
     }
 
     pub fn scroll_to_center(&mut self, buffer: &Buffer) -> Result<()> {
-        self.get_region(buffer)?.scroll_to_center(&buffer);
+        self.get_region(buffer)?.scroll_to_center(buffer);
 
         Ok(())
     }
