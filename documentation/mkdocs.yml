@@ -9,7 +9,7 @@ theme:
     accent: 'red'
 repo_name: 'jmacdonald/amp'
 repo_url: 'https://github.com/jmacdonald/amp'
-pages:
+nav:
   - 'index.md'
   - 'installation.md'
   - 'usage.md'

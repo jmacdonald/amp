@@ -91,6 +91,27 @@ This can be used to set the character (sequence) used by the `buffer::toggle_lin
 command for adding (or removing) single-line comments on a per-extension or per-file basis.
 An additional whitespace character will also be inserted between prefix and line content.
 
+### Format Tools
+```yaml
+types:
+  rs:
+    format_tool:
+      command: rustfmt
+      options: ["--edition", "2021"]
+      run_on_save: true
+```
+
+Many newer languages offer tools that automatically reformat code to conform to
+their official style guide. Amp can be configured to work with these tools by
+defining a type-specific `format_tool` setting, with the following behaviour:
+
+* `command`: executable (either in your $PATH or referenced absolutely)
+* `options`: array of command-line options, split by whitespace
+* `run_on_save`: whether to automatically run the configured tool on buffer save
+
+Once configured, you can run the format tool on open buffers matching the configured typed
+using `buffer::format` in [command mode](usage.md#running-commands).
+
 ## Key Bindings
 
 In Amp, key bindings are simple key/command associations, scoped to a specific mode. You can define custom key bindings by defining a keymap in your preferences file:
