@@ -10,10 +10,10 @@ pub struct Cell<'c> {
 
 impl<'c> Default for Cell<'c> {
     fn default() -> Self {
-        Cell{
+        Cell {
             content: " ".into(),
             colors: Colors::default(),
-            style: Style::default()
+            style: Style::default(),
         }
     }
 }

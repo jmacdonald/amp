@@ -13,8 +13,8 @@ impl<T> RenderCache for HashMap<usize, T> {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
     use super::RenderCache;
+    use std::collections::HashMap;
 
     #[test]
     fn invalidate_from_clears_entries_starting_from_specified_index() {

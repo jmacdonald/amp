@@ -1,10 +1,10 @@
-use crate::models::application::{Application, ClipboardContent, Mode};
-use scribe::buffer::{LineRange, Range};
 use super::application;
-use crate::errors::*;
 use crate::commands::{self, Result};
+use crate::errors::*;
+use crate::models::application::{Application, ClipboardContent, Mode};
 use crate::util;
 use crate::util::reflow::Reflow;
+use scribe::buffer::{LineRange, Range};
 
 pub fn delete(app: &mut Application) -> Result {
     let rng = sel_to_range(app)?;
@@ -51,28 +51,28 @@ pub fn select_all(app: &mut Application) -> Result {
 }
 
 fn copy_to_clipboard(app: &mut Application) -> Result {
-    let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+    let buffer = app
+        .workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?;
 
     match app.mode {
         Mode::Select(ref select_mode) => {
             let cursor_position = *buffer.cursor.clone();
             let selected_range = Range::new(cursor_position, select_mode.anchor);
 
-            let data = buffer.read(&selected_range.clone())
+            let data = buffer
+                .read(&selected_range.clone())
                 .ok_or("Couldn't read selected data from buffer")?;
             app.clipboard.set_content(ClipboardContent::Inline(data))?;
         }
         Mode::SelectLine(ref mode) => {
-            let selected_range = util::inclusive_range(
-                &LineRange::new(
-                    mode.anchor,
-                    buffer.cursor
-                    .line
-                ),
-                buffer
-            );
+            let selected_range =
+                util::inclusive_range(&LineRange::new(mode.anchor, buffer.cursor.line), buffer);
 
-            let data = buffer.read(&selected_range.clone())
+            let data = buffer
+                .read(&selected_range.clone())
                 .ok_or("Couldn't read selected data from buffer")?;
             app.clipboard.set_content(ClipboardContent::Block(data))?;
         }
@@ -87,8 +87,8 @@ pub fn justify(app: &mut Application) -> Result {
     let buffer = app.workspace.current_buffer.as_mut().unwrap();
 
     let limit = match app.preferences.borrow().line_length_guide() {
-    	Some(n) => n,
-    	None => bail!("Justification requires a line_length_guide."),
+        Some(n) => n,
+        None => bail!("Justification requires a line_length_guide."),
     };
 
     buffer.start_operation_group();
@@ -99,32 +99,28 @@ pub fn justify(app: &mut Application) -> Result {
 }
 
 fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
-    let buf = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+    let buf = app
+        .workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?;
 
     match app.mode {
-    	Mode::Select(ref mode) => {
-    	    let cursor_position = *buf.cursor.clone();
-    	    Ok(Range::new(cursor_position, mode.anchor))
-    	},
-    	Mode::SelectLine(ref mode) => {
-    	    Ok(util::inclusive_range(
-        		&LineRange::new(
-        		    mode.anchor,
-        		    buf.cursor.line
-        		),
-                buf
-    	    ))
-    	},
-    	Mode::Search(ref mode) => {
-    	    Ok(mode
-    		   .results
-    		   .as_ref()
-    		   .and_then(|r| r.selection())
-    		   .ok_or("A selection is required.")?
-    		   .clone()
-		   )
-    	}
-    	_ => bail!("A selection is required."),
+        Mode::Select(ref mode) => {
+            let cursor_position = *buf.cursor.clone();
+            Ok(Range::new(cursor_position, mode.anchor))
+        }
+        Mode::SelectLine(ref mode) => Ok(util::inclusive_range(
+            &LineRange::new(mode.anchor, buf.cursor.line),
+            buf,
+        )),
+        Mode::Search(ref mode) => Ok(mode
+            .results
+            .as_ref()
+            .and_then(|r| r.selection())
+            .ok_or("A selection is required.")?
+            .clone()),
+        _ => bail!("A selection is required."),
     }
 }
 
@@ -132,8 +128,8 @@ fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
 mod tests {
     use crate::commands;
     use crate::models::application::{Application, Mode};
-    use scribe::Buffer;
     use scribe::buffer::Position;
+    use scribe::Buffer;
 
     #[test]
     fn select_all_selects_the_entire_buffer() {
@@ -142,10 +138,7 @@ mod tests {
 
         // Insert data with indentation and move to the end of the line.
         buffer.insert("amp\neditor\nbuffer");
-        let position = Position {
-            line: 1,
-            offset: 3,
-        };
+        let position = Position { line: 1, offset: 3 };
         buffer.cursor.move_to(position);
 
         // Now that we've set up the buffer, add it
@@ -159,12 +152,15 @@ mod tests {
         match app.mode {
             Mode::SelectLine(ref mode) => {
                 assert_eq!(mode.anchor, 0);
-            },
-            _ => panic!("Application isn't in select line mode.")
+            }
+            _ => panic!("Application isn't in select line mode."),
         }
 
         // Ensure that the cursor is moved to the last line of the buffer.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().cursor.line, 2);
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().cursor.line,
+            2
+        );
     }
 
     #[test]
@@ -174,10 +170,7 @@ mod tests {
 
         // Insert data with indentation and move to the end of the line.
         buffer.insert("amp\neditor\nbuffer");
-        let position = Position {
-            line: 1,
-            offset: 0,
-        };
+        let position = Position { line: 1, offset: 0 };
         buffer.cursor.move_to(position);
 
         // Now that we've set up the buffer, add it
@@ -201,10 +194,7 @@ mod tests {
 
         // Insert data with indentation and move to the end of the line.
         buffer.insert("amp\neditor\nbuffer");
-        let position = Position {
-            line: 1,
-            offset: 0,
-        };
+        let position = Position { line: 1, offset: 0 };
         buffer.cursor.move_to(position);
 
         // Now that we've set up the buffer, add it
@@ -227,10 +217,7 @@ mod tests {
 
         // Insert data with indentation and move to the end of the line.
         buffer.insert("amp\neditor\nbuffer");
-        let position = Position {
-            line: 1,
-            offset: 0,
-        };
+        let position = Position { line: 1, offset: 0 };
         buffer.cursor.move_to(position);
 
         // Now that we've set up the buffer, add it

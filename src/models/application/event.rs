@@ -5,5 +5,5 @@ use crate::models::application::modes::open::Index;
 pub enum Event {
     Key(Key),
     Resize,
-    OpenModeIndexComplete(Index)
+    OpenModeIndexComplete(Index),
 }

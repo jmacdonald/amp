@@ -1,9 +1,9 @@
 use crate::errors::*;
 use crate::view::buffer::{BufferRenderer, LexemeMapper};
 use crate::view::color::{ColorMap, Colors};
-use crate::view::StatusLineData;
 use crate::view::style::Style;
 use crate::view::terminal::{Cell, CursorType, TerminalBuffer};
+use crate::view::StatusLineData;
 use crate::view::View;
 use scribe::buffer::{Buffer, Position, Range};
 use scribe::util::LineIterator;
@@ -27,20 +27,19 @@ impl<'p> Presenter<'p> {
         let theme = {
             let preferences = view.preferences.borrow();
             let theme_name = preferences.theme();
-            let theme = view.theme_set.themes
+            let theme = view
+                .theme_set
+                .themes
                 .get(theme_name)
                 .ok_or_else(|| format!("Couldn't find \"{}\" theme", theme_name))?;
             theme.clone()
         };
 
-        Ok(Presenter{
+        Ok(Presenter {
             cursor_position: None,
-            terminal_buffer: TerminalBuffer::new(
-                view.terminal.width(),
-                view.terminal.height(),
-            ),
+            terminal_buffer: TerminalBuffer::new(view.terminal.width(), view.terminal.height()),
             theme,
-            view
+            view,
         })
     }
 
@@ -79,9 +78,14 @@ impl<'p> Presenter<'p> {
         Ok(())
     }
 
-    pub fn print_buffer(&mut self, buffer: &Buffer, buffer_data: &'p str,
-    syntax_set: &'p SyntaxSet, highlights: Option<&[Range]>,
-    lexeme_mapper: Option<&'p mut dyn LexemeMapper>) -> Result<()> {
+    pub fn print_buffer(
+        &mut self,
+        buffer: &Buffer,
+        buffer_data: &'p str,
+        syntax_set: &'p SyntaxSet,
+        highlights: Option<&[Range]>,
+        lexeme_mapper: Option<&'p mut dyn LexemeMapper>,
+    ) -> Result<()> {
         let scroll_offset = self.view.get_region(buffer)?.line_offset();
         let lines = LineIterator::new(buffer_data);
 
@@ -94,8 +98,9 @@ impl<'p> Presenter<'p> {
             &self.view.preferences.borrow(),
             self.view.get_render_cache(buffer)?,
             syntax_set,
-            &mut self.terminal_buffer
-        ).render(lines, lexeme_mapper)?;
+            &mut self.terminal_buffer,
+        )
+        .render(lines, lexeme_mapper)?;
 
         Ok(())
     }
@@ -103,54 +108,62 @@ impl<'p> Presenter<'p> {
     pub fn print_status_line(&mut self, entries: &[StatusLineData]) {
         let line = self.view.terminal.height() - 1;
 
-        entries.iter().enumerate().fold(0, |offset, (index, element)| {
-            let content = match entries.len() {
-                // There's only one element; have it fill the line.
-                1 => format!(
-                    "{:width$}",
-                    element.content,
-                    width = self.view.terminal.width(),
-                ),
-
-                // Expand the last element to fill the remaining width.
-                2 if index == entries.len() - 1 => format!(
-                    "{:width$}",
-                    element.content,
-                    width = self.view.terminal.width().saturating_sub(offset),
-                ),
-                2 => element.content.clone(),
-
-                _ if index == entries.len() - 2 => {
-                    let space = offset + entries[index+1].content.len();
-                    format!(
+        entries
+            .iter()
+            .enumerate()
+            .fold(0, |offset, (index, element)| {
+                let content = match entries.len() {
+                    // There's only one element; have it fill the line.
+                    1 => format!(
                         "{:width$}",
                         element.content,
-                        width = self.view.terminal.width().saturating_sub(space),
-                    )
-                },
-                _ => element.content.clone(),
-            };
+                        width = self.view.terminal.width(),
+                    ),
 
-            // Update the tracked offset.
-            let updated_offset = offset + content.len();
+                    // Expand the last element to fill the remaining width.
+                    2 if index == entries.len() - 1 => format!(
+                        "{:width$}",
+                        element.content,
+                        width = self.view.terminal.width().saturating_sub(offset),
+                    ),
+                    2 => element.content.clone(),
 
-            self.print(
-                &Position{ line, offset },
-                element.style,
-                element.colors,
-                content
-            );
+                    _ if index == entries.len() - 2 => {
+                        let space = offset + entries[index + 1].content.len();
+                        format!(
+                            "{:width$}",
+                            element.content,
+                            width = self.view.terminal.width().saturating_sub(space),
+                        )
+                    }
+                    _ => element.content.clone(),
+                };
 
-            updated_offset
-        });
+                // Update the tracked offset.
+                let updated_offset = offset + content.len();
+
+                self.print(
+                    &Position { line, offset },
+                    element.style,
+                    element.colors,
+                    content,
+                );
+
+                updated_offset
+            });
     }
 
     pub fn print<C>(&mut self, position: &Position, style: Style, colors: Colors, content: C)
-        where C: Into<Cow<'p, str>>
+    where
+        C: Into<Cow<'p, str>>,
     {
         self.terminal_buffer.set_cell(
             *position,
-            Cell{ content: content.into(), style, colors }
+            Cell {
+                content: content.into(),
+                style,
+                colors,
+            },
         );
     }
 }
@@ -187,25 +200,32 @@ mod tests {
         workspace.add_buffer(buffer);
 
         // Scroll down enough to trigger caching during the render process.
-        view.scroll_down(workspace.current_buffer.as_ref().unwrap(), 105).unwrap();
+        view.scroll_down(workspace.current_buffer.as_ref().unwrap(), 105)
+            .unwrap();
 
         // Ensure there is nothing in the render cache for this buffer.
-        let mut cache = view.get_render_cache(workspace.current_buffer.as_ref().unwrap()).unwrap();
+        let mut cache = view
+            .get_render_cache(workspace.current_buffer.as_ref().unwrap())
+            .unwrap();
         assert_eq!(cache.borrow().iter().count(), 0);
 
         // Draw the buffer.
         let mut presenter = view.build_presenter().unwrap();
         let data = workspace.current_buffer.as_ref().unwrap().data();
-        presenter.print_buffer(
-            workspace.current_buffer.as_ref().unwrap(),
-            &data,
-            &workspace.syntax_set,
-            None,
-            None
-        ).unwrap();
+        presenter
+            .print_buffer(
+                workspace.current_buffer.as_ref().unwrap(),
+                &data,
+                &workspace.syntax_set,
+                None,
+                None,
+            )
+            .unwrap();
 
         // Ensure there is something in the render cache for this buffer.
-        cache = view.get_render_cache(workspace.current_buffer.as_ref().unwrap()).unwrap();
+        cache = view
+            .get_render_cache(workspace.current_buffer.as_ref().unwrap())
+            .unwrap();
         assert_ne!(cache.borrow().iter().count(), 0);
     }
 }

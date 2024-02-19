@@ -1,13 +1,13 @@
 mod displayable_command;
 
-use fragment;
+pub use self::displayable_command::DisplayableCommand;
+use crate::commands::{self, Command};
+use crate::models::application::modes::{SearchSelectConfig, SearchSelectMode};
 use crate::util::SelectableVec;
+use fragment;
 use std::collections::HashMap;
 use std::fmt;
 use std::slice::Iter;
-use crate::models::application::modes::{SearchSelectMode, SearchSelectConfig};
-use crate::commands::{self, Command};
-pub use self::displayable_command::DisplayableCommand;
 
 pub struct CommandMode {
     insert: bool,
@@ -40,26 +40,22 @@ impl SearchSelectMode<DisplayableCommand> for CommandMode {
         let commands: Vec<&'static str> = self.commands.keys().copied().collect();
 
         // Find the commands we're looking for using the query.
-        let results = fragment::matching::find(
-            &self.input,
-            &commands,
-            self.config.max_results
-        );
+        let results = fragment::matching::find(&self.input, &commands, self.config.max_results);
 
         // We don't care about the result objects; we just want
         // the underlying commands. Map the collection to get these.
         self.results = SelectableVec::new(
             results
-            .into_iter()
-            .filter_map(|result| {
-                self.commands.get(*result).map(|command| {
-                    DisplayableCommand{
-                      description: *result,
-                      command: *command
-                    }
+                .into_iter()
+                .filter_map(|result| {
+                    self.commands
+                        .get(*result)
+                        .map(|command| DisplayableCommand {
+                            description: *result,
+                            command: *command,
+                        })
                 })
-            })
-            .collect()
+                .collect(),
         );
     }
 

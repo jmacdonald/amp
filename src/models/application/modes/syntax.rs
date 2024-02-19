@@ -1,8 +1,8 @@
-use fragment;
+use crate::models::application::modes::{SearchSelectConfig, SearchSelectMode};
 use crate::util::SelectableVec;
+use fragment;
 use std::fmt;
 use std::slice::Iter;
-use crate::models::application::modes::{SearchSelectMode, SearchSelectConfig};
 
 pub struct SyntaxMode {
     insert: bool,
@@ -33,20 +33,12 @@ impl fmt::Display for SyntaxMode {
 impl SearchSelectMode<String> for SyntaxMode {
     fn search(&mut self) {
         // Find the themes we're looking for using the query.
-        let results = fragment::matching::find(
-            &self.input,
-            &self.syntaxes,
-            self.config.max_results
-        );
+        let results =
+            fragment::matching::find(&self.input, &self.syntaxes, self.config.max_results);
 
         // We don't care about the result objects; we just want
         // the underlying symbols. Map the collection to get these.
-        self.results = SelectableVec::new(
-            results
-            .into_iter()
-            .map(|r| r.clone())
-            .collect()
-        );
+        self.results = SelectableVec::new(results.into_iter().map(|r| r.clone()).collect());
     }
 
     fn query(&mut self) -> &mut String {

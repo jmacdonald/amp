@@ -55,8 +55,8 @@ impl Clipboard {
                         } else {
                             // There is system clipboard content we can use.
                             match self.content {
-                                ClipboardContent::Inline(ref app_content) |
-                                ClipboardContent::Block(ref app_content) => {
+                                ClipboardContent::Inline(ref app_content)
+                                | ClipboardContent::Block(ref app_content) => {
                                     // We have in-app clipboard content, too. Prefer
                                     // the system clipboard content if they differ.
                                     if content != *app_content {
@@ -91,8 +91,8 @@ impl Clipboard {
 
         // Update the system clipboard.
         match self.content {
-            ClipboardContent::Inline(ref app_content) |
-            ClipboardContent::Block(ref app_content) => {
+            ClipboardContent::Inline(ref app_content)
+            | ClipboardContent::Block(ref app_content) => {
                 if let Some(ref mut clipboard) = self.system_clipboard {
                     return clipboard
                         .set_contents(app_content.clone())

@@ -1,15 +1,15 @@
+use crate::errors::*;
+use crate::models::application::modes::{SearchSelectConfig, SearchSelectMode};
+use crate::util::SelectableVec;
 use fragment;
 use fragment::matching::AsStr;
 use scribe::buffer::{Position, Token, TokenSet};
-use syntect::highlighting::ScopeSelectors;
-use crate::errors::*;
-use crate::util::SelectableVec;
+use std::clone::Clone;
 use std::fmt;
 use std::iter::Iterator;
-use std::clone::Clone;
-use std::str::FromStr;
 use std::slice::Iter;
-use crate::models::application::modes::{SearchSelectMode, SearchSelectConfig};
+use std::str::FromStr;
+use syntect::highlighting::ScopeSelectors;
 
 pub struct SymbolJumpMode {
     insert: bool,
@@ -33,7 +33,10 @@ impl fmt::Display for Symbol {
 
 impl Clone for Symbol {
     fn clone(&self) -> Symbol {
-        Symbol{ token: self.token.clone(), position: self.position }
+        Symbol {
+            token: self.token.clone(),
+            position: self.position,
+        }
     }
 
     fn clone_from(&mut self, source: &Self) {
@@ -115,68 +118,67 @@ impl SearchSelectMode<Symbol> for SymbolJumpMode {
     }
 }
 
-fn symbols<'a, T>(tokens: T) -> Vec<Symbol> where T: Iterator<Item=Token<'a>> {
-    let eligible_scopes = ScopeSelectors::from_str(
-        "entity.name.function, entity.name.class, entity.name.struct"
-    ).unwrap();
-    tokens.filter_map(|token| {
-          if let Token::Lexeme(lexeme) = token {
-              // Build a symbol, provided it's of the right type.
-              if eligible_scopes.does_match(lexeme.scope.as_slice()).is_some() {
-                  return Some(Symbol {
-                      token: lexeme.value.to_string(),
-                      position: lexeme.position,
-                  })
-              }
-          }
+fn symbols<'a, T>(tokens: T) -> Vec<Symbol>
+where
+    T: Iterator<Item = Token<'a>>,
+{
+    let eligible_scopes =
+        ScopeSelectors::from_str("entity.name.function, entity.name.class, entity.name.struct")
+            .unwrap();
+    tokens
+        .filter_map(|token| {
+            if let Token::Lexeme(lexeme) = token {
+                // Build a symbol, provided it's of the right type.
+                if eligible_scopes
+                    .does_match(lexeme.scope.as_slice())
+                    .is_some()
+                {
+                    return Some(Symbol {
+                        token: lexeme.value.to_string(),
+                        position: lexeme.position,
+                    });
+                }
+            }
 
-          None
-    }).collect()
+            None
+        })
+        .collect()
 }
 
 #[cfg(test)]
 mod tests {
+    use super::{symbols, Symbol};
     use scribe::buffer::{Lexeme, Position, ScopeStack, Token};
     use std::str::FromStr;
-    use super::{Symbol, symbols};
 
     #[test]
     fn symbols_are_limited_to_functions() {
         let tokens = vec![
-            Token::Lexeme(
-                Lexeme{
-                    value: "text",
-                    position: Position{
-                        line: 0,
-                        offset: 0
-                    },
-                    scope: ScopeStack::from_str("meta.block.rust").unwrap()
-                }
-            ),
-            Token::Lexeme(
-                Lexeme{
-                    value: "function",
-                    position: Position{
-                        line: 1,
-                        offset: 0
-                    },
-                    scope: ScopeStack::from_str("entity.name.function").unwrap()
-                }
-            ),
-            Token::Lexeme(
-                Lexeme{
-                    value: "non-function",
-                    position: Position{
-                        line: 2,
-                        offset: 0
-                    },
-                    scope: ScopeStack::from_str("meta.entity.name.function").unwrap()
-                }
-            )
+            Token::Lexeme(Lexeme {
+                value: "text",
+                position: Position { line: 0, offset: 0 },
+                scope: ScopeStack::from_str("meta.block.rust").unwrap(),
+            }),
+            Token::Lexeme(Lexeme {
+                value: "function",
+                position: Position { line: 1, offset: 0 },
+                scope: ScopeStack::from_str("entity.name.function").unwrap(),
+            }),
+            Token::Lexeme(Lexeme {
+                value: "non-function",
+                position: Position { line: 2, offset: 0 },
+                scope: ScopeStack::from_str("meta.entity.name.function").unwrap(),
+            }),
         ];
 
         let results = symbols(tokens.into_iter());
         assert_eq!(results.len(), 1);
-        assert_eq!(results.first().unwrap(), &Symbol{ token: "function".to_string(), position: Position{ line: 1, offset: 0 }});
+        assert_eq!(
+            results.first().unwrap(),
+            &Symbol {
+                token: "function".to_string(),
+                position: Position { line: 1, offset: 0 }
+            }
+        );
     }
 }

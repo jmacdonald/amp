@@ -1,8 +1,8 @@
-use std::sync::Arc;
-use scribe::buffer::Buffer;
-use unicode_segmentation::UnicodeSegmentation;
 use crate::view::buffer::LineNumbers;
 use crate::view::terminal::Terminal;
+use scribe::buffer::Buffer;
+use std::sync::Arc;
+use unicode_segmentation::UnicodeSegmentation;
 
 /// Abstract representation of a fixed-height section of the screen.
 /// Used to determine visible ranges of lines based on previous state,
@@ -30,9 +30,8 @@ impl ScrollableRegion {
         } else {
             // Calculate and apply the absolute line
             // offset based on the cursor location.
-            let starting_line = (buffer.cursor.line).saturating_sub(
-                self.preceding_line_count(buffer, self.height())
-            );
+            let starting_line = (buffer.cursor.line)
+                .saturating_sub(self.preceding_line_count(buffer, self.height()));
 
             if starting_line > self.line_offset {
                 self.line_offset = starting_line;
@@ -44,9 +43,10 @@ impl ScrollableRegion {
     pub fn scroll_to_center(&mut self, buffer: &Buffer) {
         let limit = (self.height() as f32 / 2.0).ceil() as usize;
 
-        self.line_offset = buffer.cursor.line.saturating_sub(
-            self.preceding_line_count(buffer, limit)
-        );
+        self.line_offset = buffer
+            .cursor
+            .line
+            .saturating_sub(self.preceding_line_count(buffer, limit));
     }
 
     /// The number of lines the region has scrolled over.
@@ -133,7 +133,7 @@ mod tests {
         let mut buffer = Buffer::new();
         let mut region = ScrollableRegion::new(terminal);
         buffer.insert("\n\n");
-        buffer.cursor.move_to(Position{ line: 2, offset: 0 });
+        buffer.cursor.move_to(Position { line: 2, offset: 0 });
         region.scroll_into_view(&buffer);
         assert_eq!(region.line_offset(), 0);
     }
@@ -146,7 +146,10 @@ mod tests {
         for _ in 0..10 {
             buffer.insert("\n");
         }
-        buffer.cursor.move_to(Position{ line: 10, offset: 0 });
+        buffer.cursor.move_to(Position {
+            line: 10,
+            offset: 0,
+        });
         region.scroll_into_view(&buffer);
         assert_eq!(region.line_offset(), 2);
     }
@@ -159,7 +162,7 @@ mod tests {
         for _ in 0..10 {
             buffer.insert("word \n");
         }
-        buffer.cursor.move_to(Position{ line: 9, offset: 0 });
+        buffer.cursor.move_to(Position { line: 9, offset: 0 });
         region.scroll_into_view(&buffer);
         assert_eq!(region.line_offset(), 1);
     }
@@ -173,7 +176,7 @@ mod tests {
         for _ in 0..5 {
             buffer.insert("\n");
         }
-        buffer.cursor.move_to(Position{ line: 5, offset: 0 });
+        buffer.cursor.move_to(Position { line: 5, offset: 0 });
         region.scroll_into_view(&buffer);
         assert_eq!(region.line_offset(), 5);
     }
@@ -186,7 +189,7 @@ mod tests {
         for _ in 0..10 {
             buffer.insert("\n");
         }
-        buffer.cursor.move_to(Position{ line: 9, offset: 0 });
+        buffer.cursor.move_to(Position { line: 9, offset: 0 });
         region.scroll_into_view(&buffer);
         assert_eq!(region.line_offset(), 1);
     }
@@ -205,7 +208,7 @@ mod tests {
             buffer.insert("       \n");
         }
 
-        buffer.cursor.move_to(Position{ line: 5, offset: 0 });
+        buffer.cursor.move_to(Position { line: 5, offset: 0 });
         region.scroll_into_view(&buffer);
         assert_eq!(region.line_offset(), 1);
     }
@@ -223,7 +226,7 @@ mod tests {
             // are considered, which eat into terminal space.
             buffer.insert("       \n");
         }
-        buffer.cursor.move_to(Position{ line: 5, offset: 0 });
+        buffer.cursor.move_to(Position { line: 5, offset: 0 });
         region.scroll_into_view(&buffer);
         assert_eq!(region.line_offset(), 2);
     }
@@ -236,7 +239,10 @@ mod tests {
         for _ in 0..20 {
             buffer.insert("\n");
         }
-        buffer.cursor.move_to(Position{ line: 20, offset: 0 });
+        buffer.cursor.move_to(Position {
+            line: 20,
+            offset: 0,
+        });
         region.scroll_to_center(&buffer);
         assert_eq!(region.line_offset(), 16);
     }
@@ -262,7 +268,7 @@ mod tests {
             buffer.insert("       \n");
         }
         // Insert non-wrapped lines below.
-        buffer.cursor.move_to(Position{ line: 4, offset: 0 });
+        buffer.cursor.move_to(Position { line: 4, offset: 0 });
         for _ in 0..6 {
             buffer.insert("\n");
         }
@@ -277,7 +283,7 @@ mod tests {
         for _ in 0..6 {
             buffer.insert("\n");
         }
-        buffer.cursor.move_to(Position{ line: 5, offset: 0 });
+        buffer.cursor.move_to(Position { line: 5, offset: 0 });
         let mut region = ScrollableRegion::new(terminal);
         region.scroll_to_center(&buffer);
         assert_eq!(region.line_offset(), 1);

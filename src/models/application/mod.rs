@@ -12,15 +12,15 @@ use self::clipboard::Clipboard;
 use self::modes::*;
 use crate::commands;
 use crate::errors::*;
-use git2::Repository;
 use crate::presenters;
+use crate::view::View;
+use git2::Repository;
 use scribe::{Buffer, Workspace};
 use std::cell::RefCell;
 use std::env;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender};
-use crate::view::View;
 
 pub enum Mode {
     Confirm(ConfirmMode),
@@ -177,31 +177,41 @@ impl Application {
 
     pub fn mode_str(&self) -> Option<&'static str> {
         match self.mode {
-            Mode::Command(ref mode) => if mode.insert_mode() {
-                Some("search_select_insert")
-            } else {
-                Some("search_select")
-            },
-            Mode::SymbolJump(ref mode) => if mode.insert_mode() {
-                Some("search_select_insert")
-            } else {
-                Some("search_select")
-            },
-            Mode::Open(ref mode) => if mode.insert_mode() {
-                Some("search_select_insert")
-            } else {
-                Some("search_select")
-            },
-            Mode::Theme(ref mode) => if mode.insert_mode() {
-                Some("search_select_insert")
-            } else {
-                Some("search_select")
-            },
-            Mode::Syntax(ref mode) => if mode.insert_mode() {
-                Some("search_select_insert")
-            } else {
-                Some("search_select")
-            },
+            Mode::Command(ref mode) => {
+                if mode.insert_mode() {
+                    Some("search_select_insert")
+                } else {
+                    Some("search_select")
+                }
+            }
+            Mode::SymbolJump(ref mode) => {
+                if mode.insert_mode() {
+                    Some("search_select_insert")
+                } else {
+                    Some("search_select")
+                }
+            }
+            Mode::Open(ref mode) => {
+                if mode.insert_mode() {
+                    Some("search_select_insert")
+                } else {
+                    Some("search_select")
+                }
+            }
+            Mode::Theme(ref mode) => {
+                if mode.insert_mode() {
+                    Some("search_select_insert")
+                } else {
+                    Some("search_select")
+                }
+            }
+            Mode::Syntax(ref mode) => {
+                if mode.insert_mode() {
+                    Some("search_select_insert")
+                } else {
+                    Some("search_select")
+                }
+            }
             Mode::Normal => Some("normal"),
             Mode::Path(_) => Some("path"),
             Mode::Confirm(_) => Some("confirm"),
@@ -210,11 +220,13 @@ impl Application {
             Mode::LineJump(_) => Some("line_jump"),
             Mode::Select(_) => Some("select"),
             Mode::SelectLine(_) => Some("select_line"),
-            Mode::Search(ref mode) => if mode.insert_mode() {
-                Some("search_insert")
-            } else {
-                Some("search")
-            },
+            Mode::Search(ref mode) => {
+                if mode.insert_mode() {
+                    Some("search_insert")
+                } else {
+                    Some("search")
+                }
+            }
             Mode::Exit => None,
         }
     }
@@ -226,7 +238,11 @@ fn initialize_preferences() -> Rc<RefCell<Preferences>> {
     ))
 }
 
-fn create_workspace(view: &mut View, preferences: &Preferences, args: &[String]) -> Result<Workspace> {
+fn create_workspace(
+    view: &mut View,
+    preferences: &Preferences,
+    args: &[String],
+) -> Result<Workspace> {
     // Discard the executable portion of the argument list.
     let mut path_args = args.iter().skip(1).peekable();
 
@@ -242,28 +258,29 @@ fn create_workspace(view: &mut View, preferences: &Preferences, args: &[String])
 
     let workspace_dir = env::current_dir()?;
     let syntax_path = user_syntax_path()?;
-    let mut workspace = Workspace::new(
-        &workspace_dir,
-        syntax_path.as_deref()
-    ).chain_err(|| WORKSPACE_INIT_FAILED)?;
+    let mut workspace = Workspace::new(&workspace_dir, syntax_path.as_deref())
+        .chain_err(|| WORKSPACE_INIT_FAILED)?;
 
     // If the first argument was a directory, we've navigated into
     // it; skip it before evaluating file args, lest we interpret
     // it again as a non-existent file and create a buffer for it.
-    if workspace_dir != initial_dir { path_args.next(); }
+    if workspace_dir != initial_dir {
+        path_args.next();
+    }
 
     // Try to open specified files.
     for path_arg in path_args {
         let path = Path::new(&path_arg);
 
-        if path.is_dir() { continue; }
+        if path.is_dir() {
+            continue;
+        }
 
         // Check if the user has provided any syntax preference for this file.
         // If not, a default one will be applied on calling workspace.add_buffer()
-        let syntax_definition =
-            preferences.syntax_definition_name(path).and_then(|name| {
-                workspace.syntax_set.find_syntax_by_name(&name).cloned()
-            });
+        let syntax_definition = preferences
+            .syntax_definition_name(path)
+            .and_then(|name| workspace.syntax_set.find_syntax_by_name(&name).cloned());
 
         // Open the specified path if it exists, or
         // create a new buffer pointing to it if it doesn't.
@@ -308,17 +325,17 @@ fn user_syntax_path() -> Result<Option<PathBuf>> {
 
 #[cfg(test)]
 mod tests {
+    use super::preferences::Preferences;
     use super::Application;
     use crate::view::View;
-    use super::preferences::Preferences;
 
-    use yaml_rust::YamlLoader;
     use scribe::Buffer;
     use std::cell::RefCell;
     use std::env;
     use std::path::Path;
     use std::rc::Rc;
     use std::sync::mpsc;
+    use yaml_rust::YamlLoader;
 
     #[test]
     fn application_uses_file_arguments_to_load_contents_into_buffers_when_files_exist() {
@@ -331,7 +348,12 @@ mod tests {
             buffer.path
         );
         assert_eq!(
-            application.workspace.current_buffer.as_ref().unwrap().data(),
+            application
+                .workspace
+                .current_buffer
+                .as_ref()
+                .unwrap()
+                .data(),
             buffer.data()
         );
     }
@@ -345,11 +367,20 @@ mod tests {
             application.workspace.current_buffer.as_ref().unwrap().path,
             Some(env::current_dir().unwrap().join("non_existent_file"))
         );
-        assert_eq!(application.workspace.current_buffer.as_ref().unwrap().data(), "");
+        assert_eq!(
+            application
+                .workspace
+                .current_buffer
+                .as_ref()
+                .unwrap()
+                .data(),
+            ""
+        );
     }
 
     #[test]
-    fn create_workspace_correctly_applies_user_defined_syntax_when_opening_buffer_from_command_line() {
+    fn create_workspace_correctly_applies_user_defined_syntax_when_opening_buffer_from_command_line(
+    ) {
         let data = YamlLoader::load_from_str("types:\n  xyz:\n    syntax: Rust").unwrap();
         let preferences = Rc::new(RefCell::new(Preferences::new(data.into_iter().nth(0))));
         let (event_channel, _) = mpsc::channel();
@@ -359,7 +390,14 @@ mod tests {
         let workspace = super::create_workspace(&mut view, &preferences.borrow(), &args).unwrap();
 
         assert_eq!(
-            workspace.current_buffer.as_ref().unwrap().syntax_definition.as_ref().unwrap().name,
+            workspace
+                .current_buffer
+                .as_ref()
+                .unwrap()
+                .syntax_definition
+                .as_ref()
+                .unwrap()
+                .name,
             "Rust"
         );
     }

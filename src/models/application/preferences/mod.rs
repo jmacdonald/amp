@@ -1,15 +1,15 @@
-use app_dirs2::{app_dir, app_root, get_app_root, AppDataType, AppInfo};
-use bloodhound::ExclusionPattern;
 use crate::errors::*;
 use crate::input::KeyMap;
 use crate::models::application::modes::open;
+use crate::models::application::modes::SearchSelectConfig;
+use app_dirs2::{app_dir, app_root, get_app_root, AppDataType, AppInfo};
+use bloodhound::ExclusionPattern;
 use scribe::Buffer;
 use std::fs::OpenOptions;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process;
 use yaml_rust::yaml::{Hash, Yaml, YamlLoader};
-use crate::models::application::modes::SearchSelectConfig;
 
 const APP_INFO: AppInfo = AppInfo {
     name: "amp",
@@ -48,7 +48,7 @@ impl Preferences {
             default: load_default_document().expect("Failed to load default preferences!"),
             data,
             keymap: KeyMap::default().expect("Failed to load default keymap!"),
-            theme: None
+            theme: None,
         }
     }
 
@@ -56,20 +56,21 @@ impl Preferences {
     pub fn load() -> Result<Preferences> {
         let default = load_default_document()?;
         let data = load_document()?;
-        let keymap = load_keymap(
-            data.as_ref().and_then(|data| data["keymap"].as_hash())
-        )?;
+        let keymap = load_keymap(data.as_ref().and_then(|data| data["keymap"].as_hash()))?;
 
-        Ok(Preferences { default, data, keymap, theme: None })
+        Ok(Preferences {
+            default,
+            data,
+            keymap,
+            theme: None,
+        })
     }
 
     /// Reloads all user preferences from disk and merges them with defaults.
     pub fn reload(&mut self) -> Result<()> {
         let default = load_default_document()?;
         let data = load_document()?;
-        let keymap = load_keymap(
-            data.as_ref().and_then(|data| data["keymap"].as_hash())
-        )?;
+        let keymap = load_keymap(data.as_ref().and_then(|data| data["keymap"].as_hash()))?;
 
         self.default = default;
         self.data = data;
@@ -102,9 +103,8 @@ impl Preferences {
     /// if they don't already exist.
     pub fn edit() -> Result<Buffer> {
         // Build the path, creating parent directories, if required.
-        let mut config_path =
-            app_root(AppDataType::UserConfig, &APP_INFO)
-                .chain_err(|| "Couldn't create or open application config directory")?;
+        let mut config_path = app_root(AppDataType::UserConfig, &APP_INFO)
+            .chain_err(|| "Couldn't create or open application config directory")?;
         config_path.push(FILE_NAME);
 
         // Load the buffer, falling back to a
@@ -120,17 +120,23 @@ impl Preferences {
     /// the configuration file, and then the default value.
     pub fn theme(&self) -> &str {
         // Return the mutable in-memory value, if set.
-        if let Some(ref theme) = self.theme { return theme; }
+        if let Some(ref theme) = self.theme {
+            return theme;
+        }
 
         self.data
             .as_ref()
-            .and_then(|data| if let Yaml::String(ref theme) = data[THEME_KEY] {
-                          Some(theme.as_str())
-                      } else {
-                          None
-                      })
+            .and_then(|data| {
+                if let Yaml::String(ref theme) = data[THEME_KEY] {
+                    Some(theme.as_str())
+                } else {
+                    None
+                }
+            })
             .unwrap_or_else(|| {
-                self.default[THEME_KEY].as_str().expect("Couldn't find default theme name!")
+                self.default[THEME_KEY]
+                    .as_str()
+                    .expect("Couldn't find default theme name!")
             })
     }
 
@@ -162,7 +168,8 @@ impl Preferences {
                 None
             })
             .unwrap_or_else(|| {
-                self.default[TAB_WIDTH_KEY].as_i64()
+                self.default[TAB_WIDTH_KEY]
+                    .as_i64()
                     .expect("Couldn't find default tab width setting!") as usize
             })
     }
@@ -194,7 +201,8 @@ impl Preferences {
                 None
             })
             .unwrap_or_else(|| {
-                self.default[SOFT_TABS_KEY].as_bool()
+                self.default[SOFT_TABS_KEY]
+                    .as_bool()
                     .expect("Couldn't find default soft tabs setting!")
             })
     }
@@ -203,32 +211,35 @@ impl Preferences {
         self.data
             .as_ref()
             .and_then(|data| match data[LINE_LENGTH_GUIDE_KEY] {
-                          Yaml::Integer(line_length) => Some(line_length as usize),
-                          Yaml::Boolean(line_length_guide) => {
-                              let default = self.default[LINE_LENGTH_GUIDE_KEY].as_i64()
-                                  .expect("Couldn't find default line length guide setting!");
+                Yaml::Integer(line_length) => Some(line_length as usize),
+                Yaml::Boolean(line_length_guide) => {
+                    let default = self.default[LINE_LENGTH_GUIDE_KEY]
+                        .as_i64()
+                        .expect("Couldn't find default line length guide setting!");
 
-                              if line_length_guide {
-                                  Some(default as usize)
-                              } else {
-                                  None
-                              }
-                          }
-                          _ => None,
-                      })
-
+                    if line_length_guide {
+                        Some(default as usize)
+                    } else {
+                        None
+                    }
+                }
+                _ => None,
+            })
     }
 
     pub fn line_wrapping(&self) -> bool {
         self.data
             .as_ref()
-            .and_then(|data| if let Yaml::Boolean(wrapping) = data[LINE_WRAPPING_KEY] {
-                          Some(wrapping)
-                      } else {
-                          None
-                      })
+            .and_then(|data| {
+                if let Yaml::Boolean(wrapping) = data[LINE_WRAPPING_KEY] {
+                    Some(wrapping)
+                } else {
+                    None
+                }
+            })
             .unwrap_or_else(|| {
-                self.default[LINE_WRAPPING_KEY].as_bool()
+                self.default[LINE_WRAPPING_KEY]
+                    .as_bool()
                     .expect("Couldn't find default line wrapping setting!")
             })
     }
@@ -242,17 +253,16 @@ impl Preferences {
     }
 
     pub fn open_mode_exclusions(&self) -> Result<Option<Vec<ExclusionPattern>>> {
-        let exclusion_data = self.data
+        let exclusion_data = self
+            .data
             .as_ref()
             .map(|data| &data[OPEN_MODE_KEY][OPEN_MODE_EXCLUSIONS_KEY]);
 
         if let Some(exclusion_data) = exclusion_data {
             match *exclusion_data {
-                Yaml::Array(ref exclusions) => {
-                    open::exclusions::parse(exclusions)
-                        .chain_err(|| "Failed to parse user-defined open mode exclusions")
-                        .map(Some)
-                },
+                Yaml::Array(ref exclusions) => open::exclusions::parse(exclusions)
+                    .chain_err(|| "Failed to parse user-defined open mode exclusions")
+                    .map(Some),
                 Yaml::Boolean(_) => Ok(None),
                 _ => self.default_open_mode_exclusions(),
             }
@@ -272,29 +282,29 @@ impl Preferences {
     }
 
     pub fn syntax_definition_name(&self, path: &Path) -> Option<String> {
-        self.data
-            .as_ref()
-            .and_then(|data| {
-                // First try to match the file extension
-                if let Some(extension) = path.extension().and_then(|ext| ext.to_str()) {
-                    if let Some(syntax) = data[TYPES_KEY][extension][TYPES_SYNTAX_KEY].as_str() {
-                        return Some(syntax.to_owned());
-                    }
+        self.data.as_ref().and_then(|data| {
+            // First try to match the file extension
+            if let Some(extension) = path.extension().and_then(|ext| ext.to_str()) {
+                if let Some(syntax) = data[TYPES_KEY][extension][TYPES_SYNTAX_KEY].as_str() {
+                    return Some(syntax.to_owned());
                 }
+            }
 
-                // If matching the file extension fails, try matching the whole filename
-                if let Some(path) = path.file_name().and_then(|name| name.to_str()) {
-                    if let Some(syntax) = data[TYPES_KEY][path][TYPES_SYNTAX_KEY].as_str() {
-                        return Some(syntax.to_owned());
-                    }
+            // If matching the file extension fails, try matching the whole filename
+            if let Some(path) = path.file_name().and_then(|name| name.to_str()) {
+                if let Some(syntax) = data[TYPES_KEY][path][TYPES_SYNTAX_KEY].as_str() {
+                    return Some(syntax.to_owned());
                 }
+            }
 
-                None
-            })
+            None
+        })
     }
 
     pub fn format_on_save(&self, path: &PathBuf) -> bool {
-        let Some(extension) = path_extension(Some(path)) else { return false; };
+        let Some(extension) = path_extension(Some(path)) else {
+            return false;
+        };
 
         self.data
             .as_ref()
@@ -306,15 +316,18 @@ impl Preferences {
         let extension = path_extension(Some(path))?;
 
         // Build a command using the command sub-key.
-        let Some(program) = self.data
+        let Some(program) = self
+            .data
             .as_ref()
-            .and_then(|data| data[TYPES_KEY][extension][FORMAT_TOOL_KEY]["command"].as_str()) else {
-                return None;
-            };
+            .and_then(|data| data[TYPES_KEY][extension][FORMAT_TOOL_KEY]["command"].as_str())
+        else {
+            return None;
+        };
         let mut command = process::Command::new(program);
 
         // Parse and add options to command, if present.
-        let option_data = self.data
+        let option_data = self
+            .data
             .as_ref()
             .and_then(|data| data[TYPES_KEY][extension][FORMAT_TOOL_KEY]["options"].as_vec());
         if let Some(options) = option_data {
@@ -342,9 +355,8 @@ impl Preferences {
 /// Loads the first YAML document in the user's config file.
 fn load_document() -> Result<Option<Yaml>> {
     // Build a path to the config file.
-    let mut config_path =
-        get_app_root(AppDataType::UserConfig, &APP_INFO)
-            .chain_err(|| "Couldn't open application config directory")?;
+    let mut config_path = get_app_root(AppDataType::UserConfig, &APP_INFO)
+        .chain_err(|| "Couldn't open application config directory")?;
     config_path.push(FILE_NAME);
 
     // Open (or create) the config file.
@@ -360,15 +372,16 @@ fn load_document() -> Result<Option<Yaml>> {
         .chain_err(|| "Couldn't read config file")?;
 
     // Parse the config file's contents and get the first YAML document inside.
-    let parsed_data = YamlLoader::load_from_str(&data)
-        .chain_err(|| "Couldn't parse config file")?;
+    let parsed_data =
+        YamlLoader::load_from_str(&data).chain_err(|| "Couldn't parse config file")?;
     Ok(parsed_data.into_iter().next())
 }
 
 fn load_default_document() -> Result<Yaml> {
     YamlLoader::load_from_str(include_str!("default.yml"))
         .chain_err(|| "Couldn't parse default config file")?
-        .into_iter().next()
+        .into_iter()
+        .next()
         .chain_err(|| "No default preferences document found")
 }
 
@@ -386,16 +399,15 @@ fn load_keymap(keymap_overrides: Option<&Hash>) -> Result<KeyMap> {
 
 /// Maps a path to its file extension.
 fn path_extension(path: Option<&PathBuf>) -> Option<&str> {
-    path
-        .and_then(|p| p.extension().or_else(|| p.as_path().file_name()))
+    path.and_then(|p| p.extension().or_else(|| p.as_path().file_name()))
         .and_then(|e| e.to_str())
 }
 
 #[cfg(test)]
 mod tests {
     use super::{ExclusionPattern, Preferences, YamlLoader};
-    use std::path::{Path, PathBuf};
     use crate::input::KeyMap;
+    use std::path::{Path, PathBuf};
     use yaml_rust::yaml::{Hash, Yaml};
 
     #[test]
@@ -431,12 +443,14 @@ mod tests {
 
     #[test]
     fn tab_width_returns_user_defined_type_specific_data() {
-        let data = YamlLoader::load_from_str("tab_width: 12\ntypes:\n  rs:\n    tab_width: 24")
-            .unwrap();
+        let data =
+            YamlLoader::load_from_str("tab_width: 12\ntypes:\n  rs:\n    tab_width: 24").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.tab_width(Some(PathBuf::from("preferences.rs")).as_ref()),
-                   24);
+        assert_eq!(
+            preferences.tab_width(Some(PathBuf::from("preferences.rs")).as_ref()),
+            24
+        );
     }
 
     #[test]
@@ -444,8 +458,10 @@ mod tests {
         let data = YamlLoader::load_from_str("tab_width: 12").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.tab_width(Some(PathBuf::from("preferences.rs")).as_ref()),
-                   12);
+        assert_eq!(
+            preferences.tab_width(Some(PathBuf::from("preferences.rs")).as_ref()),
+            12
+        );
     }
 
     #[test]
@@ -465,10 +481,15 @@ mod tests {
 
     #[test]
     fn soft_tabs_returns_user_defined_type_specific_data() {
-        let data = YamlLoader::load_from_str("soft_tabs: true\ntypes:\n  rs:\n    soft_tabs: false").unwrap();
+        let data =
+            YamlLoader::load_from_str("soft_tabs: true\ntypes:\n  rs:\n    soft_tabs: false")
+                .unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.soft_tabs(Some(PathBuf::from("preferences.rs")).as_ref()), false);
+        assert_eq!(
+            preferences.soft_tabs(Some(PathBuf::from("preferences.rs")).as_ref()),
+            false
+        );
     }
 
     #[test]
@@ -476,7 +497,10 @@ mod tests {
         let data = YamlLoader::load_from_str("soft_tabs: false").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.soft_tabs(Some(PathBuf::from("preferences.rs")).as_ref()), false);
+        assert_eq!(
+            preferences.soft_tabs(Some(PathBuf::from("preferences.rs")).as_ref()),
+            false
+        );
     }
 
     #[test]
@@ -488,10 +512,15 @@ mod tests {
 
     #[test]
     fn non_extension_types_are_supported_for_type_specific_data() {
-        let data = YamlLoader::load_from_str("soft_tabs: true\ntypes:\n  Makefile:\n    soft_tabs: false").unwrap();
+        let data =
+            YamlLoader::load_from_str("soft_tabs: true\ntypes:\n  Makefile:\n    soft_tabs: false")
+                .unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.soft_tabs(Some(PathBuf::from("Makefile")).as_ref()), false);
+        assert_eq!(
+            preferences.soft_tabs(Some(PathBuf::from("Makefile")).as_ref()),
+            false
+        );
     }
 
     #[test]
@@ -499,8 +528,10 @@ mod tests {
         let data = YamlLoader::load_from_str("types:\n  xyz:\n    syntax: Rust").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.syntax_definition_name(&Path::new("test.xyz")),
-                   Some("Rust".to_owned()));
+        assert_eq!(
+            preferences.syntax_definition_name(&Path::new("test.xyz")),
+            Some("Rust".to_owned())
+        );
     }
 
     #[test]
@@ -508,8 +539,10 @@ mod tests {
         let data = YamlLoader::load_from_str("types:\n  xyz:\n    syntax: Rust").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.syntax_definition_name(&Path::new("src/test.xyz")),
-                   Some("Rust".to_owned()));
+        assert_eq!(
+            preferences.syntax_definition_name(&Path::new("src/test.xyz")),
+            Some("Rust".to_owned())
+        );
     }
 
     #[test]
@@ -517,8 +550,10 @@ mod tests {
         let data = YamlLoader::load_from_str("types:\n  Makefile:\n    syntax: Makefile").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.syntax_definition_name(&Path::new("Makefile")),
-                   Some("Makefile".to_owned()));
+        assert_eq!(
+            preferences.syntax_definition_name(&Path::new("Makefile")),
+            Some("Makefile".to_owned())
+        );
     }
 
     #[test]
@@ -526,17 +561,22 @@ mod tests {
         let data = YamlLoader::load_from_str("types:\n  Makefile:\n    syntax: Makefile").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.syntax_definition_name(&Path::new("src/Makefile")),
-                   Some("Makefile".to_owned()));
+        assert_eq!(
+            preferences.syntax_definition_name(&Path::new("src/Makefile")),
+            Some("Makefile".to_owned())
+        );
     }
 
     #[test]
     fn syntax_definition_name_returns_user_defined_syntax_for_full_filename_with_extension() {
-        let data = YamlLoader::load_from_str("types:\n  Makefile.lib:\n    syntax: Makefile").unwrap();
+        let data =
+            YamlLoader::load_from_str("types:\n  Makefile.lib:\n    syntax: Makefile").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.syntax_definition_name(&Path::new("Makefile.lib")),
-                   Some("Makefile".to_owned()));
+        assert_eq!(
+            preferences.syntax_definition_name(&Path::new("Makefile.lib")),
+            Some("Makefile".to_owned())
+        );
     }
 
     #[test]
@@ -597,28 +637,39 @@ mod tests {
     #[test]
     fn tab_content_uses_tab_width_spaces_when_type_specific_soft_tabs_are_enabled() {
         let data = YamlLoader::load_from_str(
-            "soft_tabs: false\ntypes:\n  rs:\n    soft_tabs: true\n    tab_width: 5").unwrap();
+            "soft_tabs: false\ntypes:\n  rs:\n    soft_tabs: true\n    tab_width: 5",
+        )
+        .unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.tab_content(Some(PathBuf::from("preferences.rs")).as_ref()),
-                   "     ");
+        assert_eq!(
+            preferences.tab_content(Some(PathBuf::from("preferences.rs")).as_ref()),
+            "     "
+        );
     }
 
     #[test]
     fn tab_content_returns_tab_character_when_type_specific_soft_tabs_are_disabled() {
         let data = YamlLoader::load_from_str(
-            "soft_tabs: true\ntab_width: 5\ntypes:\n  rs:\n    soft_tabs: false\n").unwrap();
+            "soft_tabs: true\ntab_width: 5\ntypes:\n  rs:\n    soft_tabs: false\n",
+        )
+        .unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.tab_content(Some(PathBuf::from("preferences.rs")).as_ref()),
-                   "\t");
+        assert_eq!(
+            preferences.tab_content(Some(PathBuf::from("preferences.rs")).as_ref()),
+            "\t"
+        );
     }
 
     #[test]
     fn open_mode_exclusions_returns_correct_defaults_when_no_data_provided() {
         let preferences = Preferences::new(None);
 
-        assert_eq!(preferences.open_mode_exclusions().unwrap(), Some(vec![ExclusionPattern::new("**/.git").unwrap()]));
+        assert_eq!(
+            preferences.open_mode_exclusions().unwrap(),
+            Some(vec![ExclusionPattern::new("**/.git").unwrap()])
+        );
     }
 
     #[test]
@@ -626,7 +677,10 @@ mod tests {
         let data = YamlLoader::load_from_str("tab_width: 12").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.open_mode_exclusions().unwrap(), Some(vec![ExclusionPattern::new("**/.git").unwrap()]));
+        assert_eq!(
+            preferences.open_mode_exclusions().unwrap(),
+            Some(vec![ExclusionPattern::new("**/.git").unwrap()])
+        );
     }
 
     #[test]
@@ -634,7 +688,10 @@ mod tests {
         let data = YamlLoader::load_from_str("open_mode:\n  exclusions:\n    - \".svn\"").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.open_mode_exclusions().unwrap(), Some(vec![ExclusionPattern::new(".svn").unwrap()]));
+        assert_eq!(
+            preferences.open_mode_exclusions().unwrap(),
+            Some(vec![ExclusionPattern::new(".svn").unwrap()])
+        );
     }
 
     #[test]
@@ -649,8 +706,10 @@ mod tests {
     fn line_comment_prefix_returns_correct_default_type_specific_data() {
         let preferences = Preferences::new(None);
 
-        assert_eq!(preferences.line_comment_prefix(&PathBuf::from("preferences.rs")),
-                   Some("//".into()));
+        assert_eq!(
+            preferences.line_comment_prefix(&PathBuf::from("preferences.rs")),
+            Some("//".into())
+        );
     }
 
     #[test]
@@ -658,25 +717,32 @@ mod tests {
         let data = YamlLoader::load_from_str("types:\n  rs:\n    line_comment_prefix: $$").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.line_comment_prefix(&PathBuf::from("preferences.rs")),
-                   Some("$$".into()));
+        assert_eq!(
+            preferences.line_comment_prefix(&PathBuf::from("preferences.rs")),
+            Some("$$".into())
+        );
     }
 
     #[test]
     fn line_comment_prefix_returns_correct_user_defined_type_specific_data_with_no_default() {
-        let data = YamlLoader::load_from_str("types:\n  abc:\n    line_comment_prefix: $$").unwrap();
+        let data =
+            YamlLoader::load_from_str("types:\n  abc:\n    line_comment_prefix: $$").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.line_comment_prefix(&PathBuf::from("preferences.abc")),
-                   Some("$$".into()));
+        assert_eq!(
+            preferences.line_comment_prefix(&PathBuf::from("preferences.abc")),
+            Some("$$".into())
+        );
     }
 
     #[test]
     fn line_comment_prefix_returns_none_for_non_existing_type() {
         let preferences = Preferences::new(None);
 
-        assert_eq!(preferences.line_comment_prefix(&PathBuf::from("preferences.abc")),
-                   None);
+        assert_eq!(
+            preferences.line_comment_prefix(&PathBuf::from("preferences.abc")),
+            None
+        );
     }
 
     #[test]
@@ -707,7 +773,7 @@ mod tests {
             default: Yaml::Null,
             data: None,
             keymap: KeyMap::from(&Hash::new()).unwrap(),
-            theme: None
+            theme: None,
         };
 
         // Reload the preferences, ensuring that it refreshes the keymap.
@@ -719,67 +785,76 @@ mod tests {
     fn format_on_save_defaults_to_false() {
         let preferences = Preferences::new(None);
 
-        assert!(
-            !preferences.format_on_save(&PathBuf::from("preferences.rs"))
-        );
+        assert!(!preferences.format_on_save(&PathBuf::from("preferences.rs")));
     }
 
     #[test]
     fn format_on_save_returns_type_specific_value() {
-        let data = YamlLoader::load_from_str("
+        let data = YamlLoader::load_from_str(
+            "
             types:
               rs:
                 format_tool:
                   run_on_save: true
-        ").unwrap();
+        ",
+        )
+        .unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert!(
-            preferences.format_on_save(&PathBuf::from("preferences.rs"))
-        );
+        assert!(preferences.format_on_save(&PathBuf::from("preferences.rs")));
     }
 
     #[test]
     fn format_command_correctly_handles_missing_type_specific_command() {
         let preferences = Preferences::new(None);
 
-        assert!(
-            preferences.format_command(&PathBuf::from("preferences.rs")).is_none()
-        );
+        assert!(preferences
+            .format_command(&PathBuf::from("preferences.rs"))
+            .is_none());
     }
 
     #[test]
     fn format_command_returns_user_defined_type_specific_command_without_args() {
-        let data = YamlLoader::load_from_str("
+        let data = YamlLoader::load_from_str(
+            "
             types:
               rs:
                 format_tool:
                   command: rustfmt
-        ").unwrap();
+        ",
+        )
+        .unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        let command = preferences.format_command(&PathBuf::from("preferences.rs")).unwrap();
-        assert_eq!(
-            command.get_program(),
-            "rustfmt"
-        );
+        let command = preferences
+            .format_command(&PathBuf::from("preferences.rs"))
+            .unwrap();
+        assert_eq!(command.get_program(), "rustfmt");
         assert_eq!(command.get_args().count(), 0);
     }
 
     #[test]
     fn format_command_returns_user_defined_type_specific_command_with_args() {
-        let data = YamlLoader::load_from_str("
+        let data = YamlLoader::load_from_str(
+            "
             types:
               rs:
                 format_tool:
                   command: rustfmt
                   options: [--check]
-        ").unwrap();
+        ",
+        )
+        .unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        let command = preferences.format_command(&PathBuf::from("preferences.rs")).unwrap();
+        let command = preferences
+            .format_command(&PathBuf::from("preferences.rs"))
+            .unwrap();
         assert_eq!(command.get_program(), "rustfmt");
         assert_eq!(command.get_args().count(), 1);
-        assert_eq!(command.get_args().next().and_then(|a| a.to_str()), Some("--check"));
+        assert_eq!(
+            command.get_args().next().and_then(|a| a.to_str()),
+            Some("--check")
+        );
     }
 }

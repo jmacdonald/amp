@@ -9,8 +9,8 @@ mod test_terminal;
 
 use crate::errors::*;
 use crate::models::application::Event;
-use scribe::buffer::Position;
 use crate::view::{Colors, Style};
+use scribe::buffer::Position;
 use std::sync::Arc;
 
 pub use self::buffer::TerminalBuffer;
@@ -38,7 +38,9 @@ pub trait Terminal {
 
 #[cfg(not(any(test, feature = "bench")))]
 pub fn build_terminal() -> Result<Arc<Box<dyn Terminal + Sync + Send + 'static>>> {
-    Ok(Arc::new(Box::new(termion_terminal::TermionTerminal::new()?)))
+    Ok(Arc::new(
+        Box::new(termion_terminal::TermionTerminal::new()?),
+    ))
 }
 
 #[cfg(any(test, feature = "bench"))]

@@ -1,6 +1,6 @@
 use crate::errors::*;
-use scribe::Workspace;
 use crate::view::{Colors, StatusLineData, Style, View};
+use scribe::Workspace;
 
 pub fn display(workspace: &mut Workspace, view: &mut View, error: &Error) -> Result<()> {
     let data;

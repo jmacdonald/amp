@@ -8,9 +8,7 @@ pub struct SearchSelectConfig {
 
 impl Default for SearchSelectConfig {
     fn default() -> SearchSelectConfig {
-        SearchSelectConfig {
-            max_results: 5,
-        }
+        SearchSelectConfig { max_results: 5 }
     }
 }
 
@@ -47,13 +45,15 @@ pub trait SearchSelectMode<T: Display>: Display {
         // Find the last word boundary (transition to/from whitespace), using
         // using fold to carry the previous character's type forward.
         let mut boundary_index = 0;
-        query.char_indices().fold(true, |was_whitespace, (index, c)| {
-            if c.is_whitespace() != was_whitespace {
-                boundary_index = index;
-            }
+        query
+            .char_indices()
+            .fold(true, |was_whitespace, (index, c)| {
+                if c.is_whitespace() != was_whitespace {
+                    boundary_index = index;
+                }
 
-            c.is_whitespace()
-        });
+                c.is_whitespace()
+            });
 
         query.truncate(boundary_index);
     }
@@ -61,9 +61,9 @@ pub trait SearchSelectMode<T: Display>: Display {
 
 #[cfg(test)]
 mod tests {
+    use super::{SearchSelectConfig, SearchSelectMode};
     use std::fmt;
     use std::slice::Iter;
-    use super::{SearchSelectMode, SearchSelectConfig};
 
     #[derive(Default)]
     struct TestMode {
@@ -84,41 +84,63 @@ mod tests {
             &mut self.input
         }
 
-        fn search(&mut self) { }
-        fn insert_mode(&self) -> bool { false }
-        fn set_insert_mode(&mut self, _: bool) { }
-        fn results(&self) -> Iter<String> { self.results.iter() }
-        fn selection(&self) -> Option<&String> { Some(&self.selection) }
-        fn selected_index(&self) -> usize { 0 }
-        fn select_previous(&mut self) { }
-        fn select_next(&mut self) { }
-        fn config(&self) -> &SearchSelectConfig { &self.config }
+        fn search(&mut self) {}
+        fn insert_mode(&self) -> bool {
+            false
+        }
+        fn set_insert_mode(&mut self, _: bool) {}
+        fn results(&self) -> Iter<String> {
+            self.results.iter()
+        }
+        fn selection(&self) -> Option<&String> {
+            Some(&self.selection)
+        }
+        fn selected_index(&self) -> usize {
+            0
+        }
+        fn select_previous(&mut self) {}
+        fn select_next(&mut self) {}
+        fn config(&self) -> &SearchSelectConfig {
+            &self.config
+        }
     }
 
     #[test]
     fn push_search_char_updates_query() {
-        let mut mode = TestMode{ .. Default::default() };
+        let mut mode = TestMode {
+            ..Default::default()
+        };
         mode.push_search_char('a');
         assert_eq!(mode.query(), "a");
     }
 
     #[test]
     fn pop_search_token_pops_all_characters_when_on_only_token() {
-        let mut mode = TestMode{ input: String::from("amp"), .. Default::default() };
+        let mut mode = TestMode {
+            input: String::from("amp"),
+            ..Default::default()
+        };
         mode.pop_search_token();
         assert_eq!(mode.query(), "");
     }
 
     #[test]
-    fn pop_search_token_pops_all_adjacent_non_whitespace_characters_when_on_non_whitespace_character() {
-        let mut mode = TestMode{ input: String::from("amp editor"), .. Default::default() };
+    fn pop_search_token_pops_all_adjacent_non_whitespace_characters_when_on_non_whitespace_character(
+    ) {
+        let mut mode = TestMode {
+            input: String::from("amp editor"),
+            ..Default::default()
+        };
         mode.pop_search_token();
         assert_eq!(mode.query(), "amp ");
     }
 
     #[test]
     fn pop_search_token_pops_all_whitespace_characters_when_on_whitespace_character() {
-        let mut mode = TestMode{ input: String::from("amp  "), .. Default::default() };
+        let mut mode = TestMode {
+            input: String::from("amp  "),
+            ..Default::default()
+        };
         mode.pop_search_token();
         assert_eq!(mode.query(), "amp");
     }

@@ -1,28 +1,28 @@
 extern crate libc;
 extern crate termion;
 
-use crate::errors::*;
-use mio::{Events, Poll, PollOpt, Ready, Token};
-use mio::unix::EventedFd;
-use super::Terminal;
-use std::io::Stdout;
-use std::os::unix::io::AsRawFd;
-use scribe::buffer::{Distance, Position};
 use self::termion::color::{Bg, Fg};
-use self::termion::{color, cursor};
 use self::termion::input::{Keys, TermRead};
 use self::termion::raw::{IntoRawMode, RawTerminal};
 use self::termion::screen::{AlternateScreen, IntoAlternateScreen};
 use self::termion::style;
+use self::termion::{color, cursor};
+use super::Terminal;
+use crate::errors::*;
+use crate::view::{Colors, CursorType, Style};
+use mio::unix::EventedFd;
+use mio::{Events, Poll, PollOpt, Ready, Token};
+use scribe::buffer::{Distance, Position};
+use signal_hook::iterator::Signals;
 use std::borrow::{Borrow, BorrowMut};
-use std::io::{BufWriter, Stdin, stdin, stdout, Write};
 use std::fmt::Display;
+use std::io::Stdout;
+use std::io::{stdin, stdout, BufWriter, Stdin, Write};
 use std::ops::Drop;
+use std::os::unix::io::AsRawFd;
 use std::sync::Mutex;
 use std::time::Duration;
-use crate::view::{Colors, CursorType, Style};
 use unicode_segmentation::UnicodeSegmentation;
-use signal_hook::iterator::Signals;
 
 use self::termion::event::Key as TermionKey;
 use crate::input::Key;
@@ -72,7 +72,7 @@ impl TermionTerminal {
             if let Some(mapped_style) = map_style(new_style) {
                 let _ = write!(output, "{}", mapped_style);
 
-                return Ok(())
+                return Ok(());
             }
 
             // Current text has no style; send a reset to the terminal.
@@ -82,9 +82,15 @@ impl TermionTerminal {
             let color_guard = self.current_colors.lock().map_err(|_| LOCK_POISONED)?;
             if let Some(current_colors) = color_guard.borrow().as_ref() {
                 match *current_colors {
-                    Colors::Default => { let _ = write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
-                    Colors::Custom(fg, bg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(bg)); }
-                    Colors::CustomForeground(fg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(color::Reset)); }
+                    Colors::Default => {
+                        let _ = write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset));
+                    }
+                    Colors::Custom(fg, bg) => {
+                        let _ = write!(output, "{}{}", Fg(fg), Bg(bg));
+                    }
+                    Colors::CustomForeground(fg) => {
+                        let _ = write!(output, "{}{}", Fg(fg), Bg(color::Reset));
+                    }
                     _ => (),
                 };
             }
@@ -106,9 +112,15 @@ impl TermionTerminal {
             current_colors.replace(new_colors);
 
             match new_colors {
-                Colors::Default => { let _ = write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset)); }
-                Colors::Custom(fg, bg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(bg)); }
-                Colors::CustomForeground(fg) => { let _ = write!(output, "{}{}", Fg(fg), Bg(color::Reset)); }
+                Colors::Default => {
+                    let _ = write!(output, "{}{}", Fg(color::Reset), Bg(color::Reset));
+                }
+                Colors::Custom(fg, bg) => {
+                    let _ = write!(output, "{}{}", Fg(fg), Bg(bg));
+                }
+                Colors::CustomForeground(fg) => {
+                    let _ = write!(output, "{}{}", Fg(fg), Bg(color::Reset));
+                }
                 _ => (),
             };
         }
@@ -136,7 +148,9 @@ impl Terminal for TermionTerminal {
     fn listen(&self) -> Option<Event> {
         // Check for events on stdin.
         let mut events = Events::with_capacity(1);
-        self.event_listener.poll(&mut events, Some(Duration::from_millis(100))).ok()?;
+        self.event_listener
+            .poll(&mut events, Some(Duration::from_millis(100)))
+            .ok()?;
         if let Some(event) = events.iter().next() {
             match event.token() {
                 STDIN_INPUT => {
@@ -164,7 +178,7 @@ impl Terminal for TermionTerminal {
                         TermionKey::Ctrl(c) => Some(Event::Key(Key::Ctrl(c))),
                         _ => None,
                     }
-                },
+                }
                 RESIZE => {
                     // Consume the resize signal so it doesn't trigger again.
                     self.signals.into_iter().next();
@@ -220,14 +234,11 @@ impl Terminal for TermionTerminal {
             if let Some(t) = output.as_mut() {
                 match position {
                     Some(ref pos) => {
-                        let _ = write!(
-                            t,
-                            "{}{}",
-                            cursor::Show,
-                            cursor_position(pos)
-                        );
-                    },
-                    None => { let _ = write!(t, "{}", cursor::Hide); },
+                        let _ = write!(t, "{}{}", cursor::Show, cursor_position(pos));
+                    }
+                    None => {
+                        let _ = write!(t, "{}", cursor::Hide);
+                    }
                 }
             }
         }
@@ -237,15 +248,27 @@ impl Terminal for TermionTerminal {
         if let Ok(mut output) = self.output.lock() {
             if let Some(t) = output.as_mut() {
                 match cursor_type {
-                    CursorType::Bar => { let _ = write!(t, "{}", cursor::SteadyBar); },
-                    CursorType::BlinkingBar => { let _ = write!(t, "{}", cursor::BlinkingBar); },
-                    CursorType::Block => { let _ = write!(t, "{}", cursor::SteadyBlock); },
+                    CursorType::Bar => {
+                        let _ = write!(t, "{}", cursor::SteadyBar);
+                    }
+                    CursorType::BlinkingBar => {
+                        let _ = write!(t, "{}", cursor::BlinkingBar);
+                    }
+                    CursorType::Block => {
+                        let _ = write!(t, "{}", cursor::SteadyBlock);
+                    }
                 }
             }
         }
     }
 
-    fn print<'a>(&self, target_position: &Position, style: Style, colors: Colors, content: &str) -> Result<()> {
+    fn print<'a>(
+        &self,
+        target_position: &Position,
+        style: Style,
+        colors: Colors,
+        content: &str,
+    ) -> Result<()> {
         self.update_style(style)?;
         self.update_colors(colors)?;
 
@@ -260,10 +283,11 @@ impl Terminal for TermionTerminal {
 
                     // Track where the cursor is after printing.
                     *current_position = Some(
-                        *target_position + Distance{
-                            lines: 0,
-                            offset: content.graphemes(true).count()
-                        }
+                        *target_position
+                            + Distance {
+                                lines: 0,
+                                offset: content.graphemes(true).count(),
+                            },
                     );
                 }
 
@@ -278,7 +302,7 @@ impl Terminal for TermionTerminal {
 
     fn suspend(&self) {
         self.restore_cursor();
-        self.set_cursor(Some(Position{ line: 0, offset: 0 }));
+        self.set_cursor(Some(Position { line: 0, offset: 0 }));
         self.present();
 
         // Clear the current position so we're forced
@@ -314,20 +338,17 @@ impl Terminal for TermionTerminal {
 impl Drop for TermionTerminal {
     fn drop(&mut self) {
         self.restore_cursor();
-        self.set_cursor(Some(Position{ line: 0, offset: 0 }));
+        self.set_cursor(Some(Position { line: 0, offset: 0 }));
     }
 }
 
 fn cursor_position(position: &Position) -> cursor::Goto {
-    cursor::Goto(
-        (position.offset + 1) as u16,
-        (position.line + 1) as u16
-    )
+    cursor::Goto((position.offset + 1) as u16, (position.line + 1) as u16)
 }
 
 fn terminal_size() -> (usize, usize) {
     termion::terminal_size()
-        .map(|(x,y)| (x as usize, y as usize))
+        .map(|(x, y)| (x as usize, y as usize))
         .unwrap_or((0, 0))
 }
 
@@ -335,18 +356,17 @@ fn create_event_listener() -> Result<(Poll, Signals)> {
     let signals = Signals::new([signal_hook::SIGWINCH])
         .chain_err(|| "Failed to initialize event listener signal")?;
     let event_listener = Poll::new().chain_err(|| "Failed to establish polling")?;
-    event_listener.register(
-        &EventedFd(&stdin().as_raw_fd()),
-        STDIN_INPUT,
-        Ready::readable(),
-        PollOpt::level()
-    ).chain_err(|| "Failed to register stdin to event listener")?;
-    event_listener.register(
-        &signals,
-        RESIZE,
-        Ready::readable(),
-        PollOpt::level()
-    ).chain_err(|| "Failed to register resize signal to event listener")?;
+    event_listener
+        .register(
+            &EventedFd(&stdin().as_raw_fd()),
+            STDIN_INPUT,
+            Ready::readable(),
+            PollOpt::level(),
+        )
+        .chain_err(|| "Failed to register stdin to event listener")?;
+    event_listener
+        .register(&signals, RESIZE, Ready::readable(), PollOpt::level())
+        .chain_err(|| "Failed to register resize signal to event listener")?;
 
     Ok((event_listener, signals))
 }

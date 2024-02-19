@@ -1,21 +1,21 @@
+use crate::errors::*;
 use crate::models::application::Preferences;
-use scribe::buffer::{Buffer, Position, Range};
-use scribe::util::LineIterator;
-use crate::view::buffer::{LexemeMapper, MappedLexeme, RenderState};
 use crate::view::buffer::line_numbers::*;
-use crate::view::{Colors, RENDER_CACHE_FREQUENCY, RGBColor, Style};
+use crate::view::buffer::{LexemeMapper, MappedLexeme, RenderState};
 use crate::view::color::to_rgb_color;
 use crate::view::terminal::{Cell, Terminal, TerminalBuffer};
+use crate::view::{Colors, RGBColor, Style, RENDER_CACHE_FREQUENCY};
+use scribe::buffer::{Buffer, Position, Range};
+use scribe::util::LineIterator;
 use std::borrow::Cow;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::str::FromStr;
-use syntect::highlighting::{Highlighter, HighlightIterator, Theme};
 use syntect::highlighting::Style as ThemeStyle;
+use syntect::highlighting::{HighlightIterator, Highlighter, Theme};
 use syntect::parsing::{ScopeStack, SyntaxSet};
 use unicode_segmentation::UnicodeSegmentation;
-use crate::errors::*;
 
 /// A one-time-use type that encapsulates all of the
 /// details involved in rendering a buffer to the screen.
@@ -40,12 +40,17 @@ pub struct BufferRenderer<'a, 'p> {
 
 impl<'a, 'p> BufferRenderer<'a, 'p> {
     #[allow(clippy::too_many_arguments)]
-    pub fn new(buffer: &'a Buffer, highlights: Option<&'a [Range]>,
-    scroll_offset: usize, terminal: &'a dyn Terminal, theme: &'a Theme,
-    preferences: &'a Preferences,
-    render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>,
-    syntax_set: &'a SyntaxSet,
-    terminal_buffer: &'a mut TerminalBuffer<'p>) -> BufferRenderer<'a, 'p> {
+    pub fn new(
+        buffer: &'a Buffer,
+        highlights: Option<&'a [Range]>,
+        scroll_offset: usize,
+        terminal: &'a dyn Terminal,
+        theme: &'a Theme,
+        preferences: &'a Preferences,
+        render_cache: &'a Rc<RefCell<HashMap<usize, RenderState>>>,
+        syntax_set: &'a SyntaxSet,
+        terminal_buffer: &'a mut TerminalBuffer<'p>,
+    ) -> BufferRenderer<'a, 'p> {
         let line_numbers = LineNumbers::new(buffer, Some(scroll_offset));
         let gutter_width = line_numbers.width() + 1;
 
@@ -54,7 +59,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
         let stylist = Highlighter::new(theme);
         let current_style = stylist.get_default();
 
-        BufferRenderer{
+        BufferRenderer {
             buffer,
             cursor_position: None,
             gutter_width,
@@ -62,10 +67,10 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
             stylist,
             current_style,
             line_numbers,
-            buffer_position: Position{ line: 0, offset: 0 },
+            buffer_position: Position { line: 0, offset: 0 },
             preferences,
             render_cache,
-            screen_position: Position{ line: 0, offset: 0 },
+            screen_position: Position { line: 0, offset: 0 },
             scroll_offset,
             syntax_set,
             terminal,
@@ -89,15 +94,22 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
                 Colors::Default
             };
 
-            self.print(Position{ line: self.screen_position.line, offset },
-                       Style::Default,
-                       colors,
-                       " ");
+            self.print(
+                Position {
+                    line: self.screen_position.line,
+                    offset,
+                },
+                Style::Default,
+                colors,
+                " ",
+            );
         }
     }
 
     fn length_guide_offset(&self) -> Option<usize> {
-        self.preferences.line_length_guide().map(|offset| self.gutter_width + offset)
+        self.preferences
+            .line_length_guide()
+            .map(|offset| self.gutter_width + offset)
     }
 
     fn advance_to_next_line(&mut self) {
@@ -136,9 +148,9 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
                         // We're inside of one of the highlighted areas.
                         // Return early with highlight colors.
                         if range.includes(&self.buffer.cursor) {
-                            return (Style::Bold, Colors::SelectMode)
+                            return (Style::Bold, Colors::SelectMode);
                         } else {
-                            return (Style::Inverted, Colors::Default)
+                            return (Style::Inverted, Colors::Default);
                         }
                     }
                 }
@@ -157,7 +169,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
                 } else {
                     (Style::Default, Colors::CustomForeground(token_color))
                 }
-            },
+            }
         };
 
         (style, colors)
@@ -166,7 +178,9 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
     fn print_lexeme<L: Into<Cow<'p, str>>>(&mut self, lexeme: L) {
         for character in lexeme.into().graphemes(true) {
             // Ignore newline characters.
-            if character == "\n" { continue; }
+            if character == "\n" {
+                continue;
+            }
 
             self.set_cursor();
 
@@ -174,7 +188,9 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
             let token_color = to_rgb_color(self.current_style.foreground);
             let (style, color) = self.current_char_style(token_color);
 
-            if self.preferences.line_wrapping() && self.screen_position.offset == self.terminal.width() {
+            if self.preferences.line_wrapping()
+                && self.screen_position.offset == self.terminal.width()
+            {
                 self.screen_position.line += 1;
                 self.screen_position.offset = self.gutter_width;
                 self.print(self.screen_position, style, color, character.to_string());
@@ -184,7 +200,8 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
                 // Calculate the next tab stop using the tab-aware offset,
                 // *without considering the line number gutter*, and then
                 // re-add the gutter width to get the actual/screen offset.
-                let buffer_tab_stop = self.next_tab_stop(self.screen_position.offset - self.gutter_width);
+                let buffer_tab_stop =
+                    self.next_tab_stop(self.screen_position.offset - self.gutter_width);
                 let mut screen_tab_stop = buffer_tab_stop + self.gutter_width;
 
                 // Now that we know where we'd like to go, prevent it from being off-screen.
@@ -220,14 +237,22 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
         !self.before_visible_content() && !self.after_visible_content()
     }
 
-    pub fn render(&mut self, lines: LineIterator<'p>, mut lexeme_mapper: Option<&mut dyn LexemeMapper>) -> Result<Option<Position>> {
+    pub fn render(
+        &mut self,
+        lines: LineIterator<'p>,
+        mut lexeme_mapper: Option<&mut dyn LexemeMapper>,
+    ) -> Result<Option<Position>> {
         self.terminal.set_cursor(None);
         // Print the first line number. Others will
         // be handled as newlines are encountered.
         self.print_line_number();
 
         let highlighter = Highlighter::new(self.theme);
-        let syntax_definition = self.buffer.syntax_definition.as_ref().ok_or("Buffer has no syntax definition")?;
+        let syntax_definition = self
+            .buffer
+            .syntax_definition
+            .as_ref()
+            .ok_or("Buffer has no syntax definition")?;
 
         // Start or resume state from a previous cache point, if available.
         let (cached_line_no, mut state) = self
@@ -239,16 +264,17 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
             // Skip past lines that precede the cached render state.
             if line_no >= cached_line_no {
                 if line_no % RENDER_CACHE_FREQUENCY == 0 && line_no > 0 {
-                    self.render_cache.borrow_mut().insert(line_no, state.clone());
+                    self.render_cache
+                        .borrow_mut()
+                        .insert(line_no, state.clone());
                 }
 
-                let events = state.parse.parse_line(line, self.syntax_set).chain_err(|| BUFFER_PARSE_FAILED)?;
-                let styled_lexemes = HighlightIterator::new(
-                    &mut state.highlight,
-                    &events,
-                    line,
-                    &highlighter
-                );
+                let events = state
+                    .parse
+                    .parse_line(line, self.syntax_set)
+                    .chain_err(|| BUFFER_PARSE_FAILED)?;
+                let styled_lexemes =
+                    HighlightIterator::new(&mut state.highlight, &events, line, &highlighter);
 
                 for (style, lexeme) in styled_lexemes {
                     // Move along until we've hit visible content.
@@ -269,13 +295,12 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
                                 MappedLexeme::Focused(value) => {
                                     self.current_style = focused_style;
                                     self.print_lexeme(value.to_string());
-                                },
+                                }
                                 MappedLexeme::Blurred(value) => {
                                     self.current_style = blurred_style;
                                     self.print_lexeme(value.to_string());
                                 }
                             }
-
                         }
                     } else {
                         self.current_style = style;
@@ -301,7 +326,9 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
     }
 
     fn print_line_number(&mut self) {
-        if !self.inside_visible_content() { return };
+        if !self.inside_visible_content() {
+            return;
+        };
 
         let line_number = self.line_numbers.next().unwrap();
 
@@ -313,10 +340,13 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
         };
 
         self.print(
-            Position{ line: self.screen_position.line, offset: 0 },
+            Position {
+                line: self.screen_position.line,
+                offset: 0,
+            },
             weight,
             Colors::Focused,
-            line_number
+            line_number,
         );
 
         // Leave a one-column gap between line numbers and buffer content.
@@ -326,34 +356,34 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
             Colors::Default
         };
         self.print(
-            Position{ line: self.screen_position.line, offset: self.line_numbers.width() },
+            Position {
+                line: self.screen_position.line,
+                offset: self.line_numbers.width(),
+            },
             weight,
             gap_color,
-            " "
+            " ",
         );
 
         self.screen_position.offset = self.line_numbers.width() + 1;
     }
 
     fn next_tab_stop(&self, offset: usize) -> usize {
-        (offset / self.preferences.tab_width(self.buffer.path.as_ref()) + 1) * self.preferences.tab_width(self.buffer.path.as_ref())
+        (offset / self.preferences.tab_width(self.buffer.path.as_ref()) + 1)
+            * self.preferences.tab_width(self.buffer.path.as_ref())
     }
 
     fn mapper_styles(&self) -> (ThemeStyle, ThemeStyle) {
-        let focused_style = self
-            .stylist
-            .style_for_stack(
-                ScopeStack::from_str("keyword")
+        let focused_style = self.stylist.style_for_stack(
+            ScopeStack::from_str("keyword")
                 .unwrap_or_default()
-                .as_slice()
-            );
-        let blurred_style = self
-            .stylist
-            .style_for_stack(
-                ScopeStack::from_str("comment")
+                .as_slice(),
+        );
+        let blurred_style = self.stylist.style_for_stack(
+            ScopeStack::from_str("comment")
                 .unwrap_or_default()
-                .as_slice()
-            );
+                .as_slice(),
+        );
 
         (focused_style, blurred_style)
     }
@@ -371,35 +401,37 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
     }
 
     fn print<C>(&mut self, position: Position, style: Style, colors: Colors, content: C)
-        where C: Into<Cow<'p, str>>
+    where
+        C: Into<Cow<'p, str>>,
     {
         self.terminal_buffer.set_cell(
             position,
-            Cell{ content: content.into(), style, colors }
+            Cell {
+                content: content.into(),
+                style,
+                colors,
+            },
         );
     }
 }
 
 fn has_trailing_newline(line: &str) -> bool {
-    line.chars()
-        .last()
-        .map(|c| c == '\n')
-        .unwrap_or(false)
+    line.chars().last().map(|c| c == '\n').unwrap_or(false)
 }
 
 #[cfg(test)]
 mod tests {
+    use super::{BufferRenderer, LexemeMapper, MappedLexeme};
     use crate::models::application::Preferences;
-    use scribe::{Buffer, Workspace};
+    use crate::view::terminal::*;
     use scribe::buffer::Position;
     use scribe::util::LineIterator;
+    use scribe::{Buffer, Workspace};
     use std::cell::RefCell;
     use std::collections::HashMap;
     use std::path::{Path, PathBuf};
     use std::rc::Rc;
-    use super::{BufferRenderer, LexemeMapper, MappedLexeme};
     use syntect::highlighting::ThemeSet;
-    use crate::view::terminal::*;
     use yaml_rust::yaml::YamlLoader;
 
     #[test]
@@ -416,7 +448,11 @@ mod tests {
         let terminal = build_terminal().unwrap();
         let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
         let theme_set = ThemeSet::load_defaults();
-        let data = YamlLoader::load_from_str("tab_width: 100").unwrap().into_iter().nth(0).unwrap();
+        let data = YamlLoader::load_from_str("tab_width: 100")
+            .unwrap()
+            .into_iter()
+            .nth(0)
+            .unwrap();
         let preferences = Preferences::new(Some(data));
 
         BufferRenderer::new(
@@ -428,8 +464,10 @@ mod tests {
             &preferences,
             &Rc::new(RefCell::new(HashMap::new())),
             &workspace.syntax_set,
-            &mut terminal_buffer
-        ).render(lines, None).unwrap();
+            &mut terminal_buffer,
+        )
+        .render(lines, None)
+        .unwrap();
     }
 
     #[test]
@@ -448,7 +486,11 @@ mod tests {
         let terminal = build_terminal().unwrap();
         let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
         let theme_set = ThemeSet::load_defaults();
-        let data = YamlLoader::load_from_str("tab_width: 2").unwrap().into_iter().nth(0).unwrap();
+        let data = YamlLoader::load_from_str("tab_width: 2")
+            .unwrap()
+            .into_iter()
+            .nth(0)
+            .unwrap();
         let preferences = Preferences::new(Some(data));
 
         BufferRenderer::new(
@@ -460,8 +502,10 @@ mod tests {
             &preferences,
             &Rc::new(RefCell::new(HashMap::new())),
             &workspace.syntax_set,
-            &mut terminal_buffer
-        ).render(lines, None).unwrap();
+            &mut terminal_buffer,
+        )
+        .render(lines, None)
+        .unwrap();
 
         // Both tabs should fully expand.
         let expected_content = " 1      xy";
@@ -487,7 +531,11 @@ mod tests {
         let terminal = build_terminal().unwrap();
         let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
         let theme_set = ThemeSet::load_defaults();
-        let data = YamlLoader::load_from_str("tab_width: 2").unwrap().into_iter().nth(0).unwrap();
+        let data = YamlLoader::load_from_str("tab_width: 2")
+            .unwrap()
+            .into_iter()
+            .nth(0)
+            .unwrap();
         let preferences = Preferences::new(Some(data));
 
         BufferRenderer::new(
@@ -499,8 +547,10 @@ mod tests {
             &preferences,
             &Rc::new(RefCell::new(HashMap::new())),
             &workspace.syntax_set,
-            &mut terminal_buffer
-        ).render(lines, None).unwrap();
+            &mut terminal_buffer,
+        )
+        .render(lines, None)
+        .unwrap();
 
         // The space between the tabs should just eat into the second tab's width.
         let expected_content = " 1      xy";
@@ -535,8 +585,10 @@ mod tests {
             &preferences,
             &Rc::new(RefCell::new(HashMap::new())),
             &workspace.syntax_set,
-            &mut terminal_buffer
-        ).render(lines, None).unwrap();
+            &mut terminal_buffer,
+        )
+        .render(lines, None)
+        .unwrap();
 
         let expected_content = " 1  amp ed\n    itor  \n 2  second\n     line \n 3        ";
         assert_eq!(
@@ -578,8 +630,10 @@ mod tests {
             &preferences,
             &Rc::new(RefCell::new(HashMap::new())),
             &workspace.syntax_set,
-            &mut terminal_buffer
-        ).render(lines, Some(&mut TestMapper{})).unwrap();
+            &mut terminal_buffer,
+        )
+        .render(lines, Some(&mut TestMapper {}))
+        .unwrap();
 
         let expected_content = " 1  mapped";
         assert_eq!(
@@ -613,10 +667,12 @@ mod tests {
             &preferences,
             &Rc::new(RefCell::new(HashMap::new())),
             &workspace.syntax_set,
-            &mut terminal_buffer
-        ).render(lines, None).unwrap();
+            &mut terminal_buffer,
+        )
+        .render(lines, None)
+        .unwrap();
 
-        assert_eq!(cursor_position, Some(Position{ line: 0, offset: 4 }));
+        assert_eq!(cursor_position, Some(Position { line: 0, offset: 4 }));
     }
 
     #[test]
@@ -648,8 +704,10 @@ mod tests {
             &preferences,
             &render_cache,
             &workspace.syntax_set,
-            &mut terminal_buffer
-        ).render(lines, None).unwrap();
+            &mut terminal_buffer,
+        )
+        .render(lines, None)
+        .unwrap();
 
         assert_eq!(render_cache.borrow().keys().count(), 5);
     }
@@ -684,8 +742,10 @@ mod tests {
             &preferences,
             &render_cache,
             &workspace.syntax_set,
-            &mut terminal_buffer
-        ).render(lines, None).unwrap();
+            &mut terminal_buffer,
+        )
+        .render(lines, None)
+        .unwrap();
 
         assert_eq!(render_cache.borrow().keys().count(), 1);
         let initial_cache = render_cache.borrow().values().nth(0).unwrap().clone();
@@ -707,8 +767,10 @@ mod tests {
             &preferences,
             &render_cache,
             &workspace.syntax_set,
-            &mut terminal_buffer
-        ).render(lines2, None).unwrap();
+            &mut terminal_buffer,
+        )
+        .render(lines2, None)
+        .unwrap();
 
         assert_eq!(render_cache.borrow().keys().count(), 5);
         for value in render_cache.borrow().values() {
@@ -746,8 +808,10 @@ mod tests {
             &preferences,
             &render_cache,
             &workspace.syntax_set,
-            &mut terminal_buffer
-        ).render(lines, None).unwrap();
+            &mut terminal_buffer,
+        )
+        .render(lines, None)
+        .unwrap();
 
         assert_eq!(render_cache.borrow().keys().count(), 1);
         terminal.clear();
@@ -768,12 +832,15 @@ mod tests {
             &preferences,
             &render_cache,
             &workspace.syntax_set,
-            &mut terminal_buffer
-        ).render(lines2, None).unwrap();
+            &mut terminal_buffer,
+        )
+        .render(lines2, None)
+        .unwrap();
 
         let expected_content = " 201  line\n 202  line\n 203  line\n 204      ";
         assert_eq!(
             &terminal_buffer.content()[0..expected_content.len()],
-            expected_content);
+            expected_content
+        );
     }
 }

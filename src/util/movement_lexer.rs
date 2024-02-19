@@ -1,5 +1,5 @@
-use luthor::{Tokenizer, StateFunction};
-use luthor::token::{Token, Category};
+use luthor::token::{Category, Token};
+use luthor::{StateFunction, Tokenizer};
 
 fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
     if lexer.has_prefix("::") {
@@ -15,30 +15,8 @@ fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
                     lexer.advance();
                     return Some(StateFunction(whitespace));
                 }
-                '`' |
-                '=' |
-                '_' |
-                '-' |
-                '.' |
-                '(' |
-                ')' |
-                '{' |
-                '}' |
-                ';' |
-                '|' |
-                ',' |
-                ':' |
-                '<' |
-                '>' |
-                '\'' |
-                '"' |
-                '?' |
-                '@' |
-                '#' |
-                '/' |
-                '\\' |
-                '[' |
-                ']' => {
+                '`' | '=' | '_' | '-' | '.' | '(' | ')' | '{' | '}' | ';' | '|' | ',' | ':'
+                | '<' | '>' | '\'' | '"' | '?' | '@' | '#' | '/' | '\\' | '[' | ']' => {
                     lexer.tokenize(Category::Text);
                     lexer.tokenize_next(1, Category::Text);
                     return Some(StateFunction(whitespace));
@@ -66,18 +44,16 @@ fn initial_state(lexer: &mut Tokenizer) -> Option<StateFunction> {
 
 fn whitespace(lexer: &mut Tokenizer) -> Option<StateFunction> {
     match lexer.current_char() {
-        Some(c) => {
-            match c {
-                ' ' | '\n' | '\t' => {
-                    lexer.advance();
-                    Some(StateFunction(whitespace))
-                }
-                _ => {
-                    lexer.tokenize(Category::Whitespace);
-                    Some(StateFunction(initial_state))
-                }
+        Some(c) => match c {
+            ' ' | '\n' | '\t' => {
+                lexer.advance();
+                Some(StateFunction(whitespace))
             }
-        }
+            _ => {
+                lexer.tokenize(Category::Whitespace);
+                Some(StateFunction(initial_state))
+            }
+        },
 
         None => {
             lexer.tokenize(Category::Whitespace);
@@ -124,38 +100,114 @@ pub fn lex(data: &str) -> Vec<Token> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use luthor::token::{Token, Category};
+    use luthor::token::{Category, Token};
 
     #[test]
     fn it_works() {
-        let data = "local_variable = camelCase.method(param)\n CamelCaseClass something-else CONSTANT val";
+        let data =
+            "local_variable = camelCase.method(param)\n CamelCaseClass something-else CONSTANT val";
         let tokens = lex(data);
         let expected_tokens = vec![
-            Token{ lexeme: "local".to_string(), category: Category::Text },
-            Token{ lexeme: "_".to_string(), category: Category::Text },
-            Token{ lexeme: "variable".to_string(), category: Category::Text },
-            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
-            Token{ lexeme: "=".to_string(), category: Category::Text },
-            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
-            Token{ lexeme: "camel".to_string(), category: Category::Text },
-            Token{ lexeme: "Case".to_string(), category: Category::Text },
-            Token{ lexeme: ".".to_string(), category: Category::Text },
-            Token{ lexeme: "method".to_string(), category: Category::Text },
-            Token{ lexeme: "(".to_string(), category: Category::Text },
-            Token{ lexeme: "param".to_string(), category: Category::Text },
-            Token{ lexeme: ")".to_string(), category: Category::Text },
-            Token{ lexeme: "\n ".to_string(), category: Category::Whitespace },
-            Token{ lexeme: "Camel".to_string(), category: Category::Text },
-            Token{ lexeme: "Case".to_string(), category: Category::Text },
-            Token{ lexeme: "Class".to_string(), category: Category::Text },
-            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
-            Token{ lexeme: "something".to_string(), category: Category::Text },
-            Token{ lexeme: "-".to_string(), category: Category::Text },
-            Token{ lexeme: "else".to_string(), category: Category::Text },
-            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
-            Token{ lexeme: "CONSTANT".to_string(), category: Category::Text },
-            Token{ lexeme: " ".to_string(), category: Category::Whitespace },
-            Token{ lexeme: "val".to_string(), category: Category::Text },
+            Token {
+                lexeme: "local".to_string(),
+                category: Category::Text,
+            },
+            Token {
+                lexeme: "_".to_string(),
+                category: Category::Text,
+            },
+            Token {
+                lexeme: "variable".to_string(),
+                category: Category::Text,
+            },
+            Token {
+                lexeme: " ".to_string(),
+                category: Category::Whitespace,
+            },
+            Token {
+                lexeme: "=".to_string(),
+                category: Category::Text,
+            },
+            Token {
+                lexeme: " ".to_string(),
+                category: Category::Whitespace,
+            },
+            Token {
+                lexeme: "camel".to_string(),
+                category: Category::Text,
+            },
+            Token {
+                lexeme: "Case".to_string(),
+                category: Category::Text,
+            },
+            Token {
+                lexeme: ".".to_string(),
+                category: Category::Text,
+            },
+            Token {
+                lexeme: "method".to_string(),
+                category: Category::Text,
+            },
+            Token {
+                lexeme: "(".to_string(),
+                category: Category::Text,
+            },
+            Token {
+                lexeme: "param".to_string(),
+                category: Category::Text,
+            },
+            Token {
+                lexeme: ")".to_string(),
+                category: Category::Text,
+            },
+            Token {
+                lexeme: "\n ".to_string(),
+                category: Category::Whitespace,
+            },
+            Token {
+                lexeme: "Camel".to_string(),
+                category: Category::Text,
+            },
+            Token {
+                lexeme: "Case".to_string(),
+                category: Category::Text,
+            },
+            Token {
+                lexeme: "Class".to_string(),
+                category: Category::Text,
+            },
+            Token {
+                lexeme: " ".to_string(),
+                category: Category::Whitespace,
+            },
+            Token {
+                lexeme: "something".to_string(),
+                category: Category::Text,
+            },
+            Token {
+                lexeme: "-".to_string(),
+                category: Category::Text,
+            },
+            Token {
+                lexeme: "else".to_string(),
+                category: Category::Text,
+            },
+            Token {
+                lexeme: " ".to_string(),
+                category: Category::Whitespace,
+            },
+            Token {
+                lexeme: "CONSTANT".to_string(),
+                category: Category::Text,
+            },
+            Token {
+                lexeme: " ".to_string(),
+                category: Category::Whitespace,
+            },
+            Token {
+                lexeme: "val".to_string(),
+                category: Category::Text,
+            },
         ];
 
         for (index, token) in tokens.iter().enumerate() {

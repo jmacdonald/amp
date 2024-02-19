@@ -1,37 +1,46 @@
+use crate::commands::{self, Result};
 use crate::errors::*;
 use crate::input::Key;
-use crate::commands::{self, Result};
 use crate::models::application::{Application, Mode};
 
 pub fn move_to_previous_result(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
-        mode.results.as_mut().ok_or(NO_SEARCH_RESULTS)?.select_previous();
+        mode.results
+            .as_mut()
+            .ok_or(NO_SEARCH_RESULTS)?
+            .select_previous();
     } else {
         bail!("Can't move to search result outside of search mode");
     }
 
-    commands::view::scroll_cursor_to_center(app)
-        .chain_err(|| SCROLL_TO_CURSOR_FAILED)?;
+    commands::view::scroll_cursor_to_center(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)?;
     move_to_current_result(app)
 }
 
 pub fn move_to_next_result(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
-        mode.results.as_mut().ok_or(NO_SEARCH_RESULTS)?.select_next();
+        mode.results
+            .as_mut()
+            .ok_or(NO_SEARCH_RESULTS)?
+            .select_next();
     } else {
         bail!("Can't move to search result outside of search mode");
     }
 
-    commands::view::scroll_cursor_to_center(app)
-        .chain_err(|| SCROLL_TO_CURSOR_FAILED)?;
+    commands::view::scroll_cursor_to_center(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)?;
     move_to_current_result(app)
 }
 
 pub fn move_to_current_result(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
-        let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+        let buffer = app
+            .workspace
+            .current_buffer
+            .as_mut()
+            .ok_or(BUFFER_MISSING)?;
         let query = mode.input.as_ref().ok_or(SEARCH_QUERY_MISSING)?;
-        let result = mode.results
+        let result = mode
+            .results
             .as_mut()
             .ok_or(NO_SEARCH_RESULTS)?
             .selection()
@@ -41,8 +50,7 @@ pub fn move_to_current_result(app: &mut Application) -> Result {
         bail!("Can't move to search result outside of search mode");
     }
 
-    commands::view::scroll_cursor_to_center(app)
-        .chain_err(|| SCROLL_TO_CURSOR_FAILED)?;
+    commands::view::scroll_cursor_to_center(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)?;
 
     Ok(())
 }
@@ -71,7 +79,11 @@ pub fn clear_query(app: &mut Application) -> Result {
 }
 
 pub fn push_search_char(app: &mut Application) -> Result {
-    let key = app.view.last_key().as_ref().ok_or("View hasn't tracked a key press")?;
+    let key = app
+        .view
+        .last_key()
+        .as_ref()
+        .ok_or("View hasn't tracked a key press")?;
 
     if let Key::Char(c) = *key {
         if let Mode::Search(ref mut mode) = app.mode {
@@ -104,7 +116,11 @@ pub fn pop_search_char(app: &mut Application) -> Result {
 pub fn run(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
         // Search the buffer.
-        let buffer = app.workspace.current_buffer.as_ref().ok_or(BUFFER_MISSING)?;
+        let buffer = app
+            .workspace
+            .current_buffer
+            .as_ref()
+            .ok_or(BUFFER_MISSING)?;
         mode.search(buffer)?;
     } else {
         bail!("Can't run search outside of search mode");
@@ -116,7 +132,11 @@ pub fn run(app: &mut Application) -> Result {
 
 fn select_closest_result(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
-        let buffer = app.workspace.current_buffer.as_ref().ok_or(BUFFER_MISSING)?;
+        let buffer = app
+            .workspace
+            .current_buffer
+            .as_ref()
+            .ok_or(BUFFER_MISSING)?;
         let results = mode.results.as_mut().ok_or(NO_SEARCH_RESULTS)?;
 
         // Skip over previous entries.
@@ -134,11 +154,11 @@ fn select_closest_result(app: &mut Application) -> Result {
 
 #[cfg(test)]
 mod tests {
-    use scribe::Buffer;
-    use scribe::buffer::Position;
-    use crate::models::Application;
-    use crate::models::application::Mode;
     use crate::commands;
+    use crate::models::application::Mode;
+    use crate::models::Application;
+    use scribe::buffer::Position;
+    use scribe::Buffer;
 
     #[test]
     fn move_to_previous_result_moves_cursor_to_previous_result() {
@@ -149,7 +169,7 @@ mod tests {
 
         // Move to a location just before, but not at the
         // last result before adding it to the workspace.
-        buffer.cursor.move_to(Position{ line: 1, offset: 3 });
+        buffer.cursor.move_to(Position { line: 1, offset: 3 });
         app.workspace.add_buffer(buffer);
 
         // Enter search mode and accept a query.
@@ -163,11 +183,10 @@ mod tests {
         commands::search::move_to_previous_result(&mut app).unwrap();
 
         // Ensure the buffer cursor is at the expected position.
-        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
-                   Position {
-                       line: 1,
-                       offset: 0,
-                   });
+        assert_eq!(
+            *app.workspace.current_buffer.as_ref().unwrap().cursor,
+            Position { line: 1, offset: 0 }
+        );
     }
 
     #[test]
@@ -189,11 +208,10 @@ mod tests {
         commands::search::move_to_previous_result(&mut app).unwrap();
 
         // Ensure the buffer cursor is at the expected position.
-        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
-                   Position {
-                       line: 2,
-                       offset: 0,
-                   });
+        assert_eq!(
+            *app.workspace.current_buffer.as_ref().unwrap().cursor,
+            Position { line: 2, offset: 0 }
+        );
     }
 
     #[test]
@@ -215,11 +233,10 @@ mod tests {
         commands::search::move_to_next_result(&mut app).unwrap();
 
         // Ensure the buffer cursor is at the expected position.
-        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
-                   Position {
-                       line: 1,
-                       offset: 0,
-                   });
+        assert_eq!(
+            *app.workspace.current_buffer.as_ref().unwrap().cursor,
+            Position { line: 1, offset: 0 }
+        );
     }
 
     #[test]
@@ -231,7 +248,7 @@ mod tests {
 
         // Move to a location just before, but not at the
         // last result before adding it to the workspace.
-        buffer.cursor.move_to(Position{ line: 1, offset: 3 });
+        buffer.cursor.move_to(Position { line: 1, offset: 3 });
         app.workspace.add_buffer(buffer);
 
         // Enter search mode and accept a query. As we've moved the cursor
@@ -246,11 +263,10 @@ mod tests {
         commands::search::move_to_next_result(&mut app).unwrap();
 
         // Ensure the buffer cursor is at the expected position.
-        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
-                   Position {
-                       line: 0,
-                       offset: 4,
-                   });
+        assert_eq!(
+            *app.workspace.current_buffer.as_ref().unwrap().cursor,
+            Position { line: 0, offset: 4 }
+        );
     }
 
     #[test]
@@ -261,7 +277,7 @@ mod tests {
 
         // Move to a location just at the first
         // result before adding it to the workspace.
-        buffer.cursor.move_to(Position{ line: 0, offset: 4 });
+        buffer.cursor.move_to(Position { line: 0, offset: 4 });
         app.workspace.add_buffer(buffer);
 
         // Add a search query, enter search mode, and accept the query.
@@ -279,10 +295,9 @@ mod tests {
         assert_eq!(app.search_query, Some("ed".to_string()));
 
         // Ensure the buffer cursor is at the expected position.
-        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
-                   Position {
-                       line: 1,
-                       offset: 0,
-                   });
+        assert_eq!(
+            *app.workspace.current_buffer.as_ref().unwrap().cursor,
+            Position { line: 1, offset: 0 }
+        );
     }
 }

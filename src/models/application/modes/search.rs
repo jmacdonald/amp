@@ -1,7 +1,7 @@
 use crate::errors::*;
 use crate::util::SelectableVec;
-use std::fmt;
 use scribe::buffer::{Buffer, Distance, Range};
+use std::fmt;
 
 pub struct SearchMode {
     pub insert: bool,
@@ -31,14 +31,13 @@ impl SearchMode {
         // Buffer search returns match starting positions, but we'd like ranges.
         // This maps the positions to ranges using the search query distance
         // before storing them.
-        self.results = Some(
-            SelectableVec::new(
-                buffer.search(query)
-                    .into_iter()
-                    .map(|start| Range::new(start, start + distance))
-                    .collect()
-            )
-        );
+        self.results = Some(SelectableVec::new(
+            buffer
+                .search(query)
+                .into_iter()
+                .map(|start| Range::new(start, start + distance))
+                .collect(),
+        ));
 
         Ok(())
     }
@@ -52,8 +51,8 @@ impl fmt::Display for SearchMode {
 
 #[cfg(test)]
 mod tests {
-    use scribe::buffer::{Buffer, Position, Range};
     use super::SearchMode;
+    use scribe::buffer::{Buffer, Position, Range};
 
     #[test]
     fn search_populates_results_with_correct_ranges() {
@@ -67,12 +66,12 @@ mod tests {
             *mode.results.unwrap(),
             vec![
                 Range::new(
-                    Position{ line: 0, offset: 0 },
-                    Position{ line: 0, offset: 4 },
+                    Position { line: 0, offset: 0 },
+                    Position { line: 0, offset: 4 },
                 ),
                 Range::new(
-                    Position{ line: 1, offset: 0 },
-                    Position{ line: 1, offset: 4 },
+                    Position { line: 1, offset: 0 },
+                    Position { line: 1, offset: 4 },
                 ),
             ]
         );

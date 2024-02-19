@@ -10,9 +10,9 @@ pub struct LineNumbers {
 
 impl LineNumbers {
     pub fn new(buffer: &Buffer, offset: Option<usize>) -> LineNumbers {
-        LineNumbers{
+        LineNumbers {
             current_number: offset.unwrap_or(0),
-            buffer_line_count_width: buffer.line_count().to_string().len()
+            buffer_line_count_width: buffer.line_count().to_string().len(),
         }
     }
 
@@ -26,20 +26,18 @@ impl Iterator for LineNumbers {
 
     fn next(&mut self) -> Option<String> {
         self.current_number += 1;
-        Some(
-            format!(
-                " {:>width$} ",
-                self.current_number,
-                width = self.buffer_line_count_width
-            )
-        )
+        Some(format!(
+            " {:>width$} ",
+            self.current_number,
+            width = self.buffer_line_count_width
+        ))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use scribe::Buffer;
     use super::*;
+    use scribe::Buffer;
 
     #[test]
     fn width_considers_buffer_line_count_and_padding() {

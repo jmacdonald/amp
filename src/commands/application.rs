@@ -1,18 +1,17 @@
-use crate::errors::*;
 use crate::commands::{self, Result};
+use crate::errors::*;
 use crate::input::KeyMap;
+use crate::models::application::modes::*;
+use crate::models::application::{Application, Mode};
+use crate::util;
 use scribe::Buffer;
 use std::mem;
-use crate::models::application::{Application, Mode};
-use crate::models::application::modes::*;
-use crate::util;
 
 pub fn handle_input(app: &mut Application) -> Result {
     // Listen for and respond to user input.
     let commands = app.view.last_key().as_ref().and_then(|key| {
-        app.mode_str().and_then(|mode| {
-            app.preferences.borrow().keymap().commands_for(mode, key)
-        })
+        app.mode_str()
+            .and_then(|mode| app.preferences.borrow().keymap().commands_for(mode, key))
     });
 
     if let Some(coms) = commands {
@@ -45,7 +44,11 @@ pub fn switch_to_insert_mode(app: &mut Application) -> Result {
 }
 
 pub fn switch_to_jump_mode(app: &mut Application) -> Result {
-    let buffer = app.workspace.current_buffer.as_ref().ok_or(BUFFER_MISSING)?;
+    let buffer = app
+        .workspace
+        .current_buffer
+        .as_ref()
+        .ok_or(BUFFER_MISSING)?;
 
     // Initialize a new jump mode and swap
     // it with the current application mode.
@@ -97,7 +100,12 @@ pub fn switch_to_line_jump_mode(app: &mut Application) -> Result {
 pub fn switch_to_open_mode(app: &mut Application) -> Result {
     let exclusions = app.preferences.borrow().open_mode_exclusions()?;
     let config = app.preferences.borrow().search_select_config();
-    app.mode = Mode::Open(OpenMode::new(app.workspace.path.clone(), exclusions, app.event_channel.clone(), config));
+    app.mode = Mode::Open(OpenMode::new(
+        app.workspace.path.clone(),
+        exclusions,
+        app.event_channel.clone(),
+        config,
+    ));
     commands::search_select::search(app)?;
 
     Ok(())
@@ -112,7 +120,9 @@ pub fn switch_to_command_mode(app: &mut Application) -> Result {
 }
 
 pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
-    let token_set = app.workspace.current_buffer_tokens()
+    let token_set = app
+        .workspace
+        .current_buffer_tokens()
         .chain_err(|| BUFFER_TOKENS_FAILED)?;
     let config = app.preferences.borrow().search_select_config();
 
@@ -125,12 +135,15 @@ pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
 
 pub fn switch_to_theme_mode(app: &mut Application) -> Result {
     let config = app.preferences.borrow().search_select_config();
-    app.mode = Mode::Theme(
-        ThemeMode::new(
-            app.view.theme_set.themes.keys().map(|k| k.to_string()).collect(),
-            config
-        ),
-    );
+    app.mode = Mode::Theme(ThemeMode::new(
+        app.view
+            .theme_set
+            .themes
+            .keys()
+            .map(|k| k.to_string())
+            .collect(),
+        config,
+    ));
     commands::search_select::search(app)?;
 
     Ok(())
@@ -158,9 +171,7 @@ pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
 
 pub fn switch_to_search_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer.is_some() {
-        app.mode = Mode::Search(
-            SearchMode::new(app.search_query.clone())
-        );
+        app.mode = Mode::Search(SearchMode::new(app.search_query.clone()));
     } else {
         bail!(BUFFER_MISSING);
     }
@@ -169,20 +180,20 @@ pub fn switch_to_search_mode(app: &mut Application) -> Result {
 }
 
 pub fn switch_to_path_mode(app: &mut Application) -> Result {
-    let path = app.workspace
+    let path = app
+        .workspace
         .current_buffer
         .as_ref()
         .ok_or(BUFFER_MISSING)?
-        .path.as_ref().map(|p|
+        .path
+        .as_ref()
+        .map(|p|
             // The buffer has a path; use it.
-            p.to_string_lossy().into_owned()
-        ).unwrap_or_else(||
+            p.to_string_lossy().into_owned())
+        .unwrap_or_else(||
             // Default to the workspace directory.
-            format!("{}/", app.workspace.path.to_string_lossy())
-        );
-    app.mode = Mode::Path(
-        PathMode::new(path)
-    );
+            format!("{}/", app.workspace.path.to_string_lossy()));
+    app.mode = Mode::Path(PathMode::new(path));
 
     Ok(())
 }
@@ -190,18 +201,22 @@ pub fn switch_to_path_mode(app: &mut Application) -> Result {
 pub fn switch_to_syntax_mode(app: &mut Application) -> Result {
     // We'll need a buffer to apply the syntax,
     // so check before entering syntax mode.
-    let _ = app.workspace
+    let _ = app
+        .workspace
         .current_buffer
         .as_ref()
         .ok_or("Switching syntaxes requires an open buffer")?;
 
     let config = app.preferences.borrow().search_select_config();
-    app.mode = Mode::Syntax(
-        SyntaxMode::new(
-            app.workspace.syntax_set.syntaxes().iter().map(|syntax| syntax.name.clone()).collect(),
-            config
-        ),
-    );
+    app.mode = Mode::Syntax(SyntaxMode::new(
+        app.workspace
+            .syntax_set
+            .syntaxes()
+            .iter()
+            .map(|syntax| syntax.name.clone())
+            .collect(),
+        config,
+    ));
     commands::search_select::search(app)?;
 
     Ok(())
@@ -248,15 +263,11 @@ pub fn display_last_error(app: &mut Application) -> Result {
     let scope_display_buffer = {
         let mut error_buffer = Buffer::new();
         // Add the proximate/contextual error.
-        error_buffer.insert(
-            format!("{}\n", error)
-        );
+        error_buffer.insert(format!("{}\n", error));
 
         // Print the chain of other errors that led to the proximate error.
         for err in error.iter().skip(1) {
-            error_buffer.insert(
-                format!("caused by: {}", err)
-            );
+            error_buffer.insert(format!("caused by: {}", err));
         }
 
         error_buffer
@@ -278,8 +289,8 @@ pub fn exit(app: &mut Application) -> Result {
 
 #[cfg(test)]
 mod tests {
-    use crate::models::Application;
     use crate::models::application::Mode;
+    use crate::models::Application;
     use scribe::Buffer;
     use std::path::PathBuf;
 
@@ -298,7 +309,10 @@ mod tests {
 
         let buffer_data = app.workspace.current_buffer.as_ref().unwrap().data();
         let mut lines = buffer_data.lines();
-        assert_eq!(lines.nth(0), Some("application::display_available_commands"));
+        assert_eq!(
+            lines.nth(0),
+            Some("application::display_available_commands")
+        );
         assert_eq!(lines.last(), Some("workspace::next_buffer"));
     }
 
@@ -317,10 +331,7 @@ mod tests {
             Mode::Search(ref mode) => mode.input.clone(),
             _ => None,
         };
-        assert_eq!(
-            mode_query,
-            Some(String::from("query"))
-        );
+        assert_eq!(mode_query, Some(String::from("query")));
     }
 
     #[test]
@@ -355,10 +366,7 @@ mod tests {
             Mode::Path(ref mode) => Some(mode.input.clone()),
             _ => None,
         };
-        assert_eq!(
-            mode_input,
-            Some(absolute_path)
-        );
+        assert_eq!(mode_input, Some(absolute_path));
     }
 
     #[test]

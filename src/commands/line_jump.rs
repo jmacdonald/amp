@@ -1,6 +1,6 @@
+use crate::commands::{self, Result};
 use crate::errors::*;
 use crate::input::Key;
-use crate::commands::{self, Result};
 use crate::models::application::{Application, Mode};
 use scribe::buffer::Position;
 
@@ -14,7 +14,11 @@ pub fn accept_input(app: &mut Application) -> Result {
 
         // Ignore zero-value line numbers.
         if line_number > 0 {
-            let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+            let buffer = app
+                .workspace
+                .current_buffer
+                .as_mut()
+                .ok_or(BUFFER_MISSING)?;
 
             // Input values won't be zero-indexed; map the value so
             // that we can use it for a zero-indexed buffer position.
@@ -52,7 +56,11 @@ pub fn accept_input(app: &mut Application) -> Result {
 }
 
 pub fn push_search_char(app: &mut Application) -> Result {
-    let key = app.view.last_key().as_ref().ok_or("View hasn't tracked a key press")?;
+    let key = app
+        .view
+        .last_key()
+        .as_ref()
+        .ok_or("View hasn't tracked a key press")?;
 
     if let Key::Char(c) = *key {
         if let Mode::LineJump(ref mut mode) = app.mode {
@@ -80,9 +88,9 @@ pub fn pop_search_char(app: &mut Application) -> Result {
 #[cfg(test)]
 mod tests {
     use crate::commands;
-    use scribe::Buffer;
-    use scribe::buffer::Position;
     use crate::models::application::{Application, Mode};
+    use scribe::buffer::Position;
+    use scribe::Buffer;
 
     #[test]
     fn accept_input_moves_cursor_to_requested_line_and_changes_modes() {
@@ -103,11 +111,10 @@ mod tests {
         // Ensure that the cursor is in the right place.
         // NOTE: We look for a decremented version of the input line number
         //       because users won't be inputting zero-indexed line numbers.
-        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
-                   Position {
-                       line: 2,
-                       offset: 0,
-                   });
+        assert_eq!(
+            *app.workspace.current_buffer.as_ref().unwrap().cursor,
+            Position { line: 2, offset: 0 }
+        );
 
         // Ensure that we're in normal mode.
         assert!(match app.mode {
@@ -121,10 +128,7 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\namp");
-        buffer.cursor.move_to(Position {
-            line: 1,
-            offset: 3,
-        });
+        buffer.cursor.move_to(Position { line: 1, offset: 3 });
 
         // Now that we've set up the buffer, add it to the application,
         // switch to line jump mode, set the line input, and run the command.
@@ -139,11 +143,10 @@ mod tests {
         // Ensure that the cursor is in the right place.
         // NOTE: We look for a decremented version of the input line number
         //       because users won't be inputting zero-indexed line numbers.
-        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
-                   Position {
-                       line: 2,
-                       offset: 3,
-                   });
+        assert_eq!(
+            *app.workspace.current_buffer.as_ref().unwrap().cursor,
+            Position { line: 2, offset: 3 }
+        );
 
         // Ensure that we're in normal mode.
         assert!(match app.mode {
@@ -169,11 +172,10 @@ mod tests {
         commands::line_jump::accept_input(&mut app).unwrap();
 
         // Ensure that the cursor is in the right place.
-        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
-                   Position {
-                       line: 0,
-                       offset: 0,
-                   });
+        assert_eq!(
+            *app.workspace.current_buffer.as_ref().unwrap().cursor,
+            Position { line: 0, offset: 0 }
+        );
 
         // Ensure that we're in normal mode.
         assert!(match app.mode {

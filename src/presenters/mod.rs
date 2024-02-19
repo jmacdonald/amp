@@ -1,30 +1,37 @@
 pub mod error;
 pub mod modes;
 
-use std::path::{Path, PathBuf};
-use scribe::Workspace;
 use crate::view::{Colors, StatusLineData, Style};
 use git2::{self, Repository, Status};
+use scribe::Workspace;
+use std::path::{Path, PathBuf};
 
 fn path_as_title(path: &Path) -> String {
     format!(" {}", path.to_string_lossy())
 }
 
 fn current_buffer_status_line_data(workspace: &mut Workspace) -> StatusLineData {
-    let modified = workspace.current_buffer.as_ref().map(|b| b.modified()).unwrap_or(false);
+    let modified = workspace
+        .current_buffer
+        .as_ref()
+        .map(|b| b.modified())
+        .unwrap_or(false);
 
-    let (content, style) = workspace.current_buffer_path().map(|path| {
-        // Determine buffer title styles based on its modification status.
-        if modified {
-            // Use an emboldened path with an asterisk.
-            let mut title = path_as_title(path);
-            title.push('*');
+    let (content, style) = workspace
+        .current_buffer_path()
+        .map(|path| {
+            // Determine buffer title styles based on its modification status.
+            if modified {
+                // Use an emboldened path with an asterisk.
+                let mut title = path_as_title(path);
+                title.push('*');
 
-            (title, Style::Bold)
-        } else {
-            (path_as_title(path), Style::Default)
-        }
-    }).unwrap_or((String::new(), Style::Default));
+                (title, Style::Bold)
+            } else {
+                (path_as_title(path), Style::Default)
+            }
+        })
+        .unwrap_or((String::new(), Style::Default));
 
     StatusLineData {
         content,
@@ -85,8 +92,8 @@ fn presentable_status(status: &Status) -> &str {
 
 #[cfg(test)]
 mod tests {
-    use git2;
     use super::presentable_status;
+    use git2;
 
     #[test]
     pub fn presentable_status_returns_untracked_when_status_is_locally_new() {
@@ -115,14 +122,18 @@ mod tests {
     #[test]
     pub fn presentable_status_returns_partially_staged_when_modified_locally_and_in_index() {
         let status = git2::Status::WT_MODIFIED | git2::Status::INDEX_MODIFIED;
-        assert_eq!(presentable_status(&status),
-                   "[partially staged]".to_string());
+        assert_eq!(
+            presentable_status(&status),
+            "[partially staged]".to_string()
+        );
     }
 
     #[test]
     pub fn presentable_status_returns_partially_staged_when_new_locally_and_in_index() {
         let status = git2::Status::WT_NEW | git2::Status::INDEX_NEW;
-        assert_eq!(presentable_status(&status),
-                   "[partially staged]".to_string());
+        assert_eq!(
+            presentable_status(&status),
+            "[partially staged]".to_string()
+        );
     }
 }

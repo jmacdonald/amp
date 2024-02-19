@@ -1,21 +1,30 @@
 use crate::models::application::Event;
-use std::sync::Arc;
-use std::sync::mpsc::{Receiver, Sender};
-use std::thread;
 use crate::view::Terminal;
+use std::sync::mpsc::{Receiver, Sender};
+use std::sync::Arc;
+use std::thread;
 
 pub struct EventListener {
     terminal: Arc<Box<dyn Terminal + Sync + Send + 'static>>,
     events: Sender<Event>,
-    killswitch: Receiver<()>
+    killswitch: Receiver<()>,
 }
 
 impl EventListener {
     /// Spins up a thread that loops forever, waiting on terminal events
     /// and forwarding those to the application event channel.
-    pub fn start(terminal: Arc<Box<dyn Terminal + Sync + Send + 'static>>, events: Sender<Event>, killswitch: Receiver<()>) {
+    pub fn start(
+        terminal: Arc<Box<dyn Terminal + Sync + Send + 'static>>,
+        events: Sender<Event>,
+        killswitch: Receiver<()>,
+    ) {
         thread::spawn(move || {
-            EventListener { terminal, events, killswitch }.listen();
+            EventListener {
+                terminal,
+                events,
+                killswitch,
+            }
+            .listen();
         });
     }
 
@@ -32,11 +41,11 @@ impl EventListener {
 
 #[cfg(test)]
 mod tests {
+    use super::EventListener;
     use crate::input::Key;
     use crate::models::application::Event;
-    use std::sync::mpsc;
-    use super::EventListener;
     use crate::view::terminal::*;
+    use std::sync::mpsc;
 
     #[test]
     fn start_listens_for_and_sends_key_events_from_terminal() {

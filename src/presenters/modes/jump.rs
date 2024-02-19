@@ -1,8 +1,8 @@
 use crate::errors::*;
-use crate::presenters::current_buffer_status_line_data;
-use scribe::Workspace;
 use crate::models::application::modes::JumpMode;
+use crate::presenters::current_buffer_status_line_data;
 use crate::view::{Colors, StatusLineData, Style, View};
+use scribe::Workspace;
 
 pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) -> Result<()> {
     let mut presenter = view.build_presenter()?;
@@ -21,7 +21,7 @@ pub fn display(workspace: &mut Workspace, mode: &mut JumpMode, view: &mut View) 
             style: Style::Default,
             colors: Colors::Inverted,
         },
-        buffer_status
+        buffer_status,
     ]);
 
     // Don't display a cursor.

@@ -8,16 +8,15 @@ use syntect::highlighting::{Theme, ThemeSet};
 
 pub struct ThemeLoader {
     path: PathBuf,
-    themes: BTreeMap<String, Theme>
+    themes: BTreeMap<String, Theme>,
 }
 
 impl ThemeLoader {
     pub fn new(path: PathBuf) -> ThemeLoader {
-        ThemeLoader{
+        ThemeLoader {
             path,
-            themes: BTreeMap::new()
+            themes: BTreeMap::new(),
         }
-
     }
 
     /// Consumes the ThemeLoader to produce a ThemeSet.
@@ -25,12 +24,16 @@ impl ThemeLoader {
         self.load_defaults()?;
         self.load_user()?;
 
-        Ok(ThemeSet { themes: self.themes })
+        Ok(ThemeSet {
+            themes: self.themes,
+        })
     }
 
     fn load_user(&mut self) -> Result<()> {
-        let theme_dir_entries =
-            self.path.read_dir().chain_err(|| "Failed to read themes directory")?;
+        let theme_dir_entries = self
+            .path
+            .read_dir()
+            .chain_err(|| "Failed to read themes directory")?;
 
         let theme_paths = theme_dir_entries
             .filter_map(|dir| dir.ok())
@@ -54,15 +57,11 @@ impl ThemeLoader {
     fn load_defaults(&mut self) -> Result<()> {
         self.insert_theme(
             "solarized_dark",
-            Cursor::new(
-                include_str!("../themes/solarized_dark.tmTheme")
-            )
+            Cursor::new(include_str!("../themes/solarized_dark.tmTheme")),
         )?;
         self.insert_theme(
             "solarized_light",
-            Cursor::new(
-                include_str!("../themes/solarized_light.tmTheme")
-            )
+            Cursor::new(include_str!("../themes/solarized_light.tmTheme")),
         )?;
 
         Ok(())

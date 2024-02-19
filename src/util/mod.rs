@@ -1,8 +1,8 @@
 pub use self::selectable_vec::SelectableVec;
 
 pub mod movement_lexer;
-mod selectable_vec;
 pub mod reflow;
+mod selectable_vec;
 pub mod token;
 
 use crate::errors::*;
@@ -34,34 +34,35 @@ pub fn inclusive_range(line_range: &LineRange, buffer: &mut Buffer) -> Range {
                 }
             }
             // Couldn't find any content for the last line; use a zero offset.
-            None => {
-                Position {
-                    line: line_range.end(),
-                    offset: 0,
-                }
-            }
+            None => Position {
+                line: line_range.end(),
+                offset: 0,
+            },
         }
     };
 
-    Range::new(Position {
-                   line: line_range.start(),
-                   offset: 0,
-               },
-               end_position)
+    Range::new(
+        Position {
+            line: line_range.start(),
+            offset: 0,
+        },
+        end_position,
+    )
 }
 
 /// Convenience method to initialize and add a buffer to the workspace.
 pub fn add_buffer(buffer: Buffer, app: &mut Application) -> Result<()> {
     app.workspace.add_buffer(buffer);
-    app.view.initialize_buffer(app.workspace.current_buffer.as_mut().unwrap())?;
+    app.view
+        .initialize_buffer(app.workspace.current_buffer.as_mut().unwrap())?;
 
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
-    use scribe::Buffer;
     use scribe::buffer::{LineRange, Position, Range};
+    use scribe::Buffer;
 
     #[test]
     fn inclusive_range_works_correctly_without_trailing_newline() {
@@ -69,15 +70,13 @@ mod tests {
         buffer.insert("amp\neditor");
         let range = LineRange::new(1, 1);
 
-        assert_eq!(super::inclusive_range(&range, &mut buffer),
-                   Range::new(Position {
-                                  line: 1,
-                                  offset: 0,
-                              },
-                              Position {
-                                  line: 1,
-                                  offset: 6,
-                              }));
+        assert_eq!(
+            super::inclusive_range(&range, &mut buffer),
+            Range::new(
+                Position { line: 1, offset: 0 },
+                Position { line: 1, offset: 6 }
+            )
+        );
     }
 
     #[test]
@@ -86,14 +85,12 @@ mod tests {
         buffer.insert("amp\neditor\n");
         let range = LineRange::new(1, 1);
 
-        assert_eq!(super::inclusive_range(&range, &mut buffer),
-                   Range::new(Position {
-                                  line: 1,
-                                  offset: 0,
-                              },
-                              Position {
-                                  line: 2,
-                                  offset: 0,
-                              }));
+        assert_eq!(
+            super::inclusive_range(&range, &mut buffer),
+            Range::new(
+                Position { line: 1, offset: 0 },
+                Position { line: 2, offset: 0 }
+            )
+        );
     }
 }

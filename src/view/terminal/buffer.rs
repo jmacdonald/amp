@@ -9,10 +9,10 @@ pub struct TerminalBuffer<'c> {
 
 impl<'c> TerminalBuffer<'c> {
     pub fn new(width: usize, height: usize) -> TerminalBuffer<'c> {
-        TerminalBuffer{
+        TerminalBuffer {
             width,
             height,
-            cells: vec![Cell::default(); width*height],
+            cells: vec![Cell::default(); width * height],
         }
     }
 
@@ -25,7 +25,7 @@ impl<'c> TerminalBuffer<'c> {
     }
 
     pub fn clear(&mut self) {
-        self.cells = vec![Cell::default(); self.width*self.height];
+        self.cells = vec![Cell::default(); self.width * self.height];
     }
 
     pub fn iter(&self) -> TerminalBufferIterator {
@@ -53,11 +53,11 @@ impl<'c> TerminalBuffer<'c> {
 
 #[cfg(test)]
 mod tests {
-    use crate::view::{Colors, Style};
+    use super::TerminalBuffer;
     use crate::view::terminal::Cell;
+    use crate::view::{Colors, Style};
     use scribe::buffer::Position;
     use std::borrow::Cow;
-    use super::TerminalBuffer;
 
     #[test]
     fn new_sets_cell_capacity() {
@@ -80,8 +80,12 @@ mod tests {
     #[test]
     fn set_cell_sets_correct_cell() {
         let mut buffer = TerminalBuffer::new(5, 10);
-        let cell = Cell{ content: Cow::from("a"), colors: Colors::Default, style: Style::Default };
-        buffer.set_cell(Position{ line: 2, offset: 1 }, cell.clone());
+        let cell = Cell {
+            content: Cow::from("a"),
+            colors: Colors::Default,
+            style: Style::Default,
+        };
+        buffer.set_cell(Position { line: 2, offset: 1 }, cell.clone());
 
         assert_eq!(buffer.cells[11], cell);
     }
@@ -89,8 +93,12 @@ mod tests {
     #[test]
     fn clear_resets_cells_to_default() {
         let mut buffer = TerminalBuffer::new(5, 10);
-        let cell = Cell{ content: Cow::from(" "), colors: Colors::Default, style: Style::Default };
-        buffer.set_cell(Position{ line: 2, offset: 1 }, cell.clone());
+        let cell = Cell {
+            content: Cow::from(" "),
+            colors: Colors::Default,
+            style: Style::Default,
+        };
+        buffer.set_cell(Position { line: 2, offset: 1 }, cell.clone());
 
         assert_eq!(buffer.cells[11], cell);
         buffer.clear();

@@ -1,5 +1,4 @@
-#[derive(Copy, Clone, Debug, PartialEq)]
-#[derive(Default)]
+#[derive(Copy, Clone, Debug, PartialEq, Default)]
 pub enum Style {
     #[default]
     Default,
@@ -7,5 +6,3 @@ pub enum Style {
     Inverted,
     Italic,
 }
-
-

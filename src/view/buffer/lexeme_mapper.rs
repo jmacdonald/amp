@@ -3,7 +3,7 @@ use scribe::buffer::Position;
 #[derive(Debug, PartialEq)]
 pub enum MappedLexeme<'a> {
     Focused(&'a str),
-    Blurred(&'a str)
+    Blurred(&'a str),
 }
 
 pub trait LexemeMapper {

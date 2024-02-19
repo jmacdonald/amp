@@ -1,6 +1,6 @@
 use crate::util::movement_lexer;
-use scribe::buffer::{Buffer, Position};
 use luthor::token::Category;
+use scribe::buffer::{Buffer, Position};
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum Direction {
@@ -8,22 +8,17 @@ pub enum Direction {
     Backward,
 }
 
-pub fn adjacent_token_position(buffer: &Buffer,
-                           whitespace: bool,
-                           direction: Direction)
-                           -> Option<Position> {
+pub fn adjacent_token_position(
+    buffer: &Buffer,
+    whitespace: bool,
+    direction: Direction,
+) -> Option<Position> {
     let mut line = 0;
     let mut offset = 0;
-    let mut previous_position = Position {
-        line: 0,
-        offset: 0,
-    };
+    let mut previous_position = Position { line: 0, offset: 0 };
     let tokens = movement_lexer::lex(&buffer.data());
     for token in tokens {
-        let position = Position {
-            line,
-            offset,
-        };
+        let position = Position { line, offset };
         if position > *buffer.cursor && direction == Direction::Forward {
             // We've found the next token!
             if whitespace {
@@ -58,10 +53,7 @@ pub fn adjacent_token_position(buffer: &Buffer,
 
         // If we're looking backwards and the next iteration will pass the
         // cursor, return the current position, or the previous if it's whitespace.
-        let next_position = Position {
-            line,
-            offset,
-        };
+        let next_position = Position { line, offset };
         if next_position >= *buffer.cursor && direction == Direction::Backward {
             match token.category {
                 Category::Whitespace => {
@@ -80,4 +72,3 @@ pub fn adjacent_token_position(buffer: &Buffer,
 
     None
 }
-

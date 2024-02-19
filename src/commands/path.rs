@@ -1,11 +1,15 @@
-use crate::errors::*;
 use crate::commands::{self, Result};
+use crate::errors::*;
 use crate::input::Key;
 use crate::models::application::{Application, Mode};
 use std::path::PathBuf;
 
 pub fn push_char(app: &mut Application) -> Result {
-    let last_key = app.view.last_key().as_ref().ok_or("View hasn't tracked a key press")?;
+    let last_key = app
+        .view
+        .last_key()
+        .as_ref()
+        .ok_or("View hasn't tracked a key press")?;
     if let Key::Char(c) = *last_key {
         if let Mode::Path(ref mut mode) = app.mode {
             mode.push_char(c);
@@ -28,20 +32,25 @@ pub fn pop_char(app: &mut Application) -> Result {
 }
 
 pub fn accept_path(app: &mut Application) -> Result {
-    let save_on_accept =
-        if let Mode::Path(ref mut mode) = app.mode {
-            let current_buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
-            let path_name = mode.input.clone();
-            if path_name.is_empty() {
-                bail!("Please provide a non-empty path")
-            }
-            current_buffer.path = Some(PathBuf::from(path_name));
-            mode.save_on_accept
-        } else {
-            bail!("Cannot accept path outside of path mode");
-        };
+    let save_on_accept = if let Mode::Path(ref mut mode) = app.mode {
+        let current_buffer = app
+            .workspace
+            .current_buffer
+            .as_mut()
+            .ok_or(BUFFER_MISSING)?;
+        let path_name = mode.input.clone();
+        if path_name.is_empty() {
+            bail!("Please provide a non-empty path")
+        }
+        current_buffer.path = Some(PathBuf::from(path_name));
+        mode.save_on_accept
+    } else {
+        bail!("Cannot accept path outside of path mode");
+    };
 
-    app.workspace.update_current_syntax().chain_err(|| BUFFER_SYNTAX_UPDATE_FAILED)?;
+    app.workspace
+        .update_current_syntax()
+        .chain_err(|| BUFFER_SYNTAX_UPDATE_FAILED)?;
     app.mode = Mode::Normal;
 
     if save_on_accept {
@@ -54,10 +63,10 @@ pub fn accept_path(app: &mut Application) -> Result {
 #[cfg(test)]
 mod tests {
     use crate::commands;
-    use crate::models::Application;
     use crate::models::application::Mode;
+    use crate::models::Application;
     use scribe::Buffer;
-    use std::path::{PathBuf, Path};
+    use std::path::{Path, PathBuf};
 
     #[test]
     fn accept_path_sets_buffer_path_based_on_input_and_switches_to_normal_mode() {
@@ -94,7 +103,9 @@ mod tests {
         // Switch to the mode, add a name, set the flag, and accept it.
         commands::application::switch_to_path_mode(&mut app).unwrap();
         if let Mode::Path(ref mut mode) = app.mode {
-            mode.input = Path::new(concat!(env!("OUT_DIR"), "new_path")).to_string_lossy().into();
+            mode.input = Path::new(concat!(env!("OUT_DIR"), "new_path"))
+                .to_string_lossy()
+                .into();
             mode.save_on_accept = true;
         }
         super::accept_path(&mut app).unwrap();
@@ -116,13 +127,18 @@ mod tests {
         }
         let result = super::accept_path(&mut app);
         assert!(result.is_err());
-        assert!(app.workspace.current_buffer.as_ref().unwrap().path.is_none());
+        assert!(app
+            .workspace
+            .current_buffer
+            .as_ref()
+            .unwrap()
+            .path
+            .is_none());
 
         if let Mode::Path(_) = app.mode {
         } else {
             panic!("Not in path mode");
         }
-
     }
 
     #[test]
@@ -140,7 +156,14 @@ mod tests {
         super::accept_path(&mut app).unwrap();
 
         assert_eq!(
-            app.workspace.current_buffer.as_ref().unwrap().syntax_definition.as_ref().unwrap().name,
+            app.workspace
+                .current_buffer
+                .as_ref()
+                .unwrap()
+                .syntax_definition
+                .as_ref()
+                .unwrap()
+                .name,
             "Rust"
         );
     }

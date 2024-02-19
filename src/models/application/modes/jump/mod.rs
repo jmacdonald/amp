@@ -1,15 +1,15 @@
-mod tag_generator;
 mod single_character_tag_generator;
+mod tag_generator;
 
-use luthor::token::Category;
-use crate::util::movement_lexer;
-use std::collections::HashMap;
-use scribe::buffer::{Distance, Position};
+use self::single_character_tag_generator::SingleCharacterTagGenerator;
+use self::tag_generator::TagGenerator;
 use crate::models::application::modes::select::SelectMode;
 use crate::models::application::modes::select_line::SelectLineMode;
-use self::tag_generator::TagGenerator;
-use self::single_character_tag_generator::SingleCharacterTagGenerator;
+use crate::util::movement_lexer;
 use crate::view::{LexemeMapper, MappedLexeme};
+use luthor::token::Category;
+use scribe::buffer::{Distance, Position};
+use std::collections::HashMap;
 
 /// Used to compose select and jump modes, allowing jump mode
 /// to be used for cursor navigation (to select a range of text).
@@ -46,7 +46,7 @@ impl JumpMode {
             tag_positions: HashMap::new(),
             tag_generator: TagGenerator::new(),
             single_characters: SingleCharacterTagGenerator::new(),
-            current_position: Position{ line: 0, offset: 0 },
+            current_position: Position { line: 0, offset: 0 },
             mapped_lexeme_values: Vec::new(),
         }
     }
@@ -80,12 +80,10 @@ impl LexemeMapper for JumpMode {
                 let distance = Distance::of_str(&subtoken.lexeme);
 
                 // We don't do anything to whitespace tokens.
-                self.mapped_lexeme_values.push(
-                    MappedLexemeValue::Text((
-                        subtoken.lexeme,
-                        self.current_position
-                    ))
-                );
+                self.mapped_lexeme_values.push(MappedLexemeValue::Text((
+                    subtoken.lexeme,
+                    self.current_position,
+                )));
 
                 // Advance beyond this subtoken.
                 self.current_position += distance;
@@ -108,43 +106,30 @@ impl LexemeMapper for JumpMode {
 
                         // Keep a copy of the current tag
                         // that we'll use to loan out a lexeme.
-                        self.mapped_lexeme_values.push(
-                            MappedLexemeValue::Tag((
-                                tag.clone(),
-                                self.current_position
-                            ))
-                        );
+                        self.mapped_lexeme_values
+                            .push(MappedLexemeValue::Tag((tag.clone(), self.current_position)));
 
                         // Track the location of this tag.
                         self.tag_positions.insert(tag, self.current_position);
 
                         // Advance beyond this tag.
-                        self.current_position += Distance{
+                        self.current_position += Distance {
                             lines: 0,
-                            offset: tag_len
+                            offset: tag_len,
                         };
 
-                        let suffix: String =
-                            subtoken
-                            .lexeme
-                            .chars()
-                            .skip(tag_len)
-                            .collect();
+                        let suffix: String = subtoken.lexeme.chars().skip(tag_len).collect();
                         let suffix_len = suffix.len();
 
                         if suffix_len > 0 {
                             // Push the suffix into the mapped set.
-                            self.mapped_lexeme_values.push(
-                                MappedLexemeValue::Text((
-                                    suffix,
-                                    self.current_position
-                                ))
-                            );
+                            self.mapped_lexeme_values
+                                .push(MappedLexemeValue::Text((suffix, self.current_position)));
 
                             // Advance beyond this suffix.
-                            self.current_position += Distance{
+                            self.current_position += Distance {
                                 lines: 0,
-                                offset: suffix_len
+                                offset: suffix_len,
                             };
                         }
                     }
@@ -152,12 +137,10 @@ impl LexemeMapper for JumpMode {
                         let distance = Distance::of_str(&subtoken.lexeme);
 
                         // We couldn't tag this subtoken; move along.
-                        self.mapped_lexeme_values.push(
-                            MappedLexemeValue::Text((
-                                subtoken.lexeme,
-                                self.current_position
-                            ))
-                        );
+                        self.mapped_lexeme_values.push(MappedLexemeValue::Text((
+                            subtoken.lexeme,
+                            self.current_position,
+                        )));
 
                         // Advance beyond this subtoken.
                         self.current_position += distance;
@@ -166,43 +149,34 @@ impl LexemeMapper for JumpMode {
             }
         }
 
-        self.mapped_lexeme_values.iter().map(|mapped_lexeme| {
-            match *mapped_lexeme {
-                MappedLexemeValue::Tag((ref lexeme, _)) => {
-                    MappedLexeme::Focused(lexeme.as_str())
-                },
-                MappedLexemeValue::Text((ref lexeme, _)) => {
-                    MappedLexeme::Blurred(lexeme.as_str())
-                },
-            }
-        }).collect()
+        self.mapped_lexeme_values
+            .iter()
+            .map(|mapped_lexeme| match *mapped_lexeme {
+                MappedLexemeValue::Tag((ref lexeme, _)) => MappedLexeme::Focused(lexeme.as_str()),
+                MappedLexemeValue::Text((ref lexeme, _)) => MappedLexeme::Blurred(lexeme.as_str()),
+            })
+            .collect()
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use super::JumpMode;
     use crate::view::{LexemeMapper, MappedLexeme};
     use scribe::buffer::Position;
-    use super::JumpMode;
 
     #[test]
     fn map_returns_the_correct_lexemes_in_first_phase() {
         let mut jump_mode = JumpMode::new(0);
 
         assert_eq!(
-            jump_mode.map("amp", Position{ line: 0, offset: 0 }),
-            vec![
-                MappedLexeme::Focused("a"),
-                MappedLexeme::Blurred("mp")
-            ]
+            jump_mode.map("amp", Position { line: 0, offset: 0 }),
+            vec![MappedLexeme::Focused("a"), MappedLexeme::Blurred("mp")]
         );
 
         assert_eq!(
-            jump_mode.map("editor", Position{ line: 0, offset: 3 }),
-            vec![
-                MappedLexeme::Focused("b"),
-                MappedLexeme::Blurred("ditor")
-            ]
+            jump_mode.map("editor", Position { line: 0, offset: 3 }),
+            vec![MappedLexeme::Focused("b"), MappedLexeme::Blurred("ditor")]
         );
     }
 
@@ -212,19 +186,13 @@ mod tests {
         jump_mode.first_phase = false;
 
         assert_eq!(
-            jump_mode.map("amp", Position{ line: 0, offset: 0 }),
-            vec![
-                MappedLexeme::Focused("aa"),
-                MappedLexeme::Blurred("p")
-            ]
+            jump_mode.map("amp", Position { line: 0, offset: 0 }),
+            vec![MappedLexeme::Focused("aa"), MappedLexeme::Blurred("p")]
         );
 
         assert_eq!(
-            jump_mode.map("editor", Position{ line: 0, offset: 3 }),
-            vec![
-                MappedLexeme::Focused("ab"),
-                MappedLexeme::Blurred("itor")
-            ]
+            jump_mode.map("editor", Position { line: 0, offset: 3 }),
+            vec![MappedLexeme::Focused("ab"), MappedLexeme::Blurred("itor")]
         );
     }
 
@@ -234,7 +202,7 @@ mod tests {
         jump_mode.first_phase = false;
 
         assert_eq!(
-            jump_mode.map("do a test", Position{ line: 0, offset: 0 }),
+            jump_mode.map("do a test", Position { line: 0, offset: 0 }),
             vec![
                 MappedLexeme::Focused("aa"),
                 MappedLexeme::Blurred(" "),
@@ -254,19 +222,17 @@ mod tests {
         // Adding space to a lexeme invokes sublexeme handling, since we split
         // based on whitespace. It's important to ensure the tracked positions
         // take this into account, too, which is why there's leading whitespace.
-        jump_mode.map("  amp", Position{ line: 0, offset: 0 });
-        jump_mode.map("editor", Position{ line: 0, offset: 5 });
+        jump_mode.map("  amp", Position { line: 0, offset: 0 });
+        jump_mode.map("editor", Position { line: 0, offset: 5 });
 
-        assert_eq!(*jump_mode.tag_positions.get("aa").unwrap(),
-                   Position {
-                       line: 0,
-                       offset: 2,
-                   });
-        assert_eq!(*jump_mode.tag_positions.get("ab").unwrap(),
-                   Position {
-                       line: 0,
-                       offset: 5,
-                   });
+        assert_eq!(
+            *jump_mode.tag_positions.get("aa").unwrap(),
+            Position { line: 0, offset: 2 }
+        );
+        assert_eq!(
+            *jump_mode.tag_positions.get("ab").unwrap(),
+            Position { line: 0, offset: 5 }
+        );
     }
 
     #[test]
@@ -274,20 +240,14 @@ mod tests {
         let mut jump_mode = JumpMode::new(0);
 
         assert_eq!(
-            jump_mode.map("amp", Position{ line: 0, offset: 0 }),
-            vec![
-                MappedLexeme::Focused("a"),
-                MappedLexeme::Blurred("mp")
-            ]
+            jump_mode.map("amp", Position { line: 0, offset: 0 }),
+            vec![MappedLexeme::Focused("a"), MappedLexeme::Blurred("mp")]
         );
         jump_mode.reset_display();
 
         assert_eq!(
-            jump_mode.map("editor", Position{ line: 0, offset: 3 }),
-            vec![
-                MappedLexeme::Focused("a"),
-                MappedLexeme::Blurred("ditor")
-            ]
+            jump_mode.map("editor", Position { line: 0, offset: 3 }),
+            vec![MappedLexeme::Focused("a"), MappedLexeme::Blurred("ditor")]
         );
     }
 
@@ -297,20 +257,14 @@ mod tests {
         jump_mode.first_phase = false;
 
         assert_eq!(
-            jump_mode.map("amp", Position{ line: 0, offset: 0 }),
-            vec![
-                MappedLexeme::Focused("aa"),
-                MappedLexeme::Blurred("p")
-            ]
+            jump_mode.map("amp", Position { line: 0, offset: 0 }),
+            vec![MappedLexeme::Focused("aa"), MappedLexeme::Blurred("p")]
         );
         jump_mode.reset_display();
 
         assert_eq!(
-            jump_mode.map("editor", Position{ line: 0, offset: 3 }),
-            vec![
-                MappedLexeme::Focused("aa"),
-                MappedLexeme::Blurred("itor")
-            ]
+            jump_mode.map("editor", Position { line: 0, offset: 3 }),
+            vec![MappedLexeme::Focused("aa"), MappedLexeme::Blurred("itor")]
         );
     }
 
@@ -323,11 +277,8 @@ mod tests {
         // second character to ensure splitting off the first
         // two characters would cause a panic.
         assert_eq!(
-            jump_mode.map("eéditor", Position{ line: 0, offset: 0 }),
-            vec![
-                MappedLexeme::Focused("aa"),
-                MappedLexeme::Blurred("ditor")
-            ]
+            jump_mode.map("eéditor", Position { line: 0, offset: 0 }),
+            vec![MappedLexeme::Focused("aa"), MappedLexeme::Blurred("ditor")]
         );
     }
 
@@ -336,13 +287,12 @@ mod tests {
         let mut jump_mode = JumpMode::new(0);
         jump_mode.first_phase = false;
 
-        jump_mode.map("amp", Position{ line: 0, offset: 0 });
-        jump_mode.map("editor", Position{ line: 1, offset: 3 });
-        assert_eq!(jump_mode.map_tag("ab"),
-                   Some(&Position {
-                       line: 1,
-                       offset: 3,
-                   }));
+        jump_mode.map("amp", Position { line: 0, offset: 0 });
+        jump_mode.map("editor", Position { line: 1, offset: 3 });
+        assert_eq!(
+            jump_mode.map_tag("ab"),
+            Some(&Position { line: 1, offset: 3 })
+        );
         assert_eq!(jump_mode.map_tag("none"), None);
     }
 
@@ -352,7 +302,7 @@ mod tests {
         jump_mode.first_phase = false;
 
         assert_eq!(
-            jump_mode.map("amp_editor", Position{ line: 0, offset: 0}),
+            jump_mode.map("amp_editor", Position { line: 0, offset: 0 }),
             vec![
                 MappedLexeme::Focused("aa"),
                 MappedLexeme::Blurred("p"),

@@ -6,9 +6,9 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     // Instantiate, run, and handle errors for the application.
-    if let Some(e) = Application::new(&args)
-        .and_then(|mut app| app.run())
-        .err() { handle_error(&e) }
+    if let Some(e) = Application::new(&args).and_then(|mut app| app.run()).err() {
+        handle_error(&e)
+    }
 }
 
 fn handle_error(error: &Error) {

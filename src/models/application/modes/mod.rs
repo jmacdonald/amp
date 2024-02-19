@@ -1,5 +1,5 @@
-mod confirm;
 mod command;
+mod confirm;
 pub mod jump;
 mod line_jump;
 pub mod open;
@@ -12,14 +12,14 @@ mod symbol_jump;
 mod syntax;
 mod theme;
 
-pub use self::confirm::ConfirmMode;
 pub use self::command::CommandMode;
+pub use self::confirm::ConfirmMode;
 pub use self::jump::JumpMode;
 pub use self::line_jump::LineJumpMode;
-pub use self::path::PathMode;
 pub use self::open::OpenMode;
+pub use self::path::PathMode;
 pub use self::search::SearchMode;
-pub use self::search_select::{SearchSelectMode, SearchSelectConfig};
+pub use self::search_select::{SearchSelectConfig, SearchSelectMode};
 pub use self::select::SelectMode;
 pub use self::select_line::SelectLineMode;
 pub use self::symbol_jump::SymbolJumpMode;

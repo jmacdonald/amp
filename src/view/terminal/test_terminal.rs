@@ -1,10 +1,10 @@
+use super::Terminal;
 use crate::errors::*;
 use crate::input::Key;
 use crate::models::application::Event;
+use crate::view::{Colors, CursorType, Style};
 use scribe::buffer::Position;
 use std::sync::Mutex;
-use super::Terminal;
-use crate::view::{Colors, CursorType, Style};
 
 const WIDTH: usize = 10;
 const HEIGHT: usize = 10;
@@ -14,7 +14,7 @@ const HEIGHT: usize = 10;
 pub struct TestTerminal {
     data: Mutex<[[Option<(char, Colors)>; WIDTH]; HEIGHT]>, // 2D array of chars to represent screen
     cursor: Mutex<Option<Position>>,
-    key_sent: Mutex<bool>
+    key_sent: Mutex<bool>,
 }
 
 impl TestTerminal {
@@ -22,7 +22,7 @@ impl TestTerminal {
         TestTerminal {
             data: Mutex::new([[None; WIDTH]; HEIGHT]),
             cursor: Mutex::new(None),
-            key_sent: Mutex::new(false)
+            key_sent: Mutex::new(false),
         }
     }
 
@@ -52,7 +52,7 @@ impl TestTerminal {
                     // want to print a space in between every character, we
                     // set it ahead when we've run into a character to
                     // differentiate from leading spaces.
-                    last_column_with_data = x+1;
+                    last_column_with_data = x + 1;
                 }
             }
         }
@@ -80,27 +80,35 @@ impl Terminal for TestTerminal {
             *row = [None; WIDTH];
         }
     }
-    fn present(&self) { }
-    fn width(&self) -> usize { WIDTH }
-    fn height(&self) -> usize { HEIGHT }
+    fn present(&self) {}
+    fn width(&self) -> usize {
+        WIDTH
+    }
+    fn height(&self) -> usize {
+        HEIGHT
+    }
     fn set_cursor(&self, position: Option<Position>) {
         let mut cursor = self.cursor.lock().unwrap();
         *cursor = position;
     }
-    fn set_cursor_type(&self, _: CursorType) { }
-    fn suspend(&self) { }
+    fn set_cursor_type(&self, _: CursorType) {}
+    fn suspend(&self) {}
     fn print(&self, position: &Position, _: Style, colors: Colors, content: &str) -> Result<()> {
         // Ignore lines beyond visible height.
-        if position.line >= self.height() { return Ok(()); }
+        if position.line >= self.height() {
+            return Ok(());
+        }
 
         let mut data = self.data.lock().unwrap();
         let string_content = format!("{}", content);
 
         for (i, c) in string_content.chars().enumerate() {
             // Ignore characters beyond visible width.
-            if i+position.offset >= WIDTH { break; }
+            if i + position.offset >= WIDTH {
+                break;
+            }
 
-            data[position.line][i+position.offset] = Some((c, colors));
+            data[position.line][i + position.offset] = Some((c, colors));
         }
 
         Ok(())
@@ -109,15 +117,22 @@ impl Terminal for TestTerminal {
 
 #[cfg(test)]
 mod tests {
-    use crate::view::terminal::Terminal;
     use super::TestTerminal;
+    use crate::view::terminal::Terminal;
     use crate::view::{Colors, Style};
     use scribe::buffer::Position;
 
     #[test]
     fn print_sets_terminal_data_correctly() {
         let terminal = Box::new(TestTerminal::new());
-        terminal.print(&Position{ line: 0, offset: 0 }, Style::Default, Colors::Default, &"data").unwrap();
+        terminal
+            .print(
+                &Position { line: 0, offset: 0 },
+                Style::Default,
+                Colors::Default,
+                &"data",
+            )
+            .unwrap();
 
         assert_eq!(terminal.content(), "data");
     }
@@ -127,8 +142,22 @@ mod tests {
         let terminal = Box::new(TestTerminal::new());
 
         // Setting a non-zero x coordinate on a previous line exercises column resetting.
-        terminal.print(&Position{ line: 0, offset: 2 }, Style::Default, Colors::Default, &"some").unwrap();
-        terminal.print(&Position{ line: 2, offset: 5 }, Style::Default, Colors::Default, &"data").unwrap();
+        terminal
+            .print(
+                &Position { line: 0, offset: 2 },
+                Style::Default,
+                Colors::Default,
+                &"some",
+            )
+            .unwrap();
+        terminal
+            .print(
+                &Position { line: 2, offset: 5 },
+                Style::Default,
+                Colors::Default,
+                &"data",
+            )
+            .unwrap();
 
         assert_eq!(terminal.content(), "  some\n\n     data");
     }

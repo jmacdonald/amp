@@ -1,10 +1,10 @@
-use crate::errors::*;
 use crate::commands::{self, application, Result};
+use crate::errors::*;
 use crate::input::Key;
-use std::mem;
 use crate::models::application::modes::open::DisplayablePath;
-use crate::models::application::{Application, Mode};
 use crate::models::application::modes::SearchSelectMode;
+use crate::models::application::{Application, Mode};
+use std::mem;
 
 pub fn accept(app: &mut Application) -> Result {
     // Consume the application mode. This is necessary because the selection in
@@ -18,16 +18,17 @@ pub fn accept(app: &mut Application) -> Result {
 
             // Run the selected command.
             (selection.command)(app)?;
-        },
+        }
         Mode::Open(ref mut mode) => {
             let DisplayablePath(path) = mode
                 .selection()
                 .ok_or("Couldn't find a selected path to open")?;
 
-            let syntax_definition =
-                app.preferences.borrow().syntax_definition_name(path).and_then(|name| {
-                    app.workspace.syntax_set.find_syntax_by_name(&name).cloned()
-                });
+            let syntax_definition = app
+                .preferences
+                .borrow()
+                .syntax_definition_name(path)
+                .and_then(|name| app.workspace.syntax_set.find_syntax_by_name(&name).cloned());
 
             app.workspace
                 .open_buffer(path)
@@ -42,14 +43,17 @@ pub fn accept(app: &mut Application) -> Result {
             }
 
             app.view.initialize_buffer(buffer)?;
-
-        },
+        }
         Mode::Theme(ref mut mode) => {
             let theme_key = mode.selection().ok_or("No theme selected")?;
             app.preferences.borrow_mut().set_theme(theme_key.as_str());
-        },
+        }
         Mode::SymbolJump(ref mut mode) => {
-            let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+            let buffer = app
+                .workspace
+                .current_buffer
+                .as_mut()
+                .ok_or(BUFFER_MISSING)?;
             let position = mode
                 .selection()
                 .ok_or("Couldn't find a position for the selected symbol")?
@@ -58,14 +62,17 @@ pub fn accept(app: &mut Application) -> Result {
             if !buffer.cursor.move_to(position) {
                 bail!("Couldn't move to the selected symbol's position");
             }
-        },
+        }
         Mode::Syntax(ref mut mode) => {
             let name = mode.selection().ok_or("No syntax selected")?;
-            let syntax =
-                app.workspace.syntax_set.find_syntax_by_name(name).cloned();
-            let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+            let syntax = app.workspace.syntax_set.find_syntax_by_name(name).cloned();
+            let buffer = app
+                .workspace
+                .current_buffer
+                .as_mut()
+                .ok_or(BUFFER_MISSING)?;
             buffer.syntax_definition = syntax;
-        },
+        }
         _ => bail!("Can't accept selection outside of search select mode."),
     }
 

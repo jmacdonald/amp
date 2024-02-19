@@ -8,9 +8,8 @@ pub fn parse(exclusion_data: &[Yaml]) -> Result<Vec<ExclusionPattern>> {
     for exclusion in exclusion_data.iter() {
         if let Yaml::String(ref pattern) = *exclusion {
             mapped_exclusions.push(
-                ExclusionPattern::new(pattern).chain_err(|| {
-                    format!("Failed to parse exclusion pattern: {}", pattern)
-                })?
+                ExclusionPattern::new(pattern)
+                    .chain_err(|| format!("Failed to parse exclusion pattern: {}", pattern))?,
             );
         } else {
             bail!("Found a non-string exclusion that can't be parsed.");

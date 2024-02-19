@@ -1,8 +1,8 @@
 use crate::errors::*;
 use crate::models::application::modes::SelectLineMode;
-use scribe::Workspace;
 use crate::presenters::current_buffer_status_line_data;
 use crate::view::{Colors, StatusLineData, Style, View};
+use scribe::Workspace;
 
 pub fn display(workspace: &mut Workspace, mode: &SelectLineMode, view: &mut View) -> Result<()> {
     let mut presenter = view.build_presenter()?;
@@ -12,7 +12,13 @@ pub fn display(workspace: &mut Workspace, mode: &SelectLineMode, view: &mut View
     let data = buf.data();
 
     // Draw the visible set of tokens to the terminal.
-    presenter.print_buffer(buf, &data, &workspace.syntax_set, Some(&[selected_range]), None)?;
+    presenter.print_buffer(
+        buf,
+        &data,
+        &workspace.syntax_set,
+        Some(&[selected_range]),
+        None,
+    )?;
 
     presenter.print_status_line(&[
         StatusLineData {
@@ -20,7 +26,7 @@ pub fn display(workspace: &mut Workspace, mode: &SelectLineMode, view: &mut View
             style: Style::Default,
             colors: Colors::SelectMode,
         },
-        buffer_status
+        buffer_status,
     ]);
 
     // Render the changes to the screen.

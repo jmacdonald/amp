@@ -9,7 +9,7 @@ impl PathMode {
     pub fn new(initial_path: String) -> PathMode {
         PathMode {
             input: initial_path,
-            save_on_accept: false
+            save_on_accept: false,
         }
     }
     pub fn push_char(&mut self, c: char) {

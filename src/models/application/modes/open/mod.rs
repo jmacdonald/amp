@@ -1,22 +1,22 @@
 mod displayable_path;
 pub mod exclusions;
 
+pub use self::displayable_path::DisplayablePath;
+use crate::models::application::modes::{SearchSelectConfig, SearchSelectMode};
+use crate::models::application::Event;
+use crate::util::SelectableVec;
+use bloodhound::ExclusionPattern;
+pub use bloodhound::Index;
 use std::fmt;
 use std::path::PathBuf;
 use std::slice::Iter;
-use bloodhound::ExclusionPattern;
-use crate::util::SelectableVec;
-use crate::models::application::modes::{SearchSelectMode, SearchSelectConfig};
-use crate::models::application::Event;
 use std::sync::mpsc::Sender;
 use std::thread;
-pub use bloodhound::Index;
-pub use self::displayable_path::DisplayablePath;
 
 #[derive(PartialEq)]
 pub enum OpenModeIndex {
     Complete(Index),
-    Indexing(PathBuf)
+    Indexing(PathBuf),
 }
 
 pub struct OpenMode {
@@ -28,15 +28,18 @@ pub struct OpenMode {
 }
 
 impl OpenMode {
-    pub fn new(path: PathBuf, exclusions: Option<Vec<ExclusionPattern>>, events: Sender<Event>, config: SearchSelectConfig) -> OpenMode {
+    pub fn new(
+        path: PathBuf,
+        exclusions: Option<Vec<ExclusionPattern>>,
+        events: Sender<Event>,
+        config: SearchSelectConfig,
+    ) -> OpenMode {
         // Build and populate the index in a separate thread.
         let index_path = path.clone();
         thread::spawn(move || {
             let mut index = Index::new(index_path);
             index.populate(exclusions, false);
-            let _ = events.send(
-                Event::OpenModeIndexComplete(index)
-            );
+            let _ = events.send(Event::OpenModeIndexComplete(index));
         });
 
         OpenMode {
@@ -61,17 +64,15 @@ impl fmt::Display for OpenMode {
 
 impl SearchSelectMode<DisplayablePath> for OpenMode {
     fn search(&mut self) {
-        let results =
-            if let OpenModeIndex::Complete(ref index) = self.index {
-                index.find(
-                    &self.input.to_lowercase(),
-                    self.config.max_results
-                ).into_iter()
+        let results = if let OpenModeIndex::Complete(ref index) = self.index {
+            index
+                .find(&self.input.to_lowercase(), self.config.max_results)
+                .into_iter()
                 .map(|path| DisplayablePath(path.to_path_buf()))
                 .collect()
-            } else {
-                vec![]
-            };
+        } else {
+            vec![]
+        };
 
         self.results = SelectableVec::new(results);
     }

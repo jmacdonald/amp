@@ -1,35 +1,35 @@
-pub mod color;
-pub mod terminal;
 mod buffer;
+pub mod color;
 mod data;
 mod event_listener;
 mod presenter;
 mod style;
+pub mod terminal;
 mod theme_loader;
 
 // Published API
-pub use self::data::StatusLineData;
 pub use self::buffer::{LexemeMapper, MappedLexeme};
-pub use self::style::Style;
 pub use self::color::{Colors, RGBColor};
+pub use self::data::StatusLineData;
 pub use self::presenter::Presenter;
+pub use self::style::Style;
 pub use self::terminal::*;
 
+use self::buffer::ScrollableRegion;
+use self::buffer::{RenderCache, RenderState};
+use self::event_listener::EventListener;
+use self::theme_loader::ThemeLoader;
 use crate::errors::*;
 use crate::input::Key;
 use crate::models::application::{Event, Preferences};
-use self::buffer::{RenderCache, RenderState};
-use self::buffer::ScrollableRegion;
-use self::event_listener::EventListener;
 use scribe::buffer::Buffer;
+use std::cell::RefCell;
 use std::cmp;
 use std::collections::HashMap;
-use std::rc::Rc;
-use std::cell::RefCell;
 use std::ops::Drop;
+use std::rc::Rc;
 use std::sync::mpsc::{self, Sender, SyncSender};
 use std::sync::Arc;
-use self::theme_loader::ThemeLoader;
 use syntect::highlighting::ThemeSet;
 
 const RENDER_CACHE_FREQUENCY: usize = 100;
@@ -42,11 +42,14 @@ pub struct View {
     preferences: Rc<RefCell<Preferences>>,
     pub last_key: Option<Key>,
     event_channel: Sender<Event>,
-    event_listener_killswitch: SyncSender<()>
+    event_listener_killswitch: SyncSender<()>,
 }
 
 impl View {
-    pub fn new(preferences: Rc<RefCell<Preferences>>, event_channel: Sender<Event>) -> Result<View> {
+    pub fn new(
+        preferences: Rc<RefCell<Preferences>>,
+        event_channel: Sender<Event>,
+    ) -> Result<View> {
         let terminal = build_terminal().chain_err(|| "Failed to initialize terminal")?;
         let theme_path = preferences.borrow().theme_path()?;
         let theme_set = ThemeLoader::new(theme_path).load()?;
@@ -62,7 +65,7 @@ impl View {
             render_caches: HashMap::new(),
             theme_set,
             event_channel,
-            event_listener_killswitch: killswitch_tx
+            event_listener_killswitch: killswitch_tx,
         })
     }
 
@@ -99,8 +102,7 @@ impl View {
 
         // Limit scrolling to 50% of the screen beyond the end of the buffer.
         let max = if line_count > half_screen_height {
-            let visible_line_count =
-                line_count.saturating_sub(current_offset);
+            let visible_line_count = line_count.saturating_sub(current_offset);
 
             // Of the visible lines, allow scrolling down by however
             // many lines are beyond the halfway point of the screen.
@@ -109,9 +111,7 @@ impl View {
             0
         };
 
-        self.get_region(buffer)?.scroll_down(
-            cmp::min(amount, max)
-        );
+        self.get_region(buffer)?.scroll_down(cmp::min(amount, max));
 
         Ok(())
     }
@@ -128,16 +128,18 @@ impl View {
     // Tries to fetch a scrollable region for the specified buffer,
     // inserting (and returning a reference to) a new one if not.
     fn get_region(&mut self, buffer: &Buffer) -> Result<&mut ScrollableRegion> {
-        Ok(self.scrollable_regions
+        Ok(self
+            .scrollable_regions
             .entry(buffer_key(buffer)?)
-            .or_insert(
-                ScrollableRegion::new(self.terminal.clone())
-            )
-        )
+            .or_insert(ScrollableRegion::new(self.terminal.clone())))
     }
 
-    fn get_render_cache(&self, buffer: &Buffer) -> Result<&Rc<RefCell<HashMap<usize, RenderState>>>> {
-        let cache = self.render_caches
+    fn get_render_cache(
+        &self,
+        buffer: &Buffer,
+    ) -> Result<&Rc<RefCell<HashMap<usize, RenderState>>>> {
+        let cache = self
+            .render_caches
             .get(&buffer_key(buffer)?)
             .ok_or("Buffer not properly initialized (render cache not present).")?;
 
@@ -148,7 +150,11 @@ impl View {
         let _ = self.event_listener_killswitch.send(());
         self.terminal.suspend();
         let (killswitch_tx, killswitch_rx) = mpsc::sync_channel(0);
-        EventListener::start(self.terminal.clone(), self.event_channel.clone(), killswitch_rx);
+        EventListener::start(
+            self.terminal.clone(),
+            self.event_channel.clone(),
+            killswitch_rx,
+        );
         self.event_listener_killswitch = killswitch_tx;
     }
 
@@ -160,17 +166,15 @@ impl View {
     pub fn initialize_buffer(&mut self, buffer: &mut Buffer) -> Result<()> {
         // Build and store a new render cache for the buffer.
         let render_cache = Rc::new(RefCell::new(HashMap::new()));
-        self.render_caches.insert(
-            buffer_key(buffer)?,
-            render_cache.clone()
-        );
+        self.render_caches
+            .insert(buffer_key(buffer)?, render_cache.clone());
 
         // Wire up the buffer's change callback to invalidate the render cache.
-        buffer.change_callback = Some(
-            Box::new(move |change_position| {
-                render_cache.borrow_mut().invalidate_from(change_position.line);
-            })
-        );
+        buffer.change_callback = Some(Box::new(move |change_position| {
+            render_cache
+                .borrow_mut()
+                .invalidate_from(change_position.line);
+        }));
 
         Ok(())
     }
@@ -183,21 +187,23 @@ impl Drop for View {
 }
 
 fn buffer_key(buffer: &Buffer) -> Result<usize> {
-    buffer.id.ok_or_else(|| Error::from("Buffer ID doesn't exist"))
+    buffer
+        .id
+        .ok_or_else(|| Error::from("Buffer ID doesn't exist"))
 }
 
 #[cfg(test)]
 mod tests {
-    use scribe::{Buffer, Workspace};
     use super::View;
     use crate::models::application::Preferences;
+    use crate::view::buffer::RenderState;
     use scribe::buffer::Position;
+    use scribe::{Buffer, Workspace};
     use std::cell::RefCell;
     use std::path::{Path, PathBuf};
     use std::rc::Rc;
     use std::sync::mpsc;
     use syntect::highlighting::{Highlighter, ThemeSet};
-    use crate::view::buffer::RenderState;
 
     #[test]
     fn scroll_down_prevents_scrolling_completely_beyond_buffer() {
@@ -274,7 +280,8 @@ mod tests {
         // Build a render state.
         let theme_set = ThemeSet::load_defaults();
         let highlighter = Highlighter::new(&theme_set.themes["base16-ocean.dark"]);
-        let render_state = RenderState::new(&highlighter, buffer.syntax_definition.as_ref().unwrap());
+        let render_state =
+            RenderState::new(&highlighter, buffer.syntax_definition.as_ref().unwrap());
 
         // Populate the render cache with some values.
         view.render_caches
@@ -294,7 +301,10 @@ mod tests {
             .insert(200, render_state.clone());
 
         // Make a change that will invalidate all lines beyond 100.
-        buffer.cursor.move_to(Position{ line: 99, offset: 0 });
+        buffer.cursor.move_to(Position {
+            line: 99,
+            offset: 0,
+        });
         buffer.insert("\n");
 
         assert_eq!(
@@ -308,4 +318,3 @@ mod tests {
         );
     }
 }
-

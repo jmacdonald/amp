@@ -1,14 +1,14 @@
-use crate::errors::*;
 use crate::commands::{self, Result};
+use crate::errors::*;
+use crate::input::Key;
+use crate::models::application::modes::ConfirmMode;
+use crate::models::application::{Application, ClipboardContent, Mode};
+use crate::util;
+use crate::util::token::{adjacent_token_position, Direction};
+use scribe::buffer::{Buffer, Position, Range, Token};
 use std::io::Write;
 use std::mem;
 use std::process::Stdio;
-use crate::input::Key;
-use crate::util;
-use crate::util::token::{Direction, adjacent_token_position};
-use crate::models::application::{Application, ClipboardContent, Mode};
-use crate::models::application::modes::ConfirmMode;
-use scribe::buffer::{Buffer, Position, Range, Token};
 
 pub fn save(app: &mut Application) -> Result {
     remove_trailing_whitespace(app)?;
@@ -19,7 +19,8 @@ pub fn save(app: &mut Application) -> Result {
         .current_buffer
         .as_ref()
         .ok_or(BUFFER_MISSING)?
-        .path.clone(); // clone instead of borrow as we call another command later
+        .path
+        .clone(); // clone instead of borrow as we call another command later
 
     if path.is_some() {
         // Save the buffer.
@@ -56,13 +57,20 @@ pub fn save(app: &mut Application) -> Result {
 }
 
 pub fn reload(app: &mut Application) -> Result {
-    app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?.reload().chain_err(|| {
-        BUFFER_RELOAD_FAILED
-    })
+    app.workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?
+        .reload()
+        .chain_err(|| BUFFER_RELOAD_FAILED)
 }
 
 pub fn delete(app: &mut Application) -> Result {
-    app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?.delete();
+    app.workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?
+        .delete();
     commands::view::scroll_to_cursor(app)?;
 
     Ok(())
@@ -113,27 +121,34 @@ pub fn copy_current_line(app: &mut Application) -> Result {
 }
 
 pub fn merge_next_line(app: &mut Application) -> Result {
-    let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+    let buffer = app
+        .workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?;
     let current_line = buffer.cursor.line;
     let data = buffer.data();
 
     // Don't bother if there isn't a line below.
-    data.lines().nth(current_line + 1).ok_or("No line below current line")?;
+    data.lines()
+        .nth(current_line + 1)
+        .ok_or("No line below current line")?;
 
     // Join the two lines.
-    let mut merged_lines: String = buffer.data()
-                                         .lines()
-                                         .enumerate()
-                                         .skip(current_line)
-                                         .take(2)
-                                         .map(|(index, line)| {
-                                             if index == current_line {
-                                                 format!("{} ", line)
-                                             } else {
-                                                 line.trim_start().to_string()
-                                             }
-                                         })
-                                         .collect();
+    let mut merged_lines: String = buffer
+        .data()
+        .lines()
+        .enumerate()
+        .skip(current_line)
+        .take(2)
+        .map(|(index, line)| {
+            if index == current_line {
+                format!("{} ", line)
+            } else {
+                line.trim_start().to_string()
+            }
+        })
+        .collect();
 
     // Append a newline if there is a line below the next.
     if buffer.data().lines().nth(current_line + 2).is_some() {
@@ -148,14 +163,16 @@ pub fn merge_next_line(app: &mut Application) -> Result {
         line: current_line,
         offset: data.lines().nth(current_line).unwrap().len(),
     };
-    buffer.delete_range(Range::new(Position {
-                                       line: current_line,
-                                       offset: 0,
-                                   },
-                                   Position {
-                                       line: current_line + 2,
-                                       offset: 0,
-                                   }));
+    buffer.delete_range(Range::new(
+        Position {
+            line: current_line,
+            offset: 0,
+        },
+        Position {
+            line: current_line + 2,
+            offset: 0,
+        },
+    ));
     buffer.cursor.move_to(Position {
         line: current_line,
         offset: 0,
@@ -169,18 +186,20 @@ pub fn merge_next_line(app: &mut Application) -> Result {
 
 pub fn close(app: &mut Application) -> Result {
     // Build confirmation check conditions.
-    let (unmodified, empty) =
-        if let Some(buf) = app.workspace.current_buffer.as_ref() {
-            (!buf.modified(), buf.data().is_empty())
-        } else {
-            bail!(BUFFER_MISSING);
-        };
+    let (unmodified, empty) = if let Some(buf) = app.workspace.current_buffer.as_ref() {
+        (!buf.modified(), buf.data().is_empty())
+    } else {
+        bail!(BUFFER_MISSING);
+    };
     let confirm_mode = matches!(app.mode, Mode::Confirm(_));
 
     if unmodified || empty || confirm_mode {
         // Clean up view-related data for the buffer.
         app.view.forget_buffer(
-            app.workspace.current_buffer.as_ref().ok_or(BUFFER_MISSING)?
+            app.workspace
+                .current_buffer
+                .as_ref()
+                .ok_or(BUFFER_MISSING)?,
         )?;
         app.workspace.close_current_buffer();
     } else {
@@ -194,7 +213,12 @@ pub fn close(app: &mut Application) -> Result {
 
 pub fn close_others(app: &mut Application) -> Result {
     // Get the current buffer's ID so we know what *not* to close.
-    let id = app.workspace.current_buffer.as_ref().map(|b| b.id).ok_or(BUFFER_MISSING)?;
+    let id = app
+        .workspace
+        .current_buffer
+        .as_ref()
+        .map(|b| b.id)
+        .ok_or(BUFFER_MISSING)?;
     let mut modified_buffer = false;
 
     loop {
@@ -299,10 +323,15 @@ pub fn insert_char(app: &mut Application) -> Result {
 pub fn display_current_scope(app: &mut Application) -> Result {
     let scope_display_buffer = {
         let mut scope_stack = None;
-        let buffer = app.workspace.current_buffer.as_ref().ok_or(BUFFER_MISSING)?;
-        let tokens = app.workspace.current_buffer_tokens().chain_err(|| {
-            BUFFER_TOKENS_FAILED
-        })?;
+        let buffer = app
+            .workspace
+            .current_buffer
+            .as_ref()
+            .ok_or(BUFFER_MISSING)?;
+        let tokens = app
+            .workspace
+            .current_buffer_tokens()
+            .chain_err(|| BUFFER_TOKENS_FAILED)?;
         let mut token_iter = tokens.iter().chain_err(|| BUFFER_PARSE_FAILED)?;
 
         // Build the scope up to the cursor location.
@@ -324,9 +353,7 @@ pub fn display_current_scope(app: &mut Application) -> Result {
         // Open a buffer with a displayable version of the scope stack.
         let mut scope_display_buffer = Buffer::new();
         for scope in scope_stack.iter() {
-            scope_display_buffer.insert(
-                format!("{}\n", scope)
-            );
+            scope_display_buffer.insert(format!("{}\n", scope));
         }
 
         scope_display_buffer
@@ -380,16 +407,18 @@ pub fn insert_newline(app: &mut Application) -> Result {
 }
 
 pub fn indent_line(app: &mut Application) -> Result {
-    let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+    let buffer = app
+        .workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?;
     let tab_content = app.preferences.borrow().tab_content(buffer.path.as_ref());
 
     let target_position = match app.mode {
-        Mode::Insert => {
-            Position {
-                line: buffer.cursor.line,
-                offset: buffer.cursor.offset + tab_content.chars().count(),
-            }
-        }
+        Mode::Insert => Position {
+            line: buffer.cursor.line,
+            offset: buffer.cursor.offset + tab_content.chars().count(),
+        },
         _ => *buffer.cursor.clone(),
     };
 
@@ -410,10 +439,7 @@ pub fn indent_line(app: &mut Application) -> Result {
     // insert the content, as a single operation.
     buffer.start_operation_group();
     for line in lines {
-        buffer.cursor.move_to(Position {
-            line,
-            offset: 0,
-        });
+        buffer.cursor.move_to(Position { line, offset: 0 });
         buffer.insert(tab_content.clone());
     }
     buffer.end_operation_group();
@@ -425,7 +451,11 @@ pub fn indent_line(app: &mut Application) -> Result {
 }
 
 pub fn outdent_line(app: &mut Application) -> Result {
-    let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+    let buffer = app
+        .workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?;
     let tab_content = app.preferences.borrow().tab_content(buffer.path.as_ref());
 
     // FIXME: Determine this based on file type and/or user config.
@@ -472,19 +502,16 @@ pub fn outdent_line(app: &mut Application) -> Result {
             // Remove leading whitespace, up to indent size,
             // if we found any, and adjust cursor accordingly.
             if space_char_count > 0 {
-                buffer.delete_range(Range::new(Position {
-                                                   line,
-                                                   offset: 0,
-                                               },
-                                               Position {
-                                                   line,
-                                                   offset: space_char_count,
-                                               }));
+                buffer.delete_range(Range::new(
+                    Position { line, offset: 0 },
+                    Position {
+                        line,
+                        offset: space_char_count,
+                    },
+                ));
 
                 // Figure out where the cursor should sit, guarding against underflow.
-                let target_offset = buffer.cursor
-                                          .offset
-                                          .saturating_sub(space_char_count);
+                let target_offset = buffer.cursor.offset.saturating_sub(space_char_count);
                 let target_line = buffer.cursor.line;
 
                 buffer.cursor.move_to(Position {
@@ -502,12 +529,19 @@ pub fn outdent_line(app: &mut Application) -> Result {
 }
 
 pub fn toggle_line_comment(app: &mut Application) -> Result {
-    let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+    let buffer = app
+        .workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?;
     let original_cursor = *buffer.cursor.clone();
 
     let comment_prefix = {
         let path = buffer.path.as_ref().ok_or(BUFFER_PATH_MISSING)?;
-        let prefix = app.preferences.borrow().line_comment_prefix(path)
+        let prefix = app
+            .preferences
+            .borrow()
+            .line_comment_prefix(path)
             .ok_or("No line comment prefix for the current buffer")?;
 
         prefix + " " // implicitly add trailing space
@@ -527,8 +561,14 @@ pub fn toggle_line_comment(app: &mut Application) -> Result {
     };
 
     let buffer_range = Range::new(
-        Position { line: line_numbers.start, offset: 0 },
-        Position { line: line_numbers.end, offset: 0 }
+        Position {
+            line: line_numbers.start,
+            offset: 0,
+        },
+        Position {
+            line: line_numbers.end,
+            offset: 0,
+        },
     );
 
     let buffer_range_content = buffer.read(&buffer_range).ok_or(CURRENT_LINE_MISSING)?;
@@ -536,25 +576,32 @@ pub fn toggle_line_comment(app: &mut Application) -> Result {
     // Produce a collection of (<line number>, <line content>) tuples, but only for
     // non-empty lines.
     let lines: Vec<(usize, &str)> = line_numbers
-        .zip(buffer_range_content.split('\n'))     // produces (<line number>, <line content>)
+        .zip(buffer_range_content.split('\n')) // produces (<line number>, <line content>)
         .filter(|(_, line)| !line.trim().is_empty()) // filter out any empty (non-whitespace-only) lines
         .collect();
 
     // We look at all lines to see if they start with `comment_prefix` or not.
     // If even a single line does not, we need to comment all lines out,
     // otherwise remove `comment_prefix` on the start of each line.
-    let (toggle, offset) = lines.iter()
+    let (toggle, offset) = lines
+        .iter()
         // Map (<line number>, <line content>) to (<has comment>, <number of spaces at line start>)
         .map(|(_, line)| {
             let content = line.trim_start();
-            (content.starts_with(&comment_prefix), line.len() - content.len())
+            (
+                content.starts_with(&comment_prefix),
+                line.len() - content.len(),
+            )
         })
         // Now fold it into a single (<comment in or out>, <comment offset>) tuple.
         // As soon as <has comment> is `false` a single time, <comment in or out>
         // will result in `false`.
-        .fold((true, std::usize::MAX), |(folded_toggle, folded_offset), (has_comment, offset)| {
-            (folded_toggle & has_comment, folded_offset.min(offset))
-        });
+        .fold(
+            (true, std::usize::MAX),
+            |(folded_toggle, folded_offset), (has_comment, offset)| {
+                (folded_toggle & has_comment, folded_offset.min(offset))
+            },
+        );
 
     // Move to the start of each of the line's content and
     // insert/remove the comments, as a single operation.
@@ -574,7 +621,10 @@ pub fn toggle_line_comment(app: &mut Application) -> Result {
 
 fn add_line_comment(buffer: &mut Buffer, lines: &[(usize, &str)], offset: usize, prefix: &str) {
     for (line_number, _) in lines {
-        let target = Position { line: *line_number, offset };
+        let target = Position {
+            line: *line_number,
+            offset,
+        };
 
         buffer.cursor.move_to(target);
         buffer.insert(prefix);
@@ -605,18 +655,24 @@ pub fn change_token(app: &mut Application) -> Result {
 }
 
 pub fn delete_rest_of_line(app: &mut Application) -> Result {
-    let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+    let buffer = app
+        .workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?;
 
     // Create a range extending from the
     // cursor's current position to the next line.
     let starting_position = *buffer.cursor;
     let target_line = buffer.cursor.line + 1;
     buffer.start_operation_group();
-    buffer.delete_range(Range::new(starting_position,
-                                   Position {
-                                       line: target_line,
-                                       offset: 0,
-                                   }));
+    buffer.delete_range(Range::new(
+        starting_position,
+        Position {
+            line: target_line,
+            offset: 0,
+        },
+    ));
 
     // Since we've removed a newline as part of the range, re-add it.
     buffer.insert("\n");
@@ -652,25 +708,28 @@ pub fn end_command_group(app: &mut Application) -> Result {
 }
 
 pub fn undo(app: &mut Application) -> Result {
-    app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?.undo();
-    commands::view::scroll_to_cursor(app).chain_err(|| {
-        "Couldn't scroll to cursor after undoing."
-    })
+    app.workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?
+        .undo();
+    commands::view::scroll_to_cursor(app).chain_err(|| "Couldn't scroll to cursor after undoing.")
 }
 
 pub fn redo(app: &mut Application) -> Result {
-    app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?.redo();
-    commands::view::scroll_to_cursor(app).chain_err(|| {
-        "Couldn't scroll to cursor after redoing."
-    })
+    app.workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?
+        .redo();
+    commands::view::scroll_to_cursor(app).chain_err(|| "Couldn't scroll to cursor after redoing.")
 }
 
 pub fn paste(app: &mut Application) -> Result {
     let insert_below = match app.mode {
         Mode::Select(_) | Mode::SelectLine(_) | Mode::Search(_) => {
-            commands::selection::delete(app).chain_err(|| {
-                "Couldn't delete selection prior to pasting."
-            })?;
+            commands::selection::delete(app)
+                .chain_err(|| "Couldn't delete selection prior to pasting.")?;
             false
         }
         _ => true,
@@ -723,7 +782,11 @@ pub fn paste(app: &mut Application) -> Result {
 }
 
 pub fn paste_above(app: &mut Application) -> Result {
-    let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+    let buffer = app
+        .workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?;
 
     if let ClipboardContent::Block(ref content) = *app.clipboard.get_content() {
         let mut start_of_line = Position {
@@ -742,7 +805,11 @@ pub fn paste_above(app: &mut Application) -> Result {
 }
 
 pub fn remove_trailing_whitespace(app: &mut Application) -> Result {
-    let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+    let buffer = app
+        .workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?;
     let mut line = 0;
     let mut offset = 0;
     let mut space_count = 0;
@@ -752,14 +819,13 @@ pub fn remove_trailing_whitespace(app: &mut Application) -> Result {
         if character == '\n' {
             if space_count > 0 {
                 // We've found some trailing whitespace; track it.
-                ranges.push(Range::new(Position {
-                                           line,
-                                           offset: offset - space_count,
-                                       },
-                                       Position {
-                                           line,
-                                           offset,
-                                       }));
+                ranges.push(Range::new(
+                    Position {
+                        line,
+                        offset: offset - space_count,
+                    },
+                    Position { line, offset },
+                ));
             }
 
             // We've hit a newline, so increase the line
@@ -783,14 +849,13 @@ pub fn remove_trailing_whitespace(app: &mut Application) -> Result {
     // The file may not have a trailing newline. If there is
     // any trailing whitespace on the last line, track it.
     if space_count > 0 {
-        ranges.push(Range::new(Position {
-                                   line,
-                                   offset: offset - space_count,
-                               },
-                               Position {
-                                   line,
-                                   offset,
-                               }));
+        ranges.push(Range::new(
+            Position {
+                line,
+                offset: offset - space_count,
+            },
+            Position { line, offset },
+        ));
     }
 
     // Step through the whitespace ranges in reverse order
@@ -805,12 +870,17 @@ pub fn remove_trailing_whitespace(app: &mut Application) -> Result {
 }
 
 pub fn ensure_trailing_newline(app: &mut Application) -> Result {
-    let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+    let buffer = app
+        .workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?;
 
     // Find end of buffer position.
     let data = buffer.data();
     if let Some(c) = data.chars().last() {
-        if c != '\n' { // There's no pre-existing trailing newline.
+        if c != '\n' {
+            // There's no pre-existing trailing newline.
             let (line_no, line) = data
                 .lines()
                 .enumerate()
@@ -837,7 +907,11 @@ pub fn ensure_trailing_newline(app: &mut Application) -> Result {
 }
 
 pub fn insert_tab(app: &mut Application) -> Result {
-    let buffer = app.workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+    let buffer = app
+        .workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?;
     let tab_content = app.preferences.borrow().tab_content(buffer.path.as_ref());
     let tab_content_width = tab_content.chars().count();
     buffer.insert(tab_content.clone());
@@ -851,13 +925,18 @@ pub fn insert_tab(app: &mut Application) -> Result {
 }
 
 pub fn format(app: &mut Application) -> Result {
-    let buf = app.workspace
+    let buf = app
+        .workspace
         .current_buffer
         .as_mut()
         .ok_or(BUFFER_MISSING)?;
 
     let path = buf.path.as_ref().ok_or(BUFFER_PATH_MISSING)?;
-    let mut format_command = app.preferences.borrow().format_command(path).ok_or(FORMAT_TOOL_MISSING)?;
+    let mut format_command = app
+        .preferences
+        .borrow()
+        .format_command(path)
+        .ok_or(FORMAT_TOOL_MISSING)?;
     let data = buf.data();
 
     // Run the command with the buffer path as an argument.
@@ -869,14 +948,19 @@ pub fn format(app: &mut Application) -> Result {
 
     let mut format_input = process.stdin.take().chain_err(|| "Failed to open stdin")?;
     std::thread::spawn(move || {
-        format_input.write_all(data.as_bytes()).expect("Failed to write to stdin");
+        format_input
+            .write_all(data.as_bytes())
+            .expect("Failed to write to stdin");
     });
 
-    let output = process.wait_with_output().chain_err(|| "Failed to read stdout")?;
+    let output = process
+        .wait_with_output()
+        .chain_err(|| "Failed to read stdout")?;
 
     // Reload buffer or propagate errors.
     if output.status.success() {
-        let content = String::from_utf8(output.stdout).chain_err(|| "Failed to parse format tool output as UTF8")?;
+        let content = String::from_utf8(output.stdout)
+            .chain_err(|| "Failed to parse format tool output as UTF8")?;
         buf.replace(content);
 
         Ok(())
@@ -884,17 +968,18 @@ pub fn format(app: &mut Application) -> Result {
         let error = String::from_utf8(output.stderr)
             .unwrap_or(String::from("Failed to parse stderr output as UTF8"));
 
-        Err(Error::from(error)).chain_err(|| format!("Format tool failed with code {}", output.status))
+        Err(Error::from(error))
+            .chain_err(|| format!("Format tool failed with code {}", output.status))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::commands;
-    use crate::models::Application;
     use crate::models::application::{ClipboardContent, Mode, Preferences};
-    use scribe::Buffer;
+    use crate::models::Application;
     use scribe::buffer::Position;
+    use scribe::Buffer;
     use std::env;
     use std::fs::File;
     use std::io::Write;
@@ -908,10 +993,7 @@ mod tests {
 
         // Insert data with indentation and move to the end of the line.
         buffer.insert("    amp");
-        let position = Position {
-            line: 0,
-            offset: 7,
-        };
+        let position = Position { line: 0, offset: 7 };
         buffer.cursor.move_to(position);
 
         // Now that we've set up the buffer, add it
@@ -920,18 +1002,21 @@ mod tests {
         super::insert_newline(&mut app).unwrap();
 
         // Ensure that the whitespace is inserted.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "    amp\n    ");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "    amp\n    "
+        );
 
         // Also ensure that the cursor is moved to the end of the inserted whitespace.
-        let expected_position = Position {
-            line: 1,
-            offset: 4,
-        };
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().cursor.line,
-                   expected_position.line);
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().cursor.offset,
-                   expected_position.offset);
+        let expected_position = Position { line: 1, offset: 4 };
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().cursor.line,
+            expected_position.line
+        );
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().cursor.offset,
+            expected_position.offset
+        );
     }
 
     #[test]
@@ -974,10 +1059,7 @@ mod tests {
 
         // Insert data with indentation and move to the end of the line.
         buffer.insert("    amp\neditor");
-        let position = Position {
-            line: 0,
-            offset: 4,
-        };
+        let position = Position { line: 0, offset: 4 };
         buffer.cursor.move_to(position);
 
         // Now that we've set up the buffer, add it
@@ -986,8 +1068,10 @@ mod tests {
         super::change_rest_of_line(&mut app).unwrap();
 
         // Ensure that the content is removed.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "    \neditor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "    \neditor"
+        );
 
         // Ensure that we're in insert mode.
         assert!(match app.mode {
@@ -998,8 +1082,10 @@ mod tests {
         // Ensure that sub-commands and subsequent inserts are run in batch.
         app.workspace.current_buffer.as_mut().unwrap().insert(" ");
         app.workspace.current_buffer.as_mut().unwrap().undo();
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "    amp\neditor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "    amp\neditor"
+        );
     }
 
     #[test]
@@ -1014,7 +1100,10 @@ mod tests {
         super::delete_token(&mut app).unwrap();
 
         // Ensure that the content is removed.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(), "editor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "editor"
+        );
     }
 
     #[test]
@@ -1029,7 +1118,10 @@ mod tests {
         super::delete_token(&mut app).unwrap();
 
         // Ensure that the content is removed.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(), "\neditor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "\neditor"
+        );
     }
 
     #[test]
@@ -1039,10 +1131,7 @@ mod tests {
 
         // Insert data with indentation and move to the end of the line.
         buffer.insert("    amp\neditor");
-        let position = Position {
-            line: 0,
-            offset: 4,
-        };
+        let position = Position { line: 0, offset: 4 };
         buffer.cursor.move_to(position);
 
         // Now that we've set up the buffer, add it
@@ -1051,7 +1140,10 @@ mod tests {
         super::delete_current_line(&mut app).unwrap();
 
         // Ensure that the content is removed.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(), "editor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "editor"
+        );
     }
 
     #[test]
@@ -1059,10 +1151,7 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
-        buffer.cursor.move_to(Position {
-            line: 1,
-            offset: 2,
-        });
+        buffer.cursor.move_to(Position { line: 1, offset: 2 });
 
         // Now that we've set up the buffer, add it
         // to the application and call the command.
@@ -1070,8 +1159,10 @@ mod tests {
         super::indent_line(&mut app).unwrap();
 
         // Ensure that the content is inserted correctly.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "amp\n  editor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp\n  editor"
+        );
     }
 
     #[test]
@@ -1088,8 +1179,10 @@ mod tests {
         super::indent_line(&mut app).unwrap();
 
         // Ensure that the content is inserted correctly.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "  amp\n    editor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "  amp\n    editor"
+        );
     }
 
     #[test]
@@ -1097,10 +1190,7 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
-        buffer.cursor.move_to(Position {
-            line: 1,
-            offset: 2,
-        });
+        buffer.cursor.move_to(Position { line: 1, offset: 2 });
 
         // Now that we've set up the buffer, add it
         // to the application and call the command.
@@ -1109,11 +1199,10 @@ mod tests {
         super::indent_line(&mut app).unwrap();
 
         // Ensure that the cursor is updated.
-        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
-                   Position {
-                       line: 1,
-                       offset: 4,
-                   });
+        assert_eq!(
+            *app.workspace.current_buffer.as_ref().unwrap().cursor,
+            Position { line: 1, offset: 4 }
+        );
     }
 
     #[test]
@@ -1121,10 +1210,7 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
-        buffer.cursor.move_to(Position {
-            line: 1,
-            offset: 2,
-        });
+        buffer.cursor.move_to(Position { line: 1, offset: 2 });
 
         // Now that we've set up the buffer, add it
         // to the application and call the command.
@@ -1132,11 +1218,10 @@ mod tests {
         super::indent_line(&mut app).unwrap();
 
         // Ensure that the cursor is not updated.
-        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
-                   Position {
-                       line: 1,
-                       offset: 2,
-                   });
+        assert_eq!(
+            *app.workspace.current_buffer.as_ref().unwrap().cursor,
+            Position { line: 1, offset: 2 }
+        );
     }
 
     #[test]
@@ -1153,13 +1238,17 @@ mod tests {
         super::indent_line(&mut app).unwrap();
 
         // Ensure that the indentation is applied correctly.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "  amp\n    editor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "  amp\n    editor"
+        );
 
         // Undo the indent and check that it's treated as one operation.
         super::undo(&mut app).unwrap();
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "amp\n  editor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp\n  editor"
+        );
     }
 
     #[test]
@@ -1177,8 +1266,10 @@ mod tests {
         super::indent_line(&mut app).unwrap();
 
         // Ensure that the indentation is applied correctly.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "  amp\n  editor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "  amp\n  editor"
+        );
     }
 
     #[test]
@@ -1186,10 +1277,7 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\n  editor");
-        buffer.cursor.move_to(Position {
-            line: 1,
-            offset: 6,
-        });
+        buffer.cursor.move_to(Position { line: 1, offset: 6 });
 
         // Now that we've set up the buffer, add it
         // to the application and call the command.
@@ -1197,27 +1285,24 @@ mod tests {
         super::outdent_line(&mut app).unwrap();
 
         // Ensure that the content is removed.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "amp\neditor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp\neditor"
+        );
 
         // Ensure that the cursor is updated.
-        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
-                   Position {
-                       line: 1,
-                       offset: 4,
-                   });
+        assert_eq!(
+            *app.workspace.current_buffer.as_ref().unwrap().cursor,
+            Position { line: 1, offset: 4 }
+        );
     }
 
     #[test]
-    fn outdent_line_removes_as_much_space_as_it_can_from_start_of_line_if_less_than_full_indent
-        () {
+    fn outdent_line_removes_as_much_space_as_it_can_from_start_of_line_if_less_than_full_indent() {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\n editor");
-        buffer.cursor.move_to(Position {
-            line: 1,
-            offset: 2,
-        });
+        buffer.cursor.move_to(Position { line: 1, offset: 2 });
 
         // Now that we've set up the buffer, add it
         // to the application and call the command.
@@ -1225,8 +1310,10 @@ mod tests {
         super::outdent_line(&mut app).unwrap();
 
         // Ensure that the content is inserted correctly.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "amp\neditor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp\neditor"
+        );
     }
 
     #[test]
@@ -1243,8 +1330,10 @@ mod tests {
         super::outdent_line(&mut app).unwrap();
 
         // Ensure that the content is inserted correctly.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "amp\neditor   ");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp\neditor   "
+        );
     }
 
     #[test]
@@ -1261,8 +1350,10 @@ mod tests {
         super::outdent_line(&mut app).unwrap();
 
         // Ensure that the content is inserted correctly.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "amp\neditor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp\neditor"
+        );
     }
 
     #[test]
@@ -1279,13 +1370,17 @@ mod tests {
         super::outdent_line(&mut app).unwrap();
 
         // Ensure that the indentation is applied correctly.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "amp\neditor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp\neditor"
+        );
 
         // Undo the outdent and check that it's treated as one operation.
         super::undo(&mut app).unwrap();
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "  amp\n  editor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "  amp\n  editor"
+        );
     }
 
     #[test]
@@ -1303,8 +1398,10 @@ mod tests {
         super::outdent_line(&mut app).unwrap();
 
         // Ensure that the indentation is applied correctly.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "amp\neditor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp\neditor"
+        );
     }
 
     #[test]
@@ -1319,8 +1416,10 @@ mod tests {
         super::remove_trailing_whitespace(&mut app).unwrap();
 
         // Ensure that trailing whitespace is removed.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "  amp\n\neditor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "  amp\n\neditor"
+        );
     }
 
     #[test]
@@ -1335,8 +1434,10 @@ mod tests {
         super::remove_trailing_whitespace(&mut app).unwrap();
 
         // Ensure that trailing whitespace is removed.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "\t\tamp\n\neditor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "\t\tamp\n\neditor"
+        );
     }
 
     #[test]
@@ -1351,8 +1452,10 @@ mod tests {
         super::save(&mut app).ok();
 
         // Ensure that trailing whitespace is removed.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "amp\neditor\n");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp\neditor\n"
+        );
     }
 
     #[test]
@@ -1363,8 +1466,10 @@ mod tests {
         app.workspace.add_buffer(buffer);
         super::save(&mut app).ok();
 
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "amp\n∴ editor\n");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp\n∴ editor\n"
+        );
     }
 
     #[test]
@@ -1406,13 +1511,16 @@ mod tests {
     fn save_does_not_run_format_tool_by_default() {
         // Set up the application with a format command.
         let mut app = Application::new(&Vec::new()).unwrap();
-        let data = YamlLoader::load_from_str("
+        let data = YamlLoader::load_from_str(
+            "
             types:
               rs:
                 format_tool:
                   command: tr
                   options: ['a', 'b']
-        ").unwrap();
+        ",
+        )
+        .unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
         app.preferences.replace(preferences);
 
@@ -1435,14 +1543,17 @@ mod tests {
     fn save_runs_format_command_when_configured() {
         // Set up the application with a format command.
         let mut app = Application::new(&Vec::new()).unwrap();
-        let data = YamlLoader::load_from_str("
+        let data = YamlLoader::load_from_str(
+            "
             types:
               rs:
                 format_tool:
                   command: tr
                   options: ['a', 'b']
                   run_on_save: true
-        ").unwrap();
+        ",
+        )
+        .unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
         app.preferences.replace(preferences);
 
@@ -1461,7 +1572,12 @@ mod tests {
         );
 
         // Ensure that format tool output was saved to disk.
-        app.workspace.current_buffer.as_mut().unwrap().reload().unwrap();
+        app.workspace
+            .current_buffer
+            .as_mut()
+            .unwrap()
+            .reload()
+            .unwrap();
         assert_eq!(
             app.workspace.current_buffer.as_ref().unwrap().data(),
             "bmp editor\n"
@@ -1484,8 +1600,10 @@ mod tests {
         commands::buffer::paste(&mut app).unwrap();
 
         // Ensure that the clipboard contents are pasted to the line below.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "aamp\neditor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "aamp\neditor"
+        );
     }
 
     #[test]
@@ -1493,10 +1611,7 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
-        buffer.cursor.move_to(Position {
-            line: 0,
-            offset: 2,
-        });
+        buffer.cursor.move_to(Position { line: 0, offset: 2 });
 
         // Now that we've set up the buffer, add it
         // to the application, copy the first line to
@@ -1507,8 +1622,10 @@ mod tests {
         commands::buffer::paste(&mut app).unwrap();
 
         // Ensure that the clipboard contents are pasted to the line below.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "amp\namp\neditor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp\namp\neditor"
+        );
     }
 
     #[test]
@@ -1516,10 +1633,7 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
-        buffer.cursor.move_to(Position {
-            line: 0,
-            offset: 0,
-        });
+        buffer.cursor.move_to(Position { line: 0, offset: 0 });
 
         // Now that we've set up the buffer, add it
         // to the application, copy the first line to
@@ -1531,8 +1645,10 @@ mod tests {
         commands::buffer::paste(&mut app).unwrap();
 
         // Ensure that the clipboard contents are pasted to the line below.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "amp\neditor\namp\n");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp\neditor\namp\n"
+        );
     }
 
     #[test]
@@ -1540,10 +1656,7 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\n");
-        buffer.cursor.move_to(Position {
-            line: 0,
-            offset: 0,
-        });
+        buffer.cursor.move_to(Position { line: 0, offset: 0 });
 
         // Now that we've set up the buffer, add it
         // to the application, copy the first line to
@@ -1556,8 +1669,10 @@ mod tests {
         commands::buffer::paste(&mut app).unwrap();
 
         // Ensure that the clipboard contents are pasted to the line below.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "amp\neditor\namp\n");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp\neditor\namp\n"
+        );
     }
 
     #[test]
@@ -1565,10 +1680,7 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor\n        ");
-        buffer.cursor.move_to(Position {
-            line: 2,
-            offset: 8,
-        });
+        buffer.cursor.move_to(Position { line: 2, offset: 8 });
 
         // Now that we've set up the buffer, add it
         // to the application and run the command.
@@ -1576,8 +1688,10 @@ mod tests {
         commands::buffer::backspace(&mut app).unwrap();
 
         // Ensure that the clipboard contents are pasted to the line below.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "amp\neditor\n      ");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp\neditor\n      "
+        );
     }
 
     #[test]
@@ -1592,14 +1706,16 @@ mod tests {
         commands::buffer::merge_next_line(&mut app).unwrap();
 
         // Ensure that the lines are merged correctly.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(), "amp editor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp editor"
+        );
 
         // Ensure that the cursor is moved to the end of the current line.
-        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
-                   Position {
-                       line: 0,
-                       offset: 3,
-                   });
+        assert_eq!(
+            *app.workspace.current_buffer.as_ref().unwrap().cursor,
+            Position { line: 0, offset: 3 }
+        );
     }
 
     #[test]
@@ -1614,14 +1730,16 @@ mod tests {
         commands::buffer::merge_next_line(&mut app).ok();
 
         // Ensure that the lines are merged correctly.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(), "amp editor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp editor"
+        );
 
         // Ensure that the cursor is moved to the end of the current line.
-        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
-                   Position {
-                       line: 0,
-                       offset: 0,
-                   });
+        assert_eq!(
+            *app.workspace.current_buffer.as_ref().unwrap().cursor,
+            Position { line: 0, offset: 0 }
+        );
     }
 
     #[test]
@@ -1636,8 +1754,10 @@ mod tests {
         commands::buffer::merge_next_line(&mut app).unwrap();
 
         // Ensure that the lines are merged correctly.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "amp editor\ntest");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp editor\ntest"
+        );
     }
 
     #[test]
@@ -1645,10 +1765,7 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\n amp\neditor");
-        buffer.cursor.move_to(Position {
-            line: 1,
-            offset: 0,
-        });
+        buffer.cursor.move_to(Position { line: 1, offset: 0 });
 
         // Now that we've set up the buffer, add it
         // to the application and run the command.
@@ -1656,8 +1773,10 @@ mod tests {
         commands::buffer::merge_next_line(&mut app).unwrap();
 
         // Ensure that the lines are merged correctly.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "\n amp editor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "\n amp editor"
+        );
     }
 
     #[test]
@@ -1672,7 +1791,10 @@ mod tests {
         commands::buffer::merge_next_line(&mut app).unwrap();
 
         // Ensure that the lines are merged correctly.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(), "amp editor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp editor"
+        );
     }
 
     #[test]
@@ -1687,8 +1809,10 @@ mod tests {
         commands::buffer::ensure_trailing_newline(&mut app).unwrap();
 
         // Ensure that trailing newline is added.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "amp\neditor\n");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp\neditor\n"
+        );
     }
 
     #[test]
@@ -1703,8 +1827,10 @@ mod tests {
         commands::buffer::ensure_trailing_newline(&mut app).unwrap();
 
         // Ensure that trailing newline is added.
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "amp\neditor\n");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp\neditor\n"
+        );
     }
 
     #[test]
@@ -1712,7 +1838,9 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp");
-        app.clipboard.set_content(ClipboardContent::Inline("editor".to_string())).unwrap();
+        app.clipboard
+            .set_content(ClipboardContent::Inline("editor".to_string()))
+            .unwrap();
 
         // Now that we've set up the buffer, add it to
         // the application, select its contents, and paste.
@@ -1722,7 +1850,10 @@ mod tests {
         commands::buffer::paste(&mut app).unwrap();
 
         // Ensure that the content is replaced
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(), "editor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "editor"
+        );
 
         // TODO: Ensure that the operation is treated atomically.
         // commands::buffer::undo(&mut app);
@@ -1734,7 +1865,9 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp\neditor");
-        app.clipboard.set_content(ClipboardContent::Block("paste amp\n".to_string())).unwrap();
+        app.clipboard
+            .set_content(ClipboardContent::Block("paste amp\n".to_string()))
+            .unwrap();
 
         // Now that we've set up the buffer, add it to
         // the application, select its contents, and paste.
@@ -1743,8 +1876,10 @@ mod tests {
         commands::buffer::paste(&mut app).unwrap();
 
         // Ensure that the content is replaced
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "paste amp\neditor");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "paste amp\neditor"
+        );
 
         // TODO: Ensure that the operation is treated atomically.
         // commands::buffer::undo(&mut app);
@@ -1755,23 +1890,26 @@ mod tests {
     fn paste_above_inserts_clipboard_contents_on_a_new_line_above() {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
-        let original_position = Position {
-            line: 0,
-            offset: 3,
-        };
+        let original_position = Position { line: 0, offset: 3 };
         buffer.insert("editor");
         buffer.cursor.move_to(original_position.clone());
-        app.clipboard.set_content(ClipboardContent::Block("amp\n".to_string())).unwrap();
+        app.clipboard
+            .set_content(ClipboardContent::Block("amp\n".to_string()))
+            .unwrap();
 
         // Now that we've set up the buffer,
         // add it to the application and paste.
         app.workspace.add_buffer(buffer);
         commands::buffer::paste_above(&mut app).unwrap();
 
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "amp\neditor");
-        assert_eq!(*app.workspace.current_buffer.as_ref().unwrap().cursor,
-                   original_position);
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "amp\neditor"
+        );
+        assert_eq!(
+            *app.workspace.current_buffer.as_ref().unwrap().cursor,
+            original_position
+        );
     }
 
     #[test]
@@ -1841,9 +1979,15 @@ mod tests {
         app.workspace.add_buffer(buffer_3);
         commands::buffer::close_others(&mut app).unwrap();
 
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(), "three");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "three"
+        );
         app.workspace.next_buffer();
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(), "three");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "three"
+        );
     }
 
     #[test]
@@ -1894,9 +2038,15 @@ mod tests {
         // Run the command twice, to
         commands::buffer::close_others(&mut app).unwrap();
 
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(), "three");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "three"
+        );
         app.workspace.next_buffer();
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(), "three");
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "three"
+        );
     }
 
     #[test]
@@ -1905,9 +2055,9 @@ mod tests {
         let mut buffer_1 = Buffer::new();
         let mut buffer_2 = Buffer::new();
         let mut buffer_3 = Buffer::new();
-        buffer_1.insert("");    // Empty to prevent close confirmation.
+        buffer_1.insert(""); // Empty to prevent close confirmation.
         buffer_2.insert("two");
-        buffer_3.insert("");    // Empty to prevent close confirmation.
+        buffer_3.insert(""); // Empty to prevent close confirmation.
 
         // Now that we've set up the buffers, add
         // them to the application and run the command.
@@ -1927,10 +2077,7 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\tamp\n\teditor\n");
-        buffer.cursor.move_to(Position {
-            line: 0,
-            offset: 1
-        });
+        buffer.cursor.move_to(Position { line: 0, offset: 1 });
         buffer.path = Some("test.rs".into());
 
         // Now that we've set up the buffer, add it
@@ -1938,10 +2085,19 @@ mod tests {
         app.workspace.add_buffer(buffer);
         super::toggle_line_comment(&mut app).unwrap();
 
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "\t// amp\n\teditor\n");
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().cursor.position,
-                   Position { line: 0, offset: 1 });
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "\t// amp\n\teditor\n"
+        );
+        assert_eq!(
+            app.workspace
+                .current_buffer
+                .as_ref()
+                .unwrap()
+                .cursor
+                .position,
+            Position { line: 0, offset: 1 }
+        );
     }
 
     #[test]
@@ -1949,27 +2105,35 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\tamp\n\t\teditor\n");
-        buffer.cursor.move_to(Position {
-            line: 0,
-            offset: 1,
-        });
+        buffer.cursor.move_to(Position { line: 0, offset: 1 });
         buffer.path = Some("test.rs".into());
 
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
         commands::application::switch_to_select_line_mode(&mut app).unwrap();
-        app.workspace.current_buffer.as_mut().unwrap().cursor.move_to(Position {
-            line: 1,
-            offset: 1,
-        });
+        app.workspace
+            .current_buffer
+            .as_mut()
+            .unwrap()
+            .cursor
+            .move_to(Position { line: 1, offset: 1 });
 
         super::toggle_line_comment(&mut app).unwrap();
 
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "\t// amp\n\t// \teditor\n");
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().cursor.position,
-                   Position { line: 1, offset: 1 });
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "\t// amp\n\t// \teditor\n"
+        );
+        assert_eq!(
+            app.workspace
+                .current_buffer
+                .as_ref()
+                .unwrap()
+                .cursor
+                .position,
+            Position { line: 1, offset: 1 }
+        );
     }
 
     #[test]
@@ -1977,10 +2141,7 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\t// amp\n\teditor\n");
-        buffer.cursor.move_to(Position {
-            line: 0,
-            offset: 1,
-        });
+        buffer.cursor.move_to(Position { line: 0, offset: 1 });
         buffer.path = Some("test.rs".into());
 
         // Now that we've set up the buffer, add it
@@ -1988,10 +2149,19 @@ mod tests {
         app.workspace.add_buffer(buffer);
         super::toggle_line_comment(&mut app).unwrap();
 
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "\tamp\n\teditor\n");
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().cursor.position,
-                   Position { line: 0, offset: 1 });
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "\tamp\n\teditor\n"
+        );
+        assert_eq!(
+            app.workspace
+                .current_buffer
+                .as_ref()
+                .unwrap()
+                .cursor
+                .position,
+            Position { line: 0, offset: 1 }
+        );
     }
 
     #[test]
@@ -1999,27 +2169,35 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\t// amp\n\t// \teditor\n");
-        buffer.cursor.move_to(Position {
-            line: 0,
-            offset: 1,
-        });
+        buffer.cursor.move_to(Position { line: 0, offset: 1 });
         buffer.path = Some("test.rs".into());
 
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
         commands::application::switch_to_select_line_mode(&mut app).unwrap();
-        app.workspace.current_buffer.as_mut().unwrap().cursor.move_to(Position {
-            line: 1,
-            offset: 1,
-        });
+        app.workspace
+            .current_buffer
+            .as_mut()
+            .unwrap()
+            .cursor
+            .move_to(Position { line: 1, offset: 1 });
 
         super::toggle_line_comment(&mut app).unwrap();
 
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "\tamp\n\t\teditor\n");
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().cursor.position,
-                   Position { line: 1, offset: 1 });
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "\tamp\n\t\teditor\n"
+        );
+        assert_eq!(
+            app.workspace
+                .current_buffer
+                .as_ref()
+                .unwrap()
+                .cursor
+                .position,
+            Position { line: 1, offset: 1 }
+        );
     }
 
     #[test]
@@ -2027,27 +2205,35 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\t// amp\n\t\t// editor\n");
-        buffer.cursor.move_to(Position {
-            line: 0,
-            offset: 1,
-        });
+        buffer.cursor.move_to(Position { line: 0, offset: 1 });
         buffer.path = Some("test.rs".into());
 
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
         commands::application::switch_to_select_line_mode(&mut app).unwrap();
-        app.workspace.current_buffer.as_mut().unwrap().cursor.move_to(Position {
-            line: 1,
-            offset: 1,
-        });
+        app.workspace
+            .current_buffer
+            .as_mut()
+            .unwrap()
+            .cursor
+            .move_to(Position { line: 1, offset: 1 });
 
         super::toggle_line_comment(&mut app).unwrap();
 
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "\tamp\n\t\teditor\n");
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().cursor.position,
-                   Position { line: 1, offset: 1 });
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "\tamp\n\t\teditor\n"
+        );
+        assert_eq!(
+            app.workspace
+                .current_buffer
+                .as_ref()
+                .unwrap()
+                .cursor
+                .position,
+            Position { line: 1, offset: 1 }
+        );
     }
 
     #[test]
@@ -2055,27 +2241,35 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\tamp\n\n\teditor\n");
-        buffer.cursor.move_to(Position {
-            line: 0,
-            offset: 0,
-        });
+        buffer.cursor.move_to(Position { line: 0, offset: 0 });
         buffer.path = Some("test.rs".into());
 
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
         commands::application::switch_to_select_line_mode(&mut app).unwrap();
-        app.workspace.current_buffer.as_mut().unwrap().cursor.move_to(Position {
-            line: 2,
-            offset: 0,
-        });
+        app.workspace
+            .current_buffer
+            .as_mut()
+            .unwrap()
+            .cursor
+            .move_to(Position { line: 2, offset: 0 });
 
         super::toggle_line_comment(&mut app).unwrap();
 
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "\t// amp\n\n\t// editor\n");
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().cursor.position,
-                   Position { line: 2, offset: 0 });
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "\t// amp\n\n\t// editor\n"
+        );
+        assert_eq!(
+            app.workspace
+                .current_buffer
+                .as_ref()
+                .unwrap()
+                .cursor
+                .position,
+            Position { line: 2, offset: 0 }
+        );
     }
 
     #[test]
@@ -2083,26 +2277,34 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\t// amp\n\n\t// editor\n");
-        buffer.cursor.move_to(Position {
-            line: 0,
-            offset: 0,
-        });
+        buffer.cursor.move_to(Position { line: 0, offset: 0 });
         buffer.path = Some("test.rs".into());
 
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
         commands::application::switch_to_select_line_mode(&mut app).unwrap();
-        app.workspace.current_buffer.as_mut().unwrap().cursor.move_to(Position {
-            line: 2,
-            offset: 0,
-        });
+        app.workspace
+            .current_buffer
+            .as_mut()
+            .unwrap()
+            .cursor
+            .move_to(Position { line: 2, offset: 0 });
 
         super::toggle_line_comment(&mut app).unwrap();
 
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().data(),
-                   "\tamp\n\n\teditor\n");
-        assert_eq!(app.workspace.current_buffer.as_ref().unwrap().cursor.position,
-                   Position { line: 2, offset: 0 });
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            "\tamp\n\n\teditor\n"
+        );
+        assert_eq!(
+            app.workspace
+                .current_buffer
+                .as_ref()
+                .unwrap()
+                .cursor
+                .position,
+            Position { line: 2, offset: 0 }
+        );
     }
 }

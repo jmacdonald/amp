@@ -1,5 +1,5 @@
-use std::fmt;
 use crate::commands::Command;
+use std::fmt;
 
 // Utility type to make an Amp command function presentable (via the
 // Display trait), which is required for any type used in search/select mode.

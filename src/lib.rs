@@ -10,12 +10,12 @@ extern crate lazy_static;
 // Private modules
 mod commands;
 mod errors;
-mod util;
 mod input;
 mod models;
 mod presenters;
+mod util;
 mod view;
 
 // External application API
-pub use crate::models::Application;
 pub use crate::errors::Error;
+pub use crate::models::Application;
