@@ -10,7 +10,7 @@ documentation = "https://amp.rs/docs"
 readme = "README.md"
 license-file = "LICENSE"
 keywords = ["text", "editor", "terminal", "modal"]
-edition="2021"
+edition = "2021"
 
 [build-dependencies]
 regex = "1.10"
@@ -27,7 +27,7 @@ syntect = "5.1"
 termion = "2.0"
 error-chain = "0.12"
 unicode-segmentation = "1.10"
-cli-clipboard = "0.4"
+cli-clipboard = { version = "0.4.0", optional = true }
 yaml-rust = "0.4"
 smallvec = "1.11"
 lazy_static = "1.4"
@@ -50,3 +50,7 @@ criterion = "0.5"
 name = "draw_buffer"
 path = "benches/view/draw_buffer.rs"
 harness = false
+
+[features]
+default = ["clipboard"]
+clipboard = ["dep:cli-clipboard"]
