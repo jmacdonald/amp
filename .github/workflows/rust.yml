@@ -24,3 +24,5 @@ jobs:
     - uses: actions/checkout@v4
     - name: rustfmt
       run: rustfmt --check src/**/*.rs
+    - name: clippy
+      run: cargo clippy -- -D warnings
