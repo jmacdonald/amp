@@ -1,7 +1,7 @@
 { pkgs ? import <nixpkgs> { } }:
   pkgs.rustPlatform.buildRustPackage {
     pname = "amp";
-    version = "0.6.2";
+    version = "0.7.0";
     cargoLock.lockFile = ./Cargo.lock;
 
     # Use source files without version control noise
