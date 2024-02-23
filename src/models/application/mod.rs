@@ -53,7 +53,7 @@ impl Application {
         Ok(Application {
             current_mode: ModeKey::Normal,
             mode: Mode::Normal,
-            modes: HashMap::new(),
+            modes: create_modes(),
             workspace,
             search_query: None,
             view,
@@ -296,6 +296,17 @@ fn create_workspace(
     }
 
     Ok(workspace)
+}
+
+fn create_modes() -> HashMap<ModeKey, Mode> {
+    let mut modes = HashMap::new();
+
+    // Do the easy ones first.
+    modes.insert(ModeKey::Exit, Mode::Exit);
+    modes.insert(ModeKey::Insert, Mode::Insert);
+    modes.insert(ModeKey::Normal, Mode::Normal);
+
+    return modes;
 }
 
 #[cfg(not(any(test, feature = "bench")))]
