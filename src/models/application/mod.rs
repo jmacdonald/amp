@@ -18,13 +18,16 @@ use crate::view::View;
 use git2::Repository;
 use scribe::{Buffer, Workspace};
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::env;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender};
 
 pub struct Application {
+    pub current_mode: ModeKey,
     pub mode: Mode,
+    pub modes: HashMap<ModeKey, Mode>,
     pub workspace: Workspace,
     pub search_query: Option<String>,
     pub view: View,
@@ -48,7 +51,9 @@ impl Application {
         let workspace = create_workspace(&mut view, &preferences.borrow(), args)?;
 
         Ok(Application {
+            current_mode: ModeKey::Normal,
             mode: Mode::Normal,
+            modes: HashMap::new(),
             workspace,
             search_query: None,
             view,

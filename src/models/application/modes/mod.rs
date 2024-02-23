@@ -30,6 +30,25 @@ pub enum Mode {
     Theme(ThemeMode),
 }
 
+#[derive(Eq, Hash, PartialEq)]
+pub enum ModeKey {
+    Command,
+    Confirm,
+    Exit,
+    Insert,
+    Jump,
+    LineJump,
+    Normal,
+    Open,
+    Path,
+    Search,
+    Select,
+    SelectLine,
+    SymbolJump,
+    Syntax,
+    Theme,
+}
+
 pub use self::command::CommandMode;
 pub use self::confirm::ConfirmMode;
 pub use self::jump::JumpMode;
