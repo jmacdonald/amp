@@ -6,6 +6,7 @@ mod preferences;
 // Published API
 pub use self::clipboard::ClipboardContent;
 pub use self::event::Event;
+pub use self::modes::Mode;
 pub use self::preferences::Preferences;
 
 use self::clipboard::Clipboard;
@@ -21,24 +22,6 @@ use std::env;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender};
-
-pub enum Mode {
-    Confirm(ConfirmMode),
-    Command(CommandMode),
-    Exit,
-    Insert,
-    Jump(JumpMode),
-    LineJump(LineJumpMode),
-    Path(PathMode),
-    Normal,
-    Open(OpenMode),
-    Select(SelectMode),
-    SelectLine(SelectLineMode),
-    Search(SearchMode),
-    SymbolJump(SymbolJumpMode),
-    Syntax(SyntaxMode),
-    Theme(ThemeMode),
-}
 
 pub struct Application {
     pub mode: Mode,
