@@ -241,6 +241,8 @@ impl Application {
                 commands::application::switch_to_normal_mode,
             )),
         );
+        self.modes
+            .insert(ModeKey::Jump, Mode::Jump(JumpMode::new(0)));
     }
 }
 
