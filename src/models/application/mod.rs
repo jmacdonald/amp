@@ -50,10 +50,10 @@ impl Application {
         // Set up a workspace in the current directory.
         let workspace = create_workspace(&mut view, &preferences.borrow(), args)?;
 
-        Ok(Application {
+        let mut app = Application {
             current_mode: ModeKey::Normal,
             mode: Mode::Normal,
-            modes: create_modes(),
+            modes: HashMap::new(),
             workspace,
             search_query: None,
             view,
@@ -63,7 +63,11 @@ impl Application {
             preferences,
             event_channel,
             events,
-        })
+        };
+
+        app.create_modes();
+
+        Ok(app)
     }
 
     pub fn run(&mut self) -> Result<()> {
@@ -218,6 +222,20 @@ impl Application {
             Mode::Exit => None,
         }
     }
+
+    fn create_modes(&mut self) {
+        // Do the easy ones first.
+        self.modes.insert(ModeKey::Exit, Mode::Exit);
+        self.modes.insert(ModeKey::Insert, Mode::Insert);
+        self.modes.insert(ModeKey::Normal, Mode::Normal);
+
+        self.modes.insert(
+            ModeKey::Command,
+            Mode::Command(CommandMode::new(
+                self.preferences.borrow().search_select_config(),
+            )),
+        );
+    }
 }
 
 fn initialize_preferences() -> Rc<RefCell<Preferences>> {
@@ -296,17 +314,6 @@ fn create_workspace(
     }
 
     Ok(workspace)
-}
-
-fn create_modes() -> HashMap<ModeKey, Mode> {
-    let mut modes = HashMap::new();
-
-    // Do the easy ones first.
-    modes.insert(ModeKey::Exit, Mode::Exit);
-    modes.insert(ModeKey::Insert, Mode::Insert);
-    modes.insert(ModeKey::Normal, Mode::Normal);
-
-    return modes;
 }
 
 #[cfg(not(any(test, feature = "bench")))]
