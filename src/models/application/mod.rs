@@ -235,6 +235,12 @@ impl Application {
                 self.preferences.borrow().search_select_config(),
             )),
         );
+        self.modes.insert(
+            ModeKey::Confirm,
+            Mode::Confirm(ConfirmMode::new(
+                commands::application::switch_to_normal_mode,
+            )),
+        );
     }
 }
 
