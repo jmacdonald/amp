@@ -243,6 +243,8 @@ impl Application {
         );
         self.modes
             .insert(ModeKey::Jump, Mode::Jump(JumpMode::new(0)));
+        self.modes
+            .insert(ModeKey::LineJump, Mode::LineJump(LineJumpMode::new()));
     }
 }
 
