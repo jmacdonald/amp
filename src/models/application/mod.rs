@@ -256,6 +256,8 @@ impl Application {
                 self.preferences.borrow().search_select_config(),
             )),
         );
+        self.modes
+            .insert(ModeKey::Path, Mode::Path(PathMode::new(String::new())));
 
         Ok(())
     }
