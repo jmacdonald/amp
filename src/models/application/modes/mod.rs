@@ -30,7 +30,7 @@ pub enum Mode {
     Theme(ThemeMode),
 }
 
-#[derive(Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum ModeKey {
     Command,
     Confirm,
