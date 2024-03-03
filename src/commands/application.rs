@@ -2,7 +2,7 @@ use crate::commands::{self, Result};
 use crate::errors::*;
 use crate::input::KeyMap;
 use crate::models::application::modes::*;
-use crate::models::application::{Application, Mode};
+use crate::models::application::{Application, Mode, ModeKey};
 use crate::util;
 use scribe::Buffer;
 use std::mem;
@@ -26,7 +26,7 @@ pub fn handle_input(app: &mut Application) -> Result {
 
 pub fn switch_to_normal_mode(app: &mut Application) -> Result {
     let _ = commands::buffer::end_command_group(app);
-    app.mode = Mode::Normal;
+    app.switch_to(ModeKey::Normal);
 
     Ok(())
 }
@@ -34,7 +34,7 @@ pub fn switch_to_normal_mode(app: &mut Application) -> Result {
 pub fn switch_to_insert_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer.is_some() {
         commands::buffer::start_command_group(app)?;
-        app.mode = Mode::Insert;
+        app.switch_to(ModeKey::Insert);
         commands::view::scroll_to_cursor(app)?;
     } else {
         bail!(BUFFER_MISSING);
@@ -282,7 +282,7 @@ pub fn suspend(app: &mut Application) -> Result {
 }
 
 pub fn exit(app: &mut Application) -> Result {
-    app.mode = Mode::Exit;
+    app.switch_to(ModeKey::Exit);
 
     Ok(())
 }
