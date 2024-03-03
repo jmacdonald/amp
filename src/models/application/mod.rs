@@ -65,7 +65,7 @@ impl Application {
             events,
         };
 
-        app.create_modes();
+        app.create_modes()?;
 
         Ok(app)
     }
@@ -223,7 +223,7 @@ impl Application {
         }
     }
 
-    fn create_modes(&mut self) {
+    fn create_modes(&mut self) -> Result<()> {
         // Do the easy ones first.
         self.modes.insert(ModeKey::Exit, Mode::Exit);
         self.modes.insert(ModeKey::Insert, Mode::Insert);
@@ -245,6 +245,19 @@ impl Application {
             .insert(ModeKey::Jump, Mode::Jump(JumpMode::new(0)));
         self.modes
             .insert(ModeKey::LineJump, Mode::LineJump(LineJumpMode::new()));
+        self.modes
+            .insert(ModeKey::LineJump, Mode::LineJump(LineJumpMode::new()));
+        self.modes.insert(
+            ModeKey::Open,
+            Mode::Open(OpenMode::new(
+                self.workspace.path.clone(),
+                self.preferences.borrow().open_mode_exclusions()?,
+                self.event_channel.clone(),
+                self.preferences.borrow().search_select_config(),
+            )),
+        );
+
+        Ok(())
     }
 }
 
