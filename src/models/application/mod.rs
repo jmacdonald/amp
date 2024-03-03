@@ -281,6 +281,13 @@ impl Application {
             )?),
         );
 
+        self.modes.insert(
+            ModeKey::Syntax,
+            Mode::Syntax(SyntaxMode::new(
+                Vec::new(),
+                self.preferences.borrow().search_select_config(),
+            )),
+        );
         Ok(())
     }
 }
