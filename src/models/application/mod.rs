@@ -16,6 +16,7 @@ use crate::errors::*;
 use crate::presenters;
 use crate::view::View;
 use git2::Repository;
+use scribe::buffer::Position;
 use scribe::{Buffer, Workspace};
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -260,6 +261,10 @@ impl Application {
             .insert(ModeKey::Path, Mode::Path(PathMode::new(String::new())));
         self.modes
             .insert(ModeKey::Search, Mode::Search(SearchMode::new(None)));
+        self.modes.insert(
+            ModeKey::Select,
+            Mode::Select(SelectMode::new(Position::default())),
+        );
 
         Ok(())
     }
