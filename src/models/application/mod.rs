@@ -27,9 +27,7 @@ use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender};
 
 pub struct Application {
-    pub current_mode: ModeKey,
     pub mode: Mode,
-    pub modes: HashMap<ModeKey, Mode>,
     pub workspace: Workspace,
     pub search_query: Option<String>,
     pub view: View,
@@ -39,6 +37,8 @@ pub struct Application {
     pub preferences: Rc<RefCell<Preferences>>,
     pub event_channel: Sender<Event>,
     events: Receiver<Event>,
+    current_mode: ModeKey,
+    modes: HashMap<ModeKey, Mode>,
 }
 
 impl Application {
