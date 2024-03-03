@@ -265,6 +265,10 @@ impl Application {
             ModeKey::Select,
             Mode::Select(SelectMode::new(Position::default())),
         );
+        self.modes.insert(
+            ModeKey::SelectLine,
+            Mode::SelectLine(SelectLineMode::new(0)),
+        );
 
         Ok(())
     }
