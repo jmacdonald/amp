@@ -280,7 +280,6 @@ impl Application {
                 self.preferences.borrow().search_select_config(),
             )?),
         );
-
         self.modes.insert(
             ModeKey::Syntax,
             Mode::Syntax(SyntaxMode::new(
@@ -288,6 +287,14 @@ impl Application {
                 self.preferences.borrow().search_select_config(),
             )),
         );
+        self.modes.insert(
+            ModeKey::Theme,
+            Mode::Theme(ThemeMode::new(
+                Vec::new(),
+                self.preferences.borrow().search_select_config(),
+            )),
+        );
+
         Ok(())
     }
 }
