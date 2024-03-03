@@ -6,7 +6,7 @@ mod preferences;
 // Published API
 pub use self::clipboard::ClipboardContent;
 pub use self::event::Event;
-pub use self::modes::Mode;
+pub use self::modes::{Mode, ModeKey};
 pub use self::preferences::Preferences;
 
 use self::clipboard::Clipboard;
