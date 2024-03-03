@@ -21,6 +21,7 @@ use scribe::{Buffer, Workspace};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::env;
+use std::mem;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender};
@@ -224,6 +225,20 @@ impl Application {
         }
     }
 
+    pub fn switch_to(&mut self, mode_key: ModeKey) {
+        // Check out the specified mode.
+        let mut mode = self.modes.remove(&mode_key).unwrap();
+
+        // Activate the specified mode.
+        mem::swap(&mut self.mode, &mut mode);
+
+        // Check in the previous mode.
+        self.modes.insert(self.current_mode, mode);
+
+        // Track the new active mode.
+        self.current_mode = mode_key;
+    }
+
     fn create_modes(&mut self) -> Result<()> {
         // Do the easy ones first.
         self.modes.insert(ModeKey::Exit, Mode::Exit);
@@ -393,7 +408,7 @@ fn user_syntax_path() -> Result<Option<PathBuf>> {
 #[cfg(test)]
 mod tests {
     use super::preferences::Preferences;
-    use super::Application;
+    use super::{Application, Mode, ModeKey};
     use crate::view::View;
 
     use scribe::Buffer;
@@ -467,5 +482,36 @@ mod tests {
                 .name,
             "Rust"
         );
+    }
+
+    #[test]
+    fn switch_to_activates_the_specified_mode() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+
+        assert_eq!(app.current_mode, ModeKey::Normal);
+        assert!(matches!(app.mode, Mode::Normal));
+
+        app.switch_to(ModeKey::Exit);
+
+        assert_eq!(app.current_mode, ModeKey::Exit);
+        assert!(matches!(app.mode, Mode::Exit));
+    }
+
+    #[test]
+    fn switch_to_retains_state_from_previous_modes() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+
+        app.switch_to(ModeKey::Search);
+        match app.mode {
+            Mode::Search(ref mut s) => s.input = Some(String::from("state")),
+            _ => panic!("switch_to didn't change app mode"),
+        }
+
+        app.switch_to(ModeKey::Normal);
+        app.switch_to(ModeKey::Search);
+        match app.mode {
+            Mode::Search(ref s) => assert_eq!(s.input, Some(String::from("state"))),
+            _ => panic!("switch_to didn't change app mode"),
+        }
     }
 }
