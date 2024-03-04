@@ -38,6 +38,7 @@ pub struct Application {
     pub event_channel: Sender<Event>,
     events: Receiver<Event>,
     current_mode: ModeKey,
+    previous_mode: ModeKey,
     modes: HashMap<ModeKey, Mode>,
 }
 
@@ -54,6 +55,7 @@ impl Application {
 
         let mut app = Application {
             current_mode: ModeKey::Normal,
+            previous_mode: ModeKey::Normal,
             mode: Mode::Normal,
             modes: HashMap::new(),
             workspace,
@@ -235,8 +237,15 @@ impl Application {
         // Check in the previous mode.
         self.modes.insert(self.current_mode, mode);
 
+        // Track the previous mode.
+        self.previous_mode = self.current_mode;
+
         // Track the new active mode.
         self.current_mode = mode_key;
+    }
+
+    pub fn switch_to_previous_mode(&mut self) {
+        self.switch_to(self.previous_mode);
     }
 
     fn create_modes(&mut self) -> Result<()> {
@@ -513,5 +522,21 @@ mod tests {
             Mode::Search(ref s) => assert_eq!(s.input, Some(String::from("state"))),
             _ => panic!("switch_to didn't change app mode"),
         }
+    }
+
+    #[test]
+    fn switch_to_previous_mode_works() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+
+        app.switch_to(ModeKey::Insert);
+        app.switch_to(ModeKey::Exit);
+
+        assert_eq!(app.current_mode, ModeKey::Exit);
+        assert!(matches!(app.mode, Mode::Exit));
+
+        app.switch_to_previous_mode();
+
+        assert_eq!(app.current_mode, ModeKey::Insert);
+        assert!(matches!(app.mode, Mode::Insert));
     }
 }
