@@ -72,7 +72,11 @@ pub fn switch_to_second_stage_jump_mode(app: &mut Application) -> Result {
 
 pub fn switch_to_line_jump_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer.is_some() {
-        app.mode = Mode::LineJump(LineJumpMode::new());
+        app.switch_to(ModeKey::LineJump);
+        match app.mode {
+            Mode::LineJump(ref mut mode) => mode.input = String::new(),
+            _ => (),
+        }
     } else {
         bail!(BUFFER_MISSING);
     }
