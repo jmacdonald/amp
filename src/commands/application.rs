@@ -187,7 +187,12 @@ pub fn switch_to_path_mode(app: &mut Application) -> Result {
         .unwrap_or_else(||
             // Default to the workspace directory.
             format!("{}/", app.workspace.path.to_string_lossy()));
-    app.mode = Mode::Path(PathMode::new(path));
+
+    app.switch_to(ModeKey::Path);
+    match app.mode {
+        Mode::Path(ref mut mode) => mode.reset(path),
+        _ => (),
+    }
 
     Ok(())
 }
