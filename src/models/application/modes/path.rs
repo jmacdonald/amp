@@ -6,17 +6,24 @@ pub struct PathMode {
 }
 
 impl PathMode {
-    pub fn new(initial_path: String) -> PathMode {
+    pub fn new() -> PathMode {
         PathMode {
-            input: initial_path,
+            input: String::new(),
             save_on_accept: false,
         }
     }
+
     pub fn push_char(&mut self, c: char) {
         self.input.push(c);
     }
+
     pub fn pop_char(&mut self) {
         self.input.pop();
+    }
+
+    pub fn reset(&mut self, initial_path: String) {
+        self.input = initial_path;
+        self.save_on_accept = false;
     }
 }
 

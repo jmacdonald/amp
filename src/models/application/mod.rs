@@ -280,7 +280,7 @@ impl Application {
             )),
         );
         self.modes
-            .insert(ModeKey::Path, Mode::Path(PathMode::new(String::new())));
+            .insert(ModeKey::Path, Mode::Path(PathMode::new()));
         self.modes
             .insert(ModeKey::Search, Mode::Search(SearchMode::new(None)));
         self.modes.insert(
