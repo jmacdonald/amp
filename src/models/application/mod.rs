@@ -276,8 +276,6 @@ impl Application {
             ModeKey::Open,
             Mode::Open(OpenMode::new(
                 self.workspace.path.clone(),
-                self.preferences.borrow().open_mode_exclusions()?,
-                self.event_channel.clone(),
                 self.preferences.borrow().search_select_config(),
             )),
         );

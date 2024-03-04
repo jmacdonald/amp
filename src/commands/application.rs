@@ -87,12 +87,18 @@ pub fn switch_to_line_jump_mode(app: &mut Application) -> Result {
 pub fn switch_to_open_mode(app: &mut Application) -> Result {
     let exclusions = app.preferences.borrow().open_mode_exclusions()?;
     let config = app.preferences.borrow().search_select_config();
-    app.mode = Mode::Open(OpenMode::new(
-        app.workspace.path.clone(),
-        exclusions,
-        app.event_channel.clone(),
-        config,
-    ));
+
+    app.switch_to(ModeKey::Open);
+    match app.mode {
+        Mode::Open(ref mut mode) => mode.reset(
+            app.workspace.path.clone(),
+            exclusions,
+            app.event_channel.clone(),
+            config,
+        ),
+        _ => (),
+    }
+
     commands::search_select::search(app)?;
 
     Ok(())
