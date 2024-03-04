@@ -5,7 +5,6 @@ use crate::models::application::modes::*;
 use crate::models::application::{Application, Mode, ModeKey};
 use crate::util;
 use scribe::Buffer;
-use std::mem;
 
 pub fn handle_input(app: &mut Application) -> Result {
     // Listen for and respond to user input.
@@ -44,34 +43,19 @@ pub fn switch_to_insert_mode(app: &mut Application) -> Result {
 }
 
 pub fn switch_to_jump_mode(app: &mut Application) -> Result {
-    let buffer = app
+    let line = app
         .workspace
         .current_buffer
         .as_ref()
-        .ok_or(BUFFER_MISSING)?;
+        .ok_or(BUFFER_MISSING)?
+        .cursor
+        .line;
 
-    // Initialize a new jump mode and swap
-    // it with the current application mode.
-    let jump_mode = Mode::Jump(JumpMode::new(buffer.cursor.line));
-    let old_mode = mem::replace(&mut app.mode, jump_mode);
-
-    // If we were previously in a select mode, store it
-    // in the current jump mode so that we can return to
-    // it after we've jumped to a location. This is how
-    // we compose select and jump modes.
-    match old_mode {
-        Mode::Select(select_mode) => {
-            if let Mode::Jump(ref mut mode) = app.mode {
-                mode.select_mode = jump::SelectModeOptions::Select(select_mode);
-            }
-        }
-        Mode::SelectLine(select_mode) => {
-            if let Mode::Jump(ref mut mode) = app.mode {
-                mode.select_mode = jump::SelectModeOptions::SelectLine(select_mode);
-            }
-        }
+    app.switch_to(ModeKey::Jump);
+    match app.mode {
+        Mode::Jump(ref mut mode) => mode.reset(line),
         _ => (),
-    };
+    }
 
     Ok(())
 }
@@ -81,7 +65,7 @@ pub fn switch_to_second_stage_jump_mode(app: &mut Application) -> Result {
     if let Mode::Jump(ref mut mode) = app.mode {
         mode.first_phase = false;
     } else {
-        bail!("Failed to switch to jump mode.");
+        bail!("Cannot enter second stage jump mode from other modes.");
     };
 
     Ok(())

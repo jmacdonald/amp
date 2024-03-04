@@ -1,11 +1,9 @@
 use crate::commands::Result;
 use crate::errors::*;
 use crate::input::Key;
-use crate::models::application::modes::jump;
 use crate::models::application::modes::JumpMode;
 use crate::models::application::{Application, Mode};
 use scribe::Workspace;
-use std::mem;
 
 pub fn match_tag(app: &mut Application) -> Result {
     let result = if let Mode::Jump(ref mut jump_mode) = app.mode {
@@ -23,7 +21,7 @@ pub fn match_tag(app: &mut Application) -> Result {
     } else {
         bail!("Can't match jump tags outside of jump mode.");
     };
-    switch_to_previous_mode(app);
+    app.switch_to_previous_mode();
 
     result
 }
@@ -43,24 +41,6 @@ fn jump_to_tag(jump_mode: &mut JumpMode, workspace: &mut Workspace) -> Result {
     }
 
     Ok(())
-}
-
-fn switch_to_previous_mode(app: &mut Application) {
-    let old_mode = mem::replace(&mut app.mode, Mode::Normal);
-
-    // Now that we own the jump mode, switch to
-    // the previous select mode, if there was one.
-    if let Mode::Jump(jump_mode) = old_mode {
-        match jump_mode.select_mode {
-            jump::SelectModeOptions::None => (),
-            jump::SelectModeOptions::Select(select_mode) => {
-                app.mode = Mode::Select(select_mode);
-            }
-            jump::SelectModeOptions::SelectLine(select_mode) => {
-                app.mode = Mode::SelectLine(select_mode);
-            }
-        }
-    }
 }
 
 pub fn push_search_char(app: &mut Application) -> Result {
