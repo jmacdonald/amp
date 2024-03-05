@@ -132,16 +132,20 @@ pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
 }
 
 pub fn switch_to_theme_mode(app: &mut Application) -> Result {
+    let themes = app.view
+        .theme_set
+        .themes
+        .keys()
+        .map(|k| k.to_string())
+        .collect();
     let config = app.preferences.borrow().search_select_config();
-    app.mode = Mode::Theme(ThemeMode::new(
-        app.view
-            .theme_set
-            .themes
-            .keys()
-            .map(|k| k.to_string())
-            .collect(),
-        config,
-    ));
+
+    app.switch_to(ModeKey::Theme);
+    match app.mode {
+        Mode::Theme(ref mut mode) => mode.reset(themes, config),
+        _ => (),
+    }
+
     commands::search_select::search(app)?;
 
     Ok(())

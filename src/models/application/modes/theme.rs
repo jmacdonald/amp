@@ -13,14 +13,19 @@ pub struct ThemeMode {
 }
 
 impl ThemeMode {
-    pub fn new(themes: Vec<String>, config: SearchSelectConfig) -> ThemeMode {
+    pub fn new(config: SearchSelectConfig) -> ThemeMode {
         ThemeMode {
             insert: true,
             input: String::new(),
-            themes,
+            themes: Vec::new(),
             results: SelectableVec::new(Vec::new()),
             config,
         }
+    }
+
+    pub fn reset(&mut self, themes: Vec<String>, config: SearchSelectConfig) {
+        self.themes = themes;
+        self.config = config;
     }
 }
 
