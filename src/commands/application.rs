@@ -164,7 +164,12 @@ pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
 
 pub fn switch_to_search_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer.is_some() {
-        app.mode = Mode::Search(SearchMode::new(app.search_query.clone()));
+        app.switch_to(ModeKey::Search);
+
+        match app.mode {
+            Mode::Search(ref mut mode) => mode.insert = true,
+            _ => (),
+        }
     } else {
         bail!(BUFFER_MISSING);
     }
@@ -312,24 +317,6 @@ mod tests {
             Some("application::display_available_commands")
         );
         assert_eq!(lines.last(), Some("workspace::next_buffer"));
-    }
-
-    #[test]
-    fn switch_to_search_mode_sets_initial_search_query() {
-        let mut app = Application::new(&Vec::new()).unwrap();
-
-        // A buffer needs to be open to switch to search mode.
-        let buffer = Buffer::new();
-        app.workspace.add_buffer(buffer);
-
-        app.search_query = Some(String::from("query"));
-        super::switch_to_search_mode(&mut app).unwrap();
-
-        let mode_query = match app.mode {
-            Mode::Search(ref mode) => mode.input.clone(),
-            _ => None,
-        };
-        assert_eq!(mode_query, Some(String::from("query")));
     }
 
     #[test]
