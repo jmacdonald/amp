@@ -304,7 +304,6 @@ impl Application {
         self.modes.insert(
             ModeKey::Theme,
             Mode::Theme(ThemeMode::new(
-                Vec::new(),
                 self.preferences.borrow().search_select_config(),
             )),
         );
