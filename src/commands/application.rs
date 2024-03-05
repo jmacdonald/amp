@@ -161,10 +161,18 @@ pub fn switch_to_select_mode(app: &mut Application) -> Result {
 }
 
 pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
-    if let Some(buffer) = app.workspace.current_buffer.as_ref() {
-        app.mode = Mode::SelectLine(SelectLineMode::new(buffer.cursor.line));
-    } else {
-        bail!(BUFFER_MISSING);
+    let line = app
+        .workspace
+        .current_buffer
+        .as_ref()
+        .ok_or(BUFFER_MISSING)?
+        .cursor
+        .line;
+
+    app.switch_to(ModeKey::SelectLine);
+    match app.mode {
+        Mode::SelectLine(ref mut mode) => mode.anchor = line,
+        _ => (),
     }
 
     Ok(())
