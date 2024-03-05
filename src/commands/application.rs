@@ -1,7 +1,6 @@
 use crate::commands::{self, Result};
 use crate::errors::*;
 use crate::input::KeyMap;
-use crate::models::application::modes::*;
 use crate::models::application::{Application, Mode, ModeKey};
 use crate::util;
 use scribe::Buffer;
@@ -107,7 +106,13 @@ pub fn switch_to_open_mode(app: &mut Application) -> Result {
 
 pub fn switch_to_command_mode(app: &mut Application) -> Result {
     let config = app.preferences.borrow().search_select_config();
-    app.mode = Mode::Command(CommandMode::new(config));
+
+    app.switch_to(ModeKey::Command);
+    match app.mode {
+        Mode::Command(ref mut mode) => mode.reset(config),
+        _ => (),
+    }
+
     commands::search_select::search(app)?;
 
     Ok(())
