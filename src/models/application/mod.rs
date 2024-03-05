@@ -29,7 +29,6 @@ use std::sync::mpsc::{self, Receiver, Sender};
 pub struct Application {
     pub mode: Mode,
     pub workspace: Workspace,
-    pub search_query: Option<String>,
     pub view: View,
     pub clipboard: Clipboard,
     pub repository: Option<Repository>,
@@ -59,7 +58,6 @@ impl Application {
             mode: Mode::Normal,
             modes: HashMap::new(),
             workspace,
-            search_query: None,
             view,
             clipboard,
             repository: Repository::discover(env::current_dir()?).ok(),
