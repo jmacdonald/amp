@@ -144,10 +144,17 @@ pub fn switch_to_theme_mode(app: &mut Application) -> Result {
 }
 
 pub fn switch_to_select_mode(app: &mut Application) -> Result {
-    if let Some(buffer) = app.workspace.current_buffer.as_ref() {
-        app.mode = Mode::Select(SelectMode::new(*buffer.cursor.clone()));
-    } else {
-        bail!(BUFFER_MISSING);
+    let position = *app
+        .workspace
+        .current_buffer
+        .as_ref()
+        .ok_or(BUFFER_MISSING)?
+        .cursor;
+
+    app.switch_to(ModeKey::Select);
+    match app.mode {
+        Mode::Select(ref mut mode) => mode.anchor = position,
+        _ => (),
     }
 
     Ok(())
