@@ -16,7 +16,7 @@ use crate::errors::*;
 use crate::presenters;
 use crate::view::View;
 use git2::Repository;
-use scribe::buffer::{Position, TokenSet};
+use scribe::buffer::Position;
 use scribe::{Buffer, Workspace};
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -292,11 +292,6 @@ impl Application {
         self.modes.insert(
             ModeKey::SymbolJump,
             Mode::SymbolJump(SymbolJumpMode::new(
-                &TokenSet::new(
-                    String::new(),
-                    &self.workspace.syntax_set.find_syntax_plain_text(),
-                    &self.workspace.syntax_set,
-                ),
                 self.preferences.borrow().search_select_config(),
             )?),
         );
