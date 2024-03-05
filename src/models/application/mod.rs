@@ -226,6 +226,10 @@ impl Application {
     }
 
     pub fn switch_to(&mut self, mode_key: ModeKey) {
+        if self.current_mode == mode_key {
+            return;
+        }
+
         // Check out the specified mode.
         let mut mode = self.modes.remove(&mode_key).unwrap();
 
@@ -524,6 +528,21 @@ mod tests {
         assert!(matches!(app.mode, Mode::Exit));
 
         app.switch_to_previous_mode();
+
+        assert_eq!(app.current_mode, ModeKey::Insert);
+        assert!(matches!(app.mode, Mode::Insert));
+    }
+
+    #[test]
+    fn switch_to_handles_switching_to_current_mode() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+
+        app.switch_to(ModeKey::Insert);
+
+        assert_eq!(app.current_mode, ModeKey::Insert);
+        assert!(matches!(app.mode, Mode::Insert));
+
+        app.switch_to(ModeKey::Insert);
 
         assert_eq!(app.current_mode, ModeKey::Insert);
         assert!(matches!(app.mode, Mode::Insert));
