@@ -27,6 +27,10 @@ impl CommandMode {
             config,
         }
     }
+
+    pub fn reset(&mut self, config: SearchSelectConfig) {
+        self.config = config;
+    }
 }
 
 impl fmt::Display for CommandMode {
