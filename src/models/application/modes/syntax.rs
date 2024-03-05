@@ -13,14 +13,19 @@ pub struct SyntaxMode {
 }
 
 impl SyntaxMode {
-    pub fn new(syntaxes: Vec<String>, config: SearchSelectConfig) -> SyntaxMode {
+    pub fn new(config: SearchSelectConfig) -> SyntaxMode {
         SyntaxMode {
             insert: true,
             input: String::new(),
-            syntaxes,
+            syntaxes: Vec::new(),
             results: SelectableVec::new(Vec::new()),
             config,
         }
+    }
+
+    pub fn reset(&mut self, syntaxes: Vec<String>, config: SearchSelectConfig) {
+        self.syntaxes = syntaxes;
+        self.config = config;
     }
 }
 

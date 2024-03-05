@@ -231,16 +231,20 @@ pub fn switch_to_syntax_mode(app: &mut Application) -> Result {
         .as_ref()
         .ok_or("Switching syntaxes requires an open buffer")?;
 
+    app.switch_to(ModeKey::Syntax);
     let config = app.preferences.borrow().search_select_config();
-    app.mode = Mode::Syntax(SyntaxMode::new(
-        app.workspace
-            .syntax_set
-            .syntaxes()
-            .iter()
-            .map(|syntax| syntax.name.clone())
-            .collect(),
-        config,
-    ));
+    let syntaxes = app
+        .workspace
+        .syntax_set
+        .syntaxes()
+        .iter()
+        .map(|syntax| syntax.name.clone())
+        .collect();
+    match app.mode {
+        Mode::Syntax(ref mut mode) => mode.reset(syntaxes, config),
+        _ => (),
+    }
+
     commands::search_select::search(app)?;
 
     Ok(())
