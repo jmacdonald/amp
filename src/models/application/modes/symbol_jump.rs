@@ -52,16 +52,21 @@ impl AsStr for Symbol {
 }
 
 impl SymbolJumpMode {
-    pub fn new(tokens: &TokenSet, config: SearchSelectConfig) -> Result<SymbolJumpMode> {
-        let symbols = symbols(tokens.iter().chain_err(|| BUFFER_PARSE_FAILED)?);
-
+    pub fn new(config: SearchSelectConfig) -> Result<SymbolJumpMode> {
         Ok(SymbolJumpMode {
             insert: true,
             input: String::new(),
-            symbols,
+            symbols: Vec::new(),
             results: SelectableVec::new(Vec::new()),
             config,
         })
+    }
+
+    pub fn reset(&mut self, tokens: &TokenSet, config: SearchSelectConfig) -> Result<()> {
+        self.symbols = symbols(tokens.iter().chain_err(|| BUFFER_PARSE_FAILED)?);
+        self.config = config;
+
+        Ok(())
     }
 }
 

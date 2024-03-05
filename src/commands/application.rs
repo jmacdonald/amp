@@ -113,13 +113,18 @@ pub fn switch_to_command_mode(app: &mut Application) -> Result {
 }
 
 pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
+    app.switch_to(ModeKey::SymbolJump);
+
     let token_set = app
         .workspace
         .current_buffer_tokens()
         .chain_err(|| BUFFER_TOKENS_FAILED)?;
     let config = app.preferences.borrow().search_select_config();
 
-    app.mode = Mode::SymbolJump(SymbolJumpMode::new(&token_set, config)?);
+    match app.mode {
+        Mode::SymbolJump(ref mut mode) => mode.reset(&token_set, config),
+        _ => Ok(()),
+    }?;
 
     commands::search_select::search(app)?;
 
