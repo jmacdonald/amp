@@ -1,7 +1,7 @@
 use crate::commands::{self, Result};
 use crate::errors::*;
 use crate::input::Key;
-use crate::models::application::{Application, Mode};
+use crate::models::application::{Application, Mode, ModeKey};
 use std::path::PathBuf;
 
 pub fn push_char(app: &mut Application) -> Result {
@@ -11,7 +11,7 @@ pub fn push_char(app: &mut Application) -> Result {
         .as_ref()
         .ok_or("View hasn't tracked a key press")?;
     if let Key::Char(c) = *last_key {
-        if let Mode::Path(ref mut mode) = app.mode {
+        if let Mode::Path(ref mut mode) = app.mode() {
             mode.push_char(c);
         } else {
             bail!("Cannot push char outside of path mode");
@@ -23,7 +23,7 @@ pub fn push_char(app: &mut Application) -> Result {
 }
 
 pub fn pop_char(app: &mut Application) -> Result {
-    if let Mode::Path(ref mut mode) = app.mode {
+    if let Mode::Path(ref mut mode) = app.mode() {
         mode.pop_char();
     } else {
         bail!("Cannot pop char outside of path mode");
@@ -32,7 +32,7 @@ pub fn pop_char(app: &mut Application) -> Result {
 }
 
 pub fn accept_path(app: &mut Application) -> Result {
-    let save_on_accept = if let Mode::Path(ref mut mode) = app.mode {
+    let save_on_accept = if let Mode::Path(ref mut mode) = app.mode() {
         let current_buffer = app
             .workspace
             .current_buffer
@@ -51,7 +51,7 @@ pub fn accept_path(app: &mut Application) -> Result {
     app.workspace
         .update_current_syntax()
         .chain_err(|| BUFFER_SYNTAX_UPDATE_FAILED)?;
-    app.mode = Mode::Normal;
+    app.switch_to(ModeKey::Normal);
 
     if save_on_accept {
         commands::buffer::save(app)
@@ -77,7 +77,7 @@ mod tests {
 
         // Switch to the mode, add a name, and accept it.
         commands::application::switch_to_path_mode(&mut app).unwrap();
-        if let Mode::Path(ref mut mode) = app.mode {
+        if let Mode::Path(ref mut mode) = app.mode() {
             mode.input = String::from("new_path");
         }
         super::accept_path(&mut app).unwrap();
@@ -87,7 +87,7 @@ mod tests {
             Some(PathBuf::from("new_path"))
         );
 
-        if let Mode::Normal = app.mode {
+        if let Mode::Normal = app.mode() {
         } else {
             panic!("Not in normal mode");
         }
@@ -102,7 +102,7 @@ mod tests {
 
         // Switch to the mode, add a name, set the flag, and accept it.
         commands::application::switch_to_path_mode(&mut app).unwrap();
-        if let Mode::Path(ref mut mode) = app.mode {
+        if let Mode::Path(ref mut mode) = app.mode() {
             mode.input = Path::new(concat!(env!("OUT_DIR"), "new_path"))
                 .to_string_lossy()
                 .into();
@@ -122,7 +122,7 @@ mod tests {
 
         // Switch to the mode, add a name, and accept it.
         commands::application::switch_to_path_mode(&mut app).unwrap();
-        if let Mode::Path(ref mut mode) = app.mode {
+        if let Mode::Path(ref mut mode) = app.mode() {
             mode.input = String::from("");
         }
         let result = super::accept_path(&mut app);
@@ -135,7 +135,7 @@ mod tests {
             .path
             .is_none());
 
-        if let Mode::Path(_) = app.mode {
+        if let Mode::Path(_) = app.mode() {
         } else {
             panic!("Not in path mode");
         }
@@ -150,7 +150,7 @@ mod tests {
 
         // Switch to the mode, add a name, and accept it.
         commands::application::switch_to_path_mode(&mut app).unwrap();
-        if let Mode::Path(ref mut mode) = app.mode {
+        if let Mode::Path(ref mut mode) = app.mode() {
             mode.input = String::from("path.rs");
         }
         super::accept_path(&mut app).unwrap();

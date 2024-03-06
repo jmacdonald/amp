@@ -1,8 +1,7 @@
 use crate::commands::{self, Result};
 use crate::errors::*;
 use crate::input::Key;
-use crate::models::application::modes::ConfirmMode;
-use crate::models::application::{Application, ClipboardContent, Mode};
+use crate::models::application::{Application, ClipboardContent, Mode, ModeKey};
 use crate::util;
 use crate::util::token::{adjacent_token_position, Direction};
 use scribe::buffer::{Buffer, Position, Range, Token};
@@ -48,7 +47,7 @@ pub fn save(app: &mut Application) -> Result {
     } else {
         // Prompt the user to enter a path for the buffer instead of saving.
         commands::application::switch_to_path_mode(app)?;
-        if let Mode::Path(ref mut mode) = app.mode {
+        if let Mode::Path(ref mut mode) = app.mode() {
             mode.save_on_accept = true;
         }
     }
@@ -191,7 +190,7 @@ pub fn close(app: &mut Application) -> Result {
     } else {
         bail!(BUFFER_MISSING);
     };
-    let confirm_mode = matches!(app.mode, Mode::Confirm(_));
+    let confirm_mode = matches!(app.mode(), Mode::Confirm(_));
 
     if unmodified || empty || confirm_mode {
         // Clean up view-related data for the buffer.
@@ -204,8 +203,11 @@ pub fn close(app: &mut Application) -> Result {
         app.workspace.close_current_buffer();
     } else {
         // Display a confirmation prompt before closing a modified buffer.
-        let confirm_mode = ConfirmMode::new(close);
-        app.mode = Mode::Confirm(confirm_mode);
+        app.switch_to(ModeKey::Confirm);
+        match app.mode() {
+            Mode::Confirm(ref mut mode) => mode.command = close,
+            _ => (),
+        }
     }
 
     Ok(())
@@ -249,8 +251,11 @@ pub fn close_others(app: &mut Application) -> Result {
 
         if modified_buffer {
             // Display a confirmation prompt before closing a modified buffer.
-            let confirm_mode = ConfirmMode::new(close_others_confirm);
-            app.mode = Mode::Confirm(confirm_mode);
+            app.switch_to(ModeKey::Confirm);
+            match app.mode() {
+                Mode::Confirm(ref mut mode) => mode.command = close_others_confirm,
+                _ => (),
+            }
             break;
         }
 
@@ -414,7 +419,7 @@ pub fn indent_line(app: &mut Application) -> Result {
         .ok_or(BUFFER_MISSING)?;
     let tab_content = app.preferences.borrow().tab_content(buffer.path.as_ref());
 
-    let target_position = match app.mode {
+    let target_position = match app.mode() {
         Mode::Insert => Position {
             line: buffer.cursor.line,
             offset: buffer.cursor.offset + tab_content.chars().count(),
@@ -424,7 +429,7 @@ pub fn indent_line(app: &mut Application) -> Result {
 
     // Get the range of lines we'll outdent based on
     // either the current selection or cursor line.
-    let lines = match app.mode {
+    let lines = match app.mode() {
         Mode::SelectLine(ref mode) => {
             if mode.anchor >= buffer.cursor.line {
                 buffer.cursor.line..mode.anchor + 1
@@ -463,7 +468,7 @@ pub fn outdent_line(app: &mut Application) -> Result {
 
     // Get the range of lines we'll outdent based on
     // either the current selection or cursor line.
-    let lines = match app.mode {
+    let lines = match app.mode() {
         Mode::SelectLine(ref mode) => {
             if mode.anchor >= buffer.cursor.line {
                 buffer.cursor.line..mode.anchor + 1
@@ -549,7 +554,7 @@ pub fn toggle_line_comment(app: &mut Application) -> Result {
 
     // Get the range of lines we'll comment based on
     // either the current selection or cursor line.
-    let line_numbers = match app.mode {
+    let line_numbers = match app.mode() {
         Mode::SelectLine(ref mode) => {
             if mode.anchor >= buffer.cursor.line {
                 buffer.cursor.line..mode.anchor + 1
@@ -726,7 +731,7 @@ pub fn redo(app: &mut Application) -> Result {
 }
 
 pub fn paste(app: &mut Application) -> Result {
-    let insert_below = match app.mode {
+    let insert_below = match app.mode() {
         Mode::Select(_) | Mode::SelectLine(_) | Mode::Search(_) => {
             commands::selection::delete(app)
                 .chain_err(|| "Couldn't delete selection prior to pasting.")?;
@@ -1074,7 +1079,7 @@ mod tests {
         );
 
         // Ensure that we're in insert mode.
-        assert!(match app.mode {
+        assert!(match app.mode() {
             crate::models::application::Mode::Insert => true,
             _ => false,
         });
@@ -1483,7 +1488,7 @@ mod tests {
         super::save(&mut app).ok();
 
         // Ensure that we've switched to path mode.
-        if let Mode::Path(_) = app.mode {
+        if let Mode::Path(_) = app.mode() {
         } else {
             panic!("Failed to switch to path mode");
         }
@@ -1500,7 +1505,7 @@ mod tests {
         super::save(&mut app).ok();
 
         // Ensure that we've set the save_on_accept flag.
-        if let Mode::Path(ref mode) = app.mode {
+        if let Mode::Path(ref mode) = app.mode() {
             assert!(mode.save_on_accept)
         } else {
             panic!("Failed to switch to path mode");
@@ -1923,7 +1928,7 @@ mod tests {
         app.workspace.add_buffer(buffer);
         commands::buffer::close(&mut app).unwrap();
 
-        if let Mode::Confirm(_) = app.mode {
+        if let Mode::Confirm(_) = app.mode() {
         } else {
             panic!("Not in confirm mode");
         }
@@ -2006,7 +2011,7 @@ mod tests {
         app.workspace.add_buffer(buffer);
         commands::buffer::close_others(&mut app).unwrap();
 
-        if let Mode::Confirm(_) = app.mode {
+        if let Mode::Confirm(_) = app.mode() {
         } else {
             panic!("Not in confirm mode");
         }

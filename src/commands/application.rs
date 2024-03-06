@@ -51,7 +51,7 @@ pub fn switch_to_jump_mode(app: &mut Application) -> Result {
         .line;
 
     app.switch_to(ModeKey::Jump);
-    match app.mode {
+    match app.mode() {
         Mode::Jump(ref mut mode) => mode.reset(line),
         _ => (),
     }
@@ -60,7 +60,7 @@ pub fn switch_to_jump_mode(app: &mut Application) -> Result {
 }
 
 pub fn switch_to_second_stage_jump_mode(app: &mut Application) -> Result {
-    if let Mode::Jump(ref mut mode) = app.mode {
+    if let Mode::Jump(ref mut mode) = app.mode() {
         mode.first_phase = false;
     } else {
         bail!("Cannot enter second stage jump mode from other modes.");
@@ -72,7 +72,7 @@ pub fn switch_to_second_stage_jump_mode(app: &mut Application) -> Result {
 pub fn switch_to_line_jump_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer.is_some() {
         app.switch_to(ModeKey::LineJump);
-        match app.mode {
+        match app.mode() {
             Mode::LineJump(ref mut mode) => mode.input = String::new(),
             _ => (),
         }
@@ -88,7 +88,7 @@ pub fn switch_to_open_mode(app: &mut Application) -> Result {
     let config = app.preferences.borrow().search_select_config();
 
     app.switch_to(ModeKey::Open);
-    match app.mode {
+    match app.mode() {
         Mode::Open(ref mut mode) => mode.reset(
             app.workspace.path.clone(),
             exclusions,
@@ -107,7 +107,7 @@ pub fn switch_to_command_mode(app: &mut Application) -> Result {
     let config = app.preferences.borrow().search_select_config();
 
     app.switch_to(ModeKey::Command);
-    match app.mode {
+    match app.mode() {
         Mode::Command(ref mut mode) => mode.reset(config),
         _ => (),
     }
@@ -126,7 +126,7 @@ pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
         .chain_err(|| BUFFER_TOKENS_FAILED)?;
     let config = app.preferences.borrow().search_select_config();
 
-    match app.mode {
+    match app.mode() {
         Mode::SymbolJump(ref mut mode) => mode.reset(&token_set, config),
         _ => Ok(()),
     }?;
@@ -146,7 +146,7 @@ pub fn switch_to_theme_mode(app: &mut Application) -> Result {
     let config = app.preferences.borrow().search_select_config();
 
     app.switch_to(ModeKey::Theme);
-    match app.mode {
+    match app.mode() {
         Mode::Theme(ref mut mode) => mode.reset(themes, config),
         _ => (),
     }
@@ -165,7 +165,7 @@ pub fn switch_to_select_mode(app: &mut Application) -> Result {
         .cursor;
 
     app.switch_to(ModeKey::Select);
-    match app.mode {
+    match app.mode() {
         Mode::Select(ref mut mode) => mode.anchor = position,
         _ => (),
     }
@@ -183,7 +183,7 @@ pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
         .line;
 
     app.switch_to(ModeKey::SelectLine);
-    match app.mode {
+    match app.mode() {
         Mode::SelectLine(ref mut mode) => mode.anchor = line,
         _ => (),
     }
@@ -195,7 +195,7 @@ pub fn switch_to_search_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer.is_some() {
         app.switch_to(ModeKey::Search);
 
-        match app.mode {
+        match app.mode() {
             Mode::Search(ref mut mode) => mode.insert = true,
             _ => (),
         }
@@ -222,7 +222,7 @@ pub fn switch_to_path_mode(app: &mut Application) -> Result {
             format!("{}/", app.workspace.path.to_string_lossy()));
 
     app.switch_to(ModeKey::Path);
-    match app.mode {
+    match app.mode() {
         Mode::Path(ref mut mode) => mode.reset(path),
         _ => (),
     }
@@ -247,7 +247,7 @@ pub fn switch_to_syntax_mode(app: &mut Application) -> Result {
         .iter()
         .map(|syntax| syntax.name.clone())
         .collect();
-    match app.mode {
+    match app.mode() {
         Mode::Syntax(ref mut mode) => mode.reset(syntaxes, config),
         _ => (),
     }
@@ -359,7 +359,7 @@ mod tests {
         app.workspace.add_buffer(buffer);
 
         super::switch_to_path_mode(&mut app).unwrap();
-        let mode_input = match app.mode {
+        let mode_input = match app.mode() {
             Mode::Path(ref mode) => Some(mode.input.clone()),
             _ => None,
         };
@@ -379,7 +379,7 @@ mod tests {
         app.workspace.add_buffer(buffer);
 
         super::switch_to_path_mode(&mut app).unwrap();
-        let mode_input = match app.mode {
+        let mode_input = match app.mode() {
             Mode::Path(ref mode) => Some(mode.input.clone()),
             _ => None,
         };

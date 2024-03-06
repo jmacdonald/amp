@@ -4,7 +4,7 @@ use crate::input::Key;
 use crate::models::application::{Application, Mode};
 
 pub fn move_to_previous_result(app: &mut Application) -> Result {
-    if let Mode::Search(ref mut mode) = app.mode {
+    if let Mode::Search(ref mut mode) = app.mode() {
         mode.results
             .as_mut()
             .ok_or(NO_SEARCH_RESULTS)?
@@ -18,7 +18,7 @@ pub fn move_to_previous_result(app: &mut Application) -> Result {
 }
 
 pub fn move_to_next_result(app: &mut Application) -> Result {
-    if let Mode::Search(ref mut mode) = app.mode {
+    if let Mode::Search(ref mut mode) = app.mode() {
         mode.results
             .as_mut()
             .ok_or(NO_SEARCH_RESULTS)?
@@ -32,7 +32,7 @@ pub fn move_to_next_result(app: &mut Application) -> Result {
 }
 
 pub fn move_to_current_result(app: &mut Application) -> Result {
-    if let Mode::Search(ref mut mode) = app.mode {
+    if let Mode::Search(ref mut mode) = app.mode() {
         let buffer = app
             .workspace
             .current_buffer
@@ -56,7 +56,7 @@ pub fn move_to_current_result(app: &mut Application) -> Result {
 }
 
 pub fn accept_query(app: &mut Application) -> Result {
-    if let Mode::Search(ref mut mode) = app.mode {
+    if let Mode::Search(ref mut mode) = app.mode() {
         // Disable insert sub-mode.
         mode.insert = false;
     } else {
@@ -68,7 +68,7 @@ pub fn accept_query(app: &mut Application) -> Result {
 }
 
 pub fn clear_query(app: &mut Application) -> Result {
-    if let Mode::Search(ref mut mode) = app.mode {
+    if let Mode::Search(ref mut mode) = app.mode() {
         mode.input = None;
     } else {
         bail!("Can't clear search outside of search mode");
@@ -85,7 +85,7 @@ pub fn push_search_char(app: &mut Application) -> Result {
         .ok_or("View hasn't tracked a key press")?;
 
     if let Key::Char(c) = *key {
-        if let Mode::Search(ref mut mode) = app.mode {
+        if let Mode::Search(ref mut mode) = app.mode() {
             let query = mode.input.get_or_insert(String::new());
             query.push(c);
         } else {
@@ -99,7 +99,7 @@ pub fn push_search_char(app: &mut Application) -> Result {
 }
 
 pub fn pop_search_char(app: &mut Application) -> Result {
-    if let Mode::Search(ref mut mode) = app.mode {
+    if let Mode::Search(ref mut mode) = app.mode() {
         let query = mode.input.as_mut().ok_or(SEARCH_QUERY_MISSING)?;
 
         query.pop();
@@ -111,7 +111,7 @@ pub fn pop_search_char(app: &mut Application) -> Result {
 }
 
 pub fn run(app: &mut Application) -> Result {
-    if let Mode::Search(ref mut mode) = app.mode {
+    if let Mode::Search(ref mut mode) = app.mode() {
         // Search the buffer.
         let buffer = app
             .workspace
@@ -128,7 +128,7 @@ pub fn run(app: &mut Application) -> Result {
 }
 
 fn select_closest_result(app: &mut Application) -> Result {
-    if let Mode::Search(ref mut mode) = app.mode {
+    if let Mode::Search(ref mut mode) = app.mode() {
         let buffer = app
             .workspace
             .current_buffer
@@ -171,7 +171,7 @@ mod tests {
 
         // Enter search mode and accept a query.
         commands::application::switch_to_search_mode(&mut app).unwrap();
-        if let Mode::Search(ref mut mode) = app.mode {
+        if let Mode::Search(ref mut mode) = app.mode() {
             mode.input = Some(String::from("ed"));
         }
         commands::search::accept_query(&mut app).unwrap();
@@ -196,7 +196,7 @@ mod tests {
 
         // Enter search mode and accept a query.
         commands::application::switch_to_search_mode(&mut app).unwrap();
-        if let Mode::Search(ref mut mode) = app.mode {
+        if let Mode::Search(ref mut mode) = app.mode() {
             mode.input = Some(String::from("ed"));
         }
         commands::search::accept_query(&mut app).unwrap();
@@ -221,7 +221,7 @@ mod tests {
 
         // Enter search mode and accept a query.
         commands::application::switch_to_search_mode(&mut app).unwrap();
-        if let Mode::Search(ref mut mode) = app.mode {
+        if let Mode::Search(ref mut mode) = app.mode() {
             mode.input = Some(String::from("ed"));
         }
         commands::search::accept_query(&mut app).unwrap();
@@ -251,7 +251,7 @@ mod tests {
         // Enter search mode and accept a query. As we've moved the cursor
         // to just before the last match, this will select the last match.
         commands::application::switch_to_search_mode(&mut app).unwrap();
-        if let Mode::Search(ref mut mode) = app.mode {
+        if let Mode::Search(ref mut mode) = app.mode() {
             mode.input = Some(String::from("ed"));
         }
         commands::search::accept_query(&mut app).unwrap();
@@ -279,14 +279,14 @@ mod tests {
 
         // Enter search mode, add a query, and accept the query.
         commands::application::switch_to_search_mode(&mut app).unwrap();
-        match app.mode {
+        match app.mode() {
             Mode::Search(ref mut mode) => mode.input = Some("ed".into()),
             _ => (),
         }
         commands::search::accept_query(&mut app).unwrap();
 
         // Ensure that we've disabled insert sub-mode.
-        assert!(match app.mode {
+        assert!(match app.mode() {
             crate::models::application::Mode::Search(ref mode) => !mode.insert_mode(),
             _ => false,
         });

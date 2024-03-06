@@ -355,7 +355,7 @@ mod tests {
         );
 
         // Ensure that we're in insert mode.
-        assert!(match app.mode {
+        assert!(match app.mode() {
             crate::models::application::Mode::Insert => true,
             _ => false,
         });
@@ -390,7 +390,7 @@ mod tests {
         );
 
         // Ensure that we're in insert mode.
-        assert!(match app.mode {
+        assert!(match app.mode() {
             crate::models::application::Mode::Insert => true,
             _ => false,
         });

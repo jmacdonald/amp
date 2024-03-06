@@ -27,7 +27,6 @@ use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender};
 
 pub struct Application {
-    pub mode: Mode,
     pub workspace: Workspace,
     pub view: View,
     pub clipboard: Clipboard,
@@ -36,6 +35,7 @@ pub struct Application {
     pub preferences: Rc<RefCell<Preferences>>,
     pub event_channel: Sender<Event>,
     events: Receiver<Event>,
+    mode: Mode,
     current_mode: ModeKey,
     previous_mode: ModeKey,
     modes: HashMap<ModeKey, Mode>,
@@ -83,6 +83,10 @@ impl Application {
         }
 
         Ok(())
+    }
+
+    pub fn mode(&mut self) -> &mut Mode {
+        &mut self.mode
     }
 
     fn render(&mut self) -> Result<()> {
@@ -504,14 +508,14 @@ mod tests {
         let mut app = Application::new(&Vec::new()).unwrap();
 
         app.switch_to(ModeKey::Search);
-        match app.mode {
+        match app.mode() {
             Mode::Search(ref mut s) => s.input = Some(String::from("state")),
             _ => panic!("switch_to didn't change app mode"),
         }
 
         app.switch_to(ModeKey::Normal);
         app.switch_to(ModeKey::Search);
-        match app.mode {
+        match app.mode() {
             Mode::Search(ref s) => assert_eq!(s.input, Some(String::from("state"))),
             _ => panic!("switch_to didn't change app mode"),
         }

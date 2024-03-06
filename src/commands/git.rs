@@ -73,7 +73,7 @@ pub fn copy_remote_url(app: &mut Application) -> Result {
             .and_then(|revision| revision.ok())
             .ok_or("Couldn't find a git object ID for this file")?;
 
-        let line_range = match app.mode {
+        let line_range = match app.mode() {
             Mode::SelectLine(ref s) => {
                 // Avoid zero-based line numbers.
                 let line_1 = buffer.cursor.line + 1;

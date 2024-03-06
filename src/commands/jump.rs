@@ -6,7 +6,7 @@ use crate::models::application::{Application, Mode};
 use scribe::Workspace;
 
 pub fn match_tag(app: &mut Application) -> Result {
-    let result = if let Mode::Jump(ref mut jump_mode) = app.mode {
+    let result = if let Mode::Jump(ref mut jump_mode) = app.mode() {
         match jump_mode.input.len() {
             0 => return Ok(()), // Not enough data to match to a position.
             1 => {
@@ -45,7 +45,7 @@ fn jump_to_tag(jump_mode: &mut JumpMode, workspace: &mut Workspace) -> Result {
 
 pub fn push_search_char(app: &mut Application) -> Result {
     if let Some(ref key) = *app.view.last_key() {
-        if let Mode::Jump(ref mut mode) = app.mode {
+        if let Mode::Jump(ref mut mode) = app.mode() {
             match *key {
                 Key::Char('f') => {
                     if mode.first_phase {

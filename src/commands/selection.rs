@@ -57,7 +57,7 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
         .as_mut()
         .ok_or(BUFFER_MISSING)?;
 
-    match app.mode {
+    match app.mode() {
         Mode::Select(ref select_mode) => {
             let cursor_position = *buffer.cursor.clone();
             let selected_range = Range::new(cursor_position, select_mode.anchor);
@@ -105,7 +105,7 @@ fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
         .as_mut()
         .ok_or(BUFFER_MISSING)?;
 
-    match app.mode {
+    match app.mode() {
         Mode::Select(ref mode) => {
             let cursor_position = *buf.cursor.clone();
             Ok(Range::new(cursor_position, mode.anchor))
@@ -149,7 +149,7 @@ mod tests {
         // Ensure that the application is in select line mode,
         // and that its anchor position is on the first line
         // of the buffer.
-        match app.mode {
+        match app.mode() {
             Mode::SelectLine(ref mode) => {
                 assert_eq!(mode.anchor, 0);
             }
@@ -224,7 +224,7 @@ mod tests {
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
         commands::application::switch_to_search_mode(&mut app).unwrap();
-        match app.mode {
+        match app.mode() {
             Mode::Search(ref mut mode) => mode.input = Some("ed".into()),
             _ => (),
         }

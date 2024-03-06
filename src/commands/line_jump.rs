@@ -5,7 +5,7 @@ use crate::models::application::{Application, Mode};
 use scribe::buffer::Position;
 
 pub fn accept_input(app: &mut Application) -> Result {
-    if let Mode::LineJump(ref mode) = app.mode {
+    if let Mode::LineJump(ref mode) = app.mode() {
         // Try parsing an integer from the input.
         let line_number = mode
             .input
@@ -63,7 +63,7 @@ pub fn push_search_char(app: &mut Application) -> Result {
         .ok_or("View hasn't tracked a key press")?;
 
     if let Key::Char(c) = *key {
-        if let Mode::LineJump(ref mut mode) = app.mode {
+        if let Mode::LineJump(ref mut mode) = app.mode() {
             mode.input.push(c)
         } else {
             bail!("Can't push search character outside of search insert mode")
@@ -76,7 +76,7 @@ pub fn push_search_char(app: &mut Application) -> Result {
 }
 
 pub fn pop_search_char(app: &mut Application) -> Result {
-    if let Mode::LineJump(ref mut mode) = app.mode {
+    if let Mode::LineJump(ref mut mode) = app.mode() {
         mode.input.pop()
     } else {
         bail!("Can't pop search character outside of search insert mode")
@@ -102,7 +102,7 @@ mod tests {
         // switch to line jump mode, set the line input, and run the command.
         app.workspace.add_buffer(buffer);
         commands::application::switch_to_line_jump_mode(&mut app).unwrap();
-        match app.mode {
+        match app.mode() {
             Mode::LineJump(ref mut mode) => mode.input = "3".to_string(),
             _ => (),
         };
@@ -117,7 +117,7 @@ mod tests {
         );
 
         // Ensure that we're in normal mode.
-        assert!(match app.mode {
+        assert!(match app.mode() {
             crate::models::application::Mode::Normal => true,
             _ => false,
         });
@@ -134,7 +134,7 @@ mod tests {
         // switch to line jump mode, set the line input, and run the command.
         app.workspace.add_buffer(buffer);
         commands::application::switch_to_line_jump_mode(&mut app).unwrap();
-        match app.mode {
+        match app.mode() {
             Mode::LineJump(ref mut mode) => mode.input = "3".to_string(),
             _ => (),
         };
@@ -149,7 +149,7 @@ mod tests {
         );
 
         // Ensure that we're in normal mode.
-        assert!(match app.mode {
+        assert!(match app.mode() {
             crate::models::application::Mode::Normal => true,
             _ => false,
         });
@@ -165,7 +165,7 @@ mod tests {
         // switch to line jump mode, set the line input, and run the command.
         app.workspace.add_buffer(buffer);
         commands::application::switch_to_line_jump_mode(&mut app).unwrap();
-        match app.mode {
+        match app.mode() {
             Mode::LineJump(ref mut mode) => mode.input = "0".to_string(),
             _ => (),
         };
@@ -178,7 +178,7 @@ mod tests {
         );
 
         // Ensure that we're in normal mode.
-        assert!(match app.mode {
+        assert!(match app.mode() {
             crate::models::application::Mode::Normal => true,
             _ => false,
         });

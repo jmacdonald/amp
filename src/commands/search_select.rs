@@ -3,16 +3,10 @@ use crate::errors::*;
 use crate::input::Key;
 use crate::models::application::modes::open::DisplayablePath;
 use crate::models::application::modes::SearchSelectMode;
-use crate::models::application::{Application, Mode};
-use std::mem;
+use crate::models::application::{Application, Mode, ModeKey};
 
 pub fn accept(app: &mut Application) -> Result {
-    // Consume the application mode. This is necessary because the selection in
-    // command mode needs to run against the application, but we can't hold the
-    // reference to the selection and lend the app mutably to it at the time.
-    let mut app_mode = mem::replace(&mut app.mode, Mode::Normal);
-
-    match app_mode {
+    match app.mode() {
         Mode::Command(ref mode) => {
             let selection = mode.selection().ok_or("No command selected")?;
 
@@ -76,13 +70,14 @@ pub fn accept(app: &mut Application) -> Result {
         _ => bail!("Can't accept selection outside of search select mode."),
     }
 
+    app.switch_to(ModeKey::Normal);
     commands::view::scroll_cursor_to_center(app).ok();
 
     Ok(())
 }
 
 pub fn search(app: &mut Application) -> Result {
-    match app.mode {
+    match app.mode() {
         Mode::Command(ref mut mode) => mode.search(),
         Mode::Open(ref mut mode) => mode.search(),
         Mode::Theme(ref mut mode) => mode.search(),
@@ -95,7 +90,7 @@ pub fn search(app: &mut Application) -> Result {
 }
 
 pub fn select_next(app: &mut Application) -> Result {
-    match app.mode {
+    match app.mode() {
         Mode::Command(ref mut mode) => mode.select_next(),
         Mode::Open(ref mut mode) => mode.select_next(),
         Mode::Theme(ref mut mode) => mode.select_next(),
@@ -108,7 +103,7 @@ pub fn select_next(app: &mut Application) -> Result {
 }
 
 pub fn select_previous(app: &mut Application) -> Result {
-    match app.mode {
+    match app.mode() {
         Mode::Command(ref mut mode) => mode.select_previous(),
         Mode::Open(ref mut mode) => mode.select_previous(),
         Mode::Theme(ref mut mode) => mode.select_previous(),
@@ -121,7 +116,7 @@ pub fn select_previous(app: &mut Application) -> Result {
 }
 
 pub fn enable_insert(app: &mut Application) -> Result {
-    match app.mode {
+    match app.mode() {
         Mode::Command(ref mut mode) => mode.set_insert_mode(true),
         Mode::Open(ref mut mode) => mode.set_insert_mode(true),
         Mode::Theme(ref mut mode) => mode.set_insert_mode(true),
@@ -134,7 +129,7 @@ pub fn enable_insert(app: &mut Application) -> Result {
 }
 
 pub fn disable_insert(app: &mut Application) -> Result {
-    match app.mode {
+    match app.mode() {
         Mode::Command(ref mut mode) => mode.set_insert_mode(false),
         Mode::Open(ref mut mode) => mode.set_insert_mode(false),
         Mode::Theme(ref mut mode) => mode.set_insert_mode(false),
@@ -148,7 +143,7 @@ pub fn disable_insert(app: &mut Application) -> Result {
 
 pub fn push_search_char(app: &mut Application) -> Result {
     if let Some(Key::Char(c)) = *app.view.last_key() {
-        match app.mode {
+        match app.mode() {
             Mode::Command(ref mut mode) => mode.push_search_char(c),
             Mode::Open(ref mut mode) => mode.push_search_char(c),
             Mode::Theme(ref mut mode) => mode.push_search_char(c),
@@ -163,7 +158,7 @@ pub fn push_search_char(app: &mut Application) -> Result {
 }
 
 pub fn pop_search_token(app: &mut Application) -> Result {
-    match app.mode {
+    match app.mode() {
         Mode::Command(ref mut mode) => mode.pop_search_token(),
         Mode::Open(ref mut mode) => mode.pop_search_token(),
         Mode::Theme(ref mut mode) => mode.pop_search_token(),
@@ -177,7 +172,7 @@ pub fn pop_search_token(app: &mut Application) -> Result {
 }
 
 pub fn step_back(app: &mut Application) -> Result {
-    let result_count = match app.mode {
+    let result_count = match app.mode() {
         Mode::Command(ref mut mode) => mode.results().count(),
         Mode::Open(ref mut mode) => mode.results().count(),
         Mode::Theme(ref mut mode) => mode.results().count(),
