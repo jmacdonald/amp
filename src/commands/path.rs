@@ -1,7 +1,7 @@
 use crate::commands::{self, Result};
 use crate::errors::*;
 use crate::input::Key;
-use crate::models::application::{Application, Mode};
+use crate::models::application::{Application, Mode, ModeKey};
 use std::path::PathBuf;
 
 pub fn push_char(app: &mut Application) -> Result {
@@ -51,7 +51,7 @@ pub fn accept_path(app: &mut Application) -> Result {
     app.workspace
         .update_current_syntax()
         .chain_err(|| BUFFER_SYNTAX_UPDATE_FAILED)?;
-    app.mode = Mode::Normal;
+    app.switch_to(ModeKey::Normal);
 
     if save_on_accept {
         commands::buffer::save(app)

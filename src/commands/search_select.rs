@@ -3,16 +3,10 @@ use crate::errors::*;
 use crate::input::Key;
 use crate::models::application::modes::open::DisplayablePath;
 use crate::models::application::modes::SearchSelectMode;
-use crate::models::application::{Application, Mode};
-use std::mem;
+use crate::models::application::{Application, Mode, ModeKey};
 
 pub fn accept(app: &mut Application) -> Result {
-    // Consume the application mode. This is necessary because the selection in
-    // command mode needs to run against the application, but we can't hold the
-    // reference to the selection and lend the app mutably to it at the time.
-    let mut app_mode = mem::replace(&mut app.mode, Mode::Normal);
-
-    match app_mode {
+    match app.mode {
         Mode::Command(ref mode) => {
             let selection = mode.selection().ok_or("No command selected")?;
 
@@ -76,6 +70,7 @@ pub fn accept(app: &mut Application) -> Result {
         _ => bail!("Can't accept selection outside of search select mode."),
     }
 
+    app.switch_to(ModeKey::Normal);
     commands::view::scroll_cursor_to_center(app).ok();
 
     Ok(())
