@@ -77,8 +77,8 @@ impl Clipboard {
         };
 
         // Update the in-app clipboard if we've found newer content.
-        if new_content.is_some() {
-            self.content = new_content.unwrap();
+        if let Some(new_content) = new_content {
+            self.content = new_content;
         }
 
         &self.content

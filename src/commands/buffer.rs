@@ -22,7 +22,7 @@ pub fn save(app: &mut Application) -> Result {
         .path
         .clone(); // clone instead of borrow as we call another command later
 
-    if path.is_some() {
+    if let Some(path) = path {
         // Save the buffer.
         app.workspace
             .current_buffer
@@ -32,7 +32,7 @@ pub fn save(app: &mut Application) -> Result {
             .chain_err(|| BUFFER_SAVE_FAILED)?;
 
         // Run the format command if one is defined.
-        if app.preferences.borrow().format_on_save(&path.unwrap()) {
+        if app.preferences.borrow().format_on_save(&path) {
             format(app)?;
 
             // Save the buffer again. We intentionally save twice because we
@@ -914,7 +914,7 @@ pub fn insert_tab(app: &mut Application) -> Result {
         .ok_or(BUFFER_MISSING)?;
     let tab_content = app.preferences.borrow().tab_content(buffer.path.as_ref());
     let tab_content_width = tab_content.chars().count();
-    buffer.insert(tab_content.clone());
+    buffer.insert(tab_content);
 
     // Move the cursor to the end of the inserted content.
     for _ in 0..tab_content_width {

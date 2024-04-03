@@ -63,7 +63,7 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
             let selected_range = Range::new(cursor_position, select_mode.anchor);
 
             let data = buffer
-                .read(&selected_range.clone())
+                .read(&selected_range)
                 .ok_or("Couldn't read selected data from buffer")?;
             app.clipboard.set_content(ClipboardContent::Inline(data))?;
         }
@@ -72,7 +72,7 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
                 util::inclusive_range(&LineRange::new(mode.anchor, buffer.cursor.line), buffer);
 
             let data = buffer
-                .read(&selected_range.clone())
+                .read(&selected_range)
                 .ok_or("Couldn't read selected data from buffer")?;
             app.clipboard.set_content(ClipboardContent::Block(data))?;
         }
