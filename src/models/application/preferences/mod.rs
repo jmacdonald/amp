@@ -207,24 +207,29 @@ impl Preferences {
             })
     }
 
-    pub fn line_length_guide(&self) -> Option<usize> {
+    pub fn line_length_guides(&self) -> Vec<usize> {
         self.data
             .as_ref()
-            .and_then(|data| match data[LINE_LENGTH_GUIDE_KEY] {
-                Yaml::Integer(line_length) => Some(line_length as usize),
+            .map(|data| match data[LINE_LENGTH_GUIDE_KEY] {
+                Yaml::Integer(line_length) => vec![line_length as usize],
                 Yaml::Boolean(line_length_guide) => {
                     let default = self.default[LINE_LENGTH_GUIDE_KEY]
                         .as_i64()
                         .expect("Couldn't find default line length guide setting!");
 
                     if line_length_guide {
-                        Some(default as usize)
+                        vec![default as usize]
                     } else {
-                        None
+                        vec![]
                     }
                 }
-                _ => None,
+                Yaml::Array(ref guides) => guides
+                    .iter()
+                    .filter_map(|value| value.as_i64().map(|v| v as usize))
+                    .collect(),
+                _ => vec![],
             })
+            .unwrap_or_default()
     }
 
     pub fn line_wrapping(&self) -> bool {
@@ -584,7 +589,15 @@ mod tests {
         let data = YamlLoader::load_from_str("line_length_guide: 100").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.line_length_guide(), Some(100));
+        assert_eq!(preferences.line_length_guides(), vec![100]);
+    }
+
+    #[test]
+    fn preferences_returns_user_defined_multiple_line_length_guides() {
+        let data = YamlLoader::load_from_str("line_length_guide: [80, 100, 120]").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert_eq!(preferences.line_length_guides(), vec![80, 100, 120]);
     }
 
     #[test]
@@ -592,7 +605,7 @@ mod tests {
         let data = YamlLoader::load_from_str("line_length_guide: false").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.line_length_guide(), None);
+        assert_eq!(preferences.line_length_guides(), Vec::<usize>::new());
     }
 
     #[test]
@@ -600,7 +613,7 @@ mod tests {
         let data = YamlLoader::load_from_str("line_length_guide: true").unwrap();
         let preferences = Preferences::new(data.into_iter().nth(0));
 
-        assert_eq!(preferences.line_length_guide(), Some(80));
+        assert_eq!(preferences.line_length_guides(), vec![80]);
     }
 
     #[test]
