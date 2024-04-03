@@ -44,10 +44,15 @@ See: the infamous tabs vs. spaces debate.
 
 ```yaml
 line_length_guide: 80
+# or
+line_length_guide:
+  - 80
+  - 100
 ```
 
 When set to a positive integer, this renders a background vertical line at the specified offset, to guide line length. When set to `false`, the guide is hidden.
 
+It can also be set to an array, in which case a vertical line is rendered at each specified offset.
 
 ### Line Wrapping
 
