@@ -204,9 +204,8 @@ pub fn close(app: &mut Application) -> Result {
     } else {
         // Display a confirmation prompt before closing a modified buffer.
         app.switch_to(ModeKey::Confirm);
-        match app.mode {
-            Mode::Confirm(ref mut mode) => mode.command = close,
-            _ => (),
+        if let Mode::Confirm(ref mut mode) = app.mode {
+            mode.command = close
         }
     }
 
@@ -252,10 +251,10 @@ pub fn close_others(app: &mut Application) -> Result {
         if modified_buffer {
             // Display a confirmation prompt before closing a modified buffer.
             app.switch_to(ModeKey::Confirm);
-            match app.mode {
-                Mode::Confirm(ref mut mode) => mode.command = close_others_confirm,
-                _ => (),
+            if let Mode::Confirm(ref mut mode) = app.mode {
+                mode.command = close_others_confirm
             }
+
             break;
         }
 
