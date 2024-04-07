@@ -321,13 +321,10 @@ impl Preferences {
         let extension = path_extension(Some(path))?;
 
         // Build a command using the command sub-key.
-        let Some(program) = self
+        let program = self
             .data
             .as_ref()
-            .and_then(|data| data[TYPES_KEY][extension][FORMAT_TOOL_KEY]["command"].as_str())
-        else {
-            return None;
-        };
+            .and_then(|data| data[TYPES_KEY][extension][FORMAT_TOOL_KEY]["command"].as_str())?;
         let mut command = process::Command::new(program);
 
         // Parse and add options to command, if present.
