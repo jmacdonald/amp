@@ -41,7 +41,7 @@ pub fn display(
 
         presenter.present()?;
     } else {
-        let content = vec![
+        let content = [
             format!("Amp v{}", env!("CARGO_PKG_VERSION")),
             String::from("© 2015-2024 Jordan MacDonald"),
             String::from(" "),
