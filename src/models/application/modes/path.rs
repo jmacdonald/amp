@@ -1,5 +1,6 @@
 use std::fmt;
 
+#[derive(Default)]
 pub struct PathMode {
     pub input: String,
     pub save_on_accept: bool,
@@ -7,10 +8,7 @@ pub struct PathMode {
 
 impl PathMode {
     pub fn new() -> PathMode {
-        PathMode {
-            input: String::new(),
-            save_on_accept: false,
-        }
+        PathMode::default()
     }
 
     pub fn push_char(&mut self, c: char) {
