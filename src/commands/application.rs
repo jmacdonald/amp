@@ -51,9 +51,8 @@ pub fn switch_to_jump_mode(app: &mut Application) -> Result {
         .line;
 
     app.switch_to(ModeKey::Jump);
-    match app.mode {
-        Mode::Jump(ref mut mode) => mode.reset(line),
-        _ => (),
+    if let Mode::Jump(ref mut mode) = app.mode {
+        mode.reset(line)
     }
 
     Ok(())
@@ -73,9 +72,8 @@ pub fn switch_to_second_stage_jump_mode(app: &mut Application) -> Result {
 pub fn switch_to_line_jump_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer.is_some() {
         app.switch_to(ModeKey::LineJump);
-        match app.mode {
-            Mode::LineJump(ref mut mode) => mode.input = String::new(),
-            _ => (),
+        if let Mode::LineJump(ref mut mode) = app.mode {
+            mode.input = String::new()
         }
     } else {
         bail!(BUFFER_MISSING);
@@ -89,14 +87,13 @@ pub fn switch_to_open_mode(app: &mut Application) -> Result {
     let config = app.preferences.borrow().search_select_config();
 
     app.switch_to(ModeKey::Open);
-    match app.mode {
-        Mode::Open(ref mut mode) => mode.reset(
+    if let Mode::Open(ref mut mode) = app.mode {
+        mode.reset(
             app.workspace.path.clone(),
             exclusions,
             app.event_channel.clone(),
             config,
-        ),
-        _ => (),
+        );
     }
 
     commands::search_select::search(app)?;
@@ -108,9 +105,8 @@ pub fn switch_to_command_mode(app: &mut Application) -> Result {
     let config = app.preferences.borrow().search_select_config();
 
     app.switch_to(ModeKey::Command);
-    match app.mode {
-        Mode::Command(ref mut mode) => mode.reset(config),
-        _ => (),
+    if let Mode::Command(ref mut mode) = app.mode {
+        mode.reset(config)
     }
 
     commands::search_select::search(app)?;
@@ -148,9 +144,8 @@ pub fn switch_to_theme_mode(app: &mut Application) -> Result {
     let config = app.preferences.borrow().search_select_config();
 
     app.switch_to(ModeKey::Theme);
-    match app.mode {
-        Mode::Theme(ref mut mode) => mode.reset(themes, config),
-        _ => (),
+    if let Mode::Theme(ref mut mode) = app.mode {
+        mode.reset(themes, config)
     }
 
     commands::search_select::search(app)?;
@@ -167,9 +162,8 @@ pub fn switch_to_select_mode(app: &mut Application) -> Result {
         .cursor;
 
     app.switch_to(ModeKey::Select);
-    match app.mode {
-        Mode::Select(ref mut mode) => mode.anchor = position,
-        _ => (),
+    if let Mode::Select(ref mut mode) = app.mode {
+        mode.anchor = position
     }
 
     Ok(())
@@ -185,9 +179,8 @@ pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
         .line;
 
     app.switch_to(ModeKey::SelectLine);
-    match app.mode {
-        Mode::SelectLine(ref mut mode) => mode.anchor = line,
-        _ => (),
+    if let Mode::SelectLine(ref mut mode) = app.mode {
+        mode.anchor = line
     }
 
     Ok(())
@@ -196,10 +189,8 @@ pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
 pub fn switch_to_search_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer.is_some() {
         app.switch_to(ModeKey::Search);
-
-        match app.mode {
-            Mode::Search(ref mut mode) => mode.insert = true,
-            _ => (),
+        if let Mode::Search(ref mut mode) = app.mode {
+            mode.insert = true
         }
     } else {
         bail!(BUFFER_MISSING);
@@ -224,9 +215,8 @@ pub fn switch_to_path_mode(app: &mut Application) -> Result {
             format!("{}/", app.workspace.path.to_string_lossy()));
 
     app.switch_to(ModeKey::Path);
-    match app.mode {
-        Mode::Path(ref mut mode) => mode.reset(path),
-        _ => (),
+    if let Mode::Path(ref mut mode) = app.mode {
+        mode.reset(path)
     }
 
     Ok(())
@@ -250,9 +240,8 @@ pub fn switch_to_syntax_mode(app: &mut Application) -> Result {
         .iter()
         .map(|syntax| syntax.name.clone())
         .collect();
-    match app.mode {
-        Mode::Syntax(ref mut mode) => mode.reset(syntaxes, config),
-        _ => (),
+    if let Mode::Syntax(ref mut mode) = app.mode {
+        mode.reset(syntaxes, config)
     }
 
     commands::search_select::search(app)?;
