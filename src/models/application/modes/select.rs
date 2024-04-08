@@ -8,4 +8,8 @@ impl SelectMode {
     pub fn new(anchor: Position) -> SelectMode {
         SelectMode { anchor }
     }
+
+    pub fn reset(&mut self, anchor: Position) {
+        self.anchor = anchor;
+    }
 }

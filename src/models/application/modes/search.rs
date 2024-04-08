@@ -18,6 +18,10 @@ impl SearchMode {
         }
     }
 
+    pub fn reset(&mut self) {
+        self.insert = true;
+    }
+
     pub fn insert_mode(&self) -> bool {
         self.insert
     }

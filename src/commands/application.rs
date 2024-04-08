@@ -73,7 +73,7 @@ pub fn switch_to_line_jump_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer.is_some() {
         app.switch_to(ModeKey::LineJump);
         if let Mode::LineJump(ref mut mode) = app.mode {
-            mode.input = String::new()
+            mode.reset();
         }
     } else {
         bail!(BUFFER_MISSING);
@@ -163,7 +163,7 @@ pub fn switch_to_select_mode(app: &mut Application) -> Result {
 
     app.switch_to(ModeKey::Select);
     if let Mode::Select(ref mut mode) = app.mode {
-        mode.anchor = position
+        mode.reset(position);
     }
 
     Ok(())
@@ -180,7 +180,7 @@ pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
 
     app.switch_to(ModeKey::SelectLine);
     if let Mode::SelectLine(ref mut mode) = app.mode {
-        mode.anchor = line
+        mode.reset(line);
     }
 
     Ok(())
@@ -190,7 +190,7 @@ pub fn switch_to_search_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer.is_some() {
         app.switch_to(ModeKey::Search);
         if let Mode::Search(ref mut mode) = app.mode {
-            mode.insert = true
+            mode.reset();
         }
     } else {
         bail!(BUFFER_MISSING);
