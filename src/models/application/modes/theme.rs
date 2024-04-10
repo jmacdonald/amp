@@ -4,6 +4,7 @@ use fragment;
 use std::fmt;
 use std::slice::Iter;
 
+#[derive(Default)]
 pub struct ThemeMode {
     insert: bool,
     input: String,
@@ -15,17 +16,19 @@ pub struct ThemeMode {
 impl ThemeMode {
     pub fn new(config: SearchSelectConfig) -> ThemeMode {
         ThemeMode {
-            insert: true,
-            input: String::new(),
-            themes: Vec::new(),
-            results: SelectableVec::new(Vec::new()),
             config,
+            insert: true,
+            ..Default::default()
         }
     }
 
     pub fn reset(&mut self, themes: Vec<String>, config: SearchSelectConfig) {
-        self.themes = themes;
-        self.config = config;
+        *self = ThemeMode {
+            config,
+            insert: true,
+            themes,
+            ..Default::default()
+        };
     }
 }
 
