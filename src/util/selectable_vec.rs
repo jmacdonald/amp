@@ -3,6 +3,7 @@ use std::ops::Deref;
 /// A simple decorator around a Vec that allows a single element to be selected.
 /// The selection can be incremented/decremented in single steps, and the
 /// selected value wraps when moved beyond either edge of the set.
+#[derive(Default)]
 pub struct SelectableVec<T> {
     set: Vec<T>,
     selected_index: usize,
