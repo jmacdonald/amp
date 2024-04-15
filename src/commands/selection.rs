@@ -274,4 +274,88 @@ mod tests {
             String::from("amp\nitor\nbuffer")
         )
     }
+
+    #[test]
+    fn sort_lines_command_without_newline_at_end() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut buffer = Buffer::new();
+
+        buffer.insert("d\na\nb\nc");
+        buffer.cursor.move_to(Position { line: 0, offset: 0 });
+
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+
+        let end_position = Position { line: 3, offset: 0 };
+        assert!(app
+            .workspace
+            .current_buffer
+            .as_mut()
+            .unwrap()
+            .cursor
+            .move_to(end_position));
+
+        commands::selection::sort_lines(&mut app).unwrap();
+
+        assert_eq!(
+            app.workspace.current_buffer.unwrap().data(),
+            String::from("a\nb\nc\nd")
+        );
+    }
+
+    #[test]
+    fn sort_lines_command_with_newline_at_end() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut buffer = Buffer::new();
+
+        buffer.insert("d\na\nb\nc\n");
+        buffer.cursor.move_to(Position { line: 0, offset: 0 });
+
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+
+        let end_position = Position { line: 3, offset: 0 };
+        assert!(app
+            .workspace
+            .current_buffer
+            .as_mut()
+            .unwrap()
+            .cursor
+            .move_to(end_position));
+
+        commands::selection::sort_lines(&mut app).unwrap();
+
+        assert_eq!(
+            app.workspace.current_buffer.unwrap().data(),
+            String::from("a\nb\nc\nd\n")
+        );
+    }
+
+    #[test]
+    fn sort_lines_command_correctly_preserves_surrounding_lines() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut buffer = Buffer::new();
+
+        buffer.insert("Z\nd\na\nb\nc\nX\n");
+        buffer.cursor.move_to(Position { line: 1, offset: 0 });
+
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+
+        let end_position = Position { line: 4, offset: 0 };
+        assert!(app
+            .workspace
+            .current_buffer
+            .as_mut()
+            .unwrap()
+            .cursor
+            .move_to(end_position));
+
+        commands::selection::sort_lines(&mut app).unwrap();
+
+        assert_eq!(
+            app.workspace.current_buffer.unwrap().data(),
+            String::from("Z\na\nb\nc\nd\nX\n")
+        );
+    }
 }
