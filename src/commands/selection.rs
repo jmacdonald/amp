@@ -123,6 +123,44 @@ fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
     }
 }
 
+pub fn sort_lines(app: &mut Application) -> Result {
+    let buffer = app
+        .workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?;
+
+    let line_range = match app.mode {
+        Mode::SelectLine(ref mode) => {
+            util::inclusive_range(&LineRange::new(mode.anchor, buffer.cursor.line), buffer)
+        }
+        _ => bail!("Can't sort lines outside of select line mode"),
+    };
+
+    let lines = buffer
+        .read(&line_range)
+        .ok_or("Couldn't read lines to sort from buffer")?;
+
+    let had_newline_at_end = lines.ends_with('\n');
+
+    let mut lines: Vec<&str> = lines.split_terminator('\n').collect();
+
+    lines.sort();
+    let mut lines = lines.join("\n");
+
+    if had_newline_at_end {
+        lines.push('\n'); // Add final newline again
+    }
+
+    buffer.start_operation_group();
+    buffer.delete_range(line_range.clone());
+    buffer.cursor.move_to(line_range.start());
+    buffer.insert(lines);
+    buffer.end_operation_group();
+
+    application::switch_to_normal_mode(app)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::commands;
