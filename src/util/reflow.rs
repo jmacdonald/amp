@@ -94,6 +94,9 @@ impl<'a> Reflow<'a> {
             }
         }
 
+        // Append trailing newline that is stripped during justification
+        justified.push('\n');
+
         justified
     }
 }
@@ -125,7 +128,7 @@ a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a 
             buf.data(),
             "\
 a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a
-a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a"
+a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a\n"
         );
     }
 
@@ -155,7 +158,7 @@ it wasn't obvious.\n",
             "\
 these are words to be used as demos for the thing that this is. this is text
 reflowing and justification over a few lines. this is just filler text in case
-it wasn't obvious."
+it wasn't obvious.\n"
         );
     }
 
@@ -204,7 +207,7 @@ of sanity and coherence here!
 
 Fun fact of the day number three is that I spent three hours getting this to not
 branch. There is no way that that micro-optimization will actually save three
-hours worth of time, but I did it anyway for no good reason!"
+hours worth of time, but I did it anyway for no good reason!\n"
         );
     }
 
@@ -230,7 +233,7 @@ hours worth of time, but I did it anyway for no good reason!"
             buf.data(),
             "\
 # a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a
-# a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a"
+# a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a a\n"
         );
     }
 
@@ -262,7 +265,7 @@ languages.\n",
             "\
 // filler text meant to do stuff and things that end up with text nicely
 // wrappped around a comment delimiter such as the double slashes in c-style
-// languages.",
+// languages.\n",
         );
     }
 }
