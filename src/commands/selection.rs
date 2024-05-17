@@ -50,6 +50,21 @@ pub fn select_all(app: &mut Application) -> Result {
     Ok(())
 }
 
+pub fn justify(app: &mut Application) -> Result {
+    let range = sel_to_range(app)?;
+    let buffer = app.workspace.current_buffer.as_mut().unwrap();
+
+    let limit = match app.preferences.borrow().line_length_guides()[..] {
+        [first, ..] => first,
+        [] => bail!("Justification requires a line_length_guide."),
+    };
+
+    buffer.start_operation_group();
+    Reflow::new(buffer, range, limit)?.apply()?;
+    buffer.end_operation_group();
+    application::switch_to_normal_mode(app)
+}
+
 fn copy_to_clipboard(app: &mut Application) -> Result {
     let buffer = app
         .workspace
@@ -78,22 +93,6 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
         }
         _ => bail!("Can't copy data to clipboard outside of select modes"),
     };
-
-    Ok(())
-}
-
-pub fn justify(app: &mut Application) -> Result {
-    let range = sel_to_range(app)?;
-    let buffer = app.workspace.current_buffer.as_mut().unwrap();
-
-    let limit = match app.preferences.borrow().line_length_guides()[..] {
-        [first, ..] => first,
-        [] => bail!("Justification requires a line_length_guide."),
-    };
-
-    buffer.start_operation_group();
-    Reflow::new(buffer, range, limit)?.apply()?;
-    buffer.end_operation_group();
 
     Ok(())
 }
