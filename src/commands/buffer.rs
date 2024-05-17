@@ -1,8 +1,7 @@
 use crate::commands::{self, Result};
 use crate::errors::*;
 use crate::input::Key;
-use crate::models::application::modes::ConfirmMode;
-use crate::models::application::{Application, ClipboardContent, Mode};
+use crate::models::application::{Application, ClipboardContent, Mode, ModeKey};
 use crate::util;
 use crate::util::token::{adjacent_token_position, Direction};
 use scribe::buffer::{Buffer, Position, Range, Token};
@@ -204,8 +203,10 @@ pub fn close(app: &mut Application) -> Result {
         app.workspace.close_current_buffer();
     } else {
         // Display a confirmation prompt before closing a modified buffer.
-        let confirm_mode = ConfirmMode::new(close);
-        app.mode = Mode::Confirm(confirm_mode);
+        app.switch_to(ModeKey::Confirm);
+        if let Mode::Confirm(ref mut mode) = app.mode {
+            mode.command = close
+        }
     }
 
     Ok(())
@@ -249,8 +250,11 @@ pub fn close_others(app: &mut Application) -> Result {
 
         if modified_buffer {
             // Display a confirmation prompt before closing a modified buffer.
-            let confirm_mode = ConfirmMode::new(close_others_confirm);
-            app.mode = Mode::Confirm(confirm_mode);
+            app.switch_to(ModeKey::Confirm);
+            if let Mode::Confirm(ref mut mode) = app.mode {
+                mode.command = close_others_confirm
+            }
+
             break;
         }
 

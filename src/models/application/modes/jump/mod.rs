@@ -3,21 +3,11 @@ mod tag_generator;
 
 use self::single_character_tag_generator::SingleCharacterTagGenerator;
 use self::tag_generator::TagGenerator;
-use crate::models::application::modes::select::SelectMode;
-use crate::models::application::modes::select_line::SelectLineMode;
 use crate::util::movement_lexer;
 use crate::view::{LexemeMapper, MappedLexeme};
 use luthor::token::Category;
 use scribe::buffer::{Distance, Position};
 use std::collections::HashMap;
-
-/// Used to compose select and jump modes, allowing jump mode
-/// to be used for cursor navigation (to select a range of text).
-pub enum SelectModeOptions {
-    None,
-    Select(SelectMode),
-    SelectLine(SelectLineMode),
-}
 
 enum MappedLexemeValue {
     Tag((String, Position)),
@@ -28,7 +18,6 @@ pub struct JumpMode {
     pub input: String,
     pub first_phase: bool,
     cursor_line: usize,
-    pub select_mode: SelectModeOptions,
     tag_positions: HashMap<String, Position>,
     tag_generator: TagGenerator,
     single_characters: SingleCharacterTagGenerator,
@@ -42,11 +31,10 @@ impl JumpMode {
             input: String::new(),
             first_phase: true,
             cursor_line,
-            select_mode: SelectModeOptions::None,
             tag_positions: HashMap::new(),
             tag_generator: TagGenerator::new(),
             single_characters: SingleCharacterTagGenerator::new(),
-            current_position: Position { line: 0, offset: 0 },
+            current_position: Position::default(),
             mapped_lexeme_values: Vec::new(),
         }
     }
@@ -59,6 +47,15 @@ impl JumpMode {
         self.tag_positions.clear();
         self.tag_generator.reset();
         self.single_characters.reset();
+    }
+
+    pub fn reset(&mut self, cursor_line: usize) {
+        self.input = String::new();
+        self.first_phase = true;
+        self.current_position = Position::default();
+        self.cursor_line = cursor_line;
+        self.mapped_lexeme_values = Vec::new();
+        self.reset_display();
     }
 }
 
