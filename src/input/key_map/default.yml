@@ -259,6 +259,7 @@ select_line:
     - view::scroll_to_cursor
   c: selection::change
   y: selection::copy
+  o: selection::sort_lines
   p:
     - buffer::paste
     - application::switch_to_normal_mode
