@@ -58,7 +58,7 @@ normal:
   "#": application::switch_to_syntax_mode
   /:
     - application::switch_to_search_mode
-    - search::clear_query
+    - search::reset
   ",": view::scroll_up
   ">": buffer::indent_line
   "<": buffer::outdent_line
@@ -125,7 +125,7 @@ search:
     - search::run
   /:
     - application::switch_to_search_mode
-    - search::clear_query
+    - search::reset
   m: view::scroll_down
   ",": view::scroll_up
   n: search::move_to_next_result

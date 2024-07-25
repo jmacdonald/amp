@@ -189,9 +189,6 @@ pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
 pub fn switch_to_search_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer.is_some() {
         app.switch_to(ModeKey::Search);
-        if let Mode::Search(ref mut mode) = app.mode {
-            mode.reset();
-        }
     } else {
         bail!(BUFFER_MISSING);
     }

@@ -67,11 +67,11 @@ pub fn accept_query(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn clear_query(app: &mut Application) -> Result {
+pub fn reset(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
-        mode.input = None;
+        mode.reset();
     } else {
-        bail!("Can't clear search outside of search mode");
+        bail!("Can't reset search outside of search mode");
     };
 
     Ok(())
