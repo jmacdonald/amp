@@ -3,12 +3,14 @@ use std::env;
 use std::fs::{self, read_to_string, File};
 use std::io::Write;
 use std::path::Path;
+use std::process::Command;
 use std::result::Result;
 
 const COMMAND_REGEX: &str = r"pub fn (.*)\(app: &mut Application\) -> Result";
 
 fn main() {
     generate_commands();
+    set_build_revision();
 }
 
 /// This build task generates a Rust snippet which, when included later on in
@@ -89,4 +91,24 @@ fn module_name(path: &Path) -> Result<String, &str> {
                 .map(|n| n.to_string())
         })
         .ok_or("Unable to parse command module from file name")
+}
+
+fn set_build_revision() {
+    // Skip if the environment variable is already set
+    let revision = env::var("BUILD_REVISION");
+    if revision.map(|r| !r.is_empty()) == Ok(true) {
+        return;
+    }
+
+    // Run the Git command to get the current commit hash
+    let output = Command::new("git")
+        .args(&["rev-parse", "--short", "HEAD"])
+        .output()
+        .expect("Failed to execute git command");
+
+    // Parse the hash
+    let build_revision = String::from_utf8(output.stdout).expect("Invalid UTF-8 sequence");
+
+    // Write the hash as an environment variable
+    println!("cargo:rustc-env=BUILD_REVISION={}", build_revision.trim());
 }
