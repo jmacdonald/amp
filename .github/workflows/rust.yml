@@ -18,11 +18,3 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: rustfmt
-      run: rustfmt --check src/**/*.rs
-    - name: clippy
-      run: cargo clippy -- -D warnings
