@@ -52,7 +52,6 @@ brew install amp
 
 * `cmake`
 * `rust`
-* `python3` if building on Linux
 
 ### Building
 
