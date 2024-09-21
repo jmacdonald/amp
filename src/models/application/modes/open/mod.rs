@@ -28,20 +28,7 @@ pub struct OpenMode {
 }
 
 impl OpenMode {
-    pub fn new(
-        path: PathBuf,
-        exclusions: Option<Vec<ExclusionPattern>>,
-        events: Sender<Event>,
-        config: SearchSelectConfig,
-    ) -> OpenMode {
-        // Build and populate the index in a separate thread.
-        let index_path = path.clone();
-        thread::spawn(move || {
-            let mut index = Index::new(index_path);
-            index.populate(exclusions, false);
-            let _ = events.send(Event::OpenModeIndexComplete(index));
-        });
-
+    pub fn new(path: PathBuf, config: SearchSelectConfig) -> OpenMode {
         OpenMode {
             insert: true,
             input: String::new(),
@@ -53,6 +40,27 @@ impl OpenMode {
 
     pub fn set_index(&mut self, index: Index) {
         self.index = OpenModeIndex::Complete(index)
+    }
+
+    pub fn reset(
+        &mut self,
+        path: PathBuf,
+        exclusions: Option<Vec<ExclusionPattern>>,
+        events: Sender<Event>,
+        config: SearchSelectConfig,
+    ) {
+        self.insert = true;
+        self.input = String::new();
+        self.config = config;
+        self.index = OpenModeIndex::Indexing(path.clone());
+        self.results = SelectableVec::new(Vec::new());
+
+        // Build and populate the index in a separate thread.
+        thread::spawn(move || {
+            let mut index = Index::new(path);
+            index.populate(exclusions, false);
+            let _ = events.send(Event::OpenModeIndexComplete(index));
+        });
     }
 }
 

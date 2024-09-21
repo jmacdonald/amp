@@ -12,6 +12,43 @@ mod symbol_jump;
 mod syntax;
 mod theme;
 
+pub enum Mode {
+    Command(CommandMode),
+    Confirm(ConfirmMode),
+    Exit,
+    Insert,
+    Jump(JumpMode),
+    LineJump(LineJumpMode),
+    Normal,
+    Open(OpenMode),
+    Path(PathMode),
+    Search(SearchMode),
+    Select(SelectMode),
+    SelectLine(SelectLineMode),
+    SymbolJump(SymbolJumpMode),
+    Syntax(SyntaxMode),
+    Theme(ThemeMode),
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+pub enum ModeKey {
+    Command,
+    Confirm,
+    Exit,
+    Insert,
+    Jump,
+    LineJump,
+    Normal,
+    Open,
+    Path,
+    Search,
+    Select,
+    SelectLine,
+    SymbolJump,
+    Syntax,
+    Theme,
+}
+
 pub use self::command::CommandMode;
 pub use self::confirm::ConfirmMode;
 pub use self::jump::JumpMode;

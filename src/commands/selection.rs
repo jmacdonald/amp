@@ -222,8 +222,11 @@ mod tests {
         // Now that we've set up the buffer, add it
         // to the application and call the command.
         app.workspace.add_buffer(buffer);
-        app.search_query = Some(String::from("ed"));
         commands::application::switch_to_search_mode(&mut app).unwrap();
+        match app.mode {
+            Mode::Search(ref mut mode) => mode.input = Some("ed".into()),
+            _ => (),
+        }
         commands::search::accept_query(&mut app).unwrap();
         commands::selection::delete(&mut app).unwrap();
 

@@ -67,12 +67,11 @@ pub fn accept_query(app: &mut Application) -> Result {
     Ok(())
 }
 
-pub fn clear_query(app: &mut Application) -> Result {
+pub fn reset(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
-        mode.input = None;
-        app.search_query = None;
+        mode.reset();
     } else {
-        bail!("Can't clear search outside of search mode");
+        bail!("Can't reset search outside of search mode");
     };
 
     Ok(())
@@ -89,7 +88,6 @@ pub fn push_search_char(app: &mut Application) -> Result {
         if let Mode::Search(ref mut mode) = app.mode {
             let query = mode.input.get_or_insert(String::new());
             query.push(c);
-            app.search_query = Some(query.clone());
         } else {
             bail!("Can't push search character outside of search mode");
         }
@@ -105,7 +103,6 @@ pub fn pop_search_char(app: &mut Application) -> Result {
         let query = mode.input.as_mut().ok_or(SEARCH_QUERY_MISSING)?;
 
         query.pop();
-        app.search_query = Some(query.clone());
     } else {
         bail!("Can't pop search character outside of search mode");
     };
@@ -280,9 +277,12 @@ mod tests {
         buffer.cursor.move_to(Position { line: 0, offset: 4 });
         app.workspace.add_buffer(buffer);
 
-        // Add a search query, enter search mode, and accept the query.
-        app.search_query = Some(String::from("ed"));
+        // Enter search mode, add a query, and accept the query.
         commands::application::switch_to_search_mode(&mut app).unwrap();
+        match app.mode {
+            Mode::Search(ref mut mode) => mode.input = Some("ed".into()),
+            _ => (),
+        }
         commands::search::accept_query(&mut app).unwrap();
 
         // Ensure that we've disabled insert sub-mode.
@@ -290,9 +290,6 @@ mod tests {
             crate::models::application::Mode::Search(ref mode) => !mode.insert_mode(),
             _ => false,
         });
-
-        // Ensure that the search query is properly set.
-        assert_eq!(app.search_query, Some("ed".to_string()));
 
         // Ensure the buffer cursor is at the expected position.
         assert_eq!(

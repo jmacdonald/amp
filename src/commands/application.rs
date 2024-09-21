@@ -1,11 +1,9 @@
 use crate::commands::{self, Result};
 use crate::errors::*;
 use crate::input::KeyMap;
-use crate::models::application::modes::*;
-use crate::models::application::{Application, Mode};
+use crate::models::application::{Application, Mode, ModeKey};
 use crate::util;
 use scribe::Buffer;
-use std::mem;
 
 pub fn handle_input(app: &mut Application) -> Result {
     // Listen for and respond to user input.
@@ -26,7 +24,7 @@ pub fn handle_input(app: &mut Application) -> Result {
 
 pub fn switch_to_normal_mode(app: &mut Application) -> Result {
     let _ = commands::buffer::end_command_group(app);
-    app.mode = Mode::Normal;
+    app.switch_to(ModeKey::Normal);
 
     Ok(())
 }
@@ -34,7 +32,7 @@ pub fn switch_to_normal_mode(app: &mut Application) -> Result {
 pub fn switch_to_insert_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer.is_some() {
         commands::buffer::start_command_group(app)?;
-        app.mode = Mode::Insert;
+        app.switch_to(ModeKey::Insert);
         commands::view::scroll_to_cursor(app)?;
     } else {
         bail!(BUFFER_MISSING);
@@ -44,34 +42,18 @@ pub fn switch_to_insert_mode(app: &mut Application) -> Result {
 }
 
 pub fn switch_to_jump_mode(app: &mut Application) -> Result {
-    let buffer = app
+    let line = app
         .workspace
         .current_buffer
         .as_ref()
-        .ok_or(BUFFER_MISSING)?;
+        .ok_or(BUFFER_MISSING)?
+        .cursor
+        .line;
 
-    // Initialize a new jump mode and swap
-    // it with the current application mode.
-    let jump_mode = Mode::Jump(JumpMode::new(buffer.cursor.line));
-    let old_mode = mem::replace(&mut app.mode, jump_mode);
-
-    // If we were previously in a select mode, store it
-    // in the current jump mode so that we can return to
-    // it after we've jumped to a location. This is how
-    // we compose select and jump modes.
-    match old_mode {
-        Mode::Select(select_mode) => {
-            if let Mode::Jump(ref mut mode) = app.mode {
-                mode.select_mode = jump::SelectModeOptions::Select(select_mode);
-            }
-        }
-        Mode::SelectLine(select_mode) => {
-            if let Mode::Jump(ref mut mode) = app.mode {
-                mode.select_mode = jump::SelectModeOptions::SelectLine(select_mode);
-            }
-        }
-        _ => (),
-    };
+    app.switch_to(ModeKey::Jump);
+    if let Mode::Jump(ref mut mode) = app.mode {
+        mode.reset(line)
+    }
 
     Ok(())
 }
@@ -81,7 +63,7 @@ pub fn switch_to_second_stage_jump_mode(app: &mut Application) -> Result {
     if let Mode::Jump(ref mut mode) = app.mode {
         mode.first_phase = false;
     } else {
-        bail!("Failed to switch to jump mode.");
+        bail!("Cannot enter second stage jump mode from other modes.");
     };
 
     Ok(())
@@ -89,7 +71,10 @@ pub fn switch_to_second_stage_jump_mode(app: &mut Application) -> Result {
 
 pub fn switch_to_line_jump_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer.is_some() {
-        app.mode = Mode::LineJump(LineJumpMode::new());
+        app.switch_to(ModeKey::LineJump);
+        if let Mode::LineJump(ref mut mode) = app.mode {
+            mode.reset();
+        }
     } else {
         bail!(BUFFER_MISSING);
     }
@@ -100,12 +85,17 @@ pub fn switch_to_line_jump_mode(app: &mut Application) -> Result {
 pub fn switch_to_open_mode(app: &mut Application) -> Result {
     let exclusions = app.preferences.borrow().open_mode_exclusions()?;
     let config = app.preferences.borrow().search_select_config();
-    app.mode = Mode::Open(OpenMode::new(
-        app.workspace.path.clone(),
-        exclusions,
-        app.event_channel.clone(),
-        config,
-    ));
+
+    app.switch_to(ModeKey::Open);
+    if let Mode::Open(ref mut mode) = app.mode {
+        mode.reset(
+            app.workspace.path.clone(),
+            exclusions,
+            app.event_channel.clone(),
+            config,
+        );
+    }
+
     commands::search_select::search(app)?;
 
     Ok(())
@@ -113,20 +103,30 @@ pub fn switch_to_open_mode(app: &mut Application) -> Result {
 
 pub fn switch_to_command_mode(app: &mut Application) -> Result {
     let config = app.preferences.borrow().search_select_config();
-    app.mode = Mode::Command(CommandMode::new(config));
+
+    app.switch_to(ModeKey::Command);
+    if let Mode::Command(ref mut mode) = app.mode {
+        mode.reset(config)
+    }
+
     commands::search_select::search(app)?;
 
     Ok(())
 }
 
 pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
+    app.switch_to(ModeKey::SymbolJump);
+
     let token_set = app
         .workspace
         .current_buffer_tokens()
         .chain_err(|| BUFFER_TOKENS_FAILED)?;
     let config = app.preferences.borrow().search_select_config();
 
-    app.mode = Mode::SymbolJump(SymbolJumpMode::new(&token_set, config)?);
+    match app.mode {
+        Mode::SymbolJump(ref mut mode) => mode.reset(&token_set, config),
+        _ => Ok(()),
+    }?;
 
     commands::search_select::search(app)?;
 
@@ -134,36 +134,53 @@ pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
 }
 
 pub fn switch_to_theme_mode(app: &mut Application) -> Result {
+    let themes = app
+        .view
+        .theme_set
+        .themes
+        .keys()
+        .map(|k| k.to_string())
+        .collect();
     let config = app.preferences.borrow().search_select_config();
-    app.mode = Mode::Theme(ThemeMode::new(
-        app.view
-            .theme_set
-            .themes
-            .keys()
-            .map(|k| k.to_string())
-            .collect(),
-        config,
-    ));
+
+    app.switch_to(ModeKey::Theme);
+    if let Mode::Theme(ref mut mode) = app.mode {
+        mode.reset(themes, config)
+    }
+
     commands::search_select::search(app)?;
 
     Ok(())
 }
 
 pub fn switch_to_select_mode(app: &mut Application) -> Result {
-    if let Some(buffer) = app.workspace.current_buffer.as_ref() {
-        app.mode = Mode::Select(SelectMode::new(*buffer.cursor.clone()));
-    } else {
-        bail!(BUFFER_MISSING);
+    let position = *app
+        .workspace
+        .current_buffer
+        .as_ref()
+        .ok_or(BUFFER_MISSING)?
+        .cursor;
+
+    app.switch_to(ModeKey::Select);
+    if let Mode::Select(ref mut mode) = app.mode {
+        mode.reset(position);
     }
 
     Ok(())
 }
 
 pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
-    if let Some(buffer) = app.workspace.current_buffer.as_ref() {
-        app.mode = Mode::SelectLine(SelectLineMode::new(buffer.cursor.line));
-    } else {
-        bail!(BUFFER_MISSING);
+    let line = app
+        .workspace
+        .current_buffer
+        .as_ref()
+        .ok_or(BUFFER_MISSING)?
+        .cursor
+        .line;
+
+    app.switch_to(ModeKey::SelectLine);
+    if let Mode::SelectLine(ref mut mode) = app.mode {
+        mode.reset(line);
     }
 
     Ok(())
@@ -171,7 +188,7 @@ pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
 
 pub fn switch_to_search_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer.is_some() {
-        app.mode = Mode::Search(SearchMode::new(app.search_query.clone()));
+        app.switch_to(ModeKey::Search);
     } else {
         bail!(BUFFER_MISSING);
     }
@@ -193,7 +210,11 @@ pub fn switch_to_path_mode(app: &mut Application) -> Result {
         .unwrap_or_else(||
             // Default to the workspace directory.
             format!("{}/", app.workspace.path.to_string_lossy()));
-    app.mode = Mode::Path(PathMode::new(path));
+
+    app.switch_to(ModeKey::Path);
+    if let Mode::Path(ref mut mode) = app.mode {
+        mode.reset(path)
+    }
 
     Ok(())
 }
@@ -207,16 +228,19 @@ pub fn switch_to_syntax_mode(app: &mut Application) -> Result {
         .as_ref()
         .ok_or("Switching syntaxes requires an open buffer")?;
 
+    app.switch_to(ModeKey::Syntax);
     let config = app.preferences.borrow().search_select_config();
-    app.mode = Mode::Syntax(SyntaxMode::new(
-        app.workspace
-            .syntax_set
-            .syntaxes()
-            .iter()
-            .map(|syntax| syntax.name.clone())
-            .collect(),
-        config,
-    ));
+    let syntaxes = app
+        .workspace
+        .syntax_set
+        .syntaxes()
+        .iter()
+        .map(|syntax| syntax.name.clone())
+        .collect();
+    if let Mode::Syntax(ref mut mode) = app.mode {
+        mode.reset(syntaxes, config)
+    }
+
     commands::search_select::search(app)?;
 
     Ok(())
@@ -282,7 +306,7 @@ pub fn suspend(app: &mut Application) -> Result {
 }
 
 pub fn exit(app: &mut Application) -> Result {
-    app.mode = Mode::Exit;
+    app.switch_to(ModeKey::Exit);
 
     Ok(())
 }
@@ -314,24 +338,6 @@ mod tests {
             Some("application::display_available_commands")
         );
         assert_eq!(lines.last(), Some("workspace::next_buffer"));
-    }
-
-    #[test]
-    fn switch_to_search_mode_sets_initial_search_query() {
-        let mut app = Application::new(&Vec::new()).unwrap();
-
-        // A buffer needs to be open to switch to search mode.
-        let buffer = Buffer::new();
-        app.workspace.add_buffer(buffer);
-
-        app.search_query = Some(String::from("query"));
-        super::switch_to_search_mode(&mut app).unwrap();
-
-        let mode_query = match app.mode {
-            Mode::Search(ref mode) => mode.input.clone(),
-            _ => None,
-        };
-        assert_eq!(mode_query, Some(String::from("query")));
     }
 
     #[test]

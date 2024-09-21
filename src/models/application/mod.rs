@@ -6,6 +6,7 @@ mod preferences;
 // Published API
 pub use self::clipboard::ClipboardContent;
 pub use self::event::Event;
+pub use self::modes::{Mode, ModeKey};
 pub use self::preferences::Preferences;
 
 use self::clipboard::Clipboard;
@@ -15,35 +16,19 @@ use crate::errors::*;
 use crate::presenters;
 use crate::view::View;
 use git2::Repository;
+use scribe::buffer::Position;
 use scribe::{Buffer, Workspace};
 use std::cell::RefCell;
+use std::collections::HashMap;
 use std::env;
+use std::mem;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender};
 
-pub enum Mode {
-    Confirm(ConfirmMode),
-    Command(CommandMode),
-    Exit,
-    Insert,
-    Jump(JumpMode),
-    LineJump(LineJumpMode),
-    Path(PathMode),
-    Normal,
-    Open(OpenMode),
-    Select(SelectMode),
-    SelectLine(SelectLineMode),
-    Search(SearchMode),
-    SymbolJump(SymbolJumpMode),
-    Syntax(SyntaxMode),
-    Theme(ThemeMode),
-}
-
 pub struct Application {
     pub mode: Mode,
     pub workspace: Workspace,
-    pub search_query: Option<String>,
     pub view: View,
     pub clipboard: Clipboard,
     pub repository: Option<Repository>,
@@ -51,6 +36,9 @@ pub struct Application {
     pub preferences: Rc<RefCell<Preferences>>,
     pub event_channel: Sender<Event>,
     events: Receiver<Event>,
+    current_mode: ModeKey,
+    previous_mode: ModeKey,
+    modes: HashMap<ModeKey, Mode>,
 }
 
 impl Application {
@@ -64,10 +52,12 @@ impl Application {
         // Set up a workspace in the current directory.
         let workspace = create_workspace(&mut view, &preferences.borrow(), args)?;
 
-        Ok(Application {
+        let mut app = Application {
+            current_mode: ModeKey::Normal,
+            previous_mode: ModeKey::Normal,
             mode: Mode::Normal,
+            modes: HashMap::new(),
             workspace,
-            search_query: None,
             view,
             clipboard,
             repository: Repository::discover(env::current_dir()?).ok(),
@@ -75,7 +65,11 @@ impl Application {
             preferences,
             event_channel,
             events,
-        })
+        };
+
+        app.create_modes()?;
+
+        Ok(app)
     }
 
     pub fn run(&mut self) -> Result<()> {
@@ -230,6 +224,96 @@ impl Application {
             Mode::Exit => None,
         }
     }
+
+    pub fn switch_to(&mut self, mode_key: ModeKey) {
+        if self.current_mode == mode_key {
+            return;
+        }
+
+        // Check out the specified mode.
+        let mut mode = self.modes.remove(&mode_key).unwrap();
+
+        // Activate the specified mode.
+        mem::swap(&mut self.mode, &mut mode);
+
+        // Check in the previous mode.
+        self.modes.insert(self.current_mode, mode);
+
+        // Track the previous mode.
+        self.previous_mode = self.current_mode;
+
+        // Track the new active mode.
+        self.current_mode = mode_key;
+    }
+
+    pub fn switch_to_previous_mode(&mut self) {
+        self.switch_to(self.previous_mode);
+    }
+
+    fn create_modes(&mut self) -> Result<()> {
+        // Do the easy ones first.
+        self.modes.insert(ModeKey::Exit, Mode::Exit);
+        self.modes.insert(ModeKey::Insert, Mode::Insert);
+        self.modes.insert(ModeKey::Normal, Mode::Normal);
+
+        self.modes.insert(
+            ModeKey::Command,
+            Mode::Command(CommandMode::new(
+                self.preferences.borrow().search_select_config(),
+            )),
+        );
+        self.modes.insert(
+            ModeKey::Confirm,
+            Mode::Confirm(ConfirmMode::new(
+                commands::application::switch_to_normal_mode,
+            )),
+        );
+        self.modes
+            .insert(ModeKey::Jump, Mode::Jump(JumpMode::new(0)));
+        self.modes
+            .insert(ModeKey::LineJump, Mode::LineJump(LineJumpMode::new()));
+        self.modes
+            .insert(ModeKey::LineJump, Mode::LineJump(LineJumpMode::new()));
+        self.modes.insert(
+            ModeKey::Open,
+            Mode::Open(OpenMode::new(
+                self.workspace.path.clone(),
+                self.preferences.borrow().search_select_config(),
+            )),
+        );
+        self.modes
+            .insert(ModeKey::Path, Mode::Path(PathMode::new()));
+        self.modes
+            .insert(ModeKey::Search, Mode::Search(SearchMode::new(None)));
+        self.modes.insert(
+            ModeKey::Select,
+            Mode::Select(SelectMode::new(Position::default())),
+        );
+        self.modes.insert(
+            ModeKey::SelectLine,
+            Mode::SelectLine(SelectLineMode::new(0)),
+        );
+        self.modes.insert(
+            ModeKey::SymbolJump,
+            Mode::SymbolJump(SymbolJumpMode::new(
+                self.preferences.borrow().search_select_config(),
+            )?),
+        );
+        self.modes.insert(
+            ModeKey::Syntax,
+            Mode::Syntax(SyntaxMode::new(
+                self.preferences.borrow().search_select_config(),
+            )),
+        );
+        self.modes.insert(
+            ModeKey::Theme,
+            Mode::Theme(ThemeMode::new(
+                self.preferences.borrow().search_select_config(),
+            )),
+        );
+
+        Ok(())
+    }
 }
 
 fn initialize_preferences() -> Rc<RefCell<Preferences>> {
@@ -326,7 +410,7 @@ fn user_syntax_path() -> Result<Option<PathBuf>> {
 #[cfg(test)]
 mod tests {
     use super::preferences::Preferences;
-    use super::Application;
+    use super::{Application, Mode, ModeKey};
     use crate::view::View;
 
     use scribe::Buffer;
@@ -400,5 +484,67 @@ mod tests {
                 .name,
             "Rust"
         );
+    }
+
+    #[test]
+    fn switch_to_activates_the_specified_mode() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+
+        assert_eq!(app.current_mode, ModeKey::Normal);
+        assert!(matches!(app.mode, Mode::Normal));
+
+        app.switch_to(ModeKey::Exit);
+
+        assert_eq!(app.current_mode, ModeKey::Exit);
+        assert!(matches!(app.mode, Mode::Exit));
+    }
+
+    #[test]
+    fn switch_to_retains_state_from_previous_modes() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+
+        app.switch_to(ModeKey::Search);
+        match app.mode {
+            Mode::Search(ref mut s) => s.input = Some(String::from("state")),
+            _ => panic!("switch_to didn't change app mode"),
+        }
+
+        app.switch_to(ModeKey::Normal);
+        app.switch_to(ModeKey::Search);
+        match app.mode {
+            Mode::Search(ref s) => assert_eq!(s.input, Some(String::from("state"))),
+            _ => panic!("switch_to didn't change app mode"),
+        }
+    }
+
+    #[test]
+    fn switch_to_previous_mode_works() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+
+        app.switch_to(ModeKey::Insert);
+        app.switch_to(ModeKey::Exit);
+
+        assert_eq!(app.current_mode, ModeKey::Exit);
+        assert!(matches!(app.mode, Mode::Exit));
+
+        app.switch_to_previous_mode();
+
+        assert_eq!(app.current_mode, ModeKey::Insert);
+        assert!(matches!(app.mode, Mode::Insert));
+    }
+
+    #[test]
+    fn switch_to_handles_switching_to_current_mode() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+
+        app.switch_to(ModeKey::Insert);
+
+        assert_eq!(app.current_mode, ModeKey::Insert);
+        assert!(matches!(app.mode, Mode::Insert));
+
+        app.switch_to(ModeKey::Insert);
+
+        assert_eq!(app.current_mode, ModeKey::Insert);
+        assert!(matches!(app.mode, Mode::Insert));
     }
 }
