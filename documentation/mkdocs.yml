@@ -7,6 +7,8 @@ theme:
   palette:
     primary: 'blue grey'
     accent: 'red'
+  features:
+    - content.code.annotate
 repo_name: 'jmacdonald/amp'
 repo_url: 'https://github.com/jmacdonald/amp'
 nav:
@@ -20,6 +22,8 @@ extra:
     accent: 'red'
 markdown_extensions:
   - admonition
+  - attr_list
+  - md_in_html
   - pymdownx.highlight
   - pymdownx.superfences
   - pymdownx.smartsymbols
