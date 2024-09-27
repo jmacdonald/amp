@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+"
+
+jobs:
+  release:
+    runs-on: ${{ matrix.config.os }}
+
+    strategy:
+      matrix:
+        config:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+          - os: macos-latest
+            target: aarch64-apple-darwin
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          components: rust-src
+
+      - name: Install musl tools (Linux only)
+        if: matrix.config.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install musl-tools -y
+
+      - name: Add target
+        run: rustup target add ${{ matrix.config.target }}
+
+      - name: Build for target
+        run: cargo build --release --target ${{ matrix.config.target }}
+
+      - name: Rename binary
+        run: mv target/${{ matrix.config.target }}/release/amp target/${{ matrix.config.target }}/release/amp-${{ matrix.config.target }}
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/${{ matrix.config.target }}/release/amp-${{ matrix.config.target }}
