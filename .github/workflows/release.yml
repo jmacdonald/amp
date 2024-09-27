@@ -1,0 +1,52 @@
+name: Build release
+
+on:
+  release:
+    types: [published, created]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.config.os }}
+
+    strategy:
+      matrix:
+        config:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+          - os: macos-latest
+            target: aarch64-apple-darwin
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          components: rust-src
+
+      - name: Install musl tools (Linux only)
+        if: matrix.config.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install musl-tools -y
+
+      - name: Add target
+        run: rustup target add ${{ matrix.config.target }}
+
+      - name: Build for target
+        run: cargo build --release --target ${{ matrix.config.target }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: amp-${{ matrix.config.target }}
+          path: target/${{ matrix.config.target }}/release/amp
+
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        with:
+          release_id: ${{ github.event.release.id }}
+          asset_path: target/${{ matrix.config.target }}/release/amp
+          asset_name: amp-${{ matrix.config.target }}
+          asset_content_type: application/octet-stream
