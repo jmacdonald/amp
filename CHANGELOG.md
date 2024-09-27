@@ -1,3 +1,13 @@
+### 0.7.1
+
+* Added build revision to splash screen
+* Updated justify command to switch to normal mode after completion
+* Fixed an issue where justify command would strip trailing newline
+* Added support for multiple line length guides
+* Added the ability to run formatting tools, optionally on save
+* Fixed an issue where long paths in open mode would wrap/break UI
+* Stopped printing background colors, allowing transparent terminal backgrounds
+
 ### 0.7.0
 
 * Lots of under-the-hood improvements to syntax highlighting, as well as:
