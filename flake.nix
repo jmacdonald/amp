@@ -41,7 +41,14 @@
         let pkgs = import nixpkgs { inherit system; };
         in pkgs.rustPlatform.buildRustPackage {
           pname = "amp";
-          version = "0.7.0";
+
+          # Extract version from Cargo.toml
+          version = builtins.head
+            (
+              builtins.match ".*name = \"amp\"\nversion = \"([^\"]+)\".*"
+                (builtins.readFile ./Cargo.toml)
+            );
+
           cargoLock.lockFile = ./Cargo.lock;
 
           # Use source files without version control noise
