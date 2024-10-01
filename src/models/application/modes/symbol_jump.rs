@@ -63,7 +63,10 @@ impl SymbolJumpMode {
     }
 
     pub fn reset(&mut self, tokens: &TokenSet, config: SearchSelectConfig) -> Result<()> {
+        self.insert = true;
+        self.input = String::new();
         self.symbols = symbols(tokens.iter().chain_err(|| BUFFER_PARSE_FAILED)?);
+        self.results = SelectableVec::new(Vec::new());
         self.config = config;
 
         Ok(())
