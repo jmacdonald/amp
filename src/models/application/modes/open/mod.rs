@@ -133,3 +133,32 @@ impl SearchSelectMode<DisplayablePath> for OpenMode {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::OpenMode;
+    use crate::models::application::modes::{SearchSelectConfig, SearchSelectMode};
+    use crate::models::application::Event;
+    use std::env;
+    use std::sync::mpsc::channel;
+
+    #[test]
+    fn search_uses_the_query() {
+        let path = env::current_dir().expect("can't get current directory/path");
+        let config = SearchSelectConfig::default();
+        let mut mode = OpenMode::new(path.clone(), config.clone());
+        let (sender, receiver) = channel();
+
+        // Populate the index
+        mode.reset(path, None, sender, config);
+        if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
+            mode.set_index(index);
+        }
+
+        mode.query().push_str("Cargo.");
+        mode.search();
+
+        let results: Vec<String> = mode.results().map(|r| r.to_string()).collect();
+        assert_eq!(results, vec!["Cargo.toml", "Cargo.lock"]);
+    }
+}
