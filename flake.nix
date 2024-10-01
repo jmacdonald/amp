@@ -63,9 +63,9 @@
           # Make the build/check/install commands explicit so we can
           # provide the commit SHA for the splash screen
           buildPhase = ''
-            export BUILD_REVISION=${builtins.substring 0 7 (
-              if self ? rev then self.rev else ""
-            )}
+            export BUILD_REVISION=${
+              if self ? shortRev then self.shortRev else ""
+            }
             echo "BUILD_REVISION=$BUILD_REVISION"
 
             cargo build --release
