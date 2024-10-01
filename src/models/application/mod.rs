@@ -106,7 +106,7 @@ impl Application {
             }
             Mode::Insert => presenters::modes::insert::display(&mut self.workspace, &mut self.view),
             Mode::Open(ref mut mode) => {
-                presenters::modes::search_select::display(&mut self.workspace, mode, &mut self.view)
+                presenters::modes::open::display(&mut self.workspace, mode, &mut self.view)
             }
             Mode::Search(ref mode) => {
                 presenters::modes::search::display(&mut self.workspace, mode, &mut self.view)

@@ -3,6 +3,7 @@ pub mod insert;
 pub mod jump;
 pub mod line_jump;
 pub mod normal;
+pub mod open;
 pub mod path;
 pub mod search;
 pub mod search_select;

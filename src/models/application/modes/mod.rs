@@ -56,7 +56,7 @@ pub use self::line_jump::LineJumpMode;
 pub use self::open::OpenMode;
 pub use self::path::PathMode;
 pub use self::search::SearchMode;
-pub use self::search_select::{SearchSelectConfig, SearchSelectMode};
+pub use self::search_select::{PopSearchToken, SearchSelectConfig, SearchSelectMode};
 pub use self::select::SelectMode;
 pub use self::select_line::SelectLineMode;
 pub use self::symbol_jump::SymbolJumpMode;

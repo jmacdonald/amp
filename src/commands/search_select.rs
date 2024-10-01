@@ -2,7 +2,7 @@ use crate::commands::{self, application, Result};
 use crate::errors::*;
 use crate::input::Key;
 use crate::models::application::modes::open::DisplayablePath;
-use crate::models::application::modes::SearchSelectMode;
+use crate::models::application::modes::{PopSearchToken, SearchSelectMode};
 use crate::models::application::{Application, Mode, ModeKey};
 
 pub fn accept(app: &mut Application) -> Result {

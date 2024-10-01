@@ -178,6 +178,7 @@ search_select_insert:
   _: search_select::push_search_char
   enter: search_select::accept
   backspace: search_select::pop_search_token
+  tab: open::pin_query
   escape: search_select::step_back
   down: search_select::select_next
   up: search_select::select_previous

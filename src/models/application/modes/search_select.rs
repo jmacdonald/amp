@@ -40,7 +40,9 @@ pub trait SearchSelectMode: Display {
     fn push_search_char(&mut self, c: char) {
         self.query().push(c);
     }
+}
 
+pub trait PopSearchToken: SearchSelectMode {
     fn pop_search_token(&mut self) {
         let query = self.query();
 
@@ -61,9 +63,12 @@ pub trait SearchSelectMode: Display {
     }
 }
 
+// SearchSelectMode gives PopSearchToken for free
+impl<T: SearchSelectMode + Display> PopSearchToken for T {}
+
 #[cfg(test)]
 mod tests {
-    use super::{SearchSelectConfig, SearchSelectMode};
+    use super::{PopSearchToken, SearchSelectConfig, SearchSelectMode};
     use std::fmt;
     use std::slice::Iter;
 
