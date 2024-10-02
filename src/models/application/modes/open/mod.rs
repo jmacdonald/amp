@@ -21,7 +21,7 @@ pub enum OpenModeIndex {
 
 pub struct OpenMode {
     pub insert: bool,
-    pub input: String,
+    input: String,
     index: OpenModeIndex,
     pub results: SelectableVec<DisplayablePath>,
     config: SearchSelectConfig,
