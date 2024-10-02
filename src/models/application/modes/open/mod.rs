@@ -22,6 +22,7 @@ pub enum OpenModeIndex {
 pub struct OpenMode {
     pub insert: bool,
     input: String,
+    pinned_input: String,
     index: OpenModeIndex,
     pub results: SelectableVec<DisplayablePath>,
     config: SearchSelectConfig,
@@ -32,6 +33,7 @@ impl OpenMode {
         OpenMode {
             insert: true,
             input: String::new(),
+            pinned_input: String::new(),
             index: OpenModeIndex::Indexing(path),
             results: SelectableVec::new(Vec::new()),
             config,
@@ -62,6 +64,16 @@ impl OpenMode {
             let _ = events.send(Event::OpenModeIndexComplete(index));
         });
     }
+
+    pub fn pinned_query(&self) -> &str {
+        &self.pinned_input
+    }
+
+    pub fn pin_query(&mut self) {
+        for char in self.input.drain(..) {
+            self.pinned_input.push(char);
+        }
+    }
 }
 
 impl fmt::Display for OpenMode {
@@ -74,7 +86,14 @@ impl SearchSelectMode<DisplayablePath> for OpenMode {
     fn search(&mut self) {
         let results = if let OpenModeIndex::Complete(ref index) = self.index {
             index
-                .find(&self.input.to_lowercase(), self.config.max_results)
+                .find(
+                    &format!(
+                        "{} {}",
+                        self.pinned_input.to_lowercase(),
+                        self.input.to_lowercase()
+                    ),
+                    self.config.max_results,
+                )
                 .into_iter()
                 .map(|path| DisplayablePath(path.to_path_buf()))
                 .collect()
@@ -160,5 +179,40 @@ mod tests {
 
         let results: Vec<String> = mode.results().map(|r| r.to_string()).collect();
         assert_eq!(results, vec!["Cargo.toml", "Cargo.lock"]);
+    }
+
+    #[test]
+    fn pin_query_transfers_content() {
+        let path = env::current_dir().expect("can't get current directory/path");
+        let config = SearchSelectConfig::default();
+        let mut mode = OpenMode::new(path.clone(), config.clone());
+
+        mode.query().push_str("Cargo");
+        mode.pin_query();
+
+        assert_eq!(mode.query(), "");
+        assert_eq!(mode.pinned_query(), "Cargo");
+    }
+
+    #[test]
+    fn search_incorporates_pinned_query_content() {
+        let path = env::current_dir().expect("can't get current directory/path");
+        let config = SearchSelectConfig::default();
+        let mut mode = OpenMode::new(path.clone(), config.clone());
+        let (sender, receiver) = channel();
+
+        // Populate the index
+        mode.reset(path, None, sender, config);
+        if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
+            mode.set_index(index);
+        }
+
+        mode.query().push_str("toml");
+        mode.pin_query();
+        mode.query().push_str("Cargo");
+        mode.search();
+
+        let results: Vec<String> = mode.results().map(|r| r.to_string()).collect();
+        assert_eq!(results, vec!["Cargo.toml"]);
     }
 }
