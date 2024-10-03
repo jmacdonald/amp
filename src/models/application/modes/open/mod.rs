@@ -70,6 +70,11 @@ impl OpenMode {
     }
 
     pub fn pin_query(&mut self) {
+        // Add a space between successive pins so they're independent tokens
+        if !self.pinned_input.is_empty() && !self.input.is_empty() {
+            self.pinned_input.push(' ');
+        }
+
         for char in self.input.drain(..) {
             self.pinned_input.push(char);
         }
@@ -192,6 +197,21 @@ mod tests {
 
         assert_eq!(mode.query(), "");
         assert_eq!(mode.pinned_query(), "Cargo");
+    }
+
+    #[test]
+    fn subsequent_pin_query_accumulates_content() {
+        let path = env::current_dir().expect("can't get current directory/path");
+        let config = SearchSelectConfig::default();
+        let mut mode = OpenMode::new(path.clone(), config.clone());
+
+        mode.query().push_str("Cargo");
+        mode.pin_query();
+        mode.query().push_str("toml");
+        mode.pin_query();
+
+        assert_eq!(mode.query(), "");
+        assert_eq!(mode.pinned_query(), "Cargo toml"); // space is intentional
     }
 
     #[test]
