@@ -29,6 +29,9 @@ impl CommandMode {
     }
 
     pub fn reset(&mut self, config: SearchSelectConfig) {
+        self.input.clear();
+        self.insert = true;
+        self.results = SelectableVec::new(Vec::new());
         self.config = config;
     }
 }
@@ -97,5 +100,29 @@ impl SearchSelectMode<DisplayableCommand> for CommandMode {
 
     fn config(&self) -> &SearchSelectConfig {
         &self.config
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::CommandMode;
+    use crate::models::application::modes::{SearchSelectConfig, SearchSelectMode};
+
+    #[test]
+    fn reset_clears_query_mode_and_results() {
+        let config = SearchSelectConfig::default();
+        let mut mode = CommandMode::new(config.clone());
+
+        mode.query().push_str("application");
+        mode.set_insert_mode(false);
+        mode.search();
+
+        // Ensure we have results before reset
+        assert!(mode.results.len() > 0);
+
+        mode.reset(config);
+        assert_eq!(mode.query(), "");
+        assert_eq!(mode.insert_mode(), true);
+        assert_eq!(mode.results.len(), 0);
     }
 }
