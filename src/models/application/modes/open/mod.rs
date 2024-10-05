@@ -50,7 +50,7 @@ impl OpenMode {
         config: SearchSelectConfig,
     ) {
         self.insert = true;
-        self.input = String::new();
+        self.input.clear();
         self.config = config;
         self.index = OpenModeIndex::Indexing(path.clone());
         self.results = SelectableVec::new(Vec::new());
