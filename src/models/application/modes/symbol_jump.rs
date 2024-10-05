@@ -64,7 +64,7 @@ impl SymbolJumpMode {
 
     pub fn reset(&mut self, tokens: &TokenSet, config: SearchSelectConfig) -> Result<()> {
         self.insert = true;
-        self.input = String::new();
+        self.input.clear();
         self.symbols = symbols(tokens.iter().chain_err(|| BUFFER_PARSE_FAILED)?);
         self.results = SelectableVec::new(Vec::new());
         self.config = config;
@@ -155,8 +155,12 @@ where
 
 #[cfg(test)]
 mod tests {
+    use super::SymbolJumpMode;
     use super::{symbols, Symbol};
+    use crate::models::application::modes::{SearchSelectConfig, SearchSelectMode};
+    use crate::models::application::Application;
     use scribe::buffer::{Lexeme, Position, ScopeStack, Token};
+    use std::path::Path;
     use std::str::FromStr;
 
     #[test]
@@ -188,5 +192,28 @@ mod tests {
                 position: Position { line: 1, offset: 0 }
             }
         );
+    }
+
+    #[test]
+    fn reset_clears_query_mode_and_results() {
+        let config = SearchSelectConfig::default();
+        let mut mode = SymbolJumpMode::new(config.clone()).unwrap();
+        let mut app = Application::new(&[]).unwrap();
+        app.workspace.open_buffer(&Path::new("build.rs")).unwrap();
+        let token_set = app.workspace.current_buffer_tokens().unwrap();
+
+        // Do an initial reset to get the results populated
+        mode.reset(&token_set, config.clone()).unwrap();
+        mode.query().push_str("main");
+        mode.set_insert_mode(false);
+        mode.search();
+
+        // Ensure we have results before reset
+        assert!(mode.results.len() > 0);
+
+        mode.reset(&token_set, config).unwrap();
+        assert_eq!(mode.query(), "");
+        assert_eq!(mode.insert_mode(), true);
+        assert_eq!(mode.results().len(), 0);
     }
 }
