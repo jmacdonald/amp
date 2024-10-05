@@ -24,7 +24,10 @@ impl SyntaxMode {
     }
 
     pub fn reset(&mut self, syntaxes: Vec<String>, config: SearchSelectConfig) {
+        self.input.clear();
+        self.insert = true;
         self.syntaxes = syntaxes;
+        self.results = SelectableVec::new(Vec::new());
         self.config = config;
     }
 }
@@ -80,5 +83,30 @@ impl SearchSelectMode<String> for SyntaxMode {
 
     fn config(&self) -> &SearchSelectConfig {
         &self.config
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::SyntaxMode;
+    use crate::models::application::modes::{SearchSelectConfig, SearchSelectMode};
+
+    #[test]
+    fn reset_clears_query_mode_and_results() {
+        let config = SearchSelectConfig::default();
+        let mut mode = SyntaxMode::new(config.clone());
+
+        mode.reset(vec![String::from("syntax")], config.clone());
+        mode.query().push_str("syntax");
+        mode.set_insert_mode(false);
+        mode.search();
+
+        // Ensure we have results before reset
+        assert!(mode.results.len() > 0);
+
+        mode.reset(vec![], config);
+        assert_eq!(mode.query(), "");
+        assert_eq!(mode.insert_mode(), true);
+        assert_eq!(mode.results.len(), 0);
     }
 }
