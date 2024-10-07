@@ -156,6 +156,27 @@ impl SearchSelectMode<DisplayablePath> for OpenMode {
             None
         }
     }
+
+    fn pop_search_token(&mut self) {
+        if self.input.is_empty() {
+            // Find the last word boundary (transition to/from whitespace), using
+            // using fold to carry the previous character's type forward.
+            let mut boundary_index = 0;
+            self.pinned_input
+                .char_indices()
+                .fold(true, |was_whitespace, (index, c)| {
+                    if index > 0 && c.is_whitespace() != was_whitespace {
+                        boundary_index = index - 1;
+                    }
+
+                    c.is_whitespace()
+                });
+
+            self.pinned_input.truncate(boundary_index);
+        } else {
+            SearchSelectMode::pop_search_token(self);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -234,5 +255,20 @@ mod tests {
 
         let results: Vec<String> = mode.results().map(|r| r.to_string()).collect();
         assert_eq!(results, vec!["Cargo.toml"]);
+    }
+
+    #[test]
+    fn pop_search_token_eats_into_pinned_query_when_query_is_empty() {
+        let path = env::current_dir().expect("can't get current directory/path");
+        let config = SearchSelectConfig::default();
+        let mut mode = OpenMode::new(path.clone(), config.clone());
+
+        mode.query().push_str("two tokens");
+        mode.pin_query();
+        mode.pop_search_token();
+
+        assert_eq!(mode.pinned_query(), "two");
+        mode.pop_search_token();
+        assert_eq!(mode.pinned_query(), "");
     }
 }
