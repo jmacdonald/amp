@@ -70,7 +70,9 @@ impl fmt::Display for OpenMode {
     }
 }
 
-impl SearchSelectMode<DisplayablePath> for OpenMode {
+impl SearchSelectMode for OpenMode {
+    type Item = DisplayablePath;
+
     fn search(&mut self) {
         let results = if let OpenModeIndex::Complete(ref index) = self.index {
             index

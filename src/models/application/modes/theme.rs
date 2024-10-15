@@ -38,7 +38,9 @@ impl fmt::Display for ThemeMode {
     }
 }
 
-impl SearchSelectMode<String> for ThemeMode {
+impl SearchSelectMode for ThemeMode {
+    type Item = String;
+
     fn search(&mut self) {
         // Find the themes we're looking for using the query.
         let results = fragment::matching::find(&self.input, &self.themes, self.config.max_results);

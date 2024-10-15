@@ -8,9 +8,9 @@ use std::cmp;
 use std::fmt::Display;
 use unicode_segmentation::UnicodeSegmentation;
 
-pub fn display<T: Display>(
+pub fn display<T: SearchSelectMode + Display>(
     workspace: &mut Workspace,
-    mode: &mut dyn SearchSelectMode<T>,
+    mode: &mut T,
     view: &mut View,
 ) -> Result<()> {
     let data;

@@ -42,7 +42,9 @@ impl fmt::Display for CommandMode {
     }
 }
 
-impl SearchSelectMode<DisplayableCommand> for CommandMode {
+impl SearchSelectMode for CommandMode {
+    type Item = DisplayableCommand;
+
     fn search(&mut self) {
         let commands: Vec<&'static str> = self.commands.keys().copied().collect();
 

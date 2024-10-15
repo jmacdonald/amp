@@ -38,7 +38,9 @@ impl fmt::Display for SyntaxMode {
     }
 }
 
-impl SearchSelectMode<String> for SyntaxMode {
+impl SearchSelectMode for SyntaxMode {
+    type Item = String;
+
     fn search(&mut self) {
         // Find the themes we're looking for using the query.
         let results =

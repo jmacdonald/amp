@@ -79,7 +79,9 @@ impl fmt::Display for SymbolJumpMode {
     }
 }
 
-impl SearchSelectMode<Symbol> for SymbolJumpMode {
+impl SearchSelectMode for SymbolJumpMode {
+    type Item = Symbol;
+
     fn search(&mut self) {
         // Find the symbols we're looking for using the query.
         let results = fragment::matching::find(&self.input, &self.symbols, self.config.max_results);
