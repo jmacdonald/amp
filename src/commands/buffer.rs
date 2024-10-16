@@ -1529,7 +1529,7 @@ mod tests {
         app.preferences.replace(preferences);
 
         // Create a temp file with content and open it.
-        let path = format!("{}/format_tool.rs", env::temp_dir().display());
+        let path = format!("{}/no_format_by_default.rs", env::temp_dir().display());
         let mut temp_file = File::create(&path).unwrap();
         write!(temp_file, "amp editor\n").unwrap();
         app.workspace.open_buffer(&Path::new(&path)).unwrap();
@@ -1562,7 +1562,7 @@ mod tests {
         app.preferences.replace(preferences);
 
         // Create a temp file with content and open it.
-        let path = format!("{}/format_tool.rs", env::temp_dir().display());
+        let path = format!("{}/format_when_configured.rs", env::temp_dir().display());
         let mut temp_file = File::create(&path).unwrap();
         write!(temp_file, "amp editor\n").unwrap();
         app.workspace.open_buffer(&Path::new(&path)).unwrap();
