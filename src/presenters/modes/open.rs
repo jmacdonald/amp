@@ -41,9 +41,13 @@ pub fn display(workspace: &mut Workspace, mode: &mut OpenMode, view: &mut View) 
         );
     } else {
         // Draw the list of search results.
+        let selected_indices = mode.selected_indices();
+
         for (line, result) in mode.results().enumerate() {
             let (content, colors, style) = if line == mode.selected_index() {
                 (format!("> {}", result), Colors::Focused, Style::Bold)
+            } else if selected_indices.contains(&line) {
+                (format!("  {}", result), Colors::Focused, Style::Bold)
             } else {
                 (format!("  {}", result), Colors::Default, Style::Default)
             };

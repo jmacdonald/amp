@@ -162,7 +162,7 @@ path:
 
 search_select:
   enter: search_select::accept
-  space: search_select::accept
+  space: open::toggle_selection
   backspace: search_select::pop_search_token
   escape: application::switch_to_normal_mode
   up: search_select::select_previous
