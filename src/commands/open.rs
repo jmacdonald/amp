@@ -9,3 +9,12 @@ pub fn pin_query(app: &mut Application) -> Result {
 
     Ok(())
 }
+
+pub fn toggle_selection(app: &mut Application) -> Result {
+    match app.mode {
+        Mode::Open(ref mut mode) => mode.toggle_selection(),
+        _ => bail!("Can't mark selections outside of open mode."),
+    }
+
+    Ok(())
+}

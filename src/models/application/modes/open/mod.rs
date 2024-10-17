@@ -7,6 +7,7 @@ use crate::models::application::Event;
 use crate::util::SelectableVec;
 use bloodhound::ExclusionPattern;
 pub use bloodhound::Index;
+use std::collections::HashSet;
 use std::fmt;
 use std::path::PathBuf;
 use std::slice::Iter;
@@ -25,6 +26,7 @@ pub struct OpenMode {
     pinned_input: String,
     index: OpenModeIndex,
     pub results: SelectableVec<DisplayablePath>,
+    marked_results: HashSet<usize>,
     config: SearchSelectConfig,
 }
 
@@ -36,6 +38,7 @@ impl OpenMode {
             pinned_input: String::new(),
             index: OpenModeIndex::Indexing(path),
             results: SelectableVec::new(Vec::new()),
+            marked_results: HashSet::new(),
             config,
         }
     }
@@ -56,6 +59,7 @@ impl OpenMode {
         self.config = config;
         self.index = OpenModeIndex::Indexing(path.clone());
         self.results = SelectableVec::new(Vec::new());
+        self.marked_results = HashSet::new();
 
         // Build and populate the index in a separate thread.
         thread::spawn(move || {
@@ -107,6 +111,30 @@ impl OpenMode {
             PopSearchToken::pop_search_token(self);
         }
     }
+
+    pub fn toggle_selection(&mut self) {
+        if let None = self.marked_results.take(&self.selected_index()) {
+            self.marked_results.insert(self.selected_index());
+        }
+    }
+
+    pub fn selections(&self) -> Vec<&DisplayablePath> {
+        let mut selections: Vec<&DisplayablePath> = self
+            .marked_results
+            .iter()
+            .map(|i| self.results.get(*i).unwrap())
+            .collect();
+        selections.push(self.selection().unwrap());
+
+        selections
+    }
+
+    pub fn selected_indices(&self) -> Vec<usize> {
+        let mut selected_indices: Vec<usize> = self.marked_results.iter().copied().collect();
+        selected_indices.push(self.selected_index());
+
+        selected_indices
+    }
 }
 
 impl fmt::Display for OpenMode {
@@ -137,6 +165,7 @@ impl SearchSelectMode for OpenMode {
         };
 
         self.results = SelectableVec::new(results);
+        self.marked_results = HashSet::new();
     }
 
     fn query(&mut self) -> &mut String {
@@ -191,6 +220,7 @@ impl SearchSelectMode for OpenMode {
 #[cfg(test)]
 mod tests {
     use super::OpenMode;
+    use crate::models::application::modes::open::DisplayablePath;
     use crate::models::application::modes::{SearchSelectConfig, SearchSelectMode};
     use crate::models::application::Event;
     use std::env;
@@ -305,5 +335,194 @@ mod tests {
         assert_eq!(mode.pinned_query(), "two");
         mode.pop_search_token();
         assert_eq!(mode.pinned_query(), "");
+    }
+
+    #[test]
+    fn selections_returns_current_selection() {
+        let path = env::current_dir().expect("can't get current directory/path");
+        let config = SearchSelectConfig::default();
+        let mut mode = OpenMode::new(path.clone(), config.clone());
+        let (sender, receiver) = channel();
+
+        // Populate the index
+        mode.reset(path, None, sender, config);
+        if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
+            mode.set_index(index);
+        }
+
+        mode.query().push_str("Cargo.toml");
+        mode.search();
+
+        let selections: Vec<&DisplayablePath> = mode.selections().iter().copied().collect();
+        assert_eq!(selections, vec![mode.results().next().unwrap()]);
+    }
+
+    #[test]
+    fn selections_includes_marked_selections() {
+        let path = env::current_dir().expect("can't get current directory/path");
+        let config = SearchSelectConfig::default();
+        let mut mode = OpenMode::new(path.clone(), config.clone());
+        let (sender, receiver) = channel();
+
+        // Populate the index
+        mode.reset(path, None, sender, config);
+        if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
+            mode.set_index(index);
+        }
+
+        mode.query().push_str("Cargo");
+        mode.search();
+        mode.toggle_selection();
+        mode.select_next();
+
+        let selections: Vec<&DisplayablePath> = mode.selections().iter().copied().collect();
+        assert_eq!(selections, mode.results().take(2).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn selections_does_not_include_unmarked_indices() {
+        let path = env::current_dir().expect("can't get current directory/path");
+        let config = SearchSelectConfig::default();
+        let mut mode = OpenMode::new(path.clone(), config.clone());
+        let (sender, receiver) = channel();
+
+        // Populate the index
+        mode.reset(path, None, sender, config);
+        if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
+            mode.set_index(index);
+        }
+
+        mode.query().push_str("Cargo");
+        mode.search();
+        mode.toggle_selection();
+        mode.toggle_selection();
+        mode.select_next();
+
+        let selections: Vec<&DisplayablePath> = mode.selections().iter().copied().collect();
+        assert_eq!(selections, vec![mode.results().nth(1).unwrap()]);
+    }
+
+    #[test]
+    fn selected_indices_returns_current_index() {
+        let path = env::current_dir().expect("can't get current directory/path");
+        let config = SearchSelectConfig::default();
+        let mut mode = OpenMode::new(path.clone(), config.clone());
+        let (sender, receiver) = channel();
+
+        // Populate the index
+        mode.reset(path, None, sender, config);
+        if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
+            mode.set_index(index);
+        }
+
+        mode.query().push_str("Cargo.toml");
+        mode.search();
+
+        assert_eq!(mode.selected_indices(), vec![0]);
+    }
+
+    #[test]
+    fn selected_indices_includes_marked_indices() {
+        let path = env::current_dir().expect("can't get current directory/path");
+        let config = SearchSelectConfig::default();
+        let mut mode = OpenMode::new(path.clone(), config.clone());
+        let (sender, receiver) = channel();
+
+        // Populate the index
+        mode.reset(path, None, sender, config);
+        if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
+            mode.set_index(index);
+        }
+
+        mode.query().push_str("Cargo");
+        mode.search();
+        mode.toggle_selection();
+        mode.select_next();
+
+        assert_eq!(mode.selected_indices(), vec![0, 1]);
+    }
+
+    #[test]
+    fn selected_indices_does_not_include_unmarked_indices() {
+        let path = env::current_dir().expect("can't get current directory/path");
+        let config = SearchSelectConfig::default();
+        let mut mode = OpenMode::new(path.clone(), config.clone());
+        let (sender, receiver) = channel();
+
+        // Populate the index
+        mode.reset(path, None, sender, config);
+        if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
+            mode.set_index(index);
+        }
+
+        mode.query().push_str("Cargo");
+        mode.search();
+        mode.toggle_selection();
+        mode.toggle_selection();
+        mode.select_next();
+
+        assert_eq!(mode.selected_indices(), vec![1]);
+    }
+
+    #[test]
+    fn search_clears_marked_indices() {
+        let path = env::current_dir().expect("can't get current directory/path");
+        let config = SearchSelectConfig::default();
+        let mut mode = OpenMode::new(path.clone(), config.clone());
+        let (sender, receiver) = channel();
+
+        // Populate the index
+        mode.reset(path.clone(), None, sender.clone(), config.clone());
+        if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
+            mode.set_index(index);
+        }
+
+        // Produce results and mark one of them
+        mode.query().push_str("Cargo");
+        mode.search();
+        mode.toggle_selection();
+
+        // Change the search results
+        mode.query().push_str(".");
+        mode.search();
+
+        // Ensure the previously-marked result isn't currently selected
+        mode.select_next();
+
+        // Verify that the marked result isn't included
+        assert_eq!(mode.selected_indices(), vec![1]);
+    }
+
+    #[test]
+    fn reset_clears_marked_indices() {
+        let path = env::current_dir().expect("can't get current directory/path");
+        let config = SearchSelectConfig::default();
+        let mut mode = OpenMode::new(path.clone(), config.clone());
+        let (sender, receiver) = channel();
+
+        // Populate the index
+        mode.reset(path.clone(), None, sender.clone(), config.clone());
+        if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
+            mode.set_index(index);
+        }
+
+        // Produce results and mark one of them
+        mode.query().push_str("Cargo");
+        mode.search();
+        mode.toggle_selection();
+
+        // Reset the mode and repopulate the index
+        mode.reset(path, None, sender, config);
+        if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
+            mode.set_index(index);
+        }
+        mode.query().push_str("Cargo");
+        mode.search();
+
+        // Ensure the previously-marked result isn't currently selected
+        mode.select_next();
+
+        // Verify that the marked result isn't included
+        assert_eq!(mode.selected_indices(), vec![1]);
     }
 }
