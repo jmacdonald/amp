@@ -31,7 +31,7 @@ impl KeyMap {
                 .as_str()
                 .ok_or_else(|| "A mode key couldn't be parsed as a string".to_string())?;
             let key_bindings = parse_mode_key_bindings(yaml_key_bindings, &commands)
-                .chain_err(|| format!("Failed to parse keymaps for \"{}\" mode", mode))?;
+                .chain_err(|| format!("Failed to parse keymaps for \"{mode}\" mode"))?;
 
             keymap.insert(mode.to_string(), key_bindings);
         }
@@ -146,21 +146,20 @@ fn parse_mode_key_bindings(
             Yaml::String(ref command) => {
                 let command_string = command.as_str();
 
-                key_commands.push(*commands.get(&command_string).ok_or_else(|| {
-                    format!("Keymap command \"{}\" doesn't exist", command_string)
-                })?);
+                key_commands.push(
+                    *commands.get(&command_string).ok_or_else(|| {
+                        format!("Keymap command \"{command_string}\" doesn't exist")
+                    })?,
+                );
             }
             Yaml::Array(ref command_array) => {
                 for command in command_array {
                     let command_string = command.as_str().ok_or_else(|| {
-                        format!(
-                            "Keymap command \"{:?}\" couldn't be parsed as a string",
-                            command
-                        )
+                        format!("Keymap command \"{command:?}\" couldn't be parsed as a string")
                     })?;
 
                     key_commands.push(*commands.get(command_string).ok_or_else(|| {
-                        format!("Keymap command \"{}\" doesn't exist", command_string)
+                        format!("Keymap command \"{command_string}\" doesn't exist")
                     })?);
                 }
             }
@@ -194,7 +193,7 @@ fn parse_key(data: &str) -> Result<Key> {
         let key_char = key
             .chars()
             .next()
-            .ok_or_else(|| format!("Keymap key \"{}\" is invalid", key))?;
+            .ok_or_else(|| format!("Keymap key \"{key}\" is invalid"))?;
 
         // Find the variant for the specified modifier.
         match component {
@@ -225,7 +224,7 @@ fn parse_key(data: &str) -> Result<Key> {
                 component
                     .chars()
                     .next()
-                    .ok_or_else(|| format!("Keymap key \"{}\" is invalid", component))?,
+                    .ok_or_else(|| format!("Keymap key \"{component}\" is invalid"))?,
             ),
         })
     }

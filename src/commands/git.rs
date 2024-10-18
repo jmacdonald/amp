@@ -80,9 +80,9 @@ pub fn copy_remote_url(app: &mut Application) -> Result {
                 let line_2 = s.anchor + 1;
 
                 match line_1.cmp(&line_2) {
-                    Ordering::Less => format!("#L{}-L{}", line_1, line_2),
-                    Ordering::Greater => format!("#L{}-L{}", line_2, line_1),
-                    Ordering::Equal => format!("#L{}", line_1),
+                    Ordering::Less => format!("#L{line_1}-L{line_2}"),
+                    Ordering::Greater => format!("#L{line_2}-L{line_1}"),
+                    Ordering::Equal => format!("#L{line_1}"),
                 }
             }
             _ => String::new(),
