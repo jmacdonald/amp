@@ -70,7 +70,7 @@ impl TermionTerminal {
 
             // Adding new styles are easy; write it and return early.
             if let Some(mapped_style) = map_style(new_style) {
-                let _ = write!(output, "{}", mapped_style);
+                let _ = write!(output, "{mapped_style}");
 
                 return Ok(());
             }
@@ -293,7 +293,7 @@ impl Terminal for TermionTerminal {
 
                 // Now that style, color, and position have been
                 // addressed, print the content.
-                let _ = write!(output, "{}", content);
+                let _ = write!(output, "{content}");
             }
         }
 

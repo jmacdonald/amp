@@ -13,16 +13,16 @@ fn main() {
 
 fn handle_error(error: &Error) {
     // Print the proximate/contextual error.
-    eprintln!("error: {}", error);
+    eprintln!("error: {error}");
 
     // Print the chain of other errors that led to the proximate error.
     for e in error.iter().skip(1) {
-        eprintln!("caused by: {}", e);
+        eprintln!("caused by: {e}");
     }
 
     // Print the backtrace, if available.
     if let Some(backtrace) = error.backtrace() {
-        eprintln!("backtrace: {:?}", backtrace);
+        eprintln!("backtrace: {backtrace:?}");
     }
 
     // Exit with an error code.
