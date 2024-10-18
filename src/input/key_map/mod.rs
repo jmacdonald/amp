@@ -146,16 +146,16 @@ fn parse_mode_key_bindings(
             Yaml::String(ref command) => {
                 let command_string = command.as_str();
 
-                key_commands.push(*commands.get(&command_string).ok_or_else(|| {
-                    format!("Keymap command \"{command_string}\" doesn't exist")
-                })?);
+                key_commands.push(
+                    *commands.get(&command_string).ok_or_else(|| {
+                        format!("Keymap command \"{command_string}\" doesn't exist")
+                    })?,
+                );
             }
             Yaml::Array(ref command_array) => {
                 for command in command_array {
                     let command_string = command.as_str().ok_or_else(|| {
-                        format!(
-                            "Keymap command \"{command:?}\" couldn't be parsed as a string"
-                        )
+                        format!("Keymap command \"{command:?}\" couldn't be parsed as a string")
                     })?;
 
                     key_commands.push(*commands.get(command_string).ok_or_else(|| {
