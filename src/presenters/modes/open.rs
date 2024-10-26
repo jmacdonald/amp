@@ -23,7 +23,7 @@ pub fn display(workspace: &mut Workspace, mode: &mut OpenMode, view: &mut View) 
 
         presenter.print_status_line(&[
             StatusLineData {
-                content: format!(" {} ", mode),
+                content: format!(" {mode} "),
                 style: Style::Default,
                 colors: Colors::Inverted,
             },
@@ -45,11 +45,11 @@ pub fn display(workspace: &mut Workspace, mode: &mut OpenMode, view: &mut View) 
 
         for (line, result) in mode.results().enumerate() {
             let (content, colors, style) = if line == mode.selected_index() {
-                (format!("> {}", result), Colors::Focused, Style::Bold)
+                (format!("> {result}"), Colors::Focused, Style::Bold)
             } else if selected_indices.contains(&line) {
-                (format!("  {}", result), Colors::Focused, Style::Bold)
+                (format!("  {result}"), Colors::Focused, Style::Bold)
             } else {
-                (format!("  {}", result), Colors::Default, Style::Default)
+                (format!("  {result}"), Colors::Default, Style::Default)
             };
 
             // Ensure content doesn't exceed the screen width

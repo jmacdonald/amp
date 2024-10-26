@@ -13,7 +13,7 @@ pub fn display(workspace: &mut Workspace, mode: &PathMode, view: &mut View) -> R
     let data = buffer.data();
     presenter.print_buffer(buffer, &data, &workspace.syntax_set, None, None)?;
 
-    let mode_display = format!(" {} ", mode);
+    let mode_display = format!(" {mode} ");
     let search_input = format!(" {}", mode.input);
 
     let cursor_offset = mode_display.graphemes(true).count() + search_input.graphemes(true).count();

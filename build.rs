@@ -68,8 +68,7 @@ fn write_command(
     output
         .write(
             format!(
-                "    commands.insert(\"{}::{}\", {}::{});\n",
-                module_name, function_name, module_name, function_name
+                "    commands.insert(\"{module_name}::{function_name}\", {module_name}::{function_name});\n"
             )
             .as_bytes(),
         )

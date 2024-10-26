@@ -275,7 +275,7 @@ pub fn display_available_commands(app: &mut Application) -> Result {
         command_keys.sort();
         command_keys.reverse();
         for key in command_keys {
-            buffer.insert(format!("{}\n", key));
+            buffer.insert(format!("{key}\n"));
         }
     }
 
@@ -287,11 +287,11 @@ pub fn display_last_error(app: &mut Application) -> Result {
     let scope_display_buffer = {
         let mut error_buffer = Buffer::new();
         // Add the proximate/contextual error.
-        error_buffer.insert(format!("{}\n", error));
+        error_buffer.insert(format!("{error}\n"));
 
         // Print the chain of other errors that led to the proximate error.
         for err in error.iter().skip(1) {
-            error_buffer.insert(format!("caused by: {}", err));
+            error_buffer.insert(format!("caused by: {err}"));
         }
 
         error_buffer

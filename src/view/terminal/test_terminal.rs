@@ -100,7 +100,7 @@ impl Terminal for TestTerminal {
         }
 
         let mut data = self.data.lock().unwrap();
-        let string_content = format!("{}", content);
+        let string_content = format!("{content}");
 
         for (i, c) in string_content.chars().enumerate() {
             // Ignore characters beyond visible width.

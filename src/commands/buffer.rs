@@ -142,7 +142,7 @@ pub fn merge_next_line(app: &mut Application) -> Result {
         .take(2)
         .map(|(index, line)| {
             if index == current_line {
-                format!("{} ", line)
+                format!("{line} ")
             } else {
                 line.trim_start().to_string()
             }
@@ -357,7 +357,7 @@ pub fn display_current_scope(app: &mut Application) -> Result {
         // Open a buffer with a displayable version of the scope stack.
         let mut scope_display_buffer = Buffer::new();
         for scope in scope_stack.iter() {
-            scope_display_buffer.insert(format!("{}\n", scope));
+            scope_display_buffer.insert(format!("{scope}\n"));
         }
 
         scope_display_buffer
@@ -761,7 +761,7 @@ pub fn paste(app: &mut Application) -> Result {
                                 line,
                                 offset: line_content.len(),
                             });
-                            buffer.insert(format!("\n{}", content));
+                            buffer.insert(format!("\n{content}"));
                             buffer.cursor.move_to(original_cursor_position);
                         } else {
                             // We're on a trailing newline, which doesn't
