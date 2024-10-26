@@ -44,7 +44,7 @@ pub fn move_to_current_result(app: &mut Application) -> Result {
             .as_mut()
             .ok_or(NO_SEARCH_RESULTS)?
             .selection()
-            .ok_or_else(|| format!("No matches found for \"{}\"", query))?;
+            .ok_or_else(|| format!("No matches found for \"{query}\""))?;
         buffer.cursor.move_to(result.start());
     } else {
         bail!("Can't move to search result outside of search mode");

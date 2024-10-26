@@ -31,7 +31,7 @@ impl<'p> Presenter<'p> {
                 .theme_set
                 .themes
                 .get(theme_name)
-                .ok_or_else(|| format!("Couldn't find \"{}\" theme", theme_name))?;
+                .ok_or_else(|| format!("Couldn't find \"{theme_name}\" theme"))?;
             theme.clone()
         };
 
