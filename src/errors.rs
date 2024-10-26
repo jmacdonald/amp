@@ -18,5 +18,6 @@ pub const LOCK_POISONED: &str = "Lock has been poisoned";
 pub const NO_SEARCH_RESULTS: &str = "No search results available";
 pub const SCROLL_TO_CURSOR_FAILED: &str = "Failed to scroll to cursor position";
 pub const SEARCH_QUERY_MISSING: &str = "No search query";
+pub const SELECTED_INDEX_OUT_OF_RANGE: &str = "Selected index is out of range";
 pub const STDOUT_FAILED: &str = "Failed to acquire stdout";
 pub const WORKSPACE_INIT_FAILED: &str = "Failed to initialize workspace";

@@ -1,3 +1,4 @@
+use crate::errors::*;
 use std::ops::Deref;
 
 /// A simple decorator around a Vec that allows a single element to be selected.
@@ -15,6 +16,15 @@ impl<T> SelectableVec<T> {
             set,
             selected_index: 0,
         }
+    }
+
+    pub fn set_selected_index(&mut self, index: usize) -> Result<()> {
+        if index >= self.set.len() {
+            bail!(SELECTED_INDEX_OUT_OF_RANGE);
+        }
+
+        self.selected_index = index;
+        Ok(())
     }
 
     pub fn selected_index(&self) -> usize {
@@ -80,5 +90,21 @@ mod tests {
         let mut selectable_vec: SelectableVec<usize> = SelectableVec::new(vec![0, 1]);
         selectable_vec.select_previous();
         assert_eq!(selectable_vec.selection(), Some(&1));
+    }
+
+    #[test]
+    fn set_selected_index_works_when_in_range() {
+        let mut selectable_vec: SelectableVec<usize> = SelectableVec::new(vec![0, 1]);
+        assert_eq!(selectable_vec.selected_index(), 0);
+        selectable_vec.set_selected_index(1).unwrap();
+        assert_eq!(selectable_vec.selected_index(), 1);
+    }
+
+    #[test]
+    fn set_selected_index_rejects_values_outside_range() {
+        let mut selectable_vec: SelectableVec<usize> = SelectableVec::new(vec![0, 1]);
+        assert_eq!(selectable_vec.selected_index(), 0);
+        assert!(selectable_vec.set_selected_index(2).is_err());
+        assert_eq!(selectable_vec.selected_index(), 0);
     }
 }

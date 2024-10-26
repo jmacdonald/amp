@@ -2,14 +2,16 @@ mod displayable_path;
 pub mod exclusions;
 
 pub use self::displayable_path::DisplayablePath;
+use crate::errors::*;
 use crate::models::application::modes::{PopSearchToken, SearchSelectConfig, SearchSelectMode};
 use crate::models::application::Event;
 use crate::util::SelectableVec;
 use bloodhound::ExclusionPattern;
 pub use bloodhound::Index;
+use scribe::Workspace;
 use std::collections::HashSet;
 use std::fmt;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::slice::Iter;
 use std::sync::mpsc::Sender;
 use std::thread;
@@ -25,6 +27,7 @@ pub struct OpenMode {
     input: String,
     pinned_input: String,
     index: OpenModeIndex,
+    buffers: SelectableVec<DisplayablePath>,
     pub results: SelectableVec<DisplayablePath>,
     marked_results: HashSet<usize>,
     config: SearchSelectConfig,
@@ -37,6 +40,7 @@ impl OpenMode {
             input: String::new(),
             pinned_input: String::new(),
             index: OpenModeIndex::Indexing(path),
+            buffers: SelectableVec::new(Vec::new()),
             results: SelectableVec::new(Vec::new()),
             marked_results: HashSet::new(),
             config,
@@ -49,24 +53,41 @@ impl OpenMode {
 
     pub fn reset(
         &mut self,
-        path: PathBuf,
+        workspace: &mut Workspace,
         exclusions: Option<Vec<ExclusionPattern>>,
         events: Sender<Event>,
         config: SearchSelectConfig,
-    ) {
+    ) -> Result<()> {
         self.insert = true;
         self.input.clear();
         self.config = config;
-        self.index = OpenModeIndex::Indexing(path.clone());
+        self.index = OpenModeIndex::Indexing(workspace.path.clone());
+        self.buffers = SelectableVec::new(
+            workspace
+                .buffer_paths()
+                .into_iter()
+                .map(|p| {
+                    let path = p.unwrap_or(Path::new("untitled"));
+
+                    DisplayablePath(path.into())
+                })
+                .collect(),
+        );
+        if let Some(i) = workspace.current_buffer_index() {
+            self.buffers.set_selected_index(i)?;
+        }
         self.results = SelectableVec::new(Vec::new());
         self.marked_results = HashSet::new();
 
         // Build and populate the index in a separate thread.
+        let path = workspace.path.clone();
         thread::spawn(move || {
             let mut index = Index::new(path);
             index.populate(exclusions, false);
             let _ = events.send(Event::OpenModeIndexComplete(index));
         });
+
+        Ok(())
     }
 
     pub fn pinned_query(&self) -> &str {
@@ -113,7 +134,7 @@ impl OpenMode {
     }
 
     pub fn toggle_selection(&mut self) {
-        if let None = self.marked_results.take(&self.selected_index()) {
+        if self.marked_results.take(&self.selected_index()).is_none() {
             self.marked_results.insert(self.selected_index());
         }
     }
@@ -134,6 +155,22 @@ impl OpenMode {
         selected_indices.push(self.selected_index());
 
         selected_indices
+    }
+
+    fn collection(&self) -> &SelectableVec<DisplayablePath> {
+        if self.input.is_empty() {
+            &self.buffers
+        } else {
+            &self.results
+        }
+    }
+
+    fn collection_mut(&mut self) -> &mut SelectableVec<DisplayablePath> {
+        if self.input.is_empty() {
+            &mut self.buffers
+        } else {
+            &mut self.results
+        }
     }
 }
 
@@ -181,23 +218,23 @@ impl SearchSelectMode for OpenMode {
     }
 
     fn results(&self) -> Iter<DisplayablePath> {
-        self.results.iter()
+        self.collection().iter()
     }
 
     fn selection(&self) -> Option<&DisplayablePath> {
-        self.results.selection()
+        self.collection().selection()
     }
 
     fn selected_index(&self) -> usize {
-        self.results.selected_index()
+        self.collection().selected_index()
     }
 
     fn select_previous(&mut self) {
-        self.results.select_previous();
+        self.collection_mut().select_previous();
     }
 
     fn select_next(&mut self) {
-        self.results.select_next();
+        self.collection_mut().select_next();
     }
 
     fn config(&self) -> &SearchSelectConfig {
@@ -205,6 +242,11 @@ impl SearchSelectMode for OpenMode {
     }
 
     fn message(&mut self) -> Option<String> {
+        // When multiple buffers are open, we show them instead of query prompts
+        if self.buffers.len() > 1 && self.query().is_empty() {
+            return None;
+        }
+
         if let OpenModeIndex::Indexing(ref path) = self.index {
             Some(format!("Indexing {}", path.to_string_lossy()))
         } else if self.pinned_query().is_empty() && self.query().is_empty() {
@@ -223,18 +265,21 @@ mod tests {
     use crate::models::application::modes::open::DisplayablePath;
     use crate::models::application::modes::{SearchSelectConfig, SearchSelectMode};
     use crate::models::application::Event;
+    use scribe::Workspace;
     use std::env;
+    use std::path::Path;
     use std::sync::mpsc::channel;
 
     #[test]
     fn search_uses_the_query() {
         let path = env::current_dir().expect("can't get current directory/path");
+        let mut workspace = Workspace::new(&path, None).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
 
         // Populate the index
-        mode.reset(path, None, sender, config);
+        mode.reset(&mut workspace, None, sender, config).unwrap();
         if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
             mode.set_index(index);
         }
@@ -303,12 +348,13 @@ mod tests {
     #[test]
     fn search_incorporates_pinned_query_content() {
         let path = env::current_dir().expect("can't get current directory/path");
+        let mut workspace = Workspace::new(&path, None).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
 
         // Populate the index
-        mode.reset(path, None, sender, config);
+        mode.reset(&mut workspace, None, sender, config).unwrap();
         if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
             mode.set_index(index);
         }
@@ -340,12 +386,13 @@ mod tests {
     #[test]
     fn selections_returns_current_selection() {
         let path = env::current_dir().expect("can't get current directory/path");
+        let mut workspace = Workspace::new(&path, None).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
 
         // Populate the index
-        mode.reset(path, None, sender, config);
+        mode.reset(&mut workspace, None, sender, config).unwrap();
         if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
             mode.set_index(index);
         }
@@ -360,12 +407,13 @@ mod tests {
     #[test]
     fn selections_includes_marked_selections() {
         let path = env::current_dir().expect("can't get current directory/path");
+        let mut workspace = Workspace::new(&path, None).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
 
         // Populate the index
-        mode.reset(path, None, sender, config);
+        mode.reset(&mut workspace, None, sender, config).unwrap();
         if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
             mode.set_index(index);
         }
@@ -382,12 +430,13 @@ mod tests {
     #[test]
     fn selections_does_not_include_unmarked_indices() {
         let path = env::current_dir().expect("can't get current directory/path");
+        let mut workspace = Workspace::new(&path, None).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
 
         // Populate the index
-        mode.reset(path, None, sender, config);
+        mode.reset(&mut workspace, None, sender, config).unwrap();
         if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
             mode.set_index(index);
         }
@@ -405,12 +454,13 @@ mod tests {
     #[test]
     fn selected_indices_returns_current_index() {
         let path = env::current_dir().expect("can't get current directory/path");
+        let mut workspace = Workspace::new(&path, None).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
 
         // Populate the index
-        mode.reset(path, None, sender, config);
+        mode.reset(&mut workspace, None, sender, config).unwrap();
         if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
             mode.set_index(index);
         }
@@ -424,12 +474,13 @@ mod tests {
     #[test]
     fn selected_indices_includes_marked_indices() {
         let path = env::current_dir().expect("can't get current directory/path");
+        let mut workspace = Workspace::new(&path, None).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
 
         // Populate the index
-        mode.reset(path, None, sender, config);
+        mode.reset(&mut workspace, None, sender, config).unwrap();
         if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
             mode.set_index(index);
         }
@@ -445,12 +496,13 @@ mod tests {
     #[test]
     fn selected_indices_does_not_include_unmarked_indices() {
         let path = env::current_dir().expect("can't get current directory/path");
+        let mut workspace = Workspace::new(&path, None).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
 
         // Populate the index
-        mode.reset(path, None, sender, config);
+        mode.reset(&mut workspace, None, sender, config).unwrap();
         if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
             mode.set_index(index);
         }
@@ -467,12 +519,14 @@ mod tests {
     #[test]
     fn search_clears_marked_indices() {
         let path = env::current_dir().expect("can't get current directory/path");
+        let mut workspace = Workspace::new(&path, None).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
 
         // Populate the index
-        mode.reset(path.clone(), None, sender.clone(), config.clone());
+        mode.reset(&mut workspace, None, sender.clone(), config.clone())
+            .unwrap();
         if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
             mode.set_index(index);
         }
@@ -496,12 +550,14 @@ mod tests {
     #[test]
     fn reset_clears_marked_indices() {
         let path = env::current_dir().expect("can't get current directory/path");
+        let mut workspace = Workspace::new(&path, None).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
 
         // Populate the index
-        mode.reset(path.clone(), None, sender.clone(), config.clone());
+        mode.reset(&mut workspace, None, sender.clone(), config.clone())
+            .unwrap();
         if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
             mode.set_index(index);
         }
@@ -512,7 +568,7 @@ mod tests {
         mode.toggle_selection();
 
         // Reset the mode and repopulate the index
-        mode.reset(path, None, sender, config);
+        mode.reset(&mut workspace, None, sender, config).unwrap();
         if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
             mode.set_index(index);
         }
@@ -524,5 +580,53 @@ mod tests {
 
         // Verify that the marked result isn't included
         assert_eq!(mode.selected_indices(), vec![1]);
+    }
+
+    #[test]
+    fn when_query_is_empty_results_are_open_buffers() {
+        let path = env::current_dir().expect("can't get current directory/path");
+        let mut workspace = Workspace::new(&path, None).unwrap();
+        let config = SearchSelectConfig::default();
+        let mut mode = OpenMode::new(path.clone(), config.clone());
+        let (sender, _) = channel();
+
+        // Open buffers
+        let path1 = Path::new("src/main.rs");
+        let path2 = Path::new("src/lib.rs");
+        workspace.open_buffer(&path1).unwrap();
+        workspace.open_buffer(&path2).unwrap();
+
+        // Let the mode look-up the buffers
+        mode.reset(&mut workspace, None, sender.clone(), config.clone())
+            .unwrap();
+
+        assert_eq!(
+            mode.results().collect::<Vec<_>>(),
+            vec![
+                &DisplayablePath(path1.into()),
+                &DisplayablePath(path2.into())
+            ]
+        );
+    }
+
+    #[test]
+    fn open_buffers_respects_workspace_current_buffer() {
+        let path = env::current_dir().expect("can't get current directory/path");
+        let mut workspace = Workspace::new(&path, None).unwrap();
+        let config = SearchSelectConfig::default();
+        let mut mode = OpenMode::new(path.clone(), config.clone());
+        let (sender, _) = channel();
+
+        // Open buffers
+        let path1 = Path::new("src/main.rs");
+        let path2 = Path::new("src/lib.rs");
+        workspace.open_buffer(&path1).unwrap();
+        workspace.open_buffer(&path2).unwrap();
+
+        // Let the mode look-up the buffers
+        mode.reset(&mut workspace, None, sender.clone(), config.clone())
+            .unwrap();
+
+        assert_eq!(mode.selection(), Some(&DisplayablePath(path2.into())));
     }
 }

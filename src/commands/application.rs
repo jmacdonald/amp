@@ -89,11 +89,11 @@ pub fn switch_to_open_mode(app: &mut Application) -> Result {
     app.switch_to(ModeKey::Open);
     if let Mode::Open(ref mut mode) = app.mode {
         mode.reset(
-            app.workspace.path.clone(),
+            &mut app.workspace,
             exclusions,
             app.event_channel.clone(),
             config,
-        );
+        )?;
     }
 
     commands::search_select::search(app)?;
