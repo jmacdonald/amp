@@ -170,18 +170,18 @@ pub fn pop_search_token(app: &mut Application) -> Result {
 }
 
 pub fn step_back(app: &mut Application) -> Result {
-    let result_count = match app.mode {
-        Mode::Command(ref mut mode) => mode.results().count(),
-        Mode::Open(ref mut mode) => mode.results().count(),
-        Mode::Theme(ref mut mode) => mode.results().count(),
-        Mode::SymbolJump(ref mut mode) => mode.results().count(),
-        Mode::Syntax(ref mut mode) => mode.results().count(),
+    let selection_available = match app.mode {
+        Mode::Command(ref mut mode) => mode.results().count() > 0,
+        Mode::Open(ref mut mode) => mode.results().count() > 0 && !mode.query().is_empty(),
+        Mode::Theme(ref mut mode) => mode.results().count() > 0,
+        Mode::SymbolJump(ref mut mode) => mode.results().count() > 0,
+        Mode::Syntax(ref mut mode) => mode.results().count() > 0,
         _ => bail!("Can't pop search token outside of search select mode"),
     };
 
-    if result_count == 0 {
-        application::switch_to_normal_mode(app)
-    } else {
+    if selection_available {
         disable_insert(app)
+    } else {
+        application::switch_to_normal_mode(app)
     }
 }
