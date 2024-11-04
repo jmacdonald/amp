@@ -146,9 +146,9 @@ checksum = "0d8c1fef690941d3e7788d328517591fecc684c084084702d6ff1641e993699a"
 
 [[package]]
 name = "bloodhound"
-version = "0.5.4"
+version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3adde3a05c6955eb3bbf6134a06d863d0e1ac23b3f46de258839dc1d8f813cb"
+checksum = "51533c509c0f17dca020b34abf9cefb61df9bd2bd3c34e46f3ad0316c586da59"
 dependencies = [
  "fragment",
  "glob",

@@ -158,7 +158,7 @@ impl OpenMode {
     }
 
     fn collection(&self) -> &SelectableVec<DisplayablePath> {
-        if self.input.is_empty() {
+        if self.input.is_empty() && self.buffers.len() > 1 {
             &self.buffers
         } else {
             &self.results
@@ -166,7 +166,7 @@ impl OpenMode {
     }
 
     fn collection_mut(&mut self) -> &mut SelectableVec<DisplayablePath> {
-        if self.input.is_empty() {
+        if self.input.is_empty() && self.buffers.len() > 1 {
             &mut self.buffers
         } else {
             &mut self.results
@@ -185,18 +185,26 @@ impl SearchSelectMode for OpenMode {
 
     fn search(&mut self) {
         let results = if let OpenModeIndex::Complete(ref index) = self.index {
-            index
-                .find(
-                    &format!(
-                        "{} {}",
-                        self.pinned_input.to_lowercase(),
-                        self.input.to_lowercase()
-                    ),
-                    self.config.max_results,
-                )
-                .into_iter()
-                .map(|path| DisplayablePath(path.to_path_buf()))
-                .collect()
+            if self.input.is_empty() {
+                index
+                    .iter()
+                    .take(self.config.max_results)
+                    .map(|path| DisplayablePath(path.to_path_buf()))
+                    .collect()
+            } else {
+                index
+                    .find(
+                        &format!(
+                            "{} {}",
+                            self.pinned_input.to_lowercase(),
+                            self.input.to_lowercase()
+                        ),
+                        self.config.max_results,
+                    )
+                    .into_iter()
+                    .map(|path| DisplayablePath(path.to_path_buf()))
+                    .collect()
+            }
         } else {
             vec![]
         };
@@ -242,16 +250,14 @@ impl SearchSelectMode for OpenMode {
     }
 
     fn message(&mut self) -> Option<String> {
-        // When multiple buffers are open, we show them instead of query prompts
+        // Show open buffers in empty state if there are more than one
         if self.buffers.len() > 1 && self.query().is_empty() {
             return None;
         }
 
         if let OpenModeIndex::Indexing(ref path) = self.index {
             Some(format!("Indexing {}", path.to_string_lossy()))
-        } else if self.pinned_query().is_empty() && self.query().is_empty() {
-            Some(String::from("Enter a search query to start."))
-        } else if self.results().count() == 0 {
+        } else if !self.query().is_empty() && self.results().count() == 0 {
             Some(String::from("No matching entries found."))
         } else {
             None

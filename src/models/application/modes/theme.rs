@@ -43,11 +43,20 @@ impl SearchSelectMode for ThemeMode {
 
     fn search(&mut self) {
         // Find the themes we're looking for using the query.
-        let results = fragment::matching::find(&self.input, &self.themes, self.config.max_results);
+        let results = if self.input.is_empty() {
+            self.themes
+                .iter()
+                .take(self.config.max_results)
+                .cloned()
+                .collect()
+        } else {
+            fragment::matching::find(&self.input, &self.themes, self.config.max_results)
+                .into_iter()
+                .map(|i| i.clone())
+                .collect()
+        };
 
-        // We don't care about the result objects; we just want
-        // the underlying symbols. Map the collection to get these.
-        self.results = SelectableVec::new(results.into_iter().map(|r| r.clone()).collect());
+        self.results = SelectableVec::new(results);
     }
 
     fn query(&mut self) -> &mut String {

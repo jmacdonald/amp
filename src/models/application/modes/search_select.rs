@@ -28,9 +28,7 @@ pub trait SearchSelectMode: Display {
     fn select_next(&mut self);
     fn config(&self) -> &SearchSelectConfig;
     fn message(&mut self) -> Option<String> {
-        if self.query().is_empty() {
-            Some(String::from("Enter a search query to start."))
-        } else if self.results().count() == 0 {
+        if !self.query().is_empty() && self.results().count() == 0 {
             Some(String::from("No matching entries found."))
         } else {
             None

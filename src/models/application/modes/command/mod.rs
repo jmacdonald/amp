@@ -46,15 +46,20 @@ impl SearchSelectMode for CommandMode {
     type Item = DisplayableCommand;
 
     fn search(&mut self) {
-        let commands: Vec<&'static str> = self.commands.keys().copied().collect();
-
         // Find the commands we're looking for using the query.
-        let results = fragment::matching::find(&self.input, &commands, self.config.max_results);
+        let results = if self.input.is_empty() {
+            self.commands
+                .iter()
+                .take(self.config.max_results)
+                .map(|(k, v)| DisplayableCommand {
+                    description: *k,
+                    command: *v,
+                })
+                .collect()
+        } else {
+            let commands: Vec<&'static str> = self.commands.keys().copied().collect();
 
-        // We don't care about the result objects; we just want
-        // the underlying commands. Map the collection to get these.
-        self.results = SelectableVec::new(
-            results
+            fragment::matching::find(&self.input, &commands, self.config.max_results)
                 .into_iter()
                 .filter_map(|result| {
                     self.commands
@@ -64,8 +69,10 @@ impl SearchSelectMode for CommandMode {
                             command: *command,
                         })
                 })
-                .collect(),
-        );
+                .collect()
+        };
+
+        self.results = SelectableVec::new(results);
     }
 
     fn query(&mut self) -> &mut String {

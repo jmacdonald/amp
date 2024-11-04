@@ -171,11 +171,11 @@ pub fn pop_search_token(app: &mut Application) -> Result {
 
 pub fn step_back(app: &mut Application) -> Result {
     let selection_available = match app.mode {
-        Mode::Command(ref mut mode) => mode.results().count() > 0,
+        Mode::Command(ref mut mode) => mode.results().count() > 0 && !mode.query().is_empty(),
         Mode::Open(ref mut mode) => mode.results().count() > 0 && !mode.query().is_empty(),
-        Mode::Theme(ref mut mode) => mode.results().count() > 0,
-        Mode::SymbolJump(ref mut mode) => mode.results().count() > 0,
-        Mode::Syntax(ref mut mode) => mode.results().count() > 0,
+        Mode::Theme(ref mut mode) => mode.results().count() > 0 && !mode.query().is_empty(),
+        Mode::SymbolJump(ref mut mode) => mode.results().count() > 0 && !mode.query().is_empty(),
+        Mode::Syntax(ref mut mode) => mode.results().count() > 0 && !mode.query().is_empty(),
         _ => bail!("Can't pop search token outside of search select mode"),
     };
 
