@@ -17,7 +17,7 @@ regex = "1.10"
 
 [dependencies]
 app_dirs2 = "2.5"
-scribe = "0.8"
+scribe = { path = "../scribe" }
 bloodhound = "0.5.5"
 luthor = "0.2"
 fragment = "0.3"

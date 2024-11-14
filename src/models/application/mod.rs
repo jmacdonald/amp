@@ -98,6 +98,9 @@ impl Application {
 
     fn present(&mut self) -> Result<()> {
         match self.mode {
+            Mode::Buffer(ref mut mode) => {
+                presenters::modes::search_select::display(&mut self.workspace, mode, &mut self.view)
+            }
             Mode::Confirm(_) => {
                 presenters::modes::confirm::display(&mut self.workspace, &mut self.view)
             }
@@ -171,6 +174,13 @@ impl Application {
 
     pub fn mode_str(&self) -> Option<&'static str> {
         match self.mode {
+            Mode::Buffer(ref mode) => {
+                if mode.insert_mode() {
+                    Some("search_select_insert")
+                } else {
+                    Some("search_select")
+                }
+            }
             Mode::Command(ref mode) => {
                 if mode.insert_mode() {
                     Some("search_select_insert")
@@ -256,6 +266,12 @@ impl Application {
         self.modes.insert(ModeKey::Insert, Mode::Insert);
         self.modes.insert(ModeKey::Normal, Mode::Normal);
 
+        self.modes.insert(
+            ModeKey::Buffer,
+            Mode::Buffer(BufferMode::new(
+                self.preferences.borrow().search_select_config(),
+            )),
+        );
         self.modes.insert(
             ModeKey::Command,
             Mode::Command(CommandMode::new(

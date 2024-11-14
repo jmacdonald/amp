@@ -4,6 +4,7 @@ use crate::models::application::{Application, Mode};
 
 pub fn nudge(app: &mut Application) -> Result {
     match app.mode {
+        Mode::Buffer(ref mut mode) => mode.select_next(),
         Mode::Open(ref mut mode) => {
             if mode.query().is_empty() {
                 mode.select_next()

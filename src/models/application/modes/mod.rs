@@ -1,3 +1,4 @@
+pub mod buffer;
 mod command;
 mod confirm;
 pub mod jump;
@@ -13,6 +14,7 @@ mod syntax;
 mod theme;
 
 pub enum Mode {
+    Buffer(BufferMode),
     Command(CommandMode),
     Confirm(ConfirmMode),
     Exit,
@@ -32,6 +34,7 @@ pub enum Mode {
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum ModeKey {
+    Buffer,
     Command,
     Confirm,
     Exit,
@@ -49,6 +52,7 @@ pub enum ModeKey {
     Theme,
 }
 
+pub use self::buffer::BufferMode;
 pub use self::command::CommandMode;
 pub use self::confirm::ConfirmMode;
 pub use self::jump::JumpMode;
