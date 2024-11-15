@@ -14,6 +14,10 @@ pub fn accept(app: &mut Application) -> Result {
             (selection.command)(app)?;
         }
         Mode::Open(ref mut mode) => {
+            if mode.selection().is_none() {
+                bail!("No buffer selected");
+            }
+
             for DisplayablePath(path) in mode.selections() {
                 let syntax_definition = app
                     .preferences

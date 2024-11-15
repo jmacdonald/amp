@@ -140,6 +140,10 @@ impl OpenMode {
     }
 
     pub fn selections(&self) -> Vec<&DisplayablePath> {
+        if self.selection().is_none() {
+            return Vec::new();
+        }
+
         let mut selections: Vec<&DisplayablePath> = self
             .marked_results
             .iter()
@@ -387,6 +391,27 @@ mod tests {
         assert_eq!(mode.pinned_query(), "two");
         mode.pop_search_token();
         assert_eq!(mode.pinned_query(), "");
+    }
+
+    #[test]
+    fn selections_works_without_results() {
+        let path = env::current_dir().expect("can't get current directory/path");
+        let mut workspace = Workspace::new(&path, None).unwrap();
+        let config = SearchSelectConfig::default();
+        let mut mode = OpenMode::new(path.clone(), config.clone());
+        let (sender, receiver) = channel();
+
+        // Populate the index
+        mode.reset(&mut workspace, None, sender, config).unwrap();
+        if let Ok(Event::OpenModeIndexComplete(index)) = receiver.recv() {
+            mode.set_index(index);
+        }
+
+        mode.query().push_str("non-existent");
+        mode.search();
+
+        let selections: Vec<&DisplayablePath> = mode.selections().iter().copied().collect();
+        assert_eq!(selections, Vec::<&DisplayablePath>::new());
     }
 
     #[test]
