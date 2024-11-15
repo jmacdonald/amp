@@ -185,7 +185,7 @@ impl SearchSelectMode for OpenMode {
 
     fn search(&mut self) {
         let results = if let OpenModeIndex::Complete(ref index) = self.index {
-            if self.input.is_empty() {
+            if self.input.is_empty() && self.pinned_input.is_empty() {
                 index
                     .iter()
                     .take(self.config.max_results)
