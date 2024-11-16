@@ -4,20 +4,29 @@ use crate::view::{Colors, CursorType, StatusLineData, Style, View};
 use scribe::buffer::Position;
 use scribe::Workspace;
 
-pub fn display(workspace: &mut Workspace, mode: &LineJumpMode, view: &mut View) -> Result<()> {
+pub fn display(
+    workspace: &mut Workspace,
+    mode: &LineJumpMode,
+    view: &mut View,
+    error: &Option<Error>,
+) -> Result<()> {
     let mut presenter = view.build_presenter()?;
     let buf = workspace.current_buffer.as_ref().ok_or(BUFFER_MISSING)?;
     let data = buf.data();
     presenter.print_buffer(buf, &data, &workspace.syntax_set, None, None)?;
 
-    // Draw the status line as an input prompt.
     let input_prompt = format!("Go to line: {}", mode.input);
     let input_prompt_len = input_prompt.len();
-    presenter.print_status_line(&[StatusLineData {
-        content: input_prompt,
-        style: Style::Default,
-        colors: Colors::Default,
-    }]);
+    if let Some(e) = error {
+        presenter.print_error(e.description());
+    } else {
+        // Draw the status line as an input prompt.
+        presenter.print_status_line(&[StatusLineData {
+            content: input_prompt,
+            style: Style::Default,
+            colors: Colors::Default,
+        }]);
+    }
 
     // Move the cursor to the end of the search query input.
     let cursor_line = presenter.height() - 1;

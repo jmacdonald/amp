@@ -7,7 +7,12 @@ use scribe::Workspace;
 use std::cmp;
 use unicode_segmentation::UnicodeSegmentation;
 
-pub fn display(workspace: &mut Workspace, mode: &mut OpenMode, view: &mut View) -> Result<()> {
+pub fn display(
+    workspace: &mut Workspace,
+    mode: &mut OpenMode,
+    view: &mut View,
+    error: &Option<Error>,
+) -> Result<()> {
     let data;
     let padded_message;
     let mut presenter = view.build_presenter()?;
@@ -21,14 +26,18 @@ pub fn display(workspace: &mut Workspace, mode: &mut OpenMode, view: &mut View) 
         data = buf.data();
         presenter.print_buffer(buf, &data, &workspace.syntax_set, None, None)?;
 
-        presenter.print_status_line(&[
-            StatusLineData {
-                content: format!(" {mode} "),
-                style: Style::Default,
-                colors: Colors::Inverted,
-            },
-            buffer_status,
-        ]);
+        if let Some(e) = error {
+            presenter.print_error(e.description());
+        } else {
+            presenter.print_status_line(&[
+                StatusLineData {
+                    content: format!(" {mode} "),
+                    style: Style::Default,
+                    colors: Colors::Inverted,
+                },
+                buffer_status,
+            ]);
+        }
     }
 
     if let Some(message) = mode.message() {

@@ -12,6 +12,7 @@ pub fn display<T: SearchSelectMode + Display>(
     workspace: &mut Workspace,
     mode: &mut T,
     view: &mut View,
+    error: &Option<Error>,
 ) -> Result<()> {
     let data;
     let padded_message;
@@ -26,14 +27,18 @@ pub fn display<T: SearchSelectMode + Display>(
         data = buf.data();
         presenter.print_buffer(buf, &data, &workspace.syntax_set, None, None)?;
 
-        presenter.print_status_line(&[
-            StatusLineData {
-                content: format!(" {mode} "),
-                style: Style::Default,
-                colors: Colors::Inverted,
-            },
-            buffer_status,
-        ]);
+        if let Some(e) = error {
+            presenter.print_error(e.description());
+        } else {
+            presenter.print_status_line(&[
+                StatusLineData {
+                    content: format!(" {mode} "),
+                    style: Style::Default,
+                    colors: Colors::Inverted,
+                },
+                buffer_status,
+            ]);
+        }
     }
 
     if let Some(message) = mode.message() {

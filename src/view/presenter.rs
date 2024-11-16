@@ -153,6 +153,14 @@ impl<'p> Presenter<'p> {
             });
     }
 
+    pub fn print_error<I: Into<String>>(&mut self, error: I) {
+        self.print_status_line(&[StatusLineData {
+            content: error.into(),
+            style: Style::Bold,
+            colors: Colors::Warning,
+        }]);
+    }
+
     pub fn print<C>(&mut self, position: &Position, style: Style, colors: Colors, content: C)
     where
         C: Into<Cow<'p, str>>,

@@ -5,7 +5,12 @@ use scribe::buffer::Position;
 use scribe::Workspace;
 use unicode_segmentation::UnicodeSegmentation;
 
-pub fn display(workspace: &mut Workspace, mode: &PathMode, view: &mut View) -> Result<()> {
+pub fn display(
+    workspace: &mut Workspace,
+    mode: &PathMode,
+    view: &mut View,
+    error: &Option<Error>,
+) -> Result<()> {
     let mut presenter = view.build_presenter()?;
 
     // Draw the visible set of tokens to the terminal.
@@ -18,18 +23,22 @@ pub fn display(workspace: &mut Workspace, mode: &PathMode, view: &mut View) -> R
 
     let cursor_offset = mode_display.graphemes(true).count() + search_input.graphemes(true).count();
 
-    presenter.print_status_line(&[
-        StatusLineData {
-            content: mode_display,
-            style: Style::Default,
-            colors: Colors::PathMode,
-        },
-        StatusLineData {
-            content: search_input,
-            style: Style::Default,
-            colors: Colors::Focused,
-        },
-    ]);
+    if let Some(e) = error {
+        presenter.print_error(e.description());
+    } else {
+        presenter.print_status_line(&[
+            StatusLineData {
+                content: mode_display,
+                style: Style::Default,
+                colors: Colors::PathMode,
+            },
+            StatusLineData {
+                content: search_input,
+                style: Style::Default,
+                colors: Colors::Focused,
+            },
+        ]);
+    }
 
     // Move the cursor to the end of the search query input.
     {

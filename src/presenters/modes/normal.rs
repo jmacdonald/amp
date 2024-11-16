@@ -9,6 +9,7 @@ pub fn display(
     workspace: &mut Workspace,
     view: &mut View,
     repo: &Option<Repository>,
+    error: &Option<Error>,
 ) -> Result<()> {
     let mut presenter = view.build_presenter()?;
     let buffer_status = current_buffer_status_line_data(workspace);
@@ -25,16 +26,20 @@ pub fn display(
             Colors::Inverted
         };
 
-        // Build the status line mode and buffer title display.
-        presenter.print_status_line(&[
-            StatusLineData {
-                content: " NORMAL ".to_string(),
-                style: Style::Default,
-                colors,
-            },
-            buffer_status,
-            git_status_line_data(repo, &buf.path),
-        ]);
+        if let Some(e) = error {
+            presenter.print_error(e.description());
+        } else {
+            // Build the status line mode and buffer title display.
+            presenter.print_status_line(&[
+                StatusLineData {
+                    content: " NORMAL ".to_string(),
+                    style: Style::Default,
+                    colors,
+                },
+                buffer_status,
+                git_status_line_data(repo, &buf.path),
+            ]);
+        }
 
         // Restore the default cursor, suggesting non-input mode.
         presenter.set_cursor_type(CursorType::Block);

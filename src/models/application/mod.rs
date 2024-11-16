@@ -88,9 +88,6 @@ impl Application {
     fn render(&mut self) -> Result<()> {
         if let Err(error) = self.present() {
             presenters::error::display(&mut self.workspace, &mut self.view, &error)?;
-        } else if let Some(ref error) = self.error {
-            // Display an error from previous command invocation, if one exists.
-            presenters::error::display(&mut self.workspace, &mut self.view, error)?;
         }
 
         Ok(())
@@ -98,48 +95,86 @@ impl Application {
 
     fn present(&mut self) -> Result<()> {
         match self.mode {
-            Mode::Confirm(_) => {
-                presenters::modes::confirm::display(&mut self.workspace, &mut self.view)
+            Mode::Confirm(_) => presenters::modes::confirm::display(
+                &mut self.workspace,
+                &mut self.view,
+                &self.error,
+            ),
+            Mode::Command(ref mut mode) => presenters::modes::search_select::display(
+                &mut self.workspace,
+                mode,
+                &mut self.view,
+                &self.error,
+            ),
+            Mode::Insert => {
+                presenters::modes::insert::display(&mut self.workspace, &mut self.view, &self.error)
             }
-            Mode::Command(ref mut mode) => {
-                presenters::modes::search_select::display(&mut self.workspace, mode, &mut self.view)
-            }
-            Mode::Insert => presenters::modes::insert::display(&mut self.workspace, &mut self.view),
-            Mode::Open(ref mut mode) => {
-                presenters::modes::open::display(&mut self.workspace, mode, &mut self.view)
-            }
-            Mode::Search(ref mode) => {
-                presenters::modes::search::display(&mut self.workspace, mode, &mut self.view)
-            }
-            Mode::Jump(ref mut mode) => {
-                presenters::modes::jump::display(&mut self.workspace, mode, &mut self.view)
-            }
-            Mode::LineJump(ref mode) => {
-                presenters::modes::line_jump::display(&mut self.workspace, mode, &mut self.view)
-            }
-            Mode::Path(ref mode) => {
-                presenters::modes::path::display(&mut self.workspace, mode, &mut self.view)
-            }
-            Mode::SymbolJump(ref mut mode) => {
-                presenters::modes::search_select::display(&mut self.workspace, mode, &mut self.view)
-            }
-            Mode::Syntax(ref mut mode) => {
-                presenters::modes::search_select::display(&mut self.workspace, mode, &mut self.view)
-            }
-            Mode::Select(ref mode) => {
-                presenters::modes::select::display(&mut self.workspace, mode, &mut self.view)
-            }
-            Mode::SelectLine(ref mode) => {
-                presenters::modes::select_line::display(&mut self.workspace, mode, &mut self.view)
-            }
+            Mode::Open(ref mut mode) => presenters::modes::open::display(
+                &mut self.workspace,
+                mode,
+                &mut self.view,
+                &self.error,
+            ),
+            Mode::Search(ref mode) => presenters::modes::search::display(
+                &mut self.workspace,
+                mode,
+                &mut self.view,
+                &self.error,
+            ),
+            Mode::Jump(ref mut mode) => presenters::modes::jump::display(
+                &mut self.workspace,
+                mode,
+                &mut self.view,
+                &self.error,
+            ),
+            Mode::LineJump(ref mode) => presenters::modes::line_jump::display(
+                &mut self.workspace,
+                mode,
+                &mut self.view,
+                &self.error,
+            ),
+            Mode::Path(ref mode) => presenters::modes::path::display(
+                &mut self.workspace,
+                mode,
+                &mut self.view,
+                &self.error,
+            ),
+            Mode::SymbolJump(ref mut mode) => presenters::modes::search_select::display(
+                &mut self.workspace,
+                mode,
+                &mut self.view,
+                &self.error,
+            ),
+            Mode::Syntax(ref mut mode) => presenters::modes::search_select::display(
+                &mut self.workspace,
+                mode,
+                &mut self.view,
+                &self.error,
+            ),
+            Mode::Select(ref mode) => presenters::modes::select::display(
+                &mut self.workspace,
+                mode,
+                &mut self.view,
+                &self.error,
+            ),
+            Mode::SelectLine(ref mode) => presenters::modes::select_line::display(
+                &mut self.workspace,
+                mode,
+                &mut self.view,
+                &self.error,
+            ),
             Mode::Normal => presenters::modes::normal::display(
                 &mut self.workspace,
                 &mut self.view,
                 &self.repository,
+                &self.error,
             ),
-            Mode::Theme(ref mut mode) => {
-                presenters::modes::search_select::display(&mut self.workspace, mode, &mut self.view)
-            }
+            Mode::Theme(ref mut mode) => presenters::modes::search_select::display(
+                &mut self.workspace,
+                mode,
+                &mut self.view,
+                &self.error,
+            ),
             Mode::Exit => Ok(()),
         }
     }
