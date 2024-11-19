@@ -9,12 +9,16 @@ use std::fs::OpenOptions;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process;
+use std::sync::LazyLock;
 use yaml_rust::yaml::{Hash, Yaml, YamlLoader};
 
 const APP_INFO: AppInfo = AppInfo {
     name: "amp",
     author: "Jordan MacDonald",
 };
+const FILE_MANAGER_KEY: &str = "file_manager";
+static FILE_MANAGER_TMP_FILE_PATH: LazyLock<String> =
+    LazyLock::new(|| format!("/tmp/amp_selected_file_{}", process::id()));
 const FILE_NAME: &str = "config.yml";
 const FORMAT_TOOL_KEY: &str = "format_tool";
 const LINE_COMMENT_PREFIX_KEY: &str = "line_comment_prefix";
@@ -343,6 +347,32 @@ impl Preferences {
         Some(command)
     }
 
+    pub fn file_manager_command(&self) -> Option<process::Command> {
+        let program = self
+            .data
+            .as_ref()
+            .and_then(|data| data[FILE_MANAGER_KEY]["command"].as_str())?;
+        let mut command = process::Command::new(program);
+
+        let option_data = self
+            .data
+            .as_ref()
+            .and_then(|data| data[FILE_MANAGER_KEY]["options"].as_vec());
+        if let Some(options) = option_data {
+            for option in options {
+                if let Some(o) = option.as_str() {
+                    command.arg(o.replace("${tmp_file}", &FILE_MANAGER_TMP_FILE_PATH));
+                }
+            }
+        }
+
+        Some(command)
+    }
+
+    pub fn file_manager_tmp_file_path(&self) -> &Path {
+        &Path::new(&*FILE_MANAGER_TMP_FILE_PATH)
+    }
+
     fn default_open_mode_exclusions(&self) -> Result<Option<Vec<ExclusionPattern>>> {
         let exclusions = self.default[OPEN_MODE_KEY][OPEN_MODE_EXCLUSIONS_KEY]
             .as_vec()
@@ -410,6 +440,7 @@ mod tests {
     use super::{ExclusionPattern, Preferences, YamlLoader};
     use crate::input::KeyMap;
     use std::path::{Path, PathBuf};
+    use std::process::{self, Command};
     use yaml_rust::yaml::{Hash, Yaml};
 
     #[test]
@@ -865,6 +896,41 @@ mod tests {
         assert_eq!(
             command.get_args().next().and_then(|a| a.to_str()),
             Some("--check")
+        );
+    }
+
+    #[test]
+    fn file_manager_tmp_path_returns_a_pid_namespaced_path() {
+        let preferences = Preferences::new(None);
+
+        assert_eq!(
+            preferences.file_manager_tmp_file_path(),
+            Path::new(&format!("/tmp/amp_selected_file_{}", process::id()))
+        );
+    }
+
+    #[test]
+    fn file_manager_command_returns_user_defined_command_with_tmp_file_substitution() {
+        let data = YamlLoader::load_from_str(
+            "
+            file_manager:
+              command: yazi
+              options:
+                  - --chooser-file
+                  - ${tmp_file}
+        ",
+        )
+        .unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+        let mut expected_command = Command::new("yazi");
+        expected_command.args([
+            "--chooser-file",
+            &preferences.file_manager_tmp_file_path().to_string_lossy(),
+        ]);
+
+        assert_eq!(
+            format!("{:?}", preferences.file_manager_command().unwrap()),
+            format!("{:?}", expected_command)
         );
     }
 }

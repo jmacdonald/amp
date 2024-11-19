@@ -27,6 +27,7 @@ use std::cell::RefCell;
 use std::cmp;
 use std::collections::HashMap;
 use std::ops::Drop;
+use std::process::Command;
 use std::rc::Rc;
 use std::sync::mpsc::{self, Sender, SyncSender};
 use std::sync::Arc;
@@ -149,13 +150,15 @@ impl View {
     pub fn suspend(&mut self) {
         let _ = self.event_listener_killswitch.send(());
         self.terminal.suspend();
-        let (killswitch_tx, killswitch_rx) = mpsc::sync_channel(0);
-        EventListener::start(
-            self.terminal.clone(),
-            self.event_channel.clone(),
-            killswitch_rx,
-        );
-        self.event_listener_killswitch = killswitch_tx;
+        self.initialize_event_listener();
+    }
+
+    pub fn replace(&mut self, command: &mut Command) -> Result<()> {
+        let _ = self.event_listener_killswitch.send(());
+        let status = self.terminal.replace(command)?;
+        self.initialize_event_listener();
+
+        Ok(status)
     }
 
     pub fn last_key(&self) -> &Option<Key> {
@@ -177,6 +180,16 @@ impl View {
         }));
 
         Ok(())
+    }
+
+    fn initialize_event_listener(&mut self) {
+        let (killswitch_tx, killswitch_rx) = mpsc::sync_channel(0);
+        EventListener::start(
+            self.terminal.clone(),
+            self.event_channel.clone(),
+            killswitch_rx,
+        );
+        self.event_listener_killswitch = killswitch_tx;
     }
 }
 
