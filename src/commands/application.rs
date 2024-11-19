@@ -4,6 +4,8 @@ use crate::input::KeyMap;
 use crate::models::application::{Application, Mode, ModeKey};
 use crate::util;
 use scribe::Buffer;
+use std::fs::{read_to_string, remove_file, File};
+use std::path::PathBuf;
 
 pub fn handle_input(app: &mut Application) -> Result {
     // Listen for and respond to user input.
@@ -246,6 +248,39 @@ pub fn switch_to_syntax_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
+pub fn run_file_manager(app: &mut Application) -> Result {
+    let mut command = app
+        .preferences
+        .borrow()
+        .file_manager_command()
+        .chain_err(|| "No file manager configured.")?;
+    let path = app
+        .preferences
+        .borrow()
+        .file_manager_tmp_file_path()
+        .to_path_buf();
+
+    // Some FMs don't create temp files if a selection isn't made.
+    // Creating one normalizes expectations after executing it.
+    File::create(&path).chain_err(|| "Failed to create file manager temp file")?;
+
+    // Run FM
+    app.view.replace(&mut command)?;
+
+    // Read/clean up temp file
+    let file_manager_selections =
+        read_to_string(&path).chain_err(|| "Failed to read file manager temp file")?;
+    remove_file(&path).chain_err(|| "Failed to clean up file manager temp file")?;
+
+    // Open selected buffers
+    for selection in file_manager_selections.lines() {
+        let path = PathBuf::from(selection);
+        util::open_buffer(&path, app)?
+    }
+
+    Ok(())
+}
+
 pub fn display_default_keymap(app: &mut Application) -> Result {
     commands::workspace::new_buffer(app)?;
 
@@ -313,10 +348,14 @@ pub fn exit(app: &mut Application) -> Result {
 
 #[cfg(test)]
 mod tests {
-    use crate::models::application::Mode;
+    use crate::models::application::{Mode, Preferences};
     use crate::models::Application;
     use scribe::Buffer;
+    use serial_test::serial;
+    use std::env;
+    use std::fs::read_to_string;
     use std::path::PathBuf;
+    use yaml_rust::yaml::YamlLoader;
 
     #[test]
     fn display_available_commands_creates_a_new_buffer() {
@@ -384,5 +423,68 @@ mod tests {
         app.workspace.close_current_buffer();
 
         assert!(super::switch_to_path_mode(&mut app).is_err());
+    }
+
+    #[test]
+    #[serial]
+    fn run_file_manager_executes_command_and_opens_path_written_to_tmp_file() {
+        let dir = env::current_dir().unwrap();
+        let cwd = dir.display();
+
+        // Set up the application with a mock command that simulates a file
+        // manager by writing a file selection to the tmp file path.
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let data = YamlLoader::load_from_str(&format!(
+            "
+                file_manager:
+                  command: sh
+                  options: ['-c', 'printf {cwd}/Cargo.toml > {}']
+            ",
+            "${tmp_file}",
+        ))
+        .unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+        app.preferences.replace(preferences);
+
+        super::run_file_manager(&mut app).unwrap();
+
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            read_to_string("Cargo.toml").unwrap()
+        );
+    }
+
+    #[test]
+    #[serial]
+    fn run_file_manager_handles_multiple_paths_written_to_tmp_file() {
+        let dir = env::current_dir().unwrap();
+        let cwd = dir.display();
+
+        // Set up the application with a mock command that simulates a file
+        // manager by writing a file selection to the tmp file path.
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let data = YamlLoader::load_from_str(&format!(
+            "
+                file_manager:
+                  command: sh
+                  options: ['-c', 'printf \"{cwd}/Cargo.toml\\n{cwd}/Cargo.lock\" > {}']
+            ",
+            "${tmp_file}",
+        ))
+        .unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+        app.preferences.replace(preferences);
+
+        super::run_file_manager(&mut app).unwrap();
+
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            read_to_string("Cargo.lock").unwrap()
+        );
+        app.workspace.next_buffer();
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            read_to_string("Cargo.toml").unwrap()
+        );
     }
 }

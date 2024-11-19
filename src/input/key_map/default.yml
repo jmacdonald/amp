@@ -81,6 +81,7 @@ normal:
   ctrl-z: application::suspend
   ctrl-c: application::exit
   "?": application::display_quick_start_guide
+  ":": application::run_file_manager
 
 insert:
   _: buffer::insert_char
