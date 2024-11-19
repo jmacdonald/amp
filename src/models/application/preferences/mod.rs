@@ -15,6 +15,8 @@ const APP_INFO: AppInfo = AppInfo {
     name: "amp",
     author: "Jordan MacDonald",
 };
+const FILE_MANAGER_KEY: &str = "file_manager";
+const FILE_MANAGER_TMP_FILE_PATH: &str = "/tmp/amp_selected_file";
 const FILE_NAME: &str = "config.yml";
 const FORMAT_TOOL_KEY: &str = "format_tool";
 const LINE_COMMENT_PREFIX_KEY: &str = "line_comment_prefix";
@@ -341,6 +343,32 @@ impl Preferences {
         }
 
         Some(command)
+    }
+
+    pub fn file_manager_command(&self) -> Option<process::Command> {
+        let program = self
+            .data
+            .as_ref()
+            .and_then(|data| data[FILE_MANAGER_KEY]["command"].as_str())?;
+        let mut command = process::Command::new(program);
+
+        let option_data = self
+            .data
+            .as_ref()
+            .and_then(|data| data[FILE_MANAGER_KEY]["options"].as_vec());
+        if let Some(options) = option_data {
+            for option in options {
+                if let Some(o) = option.as_str() {
+                    command.arg(o.replace("{tmp_file}", FILE_MANAGER_TMP_FILE_PATH));
+                }
+            }
+        }
+
+        Some(command)
+    }
+
+    pub fn file_manager_tmp_file_path(&self) -> &Path {
+        Path::new(FILE_MANAGER_TMP_FILE_PATH)
     }
 
     fn default_open_mode_exclusions(&self) -> Result<Option<Vec<ExclusionPattern>>> {

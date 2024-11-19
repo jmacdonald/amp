@@ -20,6 +20,7 @@ use std::io::Stdout;
 use std::io::{stdin, stdout, BufWriter, Stdin, Write};
 use std::ops::Drop;
 use std::os::unix::io::AsRawFd;
+use std::process::{Command, ExitStatus};
 use std::sync::Mutex;
 use std::time::Duration;
 use unicode_segmentation::UnicodeSegmentation;
@@ -141,6 +142,37 @@ impl TermionTerminal {
             }
         }
         self.present();
+    }
+
+    fn deinit(&self) {
+        self.restore_cursor();
+        self.set_cursor(Some(Position { line: 0, offset: 0 }));
+        self.present();
+
+        // Clear the current position so we're forced
+        // to move it on the first print after resuming.
+        self.current_position.lock().ok().take();
+
+        // Terminal destructor cleans up for us.
+        if let Ok(mut guard) = self.output.lock() {
+            guard.take();
+        }
+        if let Ok(mut guard) = self.input.lock() {
+            guard.take();
+        }
+
+        // Flush the terminal before suspending to cause the switch from the
+        // alternate screen to main screen to properly restore the terminal.
+        let _ = stdout().flush();
+    }
+
+    fn reinit(&self) {
+        if let Ok(mut guard) = self.output.lock() {
+            guard.replace(create_output_instance());
+        }
+        if let Ok(mut guard) = self.input.lock() {
+            guard.replace(stdin().keys());
+        }
     }
 }
 
@@ -301,37 +333,20 @@ impl Terminal for TermionTerminal {
     }
 
     fn suspend(&self) {
-        self.restore_cursor();
-        self.set_cursor(Some(Position { line: 0, offset: 0 }));
-        self.present();
-
-        // Clear the current position so we're forced
-        // to move it on the first print after resuming.
-        self.current_position.lock().ok().take();
-
-        // Terminal destructor cleans up for us.
-        if let Ok(mut guard) = self.output.lock() {
-            guard.take();
-        }
-        if let Ok(mut guard) = self.input.lock() {
-            guard.take();
-        }
-
-        // Flush the terminal before suspending to cause the switch from the
-        // alternate screen to main screen to properly restore the terminal.
-        let _ = stdout().flush();
+        self.deinit();
 
         unsafe {
             // Stop the amp process.
             libc::raise(libc::SIGSTOP);
         }
 
-        if let Ok(mut guard) = self.output.lock() {
-            guard.replace(create_output_instance());
-        }
-        if let Ok(mut guard) = self.input.lock() {
-            guard.replace(stdin().keys());
-        }
+        self.reinit();
+    }
+
+    fn replace(&self, command: &mut Command) -> Result<ExitStatus> {
+        command
+            .status()
+            .chain_err(|| "Failed to execute replacement command.")
     }
 }
 

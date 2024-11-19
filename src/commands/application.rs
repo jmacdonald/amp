@@ -4,6 +4,7 @@ use crate::input::KeyMap;
 use crate::models::application::{Application, Mode, ModeKey};
 use crate::util;
 use scribe::Buffer;
+use std::path::PathBuf;
 
 pub fn handle_input(app: &mut Application) -> Result {
     // Listen for and respond to user input.
@@ -242,6 +243,43 @@ pub fn switch_to_syntax_mode(app: &mut Application) -> Result {
     }
 
     commands::search_select::search(app)?;
+
+    Ok(())
+}
+
+pub fn run_file_manager(app: &mut Application) -> Result {
+    let mut command = app
+        .preferences
+        .borrow()
+        .file_manager_command()
+        .chain_err(|| "No file manager configured.")?;
+    app.view.replace(&mut command)?;
+
+    let selected_file_path =
+        std::fs::read_to_string(app.preferences.borrow().file_manager_tmp_file_path())
+            .chain_err(|| "Failed to read file manager temp file")?;
+
+    let path = PathBuf::from(selected_file_path);
+
+    let syntax_definition = app
+        .preferences
+        .borrow()
+        .syntax_definition_name(&path)
+        .and_then(|name| app.workspace.syntax_set.find_syntax_by_name(&name).cloned());
+
+    app.workspace
+        .open_buffer(&path)
+        .chain_err(|| "Couldn't open a buffer for the specified path.")?;
+
+    let buffer = app.workspace.current_buffer.as_mut().unwrap();
+
+    // Only override the default syntax definition if the user provided
+    // a valid one in their preferences.
+    if syntax_definition.is_some() {
+        buffer.syntax_definition = syntax_definition;
+    }
+
+    app.view.initialize_buffer(buffer)?;
 
     Ok(())
 }

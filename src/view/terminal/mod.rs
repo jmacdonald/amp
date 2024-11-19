@@ -11,6 +11,7 @@ use crate::errors::*;
 use crate::models::application::Event;
 use crate::view::{Colors, Style};
 use scribe::buffer::Position;
+use std::process::{Command, ExitStatus};
 use std::sync::Arc;
 
 pub use self::buffer::TerminalBuffer;
@@ -34,6 +35,7 @@ pub trait Terminal {
     fn set_cursor_type(&self, _: CursorType);
     fn print(&self, _: &Position, _: Style, _: Colors, _: &str) -> Result<()>;
     fn suspend(&self);
+    fn replace(&self, _: &mut Command) -> Result<ExitStatus>;
 }
 
 #[cfg(not(test))]
