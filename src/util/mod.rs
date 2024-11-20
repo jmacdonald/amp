@@ -8,6 +8,7 @@ pub mod token;
 use crate::errors::*;
 use crate::models::Application;
 use scribe::buffer::{Buffer, LineRange, Position, Range};
+use std::path::Path;
 
 /// Translates a line range to a regular range, including its last line.
 /// Handles ranges including and end line without trailing newline character.
@@ -50,7 +51,32 @@ pub fn inclusive_range(line_range: &LineRange, buffer: &mut Buffer) -> Range {
     )
 }
 
-/// Convenience method to initialize and add a buffer to the workspace.
+/// Convenience method to open/initialize a file as a buffer in the workspace.
+pub fn open_buffer(path: &Path, app: &mut Application) -> Result<()> {
+    let syntax_definition = app
+        .preferences
+        .borrow()
+        .syntax_definition_name(&path)
+        .and_then(|name| app.workspace.syntax_set.find_syntax_by_name(&name).cloned());
+
+    app.workspace
+        .open_buffer(&path)
+        .chain_err(|| "Couldn't open a buffer for the specified path.")?;
+
+    let buffer = app.workspace.current_buffer.as_mut().unwrap();
+
+    // Only override the default syntax definition if the user provided
+    // a valid one in their preferences.
+    if syntax_definition.is_some() {
+        buffer.syntax_definition = syntax_definition;
+    }
+
+    app.view.initialize_buffer(buffer)?;
+
+    Ok(())
+}
+
+/// Convenience method to add/initialize an in-memory buffer in the workspace.
 pub fn add_buffer(buffer: Buffer, app: &mut Application) -> Result<()> {
     app.workspace.add_buffer(buffer);
     app.view
