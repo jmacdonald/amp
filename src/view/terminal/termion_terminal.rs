@@ -20,7 +20,7 @@ use std::io::Stdout;
 use std::io::{stdin, stdout, BufWriter, Stdin, Write};
 use std::ops::Drop;
 use std::os::unix::io::AsRawFd;
-use std::process::{Command, ExitStatus};
+use std::process::Command;
 use std::sync::Mutex;
 use std::time::Duration;
 use unicode_segmentation::UnicodeSegmentation;
@@ -343,10 +343,19 @@ impl Terminal for TermionTerminal {
         self.reinit();
     }
 
-    fn replace(&self, command: &mut Command) -> Result<ExitStatus> {
-        command
+    fn replace(&self, command: &mut Command) -> Result<()> {
+        let status = command
             .status()
-            .chain_err(|| "Failed to execute replacement command.")
+            .chain_err(|| "Failed to execute replacement command.")?;
+
+        if status.success() {
+            Ok(())
+        } else {
+            bail!(
+                "File manager exited with status code of {:?}",
+                status.code()
+            )
+        }
     }
 }
 

@@ -27,7 +27,7 @@ use std::cell::RefCell;
 use std::cmp;
 use std::collections::HashMap;
 use std::ops::Drop;
-use std::process::{Command, ExitStatus};
+use std::process::Command;
 use std::rc::Rc;
 use std::sync::mpsc::{self, Sender, SyncSender};
 use std::sync::Arc;
@@ -161,7 +161,7 @@ impl View {
         self.event_listener_killswitch = killswitch_tx;
     }
 
-    pub fn replace(&mut self, command: &mut Command) -> Result<ExitStatus> {
+    pub fn replace(&mut self, command: &mut Command) -> Result<()> {
         let _ = self.event_listener_killswitch.send(());
 
         let status = self.terminal.replace(command)?;

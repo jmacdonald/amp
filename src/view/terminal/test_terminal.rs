@@ -4,6 +4,7 @@ use crate::input::Key;
 use crate::models::application::Event;
 use crate::view::{Colors, CursorType, Style};
 use scribe::buffer::Position;
+use std::process::Command;
 use std::sync::Mutex;
 
 const WIDTH: usize = 10;
@@ -93,6 +94,9 @@ impl Terminal for TestTerminal {
     }
     fn set_cursor_type(&self, _: CursorType) {}
     fn suspend(&self) {}
+    fn replace(&self, _: &mut Command) -> Result<()> {
+        Ok(())
+    }
     fn print(&self, position: &Position, _: Style, colors: Colors, content: &str) -> Result<()> {
         // Ignore lines beyond visible height.
         if position.line >= self.height() {
