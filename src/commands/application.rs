@@ -4,6 +4,7 @@ use crate::input::KeyMap;
 use crate::models::application::{Application, Mode, ModeKey};
 use crate::util;
 use scribe::Buffer;
+use std::fs;
 use std::path::PathBuf;
 
 pub fn handle_input(app: &mut Application) -> Result {
@@ -258,6 +259,8 @@ pub fn run_file_manager(app: &mut Application) -> Result {
     let selected_file_path =
         std::fs::read_to_string(app.preferences.borrow().file_manager_tmp_file_path())
             .chain_err(|| "Failed to read file manager temp file")?;
+    fs::remove_file(app.preferences.borrow().file_manager_tmp_file_path())
+        .chain_err(|| "Failed to clean up file manager temp file")?;
 
     let path = PathBuf::from(selected_file_path);
 
