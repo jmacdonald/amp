@@ -7,3 +7,4 @@
 /target
 *.snap
 *.swp
+.devenv*

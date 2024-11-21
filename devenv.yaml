@@ -1,0 +1,8 @@
+inputs:
+  nixpkgs:
+    url: github:cachix/devenv-nixpkgs/rolling
+  fenix:
+    url: github:nix-community/fenix
+    inputs:
+      nixpkgs:
+        follows: nixpkgs
