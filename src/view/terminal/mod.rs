@@ -4,7 +4,7 @@ mod cell;
 mod cursor;
 mod termion_terminal;
 
-#[cfg(any(test, feature = "bench"))]
+#[cfg(test)]
 mod test_terminal;
 
 use crate::errors::*;
@@ -18,7 +18,7 @@ pub use self::buffer_iterator::TerminalBufferIterator;
 pub use self::cell::Cell;
 pub use self::cursor::CursorType;
 
-#[cfg(any(test, feature = "bench"))]
+#[cfg(test)]
 pub use self::test_terminal::TestTerminal;
 
 const MIN_WIDTH: usize = 10;
@@ -36,14 +36,14 @@ pub trait Terminal {
     fn suspend(&self);
 }
 
-#[cfg(not(any(test, feature = "bench")))]
+#[cfg(not(test))]
 pub fn build_terminal() -> Result<Arc<Box<dyn Terminal + Sync + Send + 'static>>> {
     Ok(Arc::new(
         Box::new(termion_terminal::TermionTerminal::new()?),
     ))
 }
 
-#[cfg(any(test, feature = "bench"))]
+#[cfg(test)]
 pub fn build_terminal() -> Result<Arc<Box<dyn Terminal + Sync + Send + 'static>>> {
     Ok(Arc::new(Box::new(TestTerminal::new())))
 }

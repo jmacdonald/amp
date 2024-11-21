@@ -429,7 +429,7 @@ fn create_workspace(
     Ok(workspace)
 }
 
-#[cfg(not(any(test, feature = "bench")))]
+#[cfg(not(test))]
 fn user_syntax_path() -> Result<Option<PathBuf>> {
     Preferences::syntax_path().map(Some)
 }
@@ -437,7 +437,7 @@ fn user_syntax_path() -> Result<Option<PathBuf>> {
 // Building/linking user syntaxes is expensive, which is most obvious in the
 // test suite, as it creates application instances in rapid succession. Bypass
 // these in test and benchmark environments.
-#[cfg(any(test, feature = "bench"))]
+#[cfg(test)]
 fn user_syntax_path() -> Result<Option<PathBuf>> {
     Ok(None)
 }
