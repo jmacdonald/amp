@@ -344,9 +344,13 @@ impl Terminal for TermionTerminal {
     }
 
     fn replace(&self, command: &mut Command) -> Result<()> {
+        self.deinit();
+
         let status = command
             .status()
             .chain_err(|| "Failed to execute replacement command.")?;
+
+        self.reinit();
 
         if status.success() {
             Ok(())
