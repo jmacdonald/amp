@@ -9,6 +9,7 @@ use std::fs::OpenOptions;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process;
+use std::sync::LazyLock;
 use yaml_rust::yaml::{Hash, Yaml, YamlLoader};
 
 const APP_INFO: AppInfo = AppInfo {
@@ -16,7 +17,8 @@ const APP_INFO: AppInfo = AppInfo {
     author: "Jordan MacDonald",
 };
 const FILE_MANAGER_KEY: &str = "file_manager";
-const FILE_MANAGER_TMP_FILE_PATH: &str = "/tmp/amp_selected_file";
+static FILE_MANAGER_TMP_FILE_PATH: LazyLock<String> =
+    LazyLock::new(|| format!("/tmp/amp_selected_file_{}", process::id()));
 const FILE_NAME: &str = "config.yml";
 const FORMAT_TOOL_KEY: &str = "format_tool";
 const LINE_COMMENT_PREFIX_KEY: &str = "line_comment_prefix";
@@ -359,7 +361,7 @@ impl Preferences {
         if let Some(options) = option_data {
             for option in options {
                 if let Some(o) = option.as_str() {
-                    command.arg(o.replace("{tmp_file}", FILE_MANAGER_TMP_FILE_PATH));
+                    command.arg(o.replace("{tmp_file}", &FILE_MANAGER_TMP_FILE_PATH));
                 }
             }
         }
@@ -368,7 +370,7 @@ impl Preferences {
     }
 
     pub fn file_manager_tmp_file_path(&self) -> &Path {
-        Path::new(FILE_MANAGER_TMP_FILE_PATH)
+        &Path::new(&*FILE_MANAGER_TMP_FILE_PATH)
     }
 
     fn default_open_mode_exclusions(&self) -> Result<Option<Vec<ExclusionPattern>>> {
