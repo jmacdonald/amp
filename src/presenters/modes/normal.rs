@@ -65,6 +65,10 @@ pub fn display(
             presenter.print(&position, Style::Default, Colors::Default, line);
         }
 
+        if let Some(e) = error {
+            presenter.print_error(e.description());
+        }
+
         presenter.set_cursor(None);
         presenter.present()?;
     }
