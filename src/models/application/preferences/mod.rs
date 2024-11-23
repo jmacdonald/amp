@@ -440,6 +440,7 @@ mod tests {
     use super::{ExclusionPattern, Preferences, YamlLoader};
     use crate::input::KeyMap;
     use std::path::{Path, PathBuf};
+    use std::process::{self, Command};
     use yaml_rust::yaml::{Hash, Yaml};
 
     #[test]
@@ -895,6 +896,41 @@ mod tests {
         assert_eq!(
             command.get_args().next().and_then(|a| a.to_str()),
             Some("--check")
+        );
+    }
+
+    #[test]
+    fn file_manager_tmp_path_returns_a_pid_namespaced_path() {
+        let preferences = Preferences::new(None);
+
+        assert_eq!(
+            preferences.file_manager_tmp_file_path(),
+            Path::new(&format!("/tmp/amp_selected_file_{}", process::id()))
+        );
+    }
+
+    #[test]
+    fn file_manager_command_returns_user_defined_command_with_tmp_file_substitution() {
+        let data = YamlLoader::load_from_str(
+            "
+            file_manager:
+              command: yazi
+              options:
+                  - --chooser-file
+                  - ${tmp_file}
+        ",
+        )
+        .unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+        let mut expected_command = Command::new("yazi");
+        expected_command.args([
+            "--chooser-file",
+            &preferences.file_manager_tmp_file_path().to_string_lossy(),
+        ]);
+
+        assert_eq!(
+            format!("{:?}", preferences.file_manager_command().unwrap()),
+            format!("{:?}", expected_command)
         );
     }
 }
