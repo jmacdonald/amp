@@ -361,7 +361,7 @@ impl Preferences {
         if let Some(options) = option_data {
             for option in options {
                 if let Some(o) = option.as_str() {
-                    command.arg(o.replace("{tmp_file}", &FILE_MANAGER_TMP_FILE_PATH));
+                    command.arg(o.replace("${tmp_file}", &FILE_MANAGER_TMP_FILE_PATH));
                 }
             }
         }
