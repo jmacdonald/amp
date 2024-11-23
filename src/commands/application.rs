@@ -349,10 +349,14 @@ pub fn exit(app: &mut Application) -> Result {
 
 #[cfg(test)]
 mod tests {
-    use crate::models::application::Mode;
+    use crate::models::application::{Mode, Preferences};
     use crate::models::Application;
     use scribe::Buffer;
+    use serial_test::serial;
+    use std::env;
+    use std::fs::read_to_string;
     use std::path::PathBuf;
+    use yaml_rust::yaml::YamlLoader;
 
     #[test]
     fn display_available_commands_creates_a_new_buffer() {
@@ -420,5 +424,68 @@ mod tests {
         app.workspace.close_current_buffer();
 
         assert!(super::switch_to_path_mode(&mut app).is_err());
+    }
+
+    #[test]
+    #[serial]
+    fn run_file_manager_executes_command_and_opens_path_written_to_tmp_file() {
+        let dir = env::current_dir().unwrap();
+        let cwd = dir.display();
+
+        // Set up the application with a mock command that simulates a file
+        // manager by writing a file selection to the tmp file path.
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let data = YamlLoader::load_from_str(&format!(
+            "
+                file_manager:
+                  command: sh
+                  options: ['-c', 'echo {cwd}/Cargo.toml > {}']
+            ",
+            "${tmp_file}",
+        ))
+        .unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+        app.preferences.replace(preferences);
+
+        super::run_file_manager(&mut app).unwrap();
+
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            read_to_string("Cargo.toml").unwrap()
+        );
+    }
+
+    #[test]
+    #[serial]
+    fn run_file_manager_handles_multiple_paths_written_to_tmp_file() {
+        let dir = env::current_dir().unwrap();
+        let cwd = dir.display();
+
+        // Set up the application with a mock command that simulates a file
+        // manager by writing a file selection to the tmp file path.
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let data = YamlLoader::load_from_str(&format!(
+            "
+                file_manager:
+                  command: sh
+                  options: ['-c', 'echo -e \"{cwd}/Cargo.toml\\n{cwd}/Cargo.lock\" > {}']
+            ",
+            "${tmp_file}",
+        ))
+        .unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+        app.preferences.replace(preferences);
+
+        super::run_file_manager(&mut app).unwrap();
+
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            read_to_string("Cargo.lock").unwrap()
+        );
+        app.workspace.next_buffer();
+        assert_eq!(
+            app.workspace.current_buffer.as_ref().unwrap().data(),
+            read_to_string("Cargo.toml").unwrap()
+        );
     }
 }

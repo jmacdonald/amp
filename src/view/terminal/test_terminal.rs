@@ -94,7 +94,10 @@ impl Terminal for TestTerminal {
     }
     fn set_cursor_type(&self, _: CursorType) {}
     fn suspend(&self) {}
-    fn replace(&self, _: &mut Command) -> Result<()> {
+    fn replace(&self, command: &mut Command) -> Result<()> {
+        command
+            .status()
+            .expect("test terminal replace command failed");
         Ok(())
     }
     fn print(&self, position: &Position, _: Style, colors: Colors, content: &str) -> Result<()> {
