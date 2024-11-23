@@ -355,10 +355,12 @@ impl Terminal for TermionTerminal {
         if status.success() {
             Ok(())
         } else {
-            bail!(
-                "File manager exited with status code of {:?}",
-                status.code()
-            )
+            let mut message = format!("'{command:?}' exited");
+            match status.code() {
+                None => message.push_str(" without a status code"),
+                Some(c) => message.push_str(&format!(" with a status code of {c}")),
+            };
+            bail!(message);
         }
     }
 }
