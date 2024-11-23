@@ -4,7 +4,7 @@ use crate::input::KeyMap;
 use crate::models::application::{Application, Mode, ModeKey};
 use crate::util;
 use scribe::Buffer;
-use std::fs;
+use std::fs::{read_to_string, remove_file, File};
 use std::path::PathBuf;
 
 pub fn handle_input(app: &mut Application) -> Result {
@@ -254,17 +254,32 @@ pub fn run_file_manager(app: &mut Application) -> Result {
         .borrow()
         .file_manager_command()
         .chain_err(|| "No file manager configured.")?;
+    let path = app
+        .preferences
+        .borrow()
+        .file_manager_tmp_file_path()
+        .to_path_buf();
+
+    // Some FMs don't create temp files if a selection isn't made.
+    // Creating one normalizes expectations after executing it.
+    File::create(&path).chain_err(|| "Failed to create file manager temp file")?;
+
+    // Run FM
     app.view.replace(&mut command)?;
 
-    let selected_file_path =
-        std::fs::read_to_string(app.preferences.borrow().file_manager_tmp_file_path())
-            .chain_err(|| "Failed to read file manager temp file")?;
-    fs::remove_file(app.preferences.borrow().file_manager_tmp_file_path())
-        .chain_err(|| "Failed to clean up file manager temp file")?;
+    // Read/clean up temp file
+    let file_manager_selections =
+        read_to_string(&path).chain_err(|| "Failed to read file manager temp file")?;
+    remove_file(&path).chain_err(|| "Failed to clean up file manager temp file")?;
 
-    let path = PathBuf::from(selected_file_path);
+    // Open selected buffers
+    for selection in file_manager_selections.lines() {
+        let path = PathBuf::from(selection);
 
-    util::open_buffer(&path, app)
+        util::open_buffer(&path, app)?
+    }
+
+    Ok(())
 }
 
 pub fn display_default_keymap(app: &mut Application) -> Result {
