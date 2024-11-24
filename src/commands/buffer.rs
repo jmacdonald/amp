@@ -984,6 +984,7 @@ mod tests {
     use crate::models::Application;
     use scribe::buffer::Position;
     use scribe::Buffer;
+    use serial_test::serial;
     use std::env;
     use std::fs::File;
     use std::io::Write;
@@ -1589,6 +1590,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn paste_inserts_at_cursor_when_pasting_inline_data() {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
@@ -1611,6 +1613,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn paste_inserts_on_line_below_when_pasting_block_data() {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
@@ -1633,6 +1636,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn paste_works_at_end_of_buffer_when_pasting_block_data() {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
@@ -1656,6 +1660,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn paste_works_on_trailing_newline_when_pasting_block_data() {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
@@ -1838,6 +1843,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn paste_with_inline_content_replaces_selection() {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
@@ -1865,6 +1871,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn paste_with_block_content_replaces_selection() {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
@@ -1891,6 +1898,7 @@ mod tests {
     }
 
     #[test]
+    #[serial]
     fn paste_above_inserts_clipboard_contents_on_a_new_line_above() {
         let mut app = Application::new(&Vec::new()).unwrap();
         let mut buffer = Buffer::new();
