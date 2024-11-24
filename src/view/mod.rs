@@ -150,30 +150,13 @@ impl View {
     pub fn suspend(&mut self) {
         let _ = self.event_listener_killswitch.send(());
         self.terminal.suspend();
-
-        // Post-resume instantiation
-        let (killswitch_tx, killswitch_rx) = mpsc::sync_channel(0);
-        EventListener::start(
-            self.terminal.clone(),
-            self.event_channel.clone(),
-            killswitch_rx,
-        );
-        self.event_listener_killswitch = killswitch_tx;
+        self.initialize_event_listener();
     }
 
     pub fn replace(&mut self, command: &mut Command) -> Result<()> {
         let _ = self.event_listener_killswitch.send(());
-
         let status = self.terminal.replace(command)?;
-
-        // Post-resume instantiation
-        let (killswitch_tx, killswitch_rx) = mpsc::sync_channel(0);
-        EventListener::start(
-            self.terminal.clone(),
-            self.event_channel.clone(),
-            killswitch_rx,
-        );
-        self.event_listener_killswitch = killswitch_tx;
+        self.initialize_event_listener();
 
         Ok(status)
     }
@@ -197,6 +180,16 @@ impl View {
         }));
 
         Ok(())
+    }
+
+    fn initialize_event_listener(&mut self) {
+        let (killswitch_tx, killswitch_rx) = mpsc::sync_channel(0);
+        EventListener::start(
+            self.terminal.clone(),
+            self.event_channel.clone(),
+            killswitch_rx,
+        );
+        self.event_listener_killswitch = killswitch_tx;
     }
 }
 
