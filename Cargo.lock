@@ -1347,9 +1347,9 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
 name = "scribe"
-version = "0.8.5"
+version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9be0094d2d8235bc365cd9ef73624c5f2117a7d07dc1479377513cc8bed1f58e"
+checksum = "9125db281ebc0e0478924fd0f5b9fa084a8fc5b70c1d3572cea856f0309de5a4"
 dependencies = [
  "error-chain",
  "syntect",
