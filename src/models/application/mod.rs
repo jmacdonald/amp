@@ -135,6 +135,9 @@ impl Application {
                 &mut self.view,
                 &self.error,
             ),
+            Mode::Paste => {
+                presenters::modes::paste::display(&mut self.workspace, &mut self.view, &self.error)
+            }
             Mode::Path(ref mode) => presenters::modes::path::display(
                 &mut self.workspace,
                 mode,
@@ -271,6 +274,7 @@ impl Application {
                 }
             }
             Mode::Normal => Some("normal"),
+            Mode::Paste => Some("paste"),
             Mode::Path(_) => Some("path"),
             Mode::Confirm(_) => Some("confirm"),
             Mode::Insert => Some("insert"),
@@ -323,6 +327,7 @@ impl Application {
         self.modes.insert(ModeKey::Exit, Mode::Exit);
         self.modes.insert(ModeKey::Insert, Mode::Insert);
         self.modes.insert(ModeKey::Normal, Mode::Normal);
+        self.modes.insert(ModeKey::Paste, Mode::Paste);
 
         self.modes.insert(
             ModeKey::Command,

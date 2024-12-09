@@ -12,6 +12,7 @@ pub enum Colors {
     Insert,      // white/green
     Warning,     // white/yellow
     PinnedQuery, // white/blue
+    PasteMode,   // white/purple
     PathMode,    // white/pink
     SearchMode,  // white/purple
     SelectMode,  // white/blue

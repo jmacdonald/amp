@@ -80,6 +80,7 @@ normal:
   ctrl-r: buffer::reload
   ctrl-z: application::suspend
   ctrl-c: application::exit
+  ctrl-p: application::switch_to_paste_mode
   "?": application::display_quick_start_guide
   ":": application::run_file_manager
 
@@ -101,6 +102,27 @@ insert:
   ctrl-a: selection::select_all
   ctrl-z: application::suspend
   ctrl-c: application::exit
+  ctrl-p: application::switch_to_paste_mode
+
+paste:
+  _: buffer::insert_char
+  enter: buffer::insert_newline
+  tab: buffer::insert_tab
+  backspace: buffer::backspace
+  up: cursor::move_up
+  down: cursor::move_down
+  left: cursor::move_left
+  right: cursor::move_right
+  home: cursor::move_to_start_of_line
+  end: cursor::move_to_end_of_line
+  page_up: view::scroll_up
+  page_down: view::scroll_down
+  escape: application::switch_to_normal_mode
+  delete: buffer::delete
+  ctrl-a: selection::select_all
+  ctrl-z: application::suspend
+  ctrl-c: application::exit
+  ctrl-p: application::switch_to_insert_mode
 
 jump:
   _: jump::push_search_char
@@ -215,6 +237,9 @@ select:
     - application::switch_to_normal_mode
     - view::scroll_to_cursor
   c: selection::change
+  ctrl-p:
+    - selection::change
+    - application::switch_to_paste_mode
   y: selection::copy
   p:
     - buffer::paste
@@ -262,6 +287,9 @@ select_line:
     - application::switch_to_normal_mode
     - view::scroll_to_cursor
   c: selection::change
+  ctrl-p:
+    - selection::change
+    - application::switch_to_paste_mode
   y: selection::copy
   p:
     - buffer::paste

@@ -373,35 +373,44 @@ pub fn insert_newline(app: &mut Application) -> Result {
         // Insert the newline character.
         buffer.insert("\n");
 
-        // Get the cursor position before moving it to the start of the new line.
-        let position = buffer.cursor.clone();
-        buffer.cursor.move_down();
-        buffer.cursor.move_to_start_of_line();
+        match app.mode {
+            Mode::Paste => {
+                buffer.cursor.move_down();
+                buffer.cursor.move_to_start_of_line();
+            }
+            _ => {
+                // Get the cursor position before moving it to the start of the new line.
+                let position = buffer.cursor.clone();
+                buffer.cursor.move_down();
+                buffer.cursor.move_to_start_of_line();
 
-        // Get a slice of the buffer up to and including the current line.
-        let data = buffer.data();
-        let end_of_current_line = data
-            .lines()
-            .nth(position.line)
-            .map(|l| (l.as_ptr() as usize) + l.len())
-            .unwrap();
-        let offset = end_of_current_line - (data.as_str().as_ptr() as usize);
-        let (previous_content, _) = data.split_at(offset);
+                // Get a slice of the buffer up to and including the current line.
+                let data = buffer.data();
+                let end_of_current_line = data
+                    .lines()
+                    .nth(position.line)
+                    .map(|l| (l.as_ptr() as usize) + l.len())
+                    .unwrap();
+                let offset = end_of_current_line - (data.as_str().as_ptr() as usize);
+                let (previous_content, _) = data.split_at(offset);
 
-        // Searching backwards, copy the nearest non-blank line's indent content.
-        let nearest_non_blank_line = previous_content.lines().rev().find(|line| !line.is_empty());
-        let indent_content = match nearest_non_blank_line {
-            Some(line) => line.chars().take_while(|&c| c.is_whitespace()).collect(),
-            None => String::new(),
-        };
+                // Searching backwards, copy the nearest non-blank line's indent content.
+                let nearest_non_blank_line =
+                    previous_content.lines().rev().find(|line| !line.is_empty());
+                let indent_content = match nearest_non_blank_line {
+                    Some(line) => line.chars().take_while(|&c| c.is_whitespace()).collect(),
+                    None => String::new(),
+                };
 
-        // Insert and move to the end of the indent content.
-        let indent_length = indent_content.chars().count();
-        buffer.insert(indent_content);
-        buffer.cursor.move_to(Position {
-            line: position.line + 1,
-            offset: indent_length,
-        });
+                // Insert and move to the end of the indent content.
+                let indent_length = indent_content.chars().count();
+                buffer.insert(indent_content);
+                buffer.cursor.move_to(Position {
+                    line: position.line + 1,
+                    offset: indent_length,
+                });
+            }
+        }
     } else {
         bail!(BUFFER_MISSING);
     }

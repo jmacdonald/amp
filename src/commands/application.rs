@@ -8,7 +8,6 @@ use std::fs::{read_to_string, remove_file, File};
 use std::path::PathBuf;
 
 pub fn handle_input(app: &mut Application) -> Result {
-    // Listen for and respond to user input.
     let commands = app.view.last_key().as_ref().and_then(|key| {
         app.mode_str()
             .and_then(|mode| app.preferences.borrow().keymap().commands_for(mode, key))
@@ -195,6 +194,18 @@ pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
 pub fn switch_to_search_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer.is_some() {
         app.switch_to(ModeKey::Search);
+    } else {
+        bail!(BUFFER_MISSING);
+    }
+
+    Ok(())
+}
+
+pub fn switch_to_paste_mode(app: &mut Application) -> Result {
+    if app.workspace.current_buffer.is_some() {
+        commands::buffer::start_command_group(app)?;
+        app.switch_to(ModeKey::Paste);
+        commands::view::scroll_to_cursor(app)?;
     } else {
         bail!(BUFFER_MISSING);
     }
