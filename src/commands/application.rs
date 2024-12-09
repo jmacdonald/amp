@@ -1,14 +1,17 @@
 use crate::commands::{self, Result};
 use crate::errors::*;
-use crate::input::KeyMap;
-use crate::models::application::{Application, Mode, ModeKey};
+use crate::input::{Key, KeyMap};
+use crate::models::application::{Application, Event, Mode, ModeKey};
 use crate::util;
 use scribe::Buffer;
 use std::fs::{read_to_string, remove_file, File};
 use std::path::PathBuf;
 
 pub fn handle_input(app: &mut Application) -> Result {
-    // Listen for and respond to user input.
+    if let Mode::Paste = app.mode {
+        return handle_paste_input(app);
+    }
+
     let commands = app.view.last_key().as_ref().and_then(|key| {
         app.mode_str()
             .and_then(|mode| app.preferences.borrow().keymap().commands_for(mode, key))
@@ -24,6 +27,38 @@ pub fn handle_input(app: &mut Application) -> Result {
             debug_log!("[application]: command completed successfully");
         }
     }
+
+    Ok(())
+}
+
+pub fn handle_paste_input(app: &mut Application) -> Result {
+    let buffer = app
+        .workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?;
+    let mut data = String::new();
+    if let Some(k) = app.view.last_key() {
+        match k {
+            Key::Esc => return switch_to_normal_mode(app),
+            Key::Char(c) => data.push(*c),
+            _ => (),
+        }
+    }
+    // grab last char, then:
+    for event in app.events.try_iter() {
+        if let Event::Key(k) = event {
+            match k {
+                Key::Esc => {
+                    buffer.insert(data);
+                    return switch_to_normal_mode(app);
+                }
+                Key::Char(c) => data.push(c),
+                _ => (),
+            }
+        }
+    }
+    buffer.insert(data);
 
     Ok(())
 }
@@ -195,6 +230,18 @@ pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
 pub fn switch_to_search_mode(app: &mut Application) -> Result {
     if app.workspace.current_buffer.is_some() {
         app.switch_to(ModeKey::Search);
+    } else {
+        bail!(BUFFER_MISSING);
+    }
+
+    Ok(())
+}
+
+pub fn switch_to_paste_mode(app: &mut Application) -> Result {
+    if app.workspace.current_buffer.is_some() {
+        commands::buffer::start_command_group(app)?;
+        app.switch_to(ModeKey::Paste);
+        commands::view::scroll_to_cursor(app)?;
     } else {
         bail!(BUFFER_MISSING);
     }
