@@ -33,6 +33,7 @@ impl ColorMap for Theme {
             Colors::Insert => Colors::Custom(RGBColor(255, 255, 255), RGBColor(0, 180, 0)),
             Colors::Warning => Colors::Custom(RGBColor(255, 255, 255), RGBColor(240, 140, 20)),
             Colors::PinnedQuery => Colors::Custom(RGBColor(255, 255, 255), RGBColor(0, 120, 160)),
+            Colors::PasteMode => Colors::Custom(RGBColor(255, 255, 255), RGBColor(120, 0, 120)),
             Colors::PathMode => Colors::Custom(RGBColor(255, 255, 255), RGBColor(255, 20, 147)),
             Colors::SearchMode => Colors::Custom(RGBColor(255, 255, 255), RGBColor(120, 0, 120)),
             Colors::SelectMode => Colors::Custom(RGBColor(255, 255, 255), RGBColor(0, 120, 160)),

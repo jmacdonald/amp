@@ -2,12 +2,11 @@ extern crate libc;
 extern crate termion;
 
 use self::termion::color::{Bg, Fg};
-use self::termion::input::{Keys, TermRead};
 use self::termion::raw::{IntoRawMode, RawTerminal};
 use self::termion::screen::{AlternateScreen, IntoAlternateScreen};
 use self::termion::style;
 use self::termion::{color, cursor};
-use super::Terminal;
+use super::{InputParser, Terminal};
 use crate::errors::*;
 use crate::view::{Colors, CursorType, Style};
 use mio::unix::SourceFd;
@@ -16,8 +15,7 @@ use scribe::buffer::{Distance, Position};
 use signal_hook_mio::v1_0::Signals;
 use std::borrow::{Borrow, BorrowMut};
 use std::fmt::Display;
-use std::io::Stdout;
-use std::io::{stdin, stdout, BufWriter, Stdin, Write};
+use std::io::{stdin, stdout, BufWriter, ErrorKind, Read, Stdout, Write};
 use std::ops::Drop;
 use std::os::unix::io::AsRawFd;
 use std::process::Command;
@@ -25,8 +23,6 @@ use std::sync::Mutex;
 use std::time::Duration;
 use unicode_segmentation::UnicodeSegmentation;
 
-use self::termion::event::Key as TermionKey;
-use crate::input::Key;
 use crate::models::application::Event;
 
 const MAX_QUEUED_EVENTS: usize = 1024;
@@ -36,7 +32,6 @@ const RESIZE: Token = Token(1);
 pub struct TermionTerminal {
     event_listener: Mutex<Poll>,
     signals: Mutex<Signals>,
-    input: Mutex<Option<Keys<Stdin>>>,
     output: Mutex<Option<BufWriter<RawTerminal<AlternateScreen<Stdout>>>>>,
     current_style: Mutex<Option<Style>>,
     current_colors: Mutex<Option<Colors>>,
@@ -51,7 +46,6 @@ impl TermionTerminal {
         Ok(TermionTerminal {
             signals: Mutex::new(signals),
             event_listener: Mutex::new(event_listener),
-            input: Mutex::new(Some(stdin().keys())),
             output: Mutex::new(Some(create_output_instance())),
             current_style: Mutex::new(None),
             current_colors: Mutex::new(None),
@@ -158,9 +152,6 @@ impl TermionTerminal {
         if let Ok(mut guard) = self.output.lock() {
             guard.take();
         }
-        if let Ok(mut guard) = self.input.lock() {
-            guard.take();
-        }
 
         // Flush the terminal before suspending to cause the switch from the
         // alternate screen to main screen to properly restore the terminal.
@@ -170,9 +161,6 @@ impl TermionTerminal {
     fn reinit(&self) {
         if let Ok(mut guard) = self.output.lock() {
             guard.replace(create_output_instance());
-        }
-        if let Ok(mut guard) = self.input.lock() {
-            guard.replace(stdin().keys());
         }
     }
 }
@@ -189,42 +177,32 @@ impl Terminal for TermionTerminal {
             .poll(&mut events, Some(Duration::from_millis(100)))
             .ok()?;
 
-        let mut converted_events = Vec::new();
+        let mut mapped_events = Vec::new();
 
         for event in &events {
-            if let Some(converted_event) = match event.token() {
+            match event.token() {
                 STDIN_INPUT => {
                     debug_log!("[terminal] received stdin event");
 
-                    let mut guard = self.input.lock().ok()?;
-                    let input_handle = guard.as_mut()?;
-                    let input_data = input_handle.next()?;
-                    let key = input_data.ok()?;
+                    let mut input_data = [0u8; 1024];
 
-                    debug_log!("[terminal] read key from stdin: {:?}", key);
-
-                    match key {
-                        TermionKey::Backspace => Some(Event::Key(Key::Backspace)),
-                        TermionKey::Left => Some(Event::Key(Key::Left)),
-                        TermionKey::Right => Some(Event::Key(Key::Right)),
-                        TermionKey::Up => Some(Event::Key(Key::Up)),
-                        TermionKey::Down => Some(Event::Key(Key::Down)),
-                        TermionKey::Home => Some(Event::Key(Key::Home)),
-                        TermionKey::End => Some(Event::Key(Key::End)),
-                        TermionKey::PageUp => Some(Event::Key(Key::PageUp)),
-                        TermionKey::PageDown => Some(Event::Key(Key::PageDown)),
-                        TermionKey::Delete => Some(Event::Key(Key::Delete)),
-                        TermionKey::Insert => Some(Event::Key(Key::Insert)),
-                        TermionKey::Esc => Some(Event::Key(Key::Esc)),
-                        TermionKey::Char('\n') => Some(Event::Key(Key::Enter)),
-                        TermionKey::Char('\t') => Some(Event::Key(Key::Tab)),
-                        TermionKey::Char(c) => Some(Event::Key(Key::Char(c))),
-                        TermionKey::Ctrl(c) => Some(Event::Key(Key::Ctrl(c))),
-                        _ => {
-                            debug_log!("[terminal] key is unmapped");
-
-                            None
+                    match stdin().read(&mut input_data) {
+                        Ok(0) => break, // 0 bytes, EOF
+                        Err(ref e) if e.kind() == ErrorKind::WouldBlock => break,
+                        Err(e) => {
+                            debug_log!("[terminal] error reading stdin: {e}");
+                            break;
                         }
+                        Ok(_) => (),
+                    }
+
+                    let mut input_parser = InputParser::new();
+                    input_parser.feed(&input_data);
+
+                    for key in input_parser {
+                        debug_log!("[terminal] read key from stdin: {:?}", key);
+
+                        mapped_events.push(key);
                     }
                 }
                 RESIZE => {
@@ -233,24 +211,19 @@ impl Terminal for TermionTerminal {
                     // Consume the resize signal so it doesn't trigger again.
                     self.signals.lock().ok()?.pending().next();
 
-                    Some(Event::Resize)
+                    mapped_events.push(Event::Resize);
                 }
                 _ => {
                     debug_log!("[terminal] received unknown event");
-
-                    None
                 }
-            } {
-                converted_events.push(converted_event);
             }
         }
 
-        if converted_events.is_empty() {
-            debug_log!("[terminal] processed empty event set");
-
+        debug_log!("[terminal] processed empty event set");
+        if mapped_events.is_empty() {
             None
         } else {
-            Some(converted_events)
+            Some(mapped_events)
         }
     }
 

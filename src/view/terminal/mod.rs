@@ -2,6 +2,7 @@ mod buffer;
 mod buffer_iterator;
 mod cell;
 mod cursor;
+mod input_parser;
 mod termion_terminal;
 
 #[cfg(test)]
@@ -18,6 +19,7 @@ pub use self::buffer::TerminalBuffer;
 pub use self::buffer_iterator::TerminalBufferIterator;
 pub use self::cell::Cell;
 pub use self::cursor::CursorType;
+pub use self::input_parser::InputParser;
 
 #[cfg(test)]
 pub use self::test_terminal::TestTerminal;

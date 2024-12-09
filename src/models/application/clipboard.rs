@@ -6,11 +6,22 @@ use cli_clipboard::{ClipboardContext, ClipboardProvider};
 /// context in which it was captured. When OS-level clipboard contents are
 /// used, they are always represented as inline, as we cannot infer block
 /// style without the copy context.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum ClipboardContent {
     Inline(String),
     Block(String),
     None,
+}
+
+impl ClipboardContent {
+    pub fn text(&self) -> Option<&str> {
+        match self {
+            ClipboardContent::Inline(ref content) | ClipboardContent::Block(ref content) => {
+                Some(content)
+            }
+            _ => None,
+        }
+    }
 }
 
 /// Qualifies in-app copy/paste content with structural information, and
@@ -45,40 +56,16 @@ impl Clipboard {
     /// differs from the system clipboard, the system clipboard content will
     /// be saved to the in-app clipboard as inline data and returned instead.
     pub fn get_content(&mut self) -> &ClipboardContent {
-        // Check the system clipboard for newer content.
-        let new_content = match self.system_clipboard {
-            Some(ref mut clipboard) => {
-                match clipboard.get_contents() {
-                    Ok(content) => {
-                        if content.is_empty() {
-                            None
-                        } else {
-                            // There is system clipboard content we can use.
-                            match self.content {
-                                ClipboardContent::Inline(ref app_content)
-                                | ClipboardContent::Block(ref app_content) => {
-                                    // We have in-app clipboard content, too. Prefer
-                                    // the system clipboard content if they differ.
-                                    if content != *app_content {
-                                        Some(ClipboardContent::Inline(content))
-                                    } else {
-                                        None
-                                    }
-                                }
-                                // We have no in-app clipboard content. Use the system's.
-                                _ => Some(ClipboardContent::Inline(content)),
-                            }
-                        }
-                    }
-                    _ => None,
-                }
-            }
-            None => None,
-        };
+        let new_system_content = self
+            .system_clipboard
+            .as_mut()
+            .and_then(|clip| clip.get_contents().ok())
+            .filter(|con| !con.is_empty()) // treat empty content as None
+            .map(ClipboardContent::Inline) // external content is always inline
+            .filter(|con| *con != self.content); // skip if it's identical
 
-        // Update the in-app clipboard if we've found newer content.
-        if let Some(new_content) = new_content {
-            self.content = new_content;
+        if let Some(content) = new_system_content {
+            self.content = content;
         }
 
         &self.content
@@ -89,17 +76,12 @@ impl Clipboard {
         // Update the in-app clipboard.
         self.content = content;
 
-        // Update the system clipboard.
-        match self.content {
-            ClipboardContent::Inline(ref app_content)
-            | ClipboardContent::Block(ref app_content) => {
-                if let Some(ref mut clipboard) = self.system_clipboard {
-                    return clipboard
-                        .set_contents(app_content.clone())
-                        .map_err(|_| Error::from("Failed to update system clipboard"));
-                }
+        if let (Some(clip), Some(text)) = (self.system_clipboard.as_mut(), self.content.text()) {
+            if let Err(_) = clip.set_contents(text.to_owned()) {
+                self.system_clipboard = ClipboardProvider::new()
+                    .map(Some)
+                    .map_err(|_| Error::from("Failed to update or reclaim system clipboard"))?;
             }
-            _ => (),
         }
 
         Ok(())
