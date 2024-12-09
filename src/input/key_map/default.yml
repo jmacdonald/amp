@@ -38,7 +38,7 @@ normal:
   u: buffer::undo
   r: buffer::redo
   p: buffer::paste
-  P: buffer::paste_above
+  P: application::switch_to_paste_mode
   n:
     - application::switch_to_search_mode
     - search::accept_query

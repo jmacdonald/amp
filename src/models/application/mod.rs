@@ -35,7 +35,7 @@ pub struct Application {
     pub error: Option<Error>,
     pub preferences: Rc<RefCell<Preferences>>,
     pub event_channel: Sender<Event>,
-    events: Receiver<Event>,
+    pub events: Receiver<Event>,
     current_mode: ModeKey,
     previous_mode: ModeKey,
     modes: HashMap<ModeKey, Mode>,
@@ -133,6 +133,9 @@ impl Application {
                 &mut self.view,
                 &self.error,
             ),
+            Mode::Paste => {
+                presenters::modes::insert::display(&mut self.workspace, &mut self.view, &self.error)
+            }
             Mode::Path(ref mode) => presenters::modes::path::display(
                 &mut self.workspace,
                 mode,
@@ -242,6 +245,7 @@ impl Application {
                 }
             }
             Mode::Normal => Some("normal"),
+            Mode::Paste => Some("paste"),
             Mode::Path(_) => Some("path"),
             Mode::Confirm(_) => Some("confirm"),
             Mode::Insert => Some("insert"),
@@ -290,6 +294,7 @@ impl Application {
         self.modes.insert(ModeKey::Exit, Mode::Exit);
         self.modes.insert(ModeKey::Insert, Mode::Insert);
         self.modes.insert(ModeKey::Normal, Mode::Normal);
+        self.modes.insert(ModeKey::Paste, Mode::Paste);
 
         self.modes.insert(
             ModeKey::Command,
