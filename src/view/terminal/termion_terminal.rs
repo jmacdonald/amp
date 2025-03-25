@@ -10,8 +10,9 @@ use self::termion::{color, cursor};
 use super::Terminal;
 use crate::errors::*;
 use crate::view::{Colors, CursorType, Style};
-use mio::unix::EventedFd;
-use mio::{Events, Poll, PollOpt, Ready, Token};
+use mio::event::Event;
+use mio::unix::SourceFd;
+use mio::{Events, Interest, Poll, Token};
 use scribe::buffer::{Distance, Position};
 use signal_hook::iterator::Signals;
 use std::borrow::{Borrow, BorrowMut};
@@ -386,16 +387,15 @@ fn create_event_listener() -> Result<(Poll, Signals)> {
     let signals = Signals::new([signal_hook::SIGWINCH])
         .chain_err(|| "Failed to initialize event listener signal")?;
     let event_listener = Poll::new().chain_err(|| "Failed to establish polling")?;
-    event_listener
+    event_listener.registry()
         .register(
-            &EventedFd(&stdin().as_raw_fd()),
+            &mut SourceFd(&stdin().as_raw_fd()),
             STDIN_INPUT,
-            Ready::readable(),
-            PollOpt::level(),
+            Interest::READABLE,
         )
         .chain_err(|| "Failed to register stdin to event listener")?;
-    event_listener
-        .register(&signals, RESIZE, Ready::readable(), PollOpt::level())
+    event_listener.registry()
+        .register(&mut signals, RESIZE, Interest::READABLE)
         .chain_err(|| "Failed to register resize signal to event listener")?;
 
     Ok((event_listener, signals))
