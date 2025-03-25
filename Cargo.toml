@@ -31,7 +31,7 @@ cli-clipboard = "0.4"
 yaml-rust = "0.4"
 smallvec = "1.11"
 lazy_static = "1.4"
-mio = "1.0"
+mio = { version = "1.0", features = ["os-ext"] }
 serial_test = "3.2.0"
 
 [dependencies.signal-hook]
