@@ -1,19 +1,19 @@
 use crate::view::buffer::LineNumbers;
 use crate::view::terminal::Terminal;
 use scribe::buffer::Buffer;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use unicode_segmentation::UnicodeSegmentation;
 
 /// Abstract representation of a fixed-height section of the screen.
 /// Used to determine visible ranges of lines based on previous state,
 /// explicit line focus, and common scrolling implementation behaviours.
 pub struct ScrollableRegion {
-    terminal: Arc<Box<dyn Terminal + Sync + Send + 'static>>,
+    terminal: Arc<Mutex<dyn Terminal + Send + 'static>>,
     line_offset: usize,
 }
 
 impl ScrollableRegion {
-    pub fn new(terminal: Arc<Box<dyn Terminal + Sync + Send + 'static>>) -> ScrollableRegion {
+    pub fn new(terminal: Arc<Mutex<dyn Terminal + Send + 'static>>) -> ScrollableRegion {
         ScrollableRegion {
             terminal,
             line_offset: 0,

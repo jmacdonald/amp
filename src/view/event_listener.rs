@@ -1,11 +1,11 @@
 use crate::models::application::Event;
 use crate::view::Terminal;
 use std::sync::mpsc::{Receiver, Sender};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::thread;
 
 pub struct EventListener {
-    terminal: Arc<Box<dyn Terminal + Sync + Send + 'static>>,
+    terminal: Arc<Mutex<dyn Terminal + Send + 'static>>,
     events: Sender<Event>,
     killswitch: Receiver<()>,
 }
@@ -14,7 +14,7 @@ impl EventListener {
     /// Spins up a thread that loops forever, waiting on terminal events
     /// and forwarding those to the application event channel.
     pub fn start(
-        terminal: Arc<Box<dyn Terminal + Sync + Send + 'static>>,
+        terminal: Arc<Mutex<dyn Terminal + Send + 'static>>,
         events: Sender<Event>,
         killswitch: Receiver<()>,
     ) {
@@ -30,7 +30,7 @@ impl EventListener {
 
     fn listen(&mut self) {
         loop {
-            if let Some(events) = self.terminal.listen() {
+            if let Some(events) = self.terminal.lock().unwrap().listen() {
                 for event in events {
                     self.events.send(event).ok();
                 }

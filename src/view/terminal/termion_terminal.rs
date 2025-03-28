@@ -178,10 +178,12 @@ impl TermionTerminal {
 }
 
 impl Terminal for TermionTerminal {
-    fn listen(&self) -> Option<Vec<Event>> {
+    fn listen(&mut self) -> Option<Vec<Event>> {
         // Check for events on stdin.
         let mut events = Events::with_capacity(MAX_QUEUED_EVENTS);
-        self.event_listener.poll(&mut events, Some(Duration::from_millis(100))).ok()?;
+        self.event_listener
+            .poll(&mut events, Some(Duration::from_millis(100)))
+            .ok()?;
 
         let mut converted_events = Vec::new();
 

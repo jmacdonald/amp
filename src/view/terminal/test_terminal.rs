@@ -63,7 +63,7 @@ impl TestTerminal {
 }
 
 impl Terminal for TestTerminal {
-    fn listen(&self) -> Option<Vec<Event>> {
+    fn listen(&mut self) -> Option<Vec<Event>> {
         // This implementation will return a key once, followed by nothing.
         // This allows us to test both scenarios, the latter being crucial
         // to stopping the application in test mode; the input listener only

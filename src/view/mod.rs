@@ -30,13 +30,13 @@ use std::ops::Drop;
 use std::process::Command;
 use std::rc::Rc;
 use std::sync::mpsc::{self, Sender, SyncSender};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use syntect::highlighting::ThemeSet;
 
 const RENDER_CACHE_FREQUENCY: usize = 100;
 
 pub struct View {
-    terminal: Arc<Box<dyn Terminal + Sync + Send + 'static>>,
+    terminal: Arc<Mutex<dyn Terminal + Send + 'static>>,
     scrollable_regions: HashMap<usize, ScrollableRegion>,
     render_caches: HashMap<usize, Rc<RefCell<HashMap<usize, RenderState>>>>,
     pub theme_set: ThemeSet,
@@ -99,7 +99,7 @@ impl View {
     pub fn scroll_down(&mut self, buffer: &Buffer, amount: usize) -> Result<()> {
         let current_offset = self.get_region(buffer)?.line_offset();
         let line_count = buffer.line_count();
-        let half_screen_height = self.terminal.height() / 2;
+        let half_screen_height = self.terminal.lock().unwrap().height() / 2;
 
         // Limit scrolling to 50% of the screen beyond the end of the buffer.
         let max = if line_count > half_screen_height {
@@ -149,13 +149,13 @@ impl View {
 
     pub fn suspend(&mut self) {
         let _ = self.event_listener_killswitch.send(());
-        self.terminal.suspend();
+        self.terminal.lock().unwrap().suspend();
         self.initialize_event_listener();
     }
 
     pub fn replace(&mut self, command: &mut Command) -> Result<()> {
         let _ = self.event_listener_killswitch.send(());
-        let status = self.terminal.replace(command)?;
+        let status = self.terminal.lock().unwrap().replace(command)?;
         self.initialize_event_listener();
 
         Ok(status)

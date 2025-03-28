@@ -35,20 +35,21 @@ impl<'p> Presenter<'p> {
             theme.clone()
         };
 
+        let terminal = view.terminal.lock()?;
         Ok(Presenter {
             cursor_position: None,
-            terminal_buffer: TerminalBuffer::new(view.terminal.width(), view.terminal.height()),
+            terminal_buffer: TerminalBuffer::new(terminal.width(), terminal.height()),
             theme,
             view,
         })
     }
 
     pub fn width(&self) -> usize {
-        self.view.terminal.width()
+        self.view.terminal.lock().unwrap().width()
     }
 
     pub fn height(&self) -> usize {
-        self.view.terminal.height()
+        self.view.terminal.lock().unwrap().height()
     }
 
     pub fn clear(&mut self) {
