@@ -34,8 +34,8 @@ const STDIN_INPUT: Token = Token(0);
 const RESIZE: Token = Token(1);
 
 pub struct TermionTerminal {
-    event_listener: Poll,
-    signals: Signals,
+    event_listener: Mutex<Poll>,
+    signals: Mutex<Signals>,
     input: Mutex<Option<Keys<Stdin>>>,
     output: Mutex<Option<BufWriter<RawTerminal<AlternateScreen<Stdout>>>>>,
     current_style: Mutex<Option<Style>>,
@@ -49,8 +49,8 @@ impl TermionTerminal {
         let (event_listener, signals) = create_event_listener()?;
 
         Ok(TermionTerminal {
-            event_listener,
-            signals,
+            event_listener: Mutex::new(event_listener),
+            signals: Mutex::new(signals),
             input: Mutex::new(Some(stdin().keys())),
             output: Mutex::new(Some(create_output_instance())),
             current_style: Mutex::new(None),
@@ -181,7 +181,11 @@ impl Terminal for TermionTerminal {
     fn listen(&self) -> Option<Vec<Event>> {
         // Check for events on stdin.
         let mut events = Events::with_capacity(MAX_QUEUED_EVENTS);
-        self.event_listener.poll(&mut events, Some(Duration::from_millis(100))).ok()?;
+        self.event_listener
+            .lock()
+            .unwrap()
+            .poll(&mut events, Some(Duration::from_millis(100)))
+            .ok()?;
 
         let mut converted_events = Vec::new();
 
@@ -215,7 +219,7 @@ impl Terminal for TermionTerminal {
                 }
                 RESIZE => {
                     // Consume the resize signal so it doesn't trigger again.
-                    self.signals.pending().next();
+                    self.signals.lock().unwrap().pending().next();
 
                     Some(Event::Resize)
                 }
