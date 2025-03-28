@@ -10,10 +10,10 @@ use self::termion::{color, cursor};
 use super::Terminal;
 use crate::errors::*;
 use crate::view::{Colors, CursorType, Style};
-use mio::unix::EventedFd;
-use mio::{Events, Poll, PollOpt, Ready, Token};
+use mio::unix::SourceFd;
+use mio::{Events, Interest, Poll, Token};
 use scribe::buffer::{Distance, Position};
-use signal_hook::iterator::Signals;
+use signal_hook_mio::v1_0::Signals;
 use std::borrow::{Borrow, BorrowMut};
 use std::fmt::Display;
 use std::io::Stdout;
@@ -185,7 +185,7 @@ impl Terminal for TermionTerminal {
 
         let mut converted_events = Vec::new();
 
-        for event in events {
+        for event in &events {
             if let Some(converted_event) = match event.token() {
                 STDIN_INPUT => {
                     let mut guard = self.input.lock().ok()?;
@@ -215,7 +215,7 @@ impl Terminal for TermionTerminal {
                 }
                 RESIZE => {
                     // Consume the resize signal so it doesn't trigger again.
-                    self.signals.into_iter().next();
+                    self.signals.pending().next();
 
                     Some(Event::Resize)
                 }
@@ -387,21 +387,21 @@ fn terminal_size() -> (usize, usize) {
 }
 
 fn create_event_listener() -> Result<(Poll, Signals)> {
-    let signals = Signals::new([signal_hook::SIGWINCH])
+    let mut signals = Signals::new([signal_hook::SIGWINCH])
         .chain_err(|| "Failed to initialize event listener signal")?;
     let event_listener = Poll::new().chain_err(|| "Failed to establish polling")?;
-    event_listener.register(
-        &EventedFd(&stdin().as_raw_fd()),
-        STDIN_INPUT,
-        Ready::readable(),
-        PollOpt::edge()
-    ).chain_err(|| "Failed to register stdin to event listener")?;
-    event_listener.register(
-        &signals,
-        RESIZE,
-        Ready::readable(),
-        PollOpt::edge()
-    ).chain_err(|| "Failed to register resize signal to event listener")?;
+    event_listener
+        .registry()
+        .register(
+            &mut SourceFd(&stdin().as_raw_fd()),
+            STDIN_INPUT,
+            Interest::READABLE,
+        )
+        .chain_err(|| "Failed to register stdin to event listener")?;
+    event_listener
+        .registry()
+        .register(&mut signals, RESIZE, Interest::READABLE)
+        .chain_err(|| "Failed to register resize signal to event listener")?;
 
     Ok((event_listener, signals))
 }
