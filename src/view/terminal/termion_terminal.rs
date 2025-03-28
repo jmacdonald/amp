@@ -34,7 +34,7 @@ const STDIN_INPUT: Token = Token(0);
 const RESIZE: Token = Token(1);
 
 pub struct TermionTerminal {
-    event_listener: Mutex<Poll>,
+    events: Mutex<Poll>,
     signals: Mutex<Signals>,
     input: Mutex<Option<Keys<Stdin>>>,
     output: Mutex<Option<BufWriter<RawTerminal<AlternateScreen<Stdout>>>>>,
@@ -46,10 +46,10 @@ pub struct TermionTerminal {
 impl TermionTerminal {
     #[allow(dead_code)]
     pub fn new() -> Result<TermionTerminal> {
-        let (event_listener, signals) = create_event_listener()?;
+        let (events, signals) = create_listeners()?;
 
         Ok(TermionTerminal {
-            event_listener: Mutex::new(event_listener),
+            events: Mutex::new(events),
             signals: Mutex::new(signals),
             input: Mutex::new(Some(stdin().keys())),
             output: Mutex::new(Some(create_output_instance())),
@@ -181,7 +181,7 @@ impl Terminal for TermionTerminal {
     fn listen(&self) -> Option<Vec<Event>> {
         // Check for events on stdin.
         let mut events = Events::with_capacity(MAX_QUEUED_EVENTS);
-        self.event_listener
+        self.events
             .lock()
             .unwrap()
             .poll(&mut events, Some(Duration::from_millis(100)))
@@ -390,11 +390,11 @@ fn terminal_size() -> (usize, usize) {
         .unwrap_or((0, 0))
 }
 
-fn create_event_listener() -> Result<(Poll, Signals)> {
+fn create_listeners() -> Result<(Poll, Signals)> {
     let mut signals = Signals::new([signal_hook::SIGWINCH])
         .chain_err(|| "Failed to initialize event listener signal")?;
-    let event_listener = Poll::new().chain_err(|| "Failed to establish polling")?;
-    event_listener
+    let events = Poll::new().chain_err(|| "Failed to establish polling")?;
+    events
         .registry()
         .register(
             &mut SourceFd(&stdin().as_raw_fd()),
@@ -402,12 +402,12 @@ fn create_event_listener() -> Result<(Poll, Signals)> {
             Interest::READABLE,
         )
         .chain_err(|| "Failed to register stdin to event listener")?;
-    event_listener
+    events
         .registry()
         .register(&mut signals, RESIZE, Interest::READABLE)
         .chain_err(|| "Failed to register resize signal to event listener")?;
 
-    Ok((event_listener, signals))
+    Ok((events, signals))
 }
 
 fn create_output_instance() -> BufWriter<RawTerminal<AlternateScreen<Stdout>>> {
