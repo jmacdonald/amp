@@ -2,14 +2,15 @@
   description = "Amp: A complete text editor for your terminal";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-25.05";
   };
 
   outputs = { self, nixpkgs }:
     let
       supportedSystems = [ "x86_64-linux" ];
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
-    in {
+    in
+    {
       # Define packages for all supported systems
       packages = forAllSystems (system: {
         default = self.buildPackage { inherit system; };
@@ -83,7 +84,7 @@
           # Amp creates files and directories in $HOME/.config/amp when run.
           # Since the checkPhase of the build process runs the test suite, we
           # need a writable location to avoid permission error test failures.
-          HOME="$src";
+          HOME = "$src";
         };
-  };
+    };
 }
