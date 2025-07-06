@@ -32,6 +32,8 @@
             rustfmt
             rust-analyzer
             clippy
+            git
+            zlib
           ];
 
           RUST_BACKTRACE = 1;
