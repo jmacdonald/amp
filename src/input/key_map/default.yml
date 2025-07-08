@@ -225,6 +225,11 @@ select:
   z: application::suspend
   Z: selection::justify
   "'": application::switch_to_jump_mode
+  /:
+    - selection::copy
+    - application::switch_to_search_mode
+    - search::reset
+    - search::paste_clipboard_to_search
   ",": view::scroll_up
   page_up: view::scroll_up
   page_down: view::scroll_down
@@ -271,6 +276,11 @@ select_line:
   f: application::switch_to_second_stage_jump_mode
   z: application::suspend
   Z: selection::justify
+  /:
+    - selection::copy
+    - application::switch_to_search_mode
+    - search::reset
+    - search::paste_clipboard_to_search
   ",": view::scroll_up
   ">": buffer::indent_line
   "<": buffer::outdent_line
