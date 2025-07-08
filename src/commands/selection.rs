@@ -123,6 +123,44 @@ fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
     }
 }
 
+pub fn sort_lines(app: &mut Application) -> Result {
+    let buffer = app
+        .workspace
+        .current_buffer
+        .as_mut()
+        .ok_or(BUFFER_MISSING)?;
+
+    let line_range = match app.mode {
+        Mode::SelectLine(ref mode) => {
+            util::inclusive_range(&LineRange::new(mode.anchor, buffer.cursor.line), buffer)
+        }
+        _ => bail!("Can't sort lines outside of select line mode"),
+    };
+
+    let lines = buffer
+        .read(&line_range)
+        .ok_or("Couldn't read lines to sort from buffer")?;
+
+    let had_newline_at_end = lines.ends_with('\n');
+
+    let mut lines: Vec<&str> = lines.split_terminator('\n').collect();
+
+    lines.sort();
+    let mut lines = lines.join("\n");
+
+    if had_newline_at_end {
+        lines.push('\n'); // Add final newline again
+    }
+
+    buffer.start_operation_group();
+    buffer.delete_range(line_range.clone());
+    buffer.cursor.move_to(line_range.start());
+    buffer.insert(lines);
+    buffer.end_operation_group();
+
+    application::switch_to_normal_mode(app)
+}
+
 #[cfg(test)]
 mod tests {
     use crate::commands;
@@ -235,5 +273,89 @@ mod tests {
             app.workspace.current_buffer.as_ref().unwrap().data(),
             String::from("amp\nitor\nbuffer")
         )
+    }
+
+    #[test]
+    fn sort_lines_command_without_newline_at_end() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut buffer = Buffer::new();
+
+        buffer.insert("d\na\nb\nc");
+        buffer.cursor.move_to(Position { line: 0, offset: 0 });
+
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+
+        let end_position = Position { line: 3, offset: 0 };
+        assert!(app
+            .workspace
+            .current_buffer
+            .as_mut()
+            .unwrap()
+            .cursor
+            .move_to(end_position));
+
+        commands::selection::sort_lines(&mut app).unwrap();
+
+        assert_eq!(
+            app.workspace.current_buffer.unwrap().data(),
+            String::from("a\nb\nc\nd")
+        );
+    }
+
+    #[test]
+    fn sort_lines_command_with_newline_at_end() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut buffer = Buffer::new();
+
+        buffer.insert("d\na\nb\nc\n");
+        buffer.cursor.move_to(Position { line: 0, offset: 0 });
+
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+
+        let end_position = Position { line: 3, offset: 0 };
+        assert!(app
+            .workspace
+            .current_buffer
+            .as_mut()
+            .unwrap()
+            .cursor
+            .move_to(end_position));
+
+        commands::selection::sort_lines(&mut app).unwrap();
+
+        assert_eq!(
+            app.workspace.current_buffer.unwrap().data(),
+            String::from("a\nb\nc\nd\n")
+        );
+    }
+
+    #[test]
+    fn sort_lines_command_correctly_preserves_surrounding_lines() {
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut buffer = Buffer::new();
+
+        buffer.insert("Z\nd\na\nb\nc\nX\n");
+        buffer.cursor.move_to(Position { line: 1, offset: 0 });
+
+        app.workspace.add_buffer(buffer);
+        commands::application::switch_to_select_line_mode(&mut app).unwrap();
+
+        let end_position = Position { line: 4, offset: 0 };
+        assert!(app
+            .workspace
+            .current_buffer
+            .as_mut()
+            .unwrap()
+            .cursor
+            .move_to(end_position));
+
+        commands::selection::sort_lines(&mut app).unwrap();
+
+        assert_eq!(
+            app.workspace.current_buffer.unwrap().data(),
+            String::from("Z\na\nb\nc\nd\nX\n")
+        );
     }
 }
