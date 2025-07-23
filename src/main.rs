@@ -2,6 +2,9 @@ use amp::Application;
 use amp::Error;
 use std::env;
 
+#[macro_use]
+mod debug;
+
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -9,6 +12,8 @@ fn main() {
     if let Some(e) = Application::new(&args).and_then(|mut app| app.run()).err() {
         handle_error(&e)
     }
+
+    debug_log!("[main] exiting");
 }
 
 fn handle_error(error: &Error) {

@@ -24,6 +24,8 @@ pub struct Presenter<'p> {
 
 impl<'p> Presenter<'p> {
     pub fn new(view: &mut View) -> Result<Presenter> {
+        debug_log!("[presenter] establishing theme");
+
         let theme = {
             let preferences = view.preferences.borrow();
             let theme_name = preferences.theme();
@@ -64,6 +66,8 @@ impl<'p> Presenter<'p> {
     }
 
     pub fn present(&mut self) -> Result<()> {
+        debug_log!("[presenter] rendering terminal buffer to terminal");
+
         for (position, cell) in self.terminal_buffer.iter() {
             self.view.terminal.print(
                 &position,
@@ -72,7 +76,13 @@ impl<'p> Presenter<'p> {
                 &cell.content,
             )?;
         }
+
+        debug_log!("[presenter] rendering terminal cursor");
+
         self.view.terminal.set_cursor(self.cursor_position);
+
+        debug_log!("[presenter] flushing terminal");
+
         self.view.terminal.present();
 
         Ok(())
@@ -88,6 +98,8 @@ impl<'p> Presenter<'p> {
     ) -> Result<()> {
         let scroll_offset = self.view.get_region(buffer)?.line_offset();
         let lines = LineIterator::new(buffer_data);
+
+        debug_log!("[presenter] rendering buffer");
 
         self.cursor_position = BufferRenderer::new(
             buffer,
@@ -107,6 +119,8 @@ impl<'p> Presenter<'p> {
 
     pub fn print_status_line(&mut self, entries: &[StatusLineData]) {
         let line = self.view.terminal.height() - 1;
+
+        debug_log!("[presenter] rendering status line");
 
         entries
             .iter()
@@ -154,6 +168,8 @@ impl<'p> Presenter<'p> {
     }
 
     pub fn print_error<I: Into<String>>(&mut self, error: I) {
+        debug_log!("[presenter] rendering error");
+
         self.print_status_line(&[StatusLineData {
             content: error.into(),
             style: Style::Bold,
@@ -165,10 +181,12 @@ impl<'p> Presenter<'p> {
     where
         C: Into<Cow<'p, str>>,
     {
+        let content = content.into();
+        debug_log!("[presenter] writing \"{}\" to terminal buffer", content);
         self.terminal_buffer.set_cell(
             *position,
             Cell {
-                content: content.into(),
+                content: content,
                 style,
                 colors,
             },

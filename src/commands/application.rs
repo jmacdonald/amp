@@ -17,7 +17,11 @@ pub fn handle_input(app: &mut Application) -> Result {
     if let Some(coms) = commands {
         // Run all commands, stopping at the first error encountered, if any.
         for com in coms {
+            debug_log!("[application]: running command");
+
             com(app)?;
+
+            debug_log!("[application]: command completed successfully");
         }
     }
 

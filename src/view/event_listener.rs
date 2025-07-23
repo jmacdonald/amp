@@ -32,10 +32,16 @@ impl EventListener {
         loop {
             if let Some(events) = self.terminal.listen() {
                 for event in events {
+                    debug_log!("[event listener] sending event: {:?}", event);
+
                     self.events.send(event).ok();
                 }
             } else if self.killswitch.try_recv().is_ok() {
+                debug_log!("[event listener] received killswitch; exiting event loop");
+
                 break;
+            } else {
+                debug_log!("[event listener] no events received");
             }
         }
     }

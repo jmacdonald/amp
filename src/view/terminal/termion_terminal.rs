@@ -179,6 +179,8 @@ impl TermionTerminal {
 
 impl Terminal for TermionTerminal {
     fn listen(&self) -> Option<Vec<Event>> {
+        debug_log!("[terminal] polling for input events");
+
         // Check for events on stdin.
         let mut events = Events::with_capacity(MAX_QUEUED_EVENTS);
         self.event_listener
@@ -192,10 +194,14 @@ impl Terminal for TermionTerminal {
         for event in &events {
             if let Some(converted_event) = match event.token() {
                 STDIN_INPUT => {
+                    debug_log!("[terminal] received stdin event");
+
                     let mut guard = self.input.lock().ok()?;
                     let input_handle = guard.as_mut()?;
                     let input_data = input_handle.next()?;
                     let key = input_data.ok()?;
+
+                    debug_log!("[terminal] read key from stdin: {:?}", key);
 
                     match key {
                         TermionKey::Backspace => Some(Event::Key(Key::Backspace)),
@@ -214,16 +220,26 @@ impl Terminal for TermionTerminal {
                         TermionKey::Char('\t') => Some(Event::Key(Key::Tab)),
                         TermionKey::Char(c) => Some(Event::Key(Key::Char(c))),
                         TermionKey::Ctrl(c) => Some(Event::Key(Key::Ctrl(c))),
-                        _ => None,
+                        _ => {
+                            debug_log!("[terminal] key is unmapped");
+
+                            None
+                        }
                     }
                 }
                 RESIZE => {
+                    debug_log!("[terminal] received resize event");
+
                     // Consume the resize signal so it doesn't trigger again.
                     self.signals.lock().ok()?.pending().next();
 
                     Some(Event::Resize)
                 }
-                _ => None,
+                _ => {
+                    debug_log!("[terminal] received unknown event");
+
+                    None
+                }
             } {
                 converted_events.push(converted_event);
             }

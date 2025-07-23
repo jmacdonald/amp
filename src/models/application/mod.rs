@@ -78,6 +78,8 @@ impl Application {
             self.wait_for_event()?;
 
             if let Mode::Exit = self.mode {
+                debug_log!("[application] breaking main run loop");
+
                 break;
             }
         }
@@ -180,22 +182,34 @@ impl Application {
     }
 
     fn wait_for_event(&mut self) -> Result<()> {
+        debug_log!("[application loop]: blocking on event channel");
+
         // Main blocking wait
         let event = self
             .events
             .recv()
             .chain_err(|| "Error receiving application event")?;
 
+        debug_log!("[application loop]: received event: {:?}", event);
+
         self.handle_event(event);
+
+        debug_log!("[application loop]: draining event channel");
 
         // Handle any other events included in the batch before rendering
         // and waiting again.
         loop {
             match self.events.try_recv() {
-                Ok(event) => self.handle_event(event),
+                Ok(event) => {
+                    debug_log!("[application loop]: received event: {:?}", event);
+
+                    self.handle_event(event);
+                }
                 _ => break,
             }
         }
+
+        debug_log!("[application loop]: drained event channel");
 
         Ok(())
     }
@@ -280,6 +294,8 @@ impl Application {
             return;
         }
 
+        debug_log!("[application] switching to {:?}", mode_key);
+
         // Check out the specified mode.
         let mut mode = self.modes.remove(&mode_key).unwrap();
 
@@ -294,6 +310,8 @@ impl Application {
 
         // Track the new active mode.
         self.current_mode = mode_key;
+
+        debug_log!("[application] switched to {:?}", mode_key);
     }
 
     pub fn switch_to_previous_mode(&mut self) {
