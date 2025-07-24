@@ -49,7 +49,7 @@ pub fn display(
         let content = [
             format!("Amp v{}", env!("CARGO_PKG_VERSION")),
             format!("Build revision {}", env!("BUILD_REVISION")),
-            String::from("© 2015-2024 Jordan MacDonald"),
+            String::from("© 2015-2025 Jordan MacDonald"),
             String::from(" "),
             String::from("Press \"?\" to view quick start guide"),
         ];
