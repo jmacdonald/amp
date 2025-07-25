@@ -10,7 +10,7 @@ pub struct TerminalBufferIterator<'c> {
 }
 
 impl<'c> TerminalBufferIterator<'c> {
-    pub fn new(width: usize, cells: &'c Vec<Cell<'c>>) -> TerminalBufferIterator {
+    pub fn new(width: usize, cells: &'c Vec<Cell<'c>>) -> TerminalBufferIterator<'c> {
         TerminalBufferIterator {
             index: 0,
             width,
