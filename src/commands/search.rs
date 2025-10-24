@@ -1,7 +1,31 @@
 use crate::commands::{self, Result};
 use crate::errors::*;
 use crate::input::Key;
-use crate::models::application::{Application, Mode};
+use crate::models::application::{Application, ClipboardContent, Mode};
+
+pub fn paste_clipboard_to_search(app: &mut Application) -> Result {
+    if let Mode::Search(ref mut mode) = app.mode {
+        let clipboard_text = match app.clipboard.get_content() {
+            ClipboardContent::Inline(content) | ClipboardContent::Block(content) => {
+                // Only trim newlines from start/end, preserve other whitespace
+                let trimmed = content.trim_matches('\n');
+                if trimmed.contains('\n') {
+                    bail!("Cannot search for multi-line text");
+                }
+                trimmed.to_string()
+            }
+            ClipboardContent::None => {
+                bail!("No clipboard content available");
+            }
+        };
+        mode.input
+            .get_or_insert(String::new())
+            .push_str(&clipboard_text);
+    } else {
+        bail!("Can only paste to search when in search mode");
+    }
+    Ok(())
+}
 
 pub fn move_to_previous_result(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
@@ -156,6 +180,32 @@ mod tests {
     use crate::models::Application;
     use scribe::buffer::Position;
     use scribe::Buffer;
+
+    #[test]
+    fn paste_clipboard_to_search_handles_clipboard_content_correctly() {
+        use crate::models::application::ClipboardContent;
+
+        let mut app = Application::new(&Vec::new()).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("test content");
+        app.workspace.add_buffer(buffer);
+
+        // Enter search mode
+        commands::application::switch_to_search_mode(&mut app).unwrap();
+
+        // Test: paste text with trailing spaces and newline
+        app.clipboard
+            .set_content(ClipboardContent::Inline("hello   \n".to_string()))
+            .unwrap();
+        commands::search::paste_clipboard_to_search(&mut app).unwrap();
+
+        // Verify spaces preserved, newline trimmed
+        if let Mode::Search(ref mode) = app.mode {
+            assert_eq!(mode.input, Some("hello   ".to_string()));
+        } else {
+            panic!("Should be in search mode");
+        }
+    }
 
     #[test]
     fn move_to_previous_result_moves_cursor_to_previous_result() {
