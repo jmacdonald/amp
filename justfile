@@ -1,8 +1,9 @@
+# Runs amp with suppressed debug output
 run:
   cargo run 2> /dev/null
 
-# Runs amp with a temporary vertical split pane tailing debug output
 stderr_file := "stderr"
+# Runs amp with a temporary vertical split pane tailing debug output
 debug:
   #!/bin/sh
   touch {{stderr_file}}
