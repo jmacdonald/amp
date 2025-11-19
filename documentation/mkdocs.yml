@@ -39,6 +39,9 @@ markdown_extensions:
   - pymdownx.highlight
   - pymdownx.superfences
   - pymdownx.smartsymbols
+  - pymdownx.emoji:
+      emoji_index: !!python/name:zensical.extensions.emoji.twemoji
+      emoji_generator: !!python/name:zensical.extensions.emoji.to_svg
 extra_css:
   - 'stylesheets/extra.css'
 copyright: 'Copyright &copy; 2015 - 2025 Jordan MacDonald'

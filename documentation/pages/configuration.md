@@ -230,6 +230,28 @@ open_mode:
   exclusions: false
 ```
 
+## External tools
+
+### File managers
+
+**:lucide-tag: v0.8.0+**
+
+Amp doesn't include a built-in file manager, but you can easily configure it to
+work with standalone file manager tools like [Yazi](https://github.com/sxyazi/yazi):
+
+```yaml
+file_manager:
+  command: yazi
+  options:
+    - --chooser-file
+    - ${tmp_file}
+```
+
+Using the default `:` key bind will launch `command` with the configured
+`options`. The `${tmp_file}` value here is special; Amp will replace that with a
+process-specific temporary file path, which is read when the file manager
+process exits. Any file paths in it will be opened as buffers in the workspace.
+
 ## Miscellaneous
 
 ### Search/Select Results
