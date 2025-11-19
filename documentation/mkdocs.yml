@@ -1,12 +1,28 @@
 site_name: Amp
+dev_addr: 0.0.0.0:8000
 docs_dir: 'pages'
 theme:
   logo: 'images/logo.svg'
   favicon: 'images/terminal.ico'
   name: 'material'
   palette:
-    primary: 'blue grey'
-    accent: 'red'
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: lucide/sun-moon
+        name: Switch to light mode
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: lucide/sun
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: lucide/moon
+        name: Switch to system preference
   features:
     - content.code.annotate
 repo_name: 'jmacdonald/amp'
@@ -16,10 +32,6 @@ nav:
   - 'installation.md'
   - 'usage.md'
   - 'configuration.md'
-extra:
-  palette:
-    primary: 'blue grey'
-    accent: 'red'
 markdown_extensions:
   - admonition
   - attr_list
@@ -29,4 +41,4 @@ markdown_extensions:
   - pymdownx.smartsymbols
 extra_css:
   - 'stylesheets/extra.css'
-copyright: 'Copyright &copy; 2015 - 2018 Jordan MacDonald'
+copyright: 'Copyright &copy; 2015 - 2025 Jordan MacDonald'

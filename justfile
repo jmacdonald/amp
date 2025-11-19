@@ -16,3 +16,18 @@ check:
 
 test:
   cargo test
+
+# Serve docs on port 8000
+[group('docs')]
+docs:
+  docker run --rm -it -p 8000:8000 -v ${PWD}/documentation:/docs wastedintel/zensical
+
+# Build docs to documentation/site
+[group('docs')]
+build_docs:
+  docker run --rm -it -v ${PWD}/documentation:/docs wastedintel/zensical zensical build
+
+# Build Zensical Docker image
+[group('docs')]
+build_docs_image:
+  docker build documentation/ -t wastedintel/zensical

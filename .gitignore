@@ -1,4 +1,5 @@
 .direnv
+/documentation/site
 /parts
 /prime
 /result
