@@ -22,6 +22,7 @@ use self::theme_loader::ThemeLoader;
 use crate::errors::*;
 use crate::input::Key;
 use crate::models::application::{Event, Preferences};
+use log::debug;
 use scribe::buffer::Buffer;
 use std::cell::RefCell;
 use std::cmp;
@@ -71,7 +72,7 @@ impl View {
     }
 
     pub fn build_presenter(&mut self) -> Result<Presenter<'_>> {
-        debug_log!("[view] building presenter");
+        debug!("building presenter");
 
         Presenter::new(self)
     }
@@ -197,7 +198,7 @@ impl View {
 
 impl Drop for View {
     fn drop(&mut self) {
-        debug_log!("[view] drop triggered; killing event listener");
+        debug!("drop triggered; killing event listener");
 
         let _ = self.event_listener_killswitch.send(());
     }

@@ -9,6 +9,7 @@ use self::termion::{color, cursor};
 use super::{InputParser, Terminal};
 use crate::errors::*;
 use crate::view::{Colors, CursorType, Style};
+use log::{debug, trace};
 use mio::unix::SourceFd;
 use mio::{Events, Interest, Poll, Token};
 use scribe::buffer::{Distance, Position};
@@ -167,7 +168,7 @@ impl TermionTerminal {
 
 impl Terminal for TermionTerminal {
     fn listen(&self) -> Option<Vec<Event>> {
-        debug_log!("[terminal] polling for input events");
+        trace!("polling for input events");
 
         // Check for events on stdin.
         let mut events = Events::with_capacity(MAX_QUEUED_EVENTS);
@@ -182,7 +183,7 @@ impl Terminal for TermionTerminal {
         for event in &events {
             match event.token() {
                 STDIN_INPUT => {
-                    debug_log!("[terminal] received stdin event");
+                    debug!("received stdin event");
 
                     let mut input_data = [0u8; 1024];
 
@@ -190,7 +191,7 @@ impl Terminal for TermionTerminal {
                         Ok(0) => break, // 0 bytes, EOF
                         Err(ref e) if e.kind() == ErrorKind::WouldBlock => break,
                         Err(e) => {
-                            debug_log!("[terminal] error reading stdin: {e}");
+                            debug!("error reading stdin: {e}");
                             break;
                         }
                         Ok(_) => (),
@@ -200,13 +201,13 @@ impl Terminal for TermionTerminal {
                     input_parser.feed(&input_data);
 
                     for key in input_parser {
-                        debug_log!("[terminal] read key from stdin: {:?}", key);
+                        debug!("read key from stdin: {:?}", key);
 
                         mapped_events.push(key);
                     }
                 }
                 RESIZE => {
-                    debug_log!("[terminal] received resize event");
+                    debug!("received resize event");
 
                     // Consume the resize signal so it doesn't trigger again.
                     self.signals.lock().ok()?.pending().next();
@@ -214,12 +215,12 @@ impl Terminal for TermionTerminal {
                     mapped_events.push(Event::Resize);
                 }
                 _ => {
-                    debug_log!("[terminal] received unknown event");
+                    debug!("received unknown event");
                 }
             }
         }
 
-        debug_log!("[terminal] processed empty event set");
+        trace!("processed empty event set");
         if mapped_events.is_empty() {
             None
         } else {

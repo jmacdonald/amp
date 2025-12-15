@@ -1,19 +1,20 @@
 use amp::Application;
 use amp::Error;
+use log::debug;
 use std::env;
-
-#[macro_use]
-mod debug;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+
+    // Initialize logging
+    env_logger::init();
 
     // Instantiate, run, and handle errors for the application.
     if let Some(e) = Application::new(&args).and_then(|mut app| app.run()).err() {
         handle_error(&e)
     }
 
-    debug_log!("[main] exiting");
+    debug!("exiting");
 }
 
 fn handle_error(error: &Error) {

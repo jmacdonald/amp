@@ -34,6 +34,8 @@ lazy_static = "1.4"
 mio = { version = "1.0", features = [ "os-ext" ] }
 signal-hook-mio = { version = "0.2", features = [ "support-v1_0" ] }
 serial_test = "3.2.0"
+log = "0.4"
+env_logger = "0.11"
 
 [dependencies.signal-hook]
 version = "0.1"

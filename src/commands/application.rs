@@ -3,6 +3,7 @@ use crate::errors::*;
 use crate::input::KeyMap;
 use crate::models::application::{Application, Mode, ModeKey};
 use crate::util;
+use log::debug;
 use scribe::Buffer;
 use std::fs::{read_to_string, remove_file, File};
 use std::path::PathBuf;
@@ -16,11 +17,11 @@ pub fn handle_input(app: &mut Application) -> Result {
     if let Some(coms) = commands {
         // Run all commands, stopping at the first error encountered, if any.
         for com in coms {
-            debug_log!("[application]: running command");
+            debug!("running command");
 
             com(app)?;
 
-            debug_log!("[application]: command completed successfully");
+            debug!("command completed successfully");
         }
     }
 

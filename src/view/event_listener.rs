@@ -1,5 +1,6 @@
 use crate::models::application::Event;
 use crate::view::Terminal;
+use log::{debug, trace};
 use std::sync::mpsc::{Receiver, Sender};
 use std::sync::Arc;
 use std::thread;
@@ -32,16 +33,16 @@ impl EventListener {
         loop {
             if let Some(events) = self.terminal.listen() {
                 for event in events {
-                    debug_log!("[event listener] sending event: {:?}", event);
+                    debug!("sending event: {:?}", event);
 
                     self.events.send(event).ok();
                 }
             } else if self.killswitch.try_recv().is_ok() {
-                debug_log!("[event listener] received killswitch; exiting event loop");
+                debug!("received killswitch; exiting event loop");
 
                 break;
             } else {
-                debug_log!("[event listener] no events received");
+                trace!("no events received");
             }
         }
     }

@@ -5,6 +5,7 @@ use crate::view::style::Style;
 use crate::view::terminal::{Cell, CursorType, TerminalBuffer};
 use crate::view::StatusLineData;
 use crate::view::View;
+use log::{debug, trace};
 use scribe::buffer::{Buffer, Position, Range};
 use scribe::util::LineIterator;
 use std::borrow::Cow;
@@ -24,7 +25,7 @@ pub struct Presenter<'p> {
 
 impl<'p> Presenter<'p> {
     pub fn new(view: &mut View) -> Result<Presenter> {
-        debug_log!("[presenter] establishing theme");
+        debug!("establishing theme");
 
         let theme = {
             let preferences = view.preferences.borrow();
@@ -66,7 +67,7 @@ impl<'p> Presenter<'p> {
     }
 
     pub fn present(&mut self) -> Result<()> {
-        debug_log!("[presenter] rendering terminal buffer to terminal");
+        debug!("rendering terminal buffer to terminal");
 
         for (position, cell) in self.terminal_buffer.iter() {
             self.view.terminal.print(
@@ -77,11 +78,11 @@ impl<'p> Presenter<'p> {
             )?;
         }
 
-        debug_log!("[presenter] rendering terminal cursor");
+        debug!("rendering terminal cursor");
 
         self.view.terminal.set_cursor(self.cursor_position);
 
-        debug_log!("[presenter] flushing terminal");
+        debug!("flushing terminal");
 
         self.view.terminal.present();
 
@@ -99,7 +100,7 @@ impl<'p> Presenter<'p> {
         let scroll_offset = self.view.get_region(buffer)?.line_offset();
         let lines = LineIterator::new(buffer_data);
 
-        debug_log!("[presenter] rendering buffer");
+        debug!("rendering buffer");
 
         self.cursor_position = BufferRenderer::new(
             buffer,
@@ -120,7 +121,7 @@ impl<'p> Presenter<'p> {
     pub fn print_status_line(&mut self, entries: &[StatusLineData]) {
         let line = self.view.terminal.height() - 1;
 
-        debug_log!("[presenter] rendering status line");
+        debug!("rendering status line");
 
         entries
             .iter()
@@ -168,7 +169,7 @@ impl<'p> Presenter<'p> {
     }
 
     pub fn print_error<I: Into<String>>(&mut self, error: I) {
-        debug_log!("[presenter] rendering error");
+        debug!("rendering error");
 
         self.print_status_line(&[StatusLineData {
             content: error.into(),
@@ -182,7 +183,7 @@ impl<'p> Presenter<'p> {
         C: Into<Cow<'p, str>>,
     {
         let content = content.into();
-        debug_log!("[presenter] writing \"{}\" to terminal buffer", content);
+        trace!("writing \"{}\" to terminal buffer", content);
         self.terminal_buffer.set_cell(
             *position,
             Cell {
