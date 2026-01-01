@@ -252,6 +252,27 @@ Using the default `:` key bind will launch `command` with the configured
 process-specific temporary file path, which is read when the file manager
 process exits. Any file paths in it will be opened as buffers in the workspace.
 
+### Git tools
+
+**:lucide-tag: v0.8.0+**
+
+Amp includes basic Git features like file status and staging, but you can easily
+configure it to work with more advanced/dedicated tools like
+[lazygit](https://github.com/jesseduffield/lazygit) and
+[gitui](https://github.com/extrawurst/gitui):
+
+```yaml
+git_tool:
+  command: lazygit
+  options:
+    - --use-config-dir
+    - ${HOME}/.config/lazygit
+```
+
+Using the default `G` key bind will launch `command` with the configured
+`options`. Unlike the `file_manager` option, `git_tool` doesn't have any special
+file handling.
+
 ## Miscellaneous
 
 ### Search/Select Results

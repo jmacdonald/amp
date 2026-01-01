@@ -264,6 +264,19 @@ pub fn switch_to_syntax_mode(app: &mut Application) -> Result {
     Ok(())
 }
 
+pub fn run_git_tool(app: &mut Application) -> Result {
+    let mut command = app
+        .preferences
+        .borrow()
+        .git_tool_command()
+        .chain_err(|| "No git tool configured.")?;
+
+    // Run tool
+    app.view.replace(&mut command)?;
+
+    Ok(())
+}
+
 pub fn run_file_manager(app: &mut Application) -> Result {
     let mut command = app
         .preferences

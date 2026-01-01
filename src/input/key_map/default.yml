@@ -83,6 +83,7 @@ normal:
   ctrl-p: application::switch_to_paste_mode
   "?": application::display_quick_start_guide
   ":": application::run_file_manager
+  G: application::run_git_tool
 
 insert:
   _: buffer::insert_char

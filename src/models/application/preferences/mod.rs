@@ -16,6 +16,7 @@ const APP_INFO: AppInfo = AppInfo {
     name: "amp",
     author: "Jordan MacDonald",
 };
+const GIT_TOOL_KEY: &str = "git_tool";
 const FILE_MANAGER_KEY: &str = "file_manager";
 static FILE_MANAGER_TMP_FILE_PATH: LazyLock<String> =
     LazyLock::new(|| format!("/tmp/amp_selected_file_{}", process::id()));
@@ -336,6 +337,28 @@ impl Preferences {
             .data
             .as_ref()
             .and_then(|data| data[TYPES_KEY][extension][FORMAT_TOOL_KEY]["options"].as_vec());
+        if let Some(options) = option_data {
+            for option in options {
+                if let Some(o) = option.as_str() {
+                    command.arg(o);
+                }
+            }
+        }
+
+        Some(command)
+    }
+
+    pub fn git_tool_command(&self) -> Option<process::Command> {
+        let program = self
+            .data
+            .as_ref()
+            .and_then(|data| data[GIT_TOOL_KEY]["command"].as_str())?;
+        let mut command = process::Command::new(program);
+
+        let option_data = self
+            .data
+            .as_ref()
+            .and_then(|data| data[GIT_TOOL_KEY]["options"].as_vec());
         if let Some(options) = option_data {
             for option in options {
                 if let Some(o) = option.as_str() {
