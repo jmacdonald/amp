@@ -3,7 +3,7 @@ extern crate termion;
 
 use self::termion::color::{Bg, Fg};
 use self::termion::raw::{IntoRawMode, RawTerminal};
-use self::termion::screen::{AlternateScreen, IntoAlternateScreen};
+use self::termion::screen::{AlternateScreen, IntoAlternateScreen, ToAlternateScreen};
 use self::termion::style;
 use self::termion::{color, cursor};
 use super::{InputParser, Terminal};
@@ -164,6 +164,7 @@ impl TermionTerminal {
             guard.replace(create_output_instance());
         }
     }
+
 }
 
 impl Terminal for TermionTerminal {
@@ -348,13 +349,39 @@ impl Terminal for TermionTerminal {
     }
 
     fn replace(&self, command: &mut Command) -> Result<()> {
-        self.deinit();
+        self.restore_cursor();
+        self.set_cursor(Some(Position { line: 0, offset: 0 }));
+        self.present();
+
+        // Force re-render of styles/positions after the external tool exits.
+        self.current_position.lock().ok().take();
+        self.current_style.lock().ok().take();
+        self.current_colors.lock().ok().take();
+
+        if let Ok(mut guard) = self.output.lock() {
+            if let Some(ref output) = *guard {
+                let _ = output.get_ref().suspend_raw_mode();
+            }
+        }
+
+        let _ = stdout().flush();
 
         let status = command
             .status()
             .chain_err(|| "Failed to execute replacement command.")?;
 
-        self.reinit();
+        if let Ok(mut guard) = self.output.lock() {
+            if let Some(ref output) = *guard {
+                let _ = output.get_ref().activate_raw_mode();
+            }
+        }
+
+        if let Ok(mut guard) = self.output.lock() {
+            if let Some(ref mut output) = *guard {
+                let _ = write!(output, "{}", ToAlternateScreen);
+                let _ = write!(output, "{}", termion::clear::All);
+            }
+        }
 
         if status.success() {
             Ok(())
@@ -367,6 +394,7 @@ impl Terminal for TermionTerminal {
             bail!(message);
         }
     }
+
 }
 
 impl Drop for TermionTerminal {
