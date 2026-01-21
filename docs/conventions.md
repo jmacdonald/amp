@@ -8,7 +8,7 @@
 ## Testing
 - Tests run with `cargo test` and are typically colocated in modules via `#[cfg(test)]`.
 - Benchmarks use Criterion; add new benches under `benches/` with clear names (e.g., `draw_buffer.rs`).
-- Use `cargo check` for fast feedback before full test runs.
+- After changes to `src/`, always run `just check` to confirm the project compiles.
 
 ## Commit & Pull Request Guidelines
 - Commit messages are short, imperative, and descriptive (e.g., "Add file manager user docs").
