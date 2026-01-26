@@ -292,6 +292,7 @@ select_line:
     - selection::change
     - application::switch_to_paste_mode
   y: selection::copy
+  o: selection::sort_lines
   p:
     - buffer::paste
     - application::switch_to_normal_mode
