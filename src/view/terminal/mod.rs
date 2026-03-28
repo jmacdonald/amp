@@ -29,6 +29,7 @@ const MIN_HEIGHT: usize = 10;
 
 pub trait Terminal {
     fn listen(&self) -> Option<Vec<Event>>;
+    #[cfg(test)]
     fn clear(&self);
     fn present(&self);
     fn width(&self) -> usize;

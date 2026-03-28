@@ -76,6 +76,7 @@ impl Terminal for TestTerminal {
             Some(vec![Event::Key(Key::Char('A'))])
         }
     }
+    #[cfg(test)]
     fn clear(&self) {
         for row in self.data.lock().unwrap().iter_mut() {
             *row = [None; WIDTH];

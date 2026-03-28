@@ -228,6 +228,7 @@ impl Terminal for TermionTerminal {
         }
     }
 
+    #[cfg(test)]
     fn clear(&self) {
         // Because we're clearing styles below, we'll
         // also need to bust the style/color cache.
