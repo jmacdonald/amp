@@ -16,7 +16,7 @@ impl<'a> Reflow<'a> {
         range: Range,
         limit: usize,
     ) -> std::result::Result<Self, Error> {
-        let text = buf.read(&range).ok_or("Selection is invalid.")?;
+        let text = buf.read(&range).context("Selection is invalid.")?;
         Ok(Self {
             buf,
             range,

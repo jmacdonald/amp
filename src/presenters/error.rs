@@ -12,7 +12,7 @@ pub fn display(workspace: &mut Workspace, view: &mut View, error: &Error) -> Res
     }
 
     presenter.print_status_line(&[StatusLineData {
-        content: error.description().to_string(),
+        content: error.to_string(),
         style: Style::Bold,
         colors: Colors::Warning,
     }]);

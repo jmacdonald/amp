@@ -30,8 +30,8 @@ pub fn match_tag(app: &mut Application) -> Result {
 fn jump_to_tag(jump_mode: &mut JumpMode, workspace: &mut Workspace) -> Result {
     let position = jump_mode
         .map_tag(&jump_mode.input)
-        .ok_or("Couldn't find a position for the specified tag")?;
-    let buffer = workspace.current_buffer.as_mut().ok_or(BUFFER_MISSING)?;
+        .context("Couldn't find a position for the specified tag")?;
+    let buffer = workspace.current_buffer.as_mut().context(BUFFER_MISSING)?;
 
     if !buffer.cursor.move_to(*position) {
         bail!(

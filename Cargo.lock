@@ -21,12 +21,12 @@ dependencies = [
 name = "amp"
 version = "0.7.1"
 dependencies = [
+ "anyhow",
  "app_dirs2",
  "bloodhound",
  "cli-clipboard",
  "criterion",
  "env_logger",
- "error-chain",
  "fragment",
  "git2",
  "lazy_static",
@@ -101,6 +101,12 @@ dependencies = [
  "once_cell_polyfill",
  "windows-sys 0.61.2",
 ]
+
+[[package]]
+name = "anyhow"
+version = "1.0.102"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f202df86484c868dbad7eaa557ef785d5c66295e41b460ef922eca0723b842c"
 
 [[package]]
 name = "app_dirs2"

@@ -17,7 +17,7 @@ pub fn save(app: &mut Application) -> Result {
         .workspace
         .current_buffer
         .as_ref()
-        .ok_or(BUFFER_MISSING)?
+        .context(BUFFER_MISSING)?
         .path
         .clone(); // clone instead of borrow as we call another command later
 
@@ -28,7 +28,7 @@ pub fn save(app: &mut Application) -> Result {
             .as_mut()
             .unwrap()
             .save()
-            .chain_err(|| BUFFER_SAVE_FAILED)?;
+            .context(BUFFER_SAVE_FAILED)?;
 
         // Run the format command if one is defined.
         if app.preferences.borrow().format_on_save(&path) {
@@ -42,7 +42,7 @@ pub fn save(app: &mut Application) -> Result {
                 .as_mut()
                 .unwrap()
                 .save()
-                .chain_err(|| BUFFER_SAVE_FAILED)?;
+                .context(BUFFER_SAVE_FAILED)?;
         }
     } else {
         // Prompt the user to enter a path for the buffer instead of saving.
@@ -59,16 +59,16 @@ pub fn reload(app: &mut Application) -> Result {
     app.workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?
+        .context(BUFFER_MISSING)?
         .reload()
-        .chain_err(|| BUFFER_RELOAD_FAILED)
+        .context(BUFFER_RELOAD_FAILED)
 }
 
 pub fn delete(app: &mut Application) -> Result {
     app.workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?
+        .context(BUFFER_MISSING)?
         .delete();
     commands::view::scroll_to_cursor(app)?;
 
@@ -124,14 +124,14 @@ pub fn merge_next_line(app: &mut Application) -> Result {
         .workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?;
+        .context(BUFFER_MISSING)?;
     let current_line = buffer.cursor.line;
     let data = buffer.data();
 
     // Don't bother if there isn't a line below.
     data.lines()
         .nth(current_line + 1)
-        .ok_or("No line below current line")?;
+        .context("No line below current line")?;
 
     // Join the two lines.
     let mut merged_lines: String = buffer
@@ -198,7 +198,7 @@ pub fn close(app: &mut Application) -> Result {
             app.workspace
                 .current_buffer
                 .as_ref()
-                .ok_or(BUFFER_MISSING)?,
+                .context(BUFFER_MISSING)?,
         )?;
         app.workspace.close_current_buffer();
     } else {
@@ -219,7 +219,7 @@ pub fn close_others(app: &mut Application) -> Result {
         .current_buffer
         .as_ref()
         .map(|b| b.id)
-        .ok_or(BUFFER_MISSING)?;
+        .context(BUFFER_MISSING)?;
     let mut modified_buffer = false;
 
     loop {
@@ -289,7 +289,7 @@ pub fn backspace(app: &mut Application) -> Result {
             let current_line = data
                 .lines()
                 .nth(buffer.cursor.line)
-                .ok_or(CURRENT_LINE_MISSING)?;
+                .context(CURRENT_LINE_MISSING)?;
             if current_line.chars().all(|c| c.is_whitespace()) {
                 outdent = true
             } else {
@@ -331,12 +331,14 @@ pub fn display_current_scope(app: &mut Application) -> Result {
             .workspace
             .current_buffer
             .as_ref()
-            .ok_or(BUFFER_MISSING)?;
+            .context(BUFFER_MISSING)?;
         let tokens = app
             .workspace
             .current_buffer_tokens()
-            .chain_err(|| BUFFER_TOKENS_FAILED)?;
-        let mut token_iter = tokens.iter().chain_err(|| BUFFER_PARSE_FAILED)?;
+            .context(BUFFER_TOKENS_FAILED)?;
+        let mut token_iter = tokens
+            .iter()
+            .context(BUFFER_PARSE_FAILED)?;
 
         // Build the scope up to the cursor location.
         for token in &mut token_iter {
@@ -351,7 +353,7 @@ pub fn display_current_scope(app: &mut Application) -> Result {
 
         // Check for parse errors
         if let Some(e) = token_iter.error {
-            Err(e).chain_err(|| BUFFER_PARSE_FAILED)?;
+            Err(anyhow!(e.to_string())).context(BUFFER_PARSE_FAILED)?;
         }
 
         // Open a buffer with a displayable version of the scope stack.
@@ -424,7 +426,7 @@ pub fn indent_line(app: &mut Application) -> Result {
         .workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?;
+        .context(BUFFER_MISSING)?;
     let tab_content = app.preferences.borrow().tab_content(buffer.path.as_ref());
 
     let target_position = match app.mode {
@@ -468,7 +470,7 @@ pub fn outdent_line(app: &mut Application) -> Result {
         .workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?;
+        .context(BUFFER_MISSING)?;
     let tab_content = app.preferences.borrow().tab_content(buffer.path.as_ref());
 
     // FIXME: Determine this based on file type and/or user config.
@@ -546,16 +548,16 @@ pub fn toggle_line_comment(app: &mut Application) -> Result {
         .workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?;
+        .context(BUFFER_MISSING)?;
     let original_cursor = *buffer.cursor.clone();
 
     let comment_prefix = {
-        let path = buffer.path.as_ref().ok_or(BUFFER_PATH_MISSING)?;
+        let path = buffer.path.as_ref().context(BUFFER_PATH_MISSING)?;
         let prefix = app
             .preferences
             .borrow()
             .line_comment_prefix(path)
-            .ok_or("No line comment prefix for the current buffer")?;
+            .context("No line comment prefix for the current buffer")?;
 
         prefix + " " // implicitly add trailing space
     };
@@ -584,7 +586,7 @@ pub fn toggle_line_comment(app: &mut Application) -> Result {
         },
     );
 
-    let buffer_range_content = buffer.read(&buffer_range).ok_or(CURRENT_LINE_MISSING)?;
+    let buffer_range_content = buffer.read(&buffer_range).context(CURRENT_LINE_MISSING)?;
 
     // Produce a collection of (<line number>, <line content>) tuples, but only for
     // non-empty lines.
@@ -672,7 +674,7 @@ pub fn delete_rest_of_line(app: &mut Application) -> Result {
         .workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?;
+        .context(BUFFER_MISSING)?;
 
     // Create a range extending from the
     // cursor's current position to the next line.
@@ -704,7 +706,7 @@ pub fn start_command_group(app: &mut Application) -> Result {
     app.workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?
+        .context(BUFFER_MISSING)?
         .start_operation_group();
 
     Ok(())
@@ -714,7 +716,7 @@ pub fn end_command_group(app: &mut Application) -> Result {
     app.workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?
+        .context(BUFFER_MISSING)?
         .end_operation_group();
 
     Ok(())
@@ -724,25 +726,25 @@ pub fn undo(app: &mut Application) -> Result {
     app.workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?
+        .context(BUFFER_MISSING)?
         .undo();
-    commands::view::scroll_to_cursor(app).chain_err(|| "Couldn't scroll to cursor after undoing.")
+    commands::view::scroll_to_cursor(app).context("Couldn't scroll to cursor after undoing.")
 }
 
 pub fn redo(app: &mut Application) -> Result {
     app.workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?
+        .context(BUFFER_MISSING)?
         .redo();
-    commands::view::scroll_to_cursor(app).chain_err(|| "Couldn't scroll to cursor after redoing.")
+    commands::view::scroll_to_cursor(app).context("Couldn't scroll to cursor after redoing.")
 }
 
 pub fn paste(app: &mut Application) -> Result {
     let insert_below = match app.mode {
         Mode::Select(_) | Mode::SelectLine(_) | Mode::Search(_) => {
             commands::selection::delete(app)
-                .chain_err(|| "Couldn't delete selection prior to pasting.")?;
+                .context("Couldn't delete selection prior to pasting.")?;
             false
         }
         _ => true,
@@ -799,7 +801,7 @@ pub fn paste_above(app: &mut Application) -> Result {
         .workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?;
+        .context(BUFFER_MISSING)?;
 
     if let ClipboardContent::Block(ref content) = *app.clipboard.get_content() {
         let mut start_of_line = Position {
@@ -822,7 +824,7 @@ pub fn remove_trailing_whitespace(app: &mut Application) -> Result {
         .workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?;
+        .context(BUFFER_MISSING)?;
     let mut line = 0;
     let mut offset = 0;
     let mut space_count = 0;
@@ -887,7 +889,7 @@ pub fn ensure_trailing_newline(app: &mut Application) -> Result {
         .workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?;
+        .context(BUFFER_MISSING)?;
 
     // Find end of buffer position.
     let data = buffer.data();
@@ -898,7 +900,7 @@ pub fn ensure_trailing_newline(app: &mut Application) -> Result {
                 .lines()
                 .enumerate()
                 .last()
-                .ok_or("Couldn't find the last line to insert a trailing newline")?;
+                .context("Couldn't find the last line to insert a trailing newline")?;
             let original_position = *buffer.cursor;
             let target_position = Position {
                 line: line_no,
@@ -924,7 +926,7 @@ pub fn insert_tab(app: &mut Application) -> Result {
         .workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?;
+        .context(BUFFER_MISSING)?;
     let tab_content = app.preferences.borrow().tab_content(buffer.path.as_ref());
     let tab_content_width = tab_content.chars().count();
     buffer.insert(tab_content);
@@ -942,14 +944,14 @@ pub fn format(app: &mut Application) -> Result {
         .workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?;
+        .context(BUFFER_MISSING)?;
 
-    let path = buf.path.as_ref().ok_or(BUFFER_PATH_MISSING)?;
+    let path = buf.path.as_ref().context(BUFFER_PATH_MISSING)?;
     let mut format_command = app
         .preferences
         .borrow()
         .format_command(path)
-        .ok_or(FORMAT_TOOL_MISSING)?;
+        .context(FORMAT_TOOL_MISSING)?;
     let data = buf.data();
 
     // Run the command with the buffer path as an argument.
@@ -957,9 +959,9 @@ pub fn format(app: &mut Application) -> Result {
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()
-        .chain_err(|| "Failed to spawn format tool")?;
+        .context("Failed to spawn format tool")?;
 
-    let mut format_input = process.stdin.take().chain_err(|| "Failed to open stdin")?;
+    let mut format_input = process.stdin.take().context("Failed to open stdin")?;
     std::thread::spawn(move || {
         format_input
             .write_all(data.as_bytes())
@@ -968,12 +970,12 @@ pub fn format(app: &mut Application) -> Result {
 
     let output = process
         .wait_with_output()
-        .chain_err(|| "Failed to read stdout")?;
+        .context("Failed to read stdout")?;
 
     // Reload buffer or propagate errors.
     if output.status.success() {
         let content = String::from_utf8(output.stdout)
-            .chain_err(|| "Failed to parse format tool output as UTF8")?;
+            .context("Failed to parse format tool output as UTF8")?;
         buf.replace(content);
 
         Ok(())
@@ -981,8 +983,7 @@ pub fn format(app: &mut Application) -> Result {
         let error = String::from_utf8(output.stderr)
             .unwrap_or(String::from("Failed to parse stderr output as UTF8"));
 
-        Err(Error::from(error))
-            .chain_err(|| format!("Format tool failed with code {}", output.status))
+        Err(anyhow!(error)).with_context(|| format!("Format tool failed with code {}", output.status))
     }
 }
 

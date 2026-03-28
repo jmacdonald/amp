@@ -14,7 +14,7 @@ pub fn display(
     let mut presenter = view.build_presenter()?;
 
     // Draw the visible set of tokens to the terminal.
-    let buffer = workspace.current_buffer.as_ref().ok_or(BUFFER_MISSING)?;
+    let buffer = workspace.current_buffer.as_ref().context(BUFFER_MISSING)?;
     let data = buffer.data();
     presenter.print_buffer(buffer, &data, &workspace.syntax_set, None, None)?;
 
@@ -24,7 +24,7 @@ pub fn display(
     let cursor_offset = mode_display.graphemes(true).count() + search_input.graphemes(true).count();
 
     if let Some(e) = error {
-        presenter.print_error(e.description());
+        presenter.print_error(&e.to_string());
     } else {
         presenter.print_status_line(&[
             StatusLineData {

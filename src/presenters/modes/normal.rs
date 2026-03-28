@@ -27,7 +27,7 @@ pub fn display(
         };
 
         if let Some(e) = error {
-            presenter.print_error(e.description());
+            presenter.print_error(&e.to_string());
         } else {
             // Build the status line mode and buffer title display.
             presenter.print_status_line(&[
@@ -66,7 +66,7 @@ pub fn display(
         }
 
         if let Some(e) = error {
-            presenter.print_error(e.description());
+            presenter.print_error(&e.to_string());
         }
 
         presenter.set_cursor(None);

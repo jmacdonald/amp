@@ -1,4 +1,3 @@
-use crate::errors;
 use crate::models::application::Application;
 use std::collections::HashMap;
 
@@ -19,7 +18,7 @@ pub mod view;
 pub mod workspace;
 
 pub type Command = fn(&mut Application) -> Result;
-pub type Result = errors::Result<()>;
+pub type Result = anyhow::Result<()>;
 
 pub fn hash_map() -> HashMap<&'static str, Command> {
     include!(concat!(env!("OUT_DIR"), "/hash_map"))

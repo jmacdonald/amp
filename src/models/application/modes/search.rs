@@ -31,7 +31,7 @@ impl SearchMode {
     // Searches the specified buffer for the input string
     // and stores the result as a collection of ranges.
     pub fn search(&mut self, buffer: &Buffer) -> Result<()> {
-        let query = self.input.as_ref().ok_or(SEARCH_QUERY_MISSING)?;
+        let query = self.input.as_ref().context(SEARCH_QUERY_MISSING)?;
         let distance = Distance::of_str(query);
 
         // Buffer search returns match starting positions, but we'd like ranges.

@@ -93,13 +93,13 @@ impl Preferences {
     /// A path pointing to the user preferences directory.
     pub fn directory() -> Result<PathBuf> {
         app_root(AppDataType::UserConfig, &APP_INFO)
-            .chain_err(|| "Couldn't create preferences directory or build a path to it.")
+            .context("Couldn't create preferences directory or build a path to it.")
     }
 
     /// A path pointing to the user syntax definition directory.
     pub fn syntax_path() -> Result<PathBuf> {
         app_dir(AppDataType::UserConfig, &APP_INFO, SYNTAX_PATH)
-            .chain_err(|| "Couldn't create syntax directory or build a path to it.")
+            .context("Couldn't create syntax directory or build a path to it.")
     }
 
     /// Returns the preference file loaded into a buffer for editing.
@@ -109,7 +109,7 @@ impl Preferences {
     pub fn edit() -> Result<Buffer> {
         // Build the path, creating parent directories, if required.
         let mut config_path = app_root(AppDataType::UserConfig, &APP_INFO)
-            .chain_err(|| "Couldn't create or open application config directory")?;
+            .context("Couldn't create or open application config directory")?;
         config_path.push(FILE_NAME);
 
         // Load the buffer, falling back to a
@@ -155,7 +155,7 @@ impl Preferences {
     /// Returns the theme path, making sure the directory exists.
     pub fn theme_path(&self) -> Result<PathBuf> {
         app_dir(AppDataType::UserConfig, &APP_INFO, THEME_PATH)
-            .chain_err(|| "Couldn't create themes directory or build a path to it.")
+            .context("Couldn't create themes directory or build a path to it.")
     }
 
     /// Updates the in-memory theme value.
@@ -278,7 +278,7 @@ impl Preferences {
         if let Some(exclusion_data) = exclusion_data {
             match *exclusion_data {
                 Yaml::Array(ref exclusions) => open::exclusions::parse(exclusions)
-                    .chain_err(|| "Failed to parse user-defined open mode exclusions")
+                    .context("Failed to parse user-defined open mode exclusions")
                     .map(Some),
                 Yaml::Boolean(_) => Ok(None),
                 _ => self.default_open_mode_exclusions(),
@@ -406,10 +406,10 @@ impl Preferences {
     fn default_open_mode_exclusions(&self) -> Result<Option<Vec<ExclusionPattern>>> {
         let exclusions = self.default[OPEN_MODE_KEY][OPEN_MODE_EXCLUSIONS_KEY]
             .as_vec()
-            .chain_err(|| "Couldn't find default open mode exclusions settings!")?;
+            .context("Couldn't find default open mode exclusions settings!")?;
 
         open::exclusions::parse(exclusions)
-            .chain_err(|| "Failed to parse default open mode exclusions")
+            .context("Failed to parse default open mode exclusions")
             .map(Some)
     }
 }
@@ -418,33 +418,33 @@ impl Preferences {
 fn load_document() -> Result<Option<Yaml>> {
     // Build a path to the config file.
     let mut config_path = get_app_root(AppDataType::UserConfig, &APP_INFO)
-        .chain_err(|| "Couldn't open application config directory")?;
+        .context("Couldn't open application config directory")?;
     config_path.push(FILE_NAME);
 
     // Open (or create) the config file.
     let mut config_file = OpenOptions::new()
         .read(true)
         .open(config_path)
-        .chain_err(|| "Couldn't open config file")?;
+        .context("Couldn't open config file")?;
 
     // Read the config file's contents.
     let mut data = String::new();
     config_file
         .read_to_string(&mut data)
-        .chain_err(|| "Couldn't read config file")?;
+        .context("Couldn't read config file")?;
 
     // Parse the config file's contents and get the first YAML document inside.
     let parsed_data =
-        YamlLoader::load_from_str(&data).chain_err(|| "Couldn't parse config file")?;
+        YamlLoader::load_from_str(&data).context("Couldn't parse config file")?;
     Ok(parsed_data.into_iter().next())
 }
 
 fn load_default_document() -> Result<Yaml> {
     YamlLoader::load_from_str(include_str!("default.yml"))
-        .chain_err(|| "Couldn't parse default config file")?
+        .context("Couldn't parse default config file")?
         .into_iter()
         .next()
-        .chain_err(|| "No default preferences document found")
+        .context("No default preferences document found")
 }
 
 /// Loads default keymaps, merging in the provided overrides.

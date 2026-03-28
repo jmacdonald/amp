@@ -9,7 +9,7 @@ pub fn push_char(app: &mut Application) -> Result {
         .view
         .last_key()
         .as_ref()
-        .ok_or("View hasn't tracked a key press")?;
+        .context("View hasn't tracked a key press")?;
     if let Key::Char(c) = *last_key {
         if let Mode::Path(ref mut mode) = app.mode {
             mode.push_char(c);
@@ -37,7 +37,7 @@ pub fn accept_path(app: &mut Application) -> Result {
             .workspace
             .current_buffer
             .as_mut()
-            .ok_or(BUFFER_MISSING)?;
+            .context(BUFFER_MISSING)?;
         let path_name = mode.input.clone();
         if path_name.is_empty() {
             bail!("Please provide a non-empty path")
@@ -50,7 +50,7 @@ pub fn accept_path(app: &mut Application) -> Result {
 
     app.workspace
         .update_current_syntax()
-        .chain_err(|| BUFFER_SYNTAX_UPDATE_FAILED)?;
+        .context(BUFFER_SYNTAX_UPDATE_FAILED)?;
     app.switch_to(ModeKey::Normal);
 
     if save_on_accept {

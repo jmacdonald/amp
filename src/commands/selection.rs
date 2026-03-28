@@ -36,14 +36,14 @@ pub fn select_all(app: &mut Application) -> Result {
     app.workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?
+        .context(BUFFER_MISSING)?
         .cursor
         .move_to_first_line();
     application::switch_to_select_line_mode(app)?;
     app.workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?
+        .context(BUFFER_MISSING)?
         .cursor
         .move_to_last_line();
 
@@ -70,7 +70,7 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
         .workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?;
+        .context(BUFFER_MISSING)?;
 
     match app.mode {
         Mode::Select(ref select_mode) => {
@@ -79,7 +79,7 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
 
             let data = buffer
                 .read(&selected_range)
-                .ok_or("Couldn't read selected data from buffer")?;
+                .context("Couldn't read selected data from buffer")?;
             app.clipboard.set_content(ClipboardContent::Inline(data))?;
         }
         Mode::SelectLine(ref mode) => {
@@ -88,7 +88,7 @@ fn copy_to_clipboard(app: &mut Application) -> Result {
 
             let data = buffer
                 .read(&selected_range)
-                .ok_or("Couldn't read selected data from buffer")?;
+                .context("Couldn't read selected data from buffer")?;
             app.clipboard.set_content(ClipboardContent::Block(data))?;
         }
         _ => bail!("Can't copy data to clipboard outside of select modes"),
@@ -102,7 +102,7 @@ fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
         .workspace
         .current_buffer
         .as_mut()
-        .ok_or(BUFFER_MISSING)?;
+        .context(BUFFER_MISSING)?;
 
     match app.mode {
         Mode::Select(ref mode) => {
@@ -117,7 +117,7 @@ fn sel_to_range(app: &mut Application) -> std::result::Result<Range, Error> {
             .results
             .as_ref()
             .and_then(|r| r.selection())
-            .ok_or("A selection is required.")?
+            .context("A selection is required.")?
             .clone()),
         _ => bail!("A selection is required."),
     }

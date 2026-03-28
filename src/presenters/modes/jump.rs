@@ -12,7 +12,7 @@ pub fn display(
 ) -> Result<()> {
     let mut presenter = view.build_presenter()?;
     let buffer_status = current_buffer_status_line_data(workspace);
-    let buf = workspace.current_buffer.as_ref().ok_or(BUFFER_MISSING)?;
+    let buf = workspace.current_buffer.as_ref().context(BUFFER_MISSING)?;
     let data = buf.data();
 
     mode.reset_display();
@@ -21,7 +21,7 @@ pub fn display(
     presenter.print_buffer(buf, &data, &workspace.syntax_set, None, Some(mode))?;
 
     if let Some(e) = error {
-        presenter.print_error(e.description());
+        presenter.print_error(&e.to_string());
     } else {
         presenter.print_status_line(&[
             StatusLineData {

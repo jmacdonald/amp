@@ -22,14 +22,12 @@ fn handle_error(error: &Error) {
     eprintln!("error: {error}");
 
     // Print the chain of other errors that led to the proximate error.
-    for e in error.iter().skip(1) {
+    for e in error.chain().skip(1) {
         eprintln!("caused by: {e}");
     }
 
     // Print the backtrace, if available.
-    if let Some(backtrace) = error.backtrace() {
-        eprintln!("backtrace: {backtrace:?}");
-    }
+    eprintln!("backtrace: {:?}", error.backtrace());
 
     // Exit with an error code.
     ::std::process::exit(1);

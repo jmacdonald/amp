@@ -4,14 +4,14 @@ use scribe::Workspace;
 
 pub fn display(workspace: &mut Workspace, view: &mut View, error: &Option<Error>) -> Result<()> {
     let mut presenter = view.build_presenter()?;
-    let buf = workspace.current_buffer.as_ref().ok_or(BUFFER_MISSING)?;
+    let buf = workspace.current_buffer.as_ref().context(BUFFER_MISSING)?;
     let data = buf.data();
 
     // Draw the visible set of tokens to the terminal.
     presenter.print_buffer(buf, &data, &workspace.syntax_set, None, None)?;
 
     if let Some(e) = error {
-        presenter.print_error(e.description());
+        presenter.print_error(&e.to_string());
     } else {
         // Draw the status line as a search prompt.
         let confirmation = "Are you sure? (y/n)".to_string();

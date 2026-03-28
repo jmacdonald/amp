@@ -33,7 +33,7 @@ impl ThemeLoader {
         let theme_dir_entries = self
             .path
             .read_dir()
-            .chain_err(|| "Failed to read themes directory")?;
+            .context("Failed to read themes directory")?;
 
         let theme_paths = theme_dir_entries
             .filter_map(|dir| dir.ok())

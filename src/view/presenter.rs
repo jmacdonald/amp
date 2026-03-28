@@ -42,7 +42,7 @@ impl<'p> Presenter<'p> {
                     );
                     view.theme_set.themes.get(default_theme_name)
                 })
-                .ok_or_else(|| format!("Couldn't find \"{theme_name}\" theme"))?;
+                .ok_or_else(|| anyhow!("Couldn't find \"{theme_name}\" theme"))?;
             theme.clone()
         };
 

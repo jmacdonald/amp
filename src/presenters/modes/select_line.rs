@@ -12,7 +12,7 @@ pub fn display(
 ) -> Result<()> {
     let mut presenter = view.build_presenter()?;
     let buffer_status = current_buffer_status_line_data(workspace);
-    let buf = workspace.current_buffer.as_ref().ok_or(BUFFER_MISSING)?;
+    let buf = workspace.current_buffer.as_ref().context(BUFFER_MISSING)?;
     let selected_range = mode.to_range(&buf.cursor);
     let data = buf.data();
 
@@ -26,7 +26,7 @@ pub fn display(
     )?;
 
     if let Some(e) = error {
-        presenter.print_error(e.description());
+        presenter.print_error(&e.to_string());
     } else {
         presenter.print_status_line(&[
             StatusLineData {

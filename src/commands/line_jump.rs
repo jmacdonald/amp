@@ -10,7 +10,7 @@ pub fn accept_input(app: &mut Application) -> Result {
         let line_number = mode
             .input
             .parse::<usize>()
-            .chain_err(|| "Couldn't parse a line number from the provided input.")?;
+            .context("Couldn't parse a line number from the provided input.")?;
 
         // Ignore zero-value line numbers.
         if line_number > 0 {
@@ -18,7 +18,7 @@ pub fn accept_input(app: &mut Application) -> Result {
                 .workspace
                 .current_buffer
                 .as_mut()
-                .ok_or(BUFFER_MISSING)?;
+                .context(BUFFER_MISSING)?;
 
             // Input values won't be zero-indexed; map the value so
             // that we can use it for a zero-indexed buffer position.
@@ -39,7 +39,7 @@ pub fn accept_input(app: &mut Application) -> Result {
                     .lines()
                     .nth(target_line)
                     .map(|line| line.to_string())
-                    .ok_or("Couldn't find the specified line")?;
+                    .context("Couldn't find the specified line")?;
 
                 target_position.offset = line_content.len();
                 buffer.cursor.move_to(target_position);
@@ -60,7 +60,7 @@ pub fn push_search_char(app: &mut Application) -> Result {
         .view
         .last_key()
         .as_ref()
-        .ok_or("View hasn't tracked a key press")?;
+        .context("View hasn't tracked a key press")?;
 
     if let Key::Char(c) = *key {
         if let Mode::LineJump(ref mut mode) = app.mode {

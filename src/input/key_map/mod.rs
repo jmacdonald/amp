@@ -3,7 +3,6 @@ use crate::errors::*;
 use crate::input::Key;
 use smallvec::SmallVec;
 use std::collections::HashMap;
-use std::convert::Into;
 use std::ops::{Deref, DerefMut};
 use yaml_rust::yaml::{Hash, Yaml, YamlLoader};
 
@@ -29,9 +28,9 @@ impl KeyMap {
         for (yaml_mode, yaml_key_bindings) in keymap_data {
             let mode = yaml_mode
                 .as_str()
-                .ok_or_else(|| "A mode key couldn't be parsed as a string".to_string())?;
+                .with_context(|| "A mode key couldn't be parsed as a string".to_string())?;
             let key_bindings = parse_mode_key_bindings(yaml_key_bindings, &commands)
-                .chain_err(|| format!("Failed to parse keymaps for \"{mode}\" mode"))?;
+                .with_context(|| format!("Failed to parse keymaps for \"{mode}\" mode"))?;
 
             keymap.insert(mode.to_string(), key_bindings);
         }
@@ -64,10 +63,10 @@ impl KeyMap {
     /// YAML document injected during the build.
     pub fn default() -> Result<KeyMap> {
         let default_keymap_data = YamlLoader::load_from_str(KeyMap::default_data())
-            .chain_err(|| "Couldn't parse default keymap")?
+            .context("Couldn't parse default keymap")?
             .into_iter()
             .next()
-            .ok_or("Couldn't locate a document in the default keymap")?;
+            .context("Couldn't locate a document in the default keymap")?;
 
         KeyMap::from(default_keymap_data.as_hash().unwrap())
     }
@@ -128,7 +127,7 @@ fn parse_mode_key_bindings(
 ) -> Result<HashMap<Key, SmallVec<[Command; 4]>>> {
     let mode_key_bindings = mode
         .as_hash()
-        .ok_or("Keymap mode config didn't return a hash of key bindings")?;
+        .context("Keymap mode config didn't return a hash of key bindings")?;
 
     let mut key_bindings = HashMap::new();
     for (yaml_key, yaml_command) in mode_key_bindings {
@@ -136,7 +135,7 @@ fn parse_mode_key_bindings(
         let key = parse_key(
             yaml_key
                 .as_str()
-                .ok_or_else(|| "A keymap key couldn't be parsed as a string".to_string())?,
+                .with_context(|| "A keymap key couldn't be parsed as a string".to_string())?,
         )?;
 
         let mut key_commands = SmallVec::new();
@@ -147,20 +146,24 @@ fn parse_mode_key_bindings(
                 let command_string = command.as_str();
 
                 key_commands.push(
-                    *commands.get(&command_string).ok_or_else(|| {
-                        format!("Keymap command \"{command_string}\" doesn't exist")
-                    })?,
+                    *commands
+                        .get(&command_string)
+                        .with_context(|| format!("Keymap command \"{command_string}\" doesn't exist"))?,
                 );
             }
             Yaml::Array(ref command_array) => {
                 for command in command_array {
-                    let command_string = command.as_str().ok_or_else(|| {
-                        format!("Keymap command \"{command:?}\" couldn't be parsed as a string")
-                    })?;
+                    let command_string = command
+                        .as_str()
+                        .with_context(|| {
+                            format!("Keymap command \"{command:?}\" couldn't be parsed as a string")
+                        })?;
 
-                    key_commands.push(*commands.get(command_string).ok_or_else(|| {
-                        format!("Keymap command \"{command_string}\" doesn't exist")
-                    })?);
+                    key_commands.push(
+                        *commands
+                            .get(command_string)
+                            .with_context(|| format!("Keymap command \"{command_string}\" doesn't exist"))?,
+                    );
                 }
             }
             _ => bail!(format!(
@@ -186,14 +189,14 @@ fn parse_key(data: &str) -> Result<Key> {
     let mut key_components = data.split('-');
     let component = key_components
         .next()
-        .ok_or("A keymap key is an empty string")?;
+        .context("A keymap key is an empty string")?;
 
     if let Some(key) = key_components.next() {
         // We have a modifier-qualified key; get the key.
         let key_char = key
             .chars()
             .next()
-            .ok_or_else(|| format!("Keymap key \"{key}\" is invalid"))?;
+            .with_context(|| format!("Keymap key \"{key}\" is invalid"))?;
 
         // Find the variant for the specified modifier.
         match component {
@@ -224,7 +227,7 @@ fn parse_key(data: &str) -> Result<Key> {
                 component
                     .chars()
                     .next()
-                    .ok_or_else(|| format!("Keymap key \"{component}\" is invalid"))?,
+                    .with_context(|| format!("Keymap key \"{component}\" is invalid"))?,
             ),
         })
     }

@@ -192,7 +192,7 @@ impl Application {
         let event = self
             .events
             .recv()
-            .chain_err(|| "Error receiving application event")?;
+            .context("Error receiving application event")?;
 
         debug!("received event: {:?}", event);
 
@@ -417,7 +417,7 @@ fn create_workspace(
     let workspace_dir = env::current_dir()?;
     let syntax_path = user_syntax_path()?;
     let mut workspace = Workspace::new(&workspace_dir, syntax_path.as_deref())
-        .chain_err(|| WORKSPACE_INIT_FAILED)?;
+        .context(WORKSPACE_INIT_FAILED)?;
 
     // If the first argument was a directory, we've navigated into
     // it; skip it before evaluating file args, lest we interpret

@@ -61,7 +61,7 @@ pub fn open_buffer(path: &Path, app: &mut Application) -> Result<()> {
 
     app.workspace
         .open_buffer(&path)
-        .chain_err(|| "Couldn't open a buffer for the specified path.")?;
+        .context("Couldn't open a buffer for the specified path.")?;
 
     let buffer = app.workspace.current_buffer.as_mut().unwrap();
 

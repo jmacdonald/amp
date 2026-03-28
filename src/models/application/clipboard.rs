@@ -80,7 +80,7 @@ impl Clipboard {
             if let Err(_) = clip.set_contents(text.to_owned()) {
                 self.system_clipboard = ClipboardProvider::new()
                     .map(Some)
-                    .map_err(|_| Error::from("Failed to update or reclaim system clipboard"))?;
+                    .map_err(|_| anyhow!("Failed to update or reclaim system clipboard"))?;
             }
         }
 

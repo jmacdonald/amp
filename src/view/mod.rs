@@ -52,7 +52,7 @@ impl View {
         preferences: Rc<RefCell<Preferences>>,
         event_channel: Sender<Event>,
     ) -> Result<View> {
-        let terminal = build_terminal().chain_err(|| "Failed to initialize terminal")?;
+        let terminal = build_terminal().context("Failed to initialize terminal")?;
         let theme_path = preferences.borrow().theme_path()?;
         let theme_set = ThemeLoader::new(theme_path).load()?;
 
@@ -145,7 +145,7 @@ impl View {
         let cache = self
             .render_caches
             .get(&buffer_key(buffer)?)
-            .ok_or("Buffer not properly initialized (render cache not present).")?;
+            .context("Buffer not properly initialized (render cache not present).")?;
 
         Ok(cache)
     }
@@ -207,7 +207,7 @@ impl Drop for View {
 fn buffer_key(buffer: &Buffer) -> Result<usize> {
     buffer
         .id
-        .ok_or_else(|| Error::from("Buffer ID doesn't exist"))
+        .ok_or_else(|| anyhow!("Buffer ID doesn't exist"))
 }
 
 #[cfg(test)]

@@ -254,7 +254,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
             .buffer
             .syntax_definition
             .as_ref()
-            .ok_or("Buffer has no syntax definition")?;
+            .context("Buffer has no syntax definition")?;
 
         // Start or resume state from a previous cache point, if available.
         let (cached_line_no, mut state) = self
@@ -274,7 +274,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
                 let events = state
                     .parse
                     .parse_line(line, self.syntax_set)
-                    .chain_err(|| BUFFER_PARSE_FAILED)?;
+                    .context(BUFFER_PARSE_FAILED)?;
                 let styled_lexemes =
                     HighlightIterator::new(&mut state.highlight, &events, line, &highlighter);
 

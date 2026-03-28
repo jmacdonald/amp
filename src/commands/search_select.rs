@@ -8,7 +8,7 @@ use crate::models::application::{Application, Mode, ModeKey};
 pub fn accept(app: &mut Application) -> Result {
     match app.mode {
         Mode::Command(ref mode) => {
-            let selection = mode.selection().ok_or("No command selected")?;
+            let selection = mode.selection().context("No command selected")?;
 
             // Run the selected command.
             (selection.command)(app)?;
@@ -27,7 +27,7 @@ pub fn accept(app: &mut Application) -> Result {
 
                 app.workspace
                     .open_buffer(path)
-                    .chain_err(|| "Couldn't open a buffer for the specified path.")?;
+                    .context("Couldn't open a buffer for the specified path.")?;
 
                 let buffer = app.workspace.current_buffer.as_mut().unwrap();
 
@@ -41,7 +41,7 @@ pub fn accept(app: &mut Application) -> Result {
             }
         }
         Mode::Theme(ref mut mode) => {
-            let theme_key = mode.selection().ok_or("No theme selected")?;
+            let theme_key = mode.selection().context("No theme selected")?;
             app.preferences.borrow_mut().set_theme(theme_key.as_str());
         }
         Mode::SymbolJump(ref mut mode) => {
@@ -49,10 +49,10 @@ pub fn accept(app: &mut Application) -> Result {
                 .workspace
                 .current_buffer
                 .as_mut()
-                .ok_or(BUFFER_MISSING)?;
+                .context(BUFFER_MISSING)?;
             let position = mode
                 .selection()
-                .ok_or("Couldn't find a position for the selected symbol")?
+                .context("Couldn't find a position for the selected symbol")?
                 .position;
 
             if !buffer.cursor.move_to(position) {
@@ -60,13 +60,13 @@ pub fn accept(app: &mut Application) -> Result {
             }
         }
         Mode::Syntax(ref mut mode) => {
-            let name = mode.selection().ok_or("No syntax selected")?;
+            let name = mode.selection().context("No syntax selected")?;
             let syntax = app.workspace.syntax_set.find_syntax_by_name(name).cloned();
             let buffer = app
                 .workspace
                 .current_buffer
                 .as_mut()
-                .ok_or(BUFFER_MISSING)?;
+                .context(BUFFER_MISSING)?;
             buffer.syntax_definition = syntax;
         }
         _ => bail!("Can't accept selection outside of search select mode."),

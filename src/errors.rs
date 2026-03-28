@@ -1,9 +1,4 @@
-// Create the Error, ErrorKind, ResultExt, and Result types
-error_chain! {
-    foreign_links {
-        Io(::std::io::Error) #[cfg(unix)];
-    }
-}
+pub use anyhow::{anyhow, bail, Context, Error, Result};
 
 pub const BUFFER_MISSING: &str = "No buffer available";
 pub const BUFFER_PARSE_FAILED: &str = "Failed to parse buffer";

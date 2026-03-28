@@ -1,4 +1,5 @@
 use crate::commands::Result;
+use crate::errors::bail;
 use crate::models::application::modes::SearchSelectMode;
 use crate::models::application::{Application, Mode};
 

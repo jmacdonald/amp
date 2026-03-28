@@ -27,7 +27,7 @@ pub fn display(
         presenter.print_buffer(buf, &data, &workspace.syntax_set, None, None)?;
 
         if let Some(e) = error {
-            presenter.print_error(e.description());
+            presenter.print_error(&e.to_string());
         } else {
             presenter.print_status_line(&[
                 StatusLineData {

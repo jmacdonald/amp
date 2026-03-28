@@ -52,7 +52,7 @@ pub fn switch_to_jump_mode(app: &mut Application) -> Result {
         .workspace
         .current_buffer
         .as_ref()
-        .ok_or(BUFFER_MISSING)?
+        .context(BUFFER_MISSING)?
         .cursor
         .line;
 
@@ -126,7 +126,7 @@ pub fn switch_to_symbol_jump_mode(app: &mut Application) -> Result {
     let token_set = app
         .workspace
         .current_buffer_tokens()
-        .chain_err(|| BUFFER_TOKENS_FAILED)?;
+        .context(BUFFER_TOKENS_FAILED)?;
     let config = app.preferences.borrow().search_select_config();
 
     match app.mode {
@@ -164,7 +164,7 @@ pub fn switch_to_select_mode(app: &mut Application) -> Result {
         .workspace
         .current_buffer
         .as_ref()
-        .ok_or(BUFFER_MISSING)?
+        .context(BUFFER_MISSING)?
         .cursor;
 
     app.switch_to(ModeKey::Select);
@@ -180,7 +180,7 @@ pub fn switch_to_select_line_mode(app: &mut Application) -> Result {
         .workspace
         .current_buffer
         .as_ref()
-        .ok_or(BUFFER_MISSING)?
+        .context(BUFFER_MISSING)?
         .cursor
         .line;
 
@@ -219,7 +219,7 @@ pub fn switch_to_path_mode(app: &mut Application) -> Result {
         .workspace
         .current_buffer
         .as_ref()
-        .ok_or(BUFFER_MISSING)?
+        .context(BUFFER_MISSING)?
         .path
         .as_ref()
         .map(|p|
@@ -244,7 +244,7 @@ pub fn switch_to_syntax_mode(app: &mut Application) -> Result {
         .workspace
         .current_buffer
         .as_ref()
-        .ok_or("Switching syntaxes requires an open buffer")?;
+        .context("Switching syntaxes requires an open buffer")?;
 
     app.switch_to(ModeKey::Syntax);
     let config = app.preferences.borrow().search_select_config();
@@ -269,7 +269,7 @@ pub fn run_git_tool(app: &mut Application) -> Result {
         .preferences
         .borrow()
         .git_tool_command()
-        .chain_err(|| "No git tool configured.")?;
+        .context("No git tool configured.")?;
 
     // Run tool
     app.view.replace(&mut command)?;
@@ -282,7 +282,7 @@ pub fn run_file_manager(app: &mut Application) -> Result {
         .preferences
         .borrow()
         .file_manager_command()
-        .chain_err(|| "No file manager configured.")?;
+        .context("No file manager configured.")?;
     let path = app
         .preferences
         .borrow()
@@ -291,15 +291,15 @@ pub fn run_file_manager(app: &mut Application) -> Result {
 
     // Some FMs don't create temp files if a selection isn't made.
     // Creating one normalizes expectations after executing it.
-    File::create(&path).chain_err(|| "Failed to create file manager temp file")?;
+    File::create(&path).context("Failed to create file manager temp file")?;
 
     // Run FM
     app.view.replace(&mut command)?;
 
     // Read/clean up temp file
     let file_manager_selections =
-        read_to_string(&path).chain_err(|| "Failed to read file manager temp file")?;
-    remove_file(&path).chain_err(|| "Failed to clean up file manager temp file")?;
+        read_to_string(&path).context("Failed to read file manager temp file")?;
+    remove_file(&path).context("Failed to clean up file manager temp file")?;
 
     // Open selected buffers
     for selection in file_manager_selections.lines() {
@@ -347,14 +347,14 @@ pub fn display_available_commands(app: &mut Application) -> Result {
 }
 
 pub fn display_last_error(app: &mut Application) -> Result {
-    let error = app.error.take().ok_or("No error to display")?;
+    let error = app.error.take().context("No error to display")?;
     let scope_display_buffer = {
         let mut error_buffer = Buffer::new();
         // Add the proximate/contextual error.
         error_buffer.insert(format!("{error}\n"));
 
         // Print the chain of other errors that led to the proximate error.
-        for err in error.iter().skip(1) {
+        for err in error.chain().skip(1) {
             error_buffer.insert(format!("caused by: {err}"));
         }
 

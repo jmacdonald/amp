@@ -7,13 +7,13 @@ pub fn move_to_previous_result(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
         mode.results
             .as_mut()
-            .ok_or(NO_SEARCH_RESULTS)?
+            .context(NO_SEARCH_RESULTS)?
             .select_previous();
     } else {
         bail!("Can't move to search result outside of search mode");
     }
 
-    commands::view::scroll_cursor_to_center(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)?;
+    commands::view::scroll_cursor_to_center(app).context(SCROLL_TO_CURSOR_FAILED)?;
     move_to_current_result(app)
 }
 
@@ -21,13 +21,13 @@ pub fn move_to_next_result(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
         mode.results
             .as_mut()
-            .ok_or(NO_SEARCH_RESULTS)?
+            .context(NO_SEARCH_RESULTS)?
             .select_next();
     } else {
         bail!("Can't move to search result outside of search mode");
     }
 
-    commands::view::scroll_cursor_to_center(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)?;
+    commands::view::scroll_cursor_to_center(app).context(SCROLL_TO_CURSOR_FAILED)?;
     move_to_current_result(app)
 }
 
@@ -37,20 +37,20 @@ pub fn move_to_current_result(app: &mut Application) -> Result {
             .workspace
             .current_buffer
             .as_mut()
-            .ok_or(BUFFER_MISSING)?;
-        let query = mode.input.as_ref().ok_or(SEARCH_QUERY_MISSING)?;
+            .context(BUFFER_MISSING)?;
+        let query = mode.input.as_ref().context(SEARCH_QUERY_MISSING)?;
         let result = mode
             .results
             .as_mut()
-            .ok_or(NO_SEARCH_RESULTS)?
+            .context(NO_SEARCH_RESULTS)?
             .selection()
-            .ok_or_else(|| format!("No matches found for \"{query}\""))?;
+            .with_context(|| format!("No matches found for \"{query}\""))?;
         buffer.cursor.move_to(result.start());
     } else {
         bail!("Can't move to search result outside of search mode");
     }
 
-    commands::view::scroll_cursor_to_center(app).chain_err(|| SCROLL_TO_CURSOR_FAILED)?;
+    commands::view::scroll_cursor_to_center(app).context(SCROLL_TO_CURSOR_FAILED)?;
 
     Ok(())
 }
@@ -82,7 +82,7 @@ pub fn push_search_char(app: &mut Application) -> Result {
         .view
         .last_key()
         .as_ref()
-        .ok_or("View hasn't tracked a key press")?;
+        .context("View hasn't tracked a key press")?;
 
     if let Key::Char(c) = *key {
         if let Mode::Search(ref mut mode) = app.mode {
@@ -100,7 +100,7 @@ pub fn push_search_char(app: &mut Application) -> Result {
 
 pub fn pop_search_char(app: &mut Application) -> Result {
     if let Mode::Search(ref mut mode) = app.mode {
-        let query = mode.input.as_mut().ok_or(SEARCH_QUERY_MISSING)?;
+        let query = mode.input.as_mut().context(SEARCH_QUERY_MISSING)?;
 
         query.pop();
     } else {
@@ -117,7 +117,7 @@ pub fn run(app: &mut Application) -> Result {
             .workspace
             .current_buffer
             .as_ref()
-            .ok_or(BUFFER_MISSING)?;
+            .context(BUFFER_MISSING)?;
         mode.search(buffer)?;
     } else {
         bail!("Can't run search outside of search mode");
@@ -133,8 +133,8 @@ fn select_closest_result(app: &mut Application) -> Result {
             .workspace
             .current_buffer
             .as_ref()
-            .ok_or(BUFFER_MISSING)?;
-        let results = mode.results.as_mut().ok_or(NO_SEARCH_RESULTS)?;
+            .context(BUFFER_MISSING)?;
+        let results = mode.results.as_mut().context(NO_SEARCH_RESULTS)?;
 
         // Skip over previous entries.
         let skip_count = results

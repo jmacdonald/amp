@@ -28,7 +28,7 @@ pub fn display<T: SearchSelectMode + Display>(
         presenter.print_buffer(buf, &data, &workspace.syntax_set, None, None)?;
 
         if let Some(e) = error {
-            presenter.print_error(e.description());
+            presenter.print_error(&e.to_string());
         } else {
             presenter.print_status_line(&[
                 StatusLineData {
