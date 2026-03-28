@@ -112,7 +112,7 @@ impl SearchSelectMode for SymbolJumpMode {
         self.insert = insert_mode;
     }
 
-    fn results(&self) -> Iter<Symbol> {
+    fn results(&self) -> Iter<'_, Symbol> {
         self.results.iter()
     }
 

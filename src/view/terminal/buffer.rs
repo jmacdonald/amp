@@ -28,7 +28,7 @@ impl<'c> TerminalBuffer<'c> {
         self.cells = vec![Cell::default(); self.width * self.height];
     }
 
-    pub fn iter(&self) -> TerminalBufferIterator {
+    pub fn iter(&self) -> TerminalBufferIterator<'_> {
         TerminalBufferIterator::new(self.width, &self.cells)
     }
 

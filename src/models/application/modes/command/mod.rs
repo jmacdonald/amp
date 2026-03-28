@@ -87,7 +87,7 @@ impl SearchSelectMode for CommandMode {
         self.insert = insert_mode;
     }
 
-    fn results(&self) -> Iter<DisplayableCommand> {
+    fn results(&self) -> Iter<'_, DisplayableCommand> {
         self.results.iter()
     }
 

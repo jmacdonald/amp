@@ -71,7 +71,7 @@ impl SearchSelectMode for SyntaxMode {
         self.insert = insert_mode;
     }
 
-    fn results(&self) -> Iter<String> {
+    fn results(&self) -> Iter<'_, String> {
         self.results.iter()
     }
 

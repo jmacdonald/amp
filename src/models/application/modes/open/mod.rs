@@ -229,7 +229,7 @@ impl SearchSelectMode for OpenMode {
         self.insert = insert_mode;
     }
 
-    fn results(&self) -> Iter<DisplayablePath> {
+    fn results(&self) -> Iter<'_, DisplayablePath> {
         self.collection().iter()
     }
 

@@ -21,7 +21,7 @@ pub trait SearchSelectMode: Display {
     fn search(&mut self);
     fn insert_mode(&self) -> bool;
     fn set_insert_mode(&mut self, insert_mode: bool);
-    fn results(&self) -> Iter<Self::Item>;
+    fn results(&self) -> Iter<'_, Self::Item>;
     fn selection(&self) -> Option<&Self::Item>;
     fn selected_index(&self) -> usize;
     fn select_previous(&mut self);
@@ -96,7 +96,7 @@ mod tests {
             false
         }
         fn set_insert_mode(&mut self, _: bool) {}
-        fn results(&self) -> Iter<String> {
+        fn results(&self) -> Iter<'_, String> {
             self.results.iter()
         }
         fn selection(&self) -> Option<&String> {

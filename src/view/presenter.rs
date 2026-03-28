@@ -24,7 +24,7 @@ pub struct Presenter<'p> {
 }
 
 impl<'p> Presenter<'p> {
-    pub fn new(view: &mut View) -> Result<Presenter> {
+    pub fn new(view: &mut View) -> Result<Presenter<'_>> {
         debug!("establishing theme");
 
         let theme = {
