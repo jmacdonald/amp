@@ -61,8 +61,8 @@ impl Clipboard {
             .as_mut()
             .and_then(|clip| clip.get_contents().ok())
             .filter(|con| !con.is_empty()) // treat empty content as None
-            .map(ClipboardContent::Inline) // external content is always inline
-            .filter(|con| *con != self.content); // skip if it's identical
+            .filter(|con| Self::system_content_differs(&self.content, con))
+            .map(ClipboardContent::Inline); // external content is always inline
 
         if let Some(content) = new_system_content {
             self.content = content;
@@ -85,5 +85,38 @@ impl Clipboard {
         }
 
         Ok(())
+    }
+
+    fn system_content_differs(internal_content: &ClipboardContent, system_content: &str) -> bool {
+        internal_content.text() != Some(system_content)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Clipboard, ClipboardContent};
+
+    #[test]
+    fn system_content_differs_ignores_inline_vs_block_when_text_matches() {
+        assert!(!Clipboard::system_content_differs(
+            &ClipboardContent::Inline("amp\n".to_string()),
+            "amp\n"
+        ));
+        assert!(!Clipboard::system_content_differs(
+            &ClipboardContent::Block("amp\n".to_string()),
+            "amp\n"
+        ));
+    }
+
+    #[test]
+    fn system_content_differs_detects_actual_text_changes() {
+        assert!(Clipboard::system_content_differs(
+            &ClipboardContent::Block("amp\n".to_string()),
+            "editor\n"
+        ));
+        assert!(Clipboard::system_content_differs(
+            &ClipboardContent::None,
+            "editor"
+        ));
     }
 }
