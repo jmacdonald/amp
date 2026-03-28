@@ -145,6 +145,13 @@ impl Preferences {
             })
     }
 
+    /// Returns the default theme name.
+    pub fn default_theme(&self) -> &str {
+        self.default[THEME_KEY]
+            .as_str()
+            .expect("Couldn't find default theme name!")
+    }
+
     /// Returns the theme path, making sure the directory exists.
     pub fn theme_path(&self) -> Result<PathBuf> {
         app_dir(AppDataType::UserConfig, &APP_INFO, THEME_PATH)

@@ -34,6 +34,14 @@ impl<'p> Presenter<'p> {
                 .theme_set
                 .themes
                 .get(theme_name)
+                .or_else(|| {
+                    let default_theme_name = preferences.default_theme();
+                    debug!(
+                        "theme \"{}\" not found; falling back to \"{}\"",
+                        theme_name, default_theme_name
+                    );
+                    view.theme_set.themes.get(default_theme_name)
+                })
                 .ok_or_else(|| format!("Couldn't find \"{theme_name}\" theme"))?;
             theme.clone()
         };
