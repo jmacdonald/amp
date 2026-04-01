@@ -283,7 +283,7 @@ mod tests {
     #[test]
     fn search_uses_the_query() {
         let path = env::current_dir().expect("can't get current directory/path");
-        let mut workspace = Workspace::new(&path, None).unwrap();
+        let mut workspace = Workspace::new(&path).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
@@ -358,7 +358,7 @@ mod tests {
     #[test]
     fn search_incorporates_pinned_query_content() {
         let path = env::current_dir().expect("can't get current directory/path");
-        let mut workspace = Workspace::new(&path, None).unwrap();
+        let mut workspace = Workspace::new(&path).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
@@ -396,7 +396,7 @@ mod tests {
     #[test]
     fn selections_works_without_results() {
         let path = env::current_dir().expect("can't get current directory/path");
-        let mut workspace = Workspace::new(&path, None).unwrap();
+        let mut workspace = Workspace::new(&path).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
@@ -417,7 +417,7 @@ mod tests {
     #[test]
     fn selections_returns_current_selection() {
         let path = env::current_dir().expect("can't get current directory/path");
-        let mut workspace = Workspace::new(&path, None).unwrap();
+        let mut workspace = Workspace::new(&path).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
@@ -438,7 +438,7 @@ mod tests {
     #[test]
     fn selections_includes_marked_selections() {
         let path = env::current_dir().expect("can't get current directory/path");
-        let mut workspace = Workspace::new(&path, None).unwrap();
+        let mut workspace = Workspace::new(&path).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
@@ -461,7 +461,7 @@ mod tests {
     #[test]
     fn selections_does_not_include_unmarked_indices() {
         let path = env::current_dir().expect("can't get current directory/path");
-        let mut workspace = Workspace::new(&path, None).unwrap();
+        let mut workspace = Workspace::new(&path).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
@@ -485,7 +485,7 @@ mod tests {
     #[test]
     fn selected_indices_returns_current_index() {
         let path = env::current_dir().expect("can't get current directory/path");
-        let mut workspace = Workspace::new(&path, None).unwrap();
+        let mut workspace = Workspace::new(&path).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
@@ -505,7 +505,7 @@ mod tests {
     #[test]
     fn selected_indices_includes_marked_indices() {
         let path = env::current_dir().expect("can't get current directory/path");
-        let mut workspace = Workspace::new(&path, None).unwrap();
+        let mut workspace = Workspace::new(&path).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
@@ -527,7 +527,7 @@ mod tests {
     #[test]
     fn selected_indices_does_not_include_unmarked_indices() {
         let path = env::current_dir().expect("can't get current directory/path");
-        let mut workspace = Workspace::new(&path, None).unwrap();
+        let mut workspace = Workspace::new(&path).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
@@ -550,7 +550,7 @@ mod tests {
     #[test]
     fn search_clears_marked_indices() {
         let path = env::current_dir().expect("can't get current directory/path");
-        let mut workspace = Workspace::new(&path, None).unwrap();
+        let mut workspace = Workspace::new(&path).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
@@ -581,7 +581,7 @@ mod tests {
     #[test]
     fn reset_clears_marked_indices() {
         let path = env::current_dir().expect("can't get current directory/path");
-        let mut workspace = Workspace::new(&path, None).unwrap();
+        let mut workspace = Workspace::new(&path).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, receiver) = channel();
@@ -616,7 +616,7 @@ mod tests {
     #[test]
     fn when_query_is_empty_results_are_open_buffers() {
         let path = env::current_dir().expect("can't get current directory/path");
-        let mut workspace = Workspace::new(&path, None).unwrap();
+        let mut workspace = Workspace::new(&path).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, _) = channel();
@@ -643,7 +643,7 @@ mod tests {
     #[test]
     fn open_buffers_respects_workspace_current_buffer() {
         let path = env::current_dir().expect("can't get current directory/path");
-        let mut workspace = Workspace::new(&path, None).unwrap();
+        let mut workspace = Workspace::new(&path).unwrap();
         let config = SearchSelectConfig::default();
         let mut mode = OpenMode::new(path.clone(), config.clone());
         let (sender, _) = channel();

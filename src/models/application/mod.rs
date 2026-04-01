@@ -26,6 +26,8 @@ use std::mem;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender};
+use syntect::dumps::from_uncompressed_data;
+use syntect::parsing::SyntaxSet;
 
 pub struct Application {
     pub mode: Mode,
@@ -415,9 +417,9 @@ fn create_workspace(
     }
 
     let workspace_dir = env::current_dir()?;
-    let syntax_path = user_syntax_path()?;
-    let mut workspace = Workspace::new(&workspace_dir, syntax_path.as_deref())
-        .context(WORKSPACE_INIT_FAILED)?;
+    let syntax_set = build_full_syntax_set()?;
+    let mut workspace =
+        Workspace::with_syntax_set(&workspace_dir, syntax_set).context(WORKSPACE_INIT_FAILED)?;
 
     // If the first argument was a directory, we've navigated into
     // it; skip it before evaluating file args, lest we interpret
@@ -468,17 +470,29 @@ fn create_workspace(
     Ok(workspace)
 }
 
-#[cfg(not(test))]
-fn user_syntax_path() -> Result<Option<PathBuf>> {
-    Preferences::syntax_path().map(Some)
+fn build_full_syntax_set() -> Result<SyntaxSet> {
+    // Load syntect default + app-bundled syntax sets serialized in build.rs
+    let mut builder = from_uncompressed_data::<SyntaxSet>(include_bytes!(concat!(
+        env!("OUT_DIR"),
+        "/app_syntaxes.packdump"
+    )))
+    .context("Couldn't load bundled syntax definitions")?
+    .into_builder();
+
+    // Add user syntaxes to built-in set
+    builder.add_from_folder(user_syntax_path()?, true)?;
+
+    Ok(builder.build())
 }
 
-// Building/linking user syntaxes is expensive, which is most obvious in the
-// test suite, as it creates application instances in rapid succession. Bypass
-// these in test and benchmark environments.
+#[cfg(not(test))]
+fn user_syntax_path() -> Result<PathBuf> {
+    Preferences::syntax_path()
+}
+
 #[cfg(test)]
-fn user_syntax_path() -> Result<Option<PathBuf>> {
-    Ok(None)
+fn user_syntax_path() -> Result<PathBuf> {
+    Ok(PathBuf::from("tests/fixtures/user_syntaxes"))
 }
 
 #[cfg(test)]
@@ -487,6 +501,7 @@ mod tests {
     use super::{Application, Mode, ModeKey};
     use crate::view::View;
 
+    use scribe::buffer::Token;
     use scribe::Buffer;
     use std::cell::RefCell;
     use std::env;
@@ -537,8 +552,7 @@ mod tests {
     }
 
     #[test]
-    fn create_workspace_correctly_applies_user_defined_syntax_when_opening_buffer_from_command_line(
-    ) {
+    fn create_workspace_correctly_applies_user_defined_syntax_mappings() {
         let data = YamlLoader::load_from_str("types:\n  xyz:\n    syntax: Rust").unwrap();
         let preferences = Rc::new(RefCell::new(Preferences::new(data.into_iter().nth(0))));
         let (event_channel, _) = mpsc::channel();
@@ -557,6 +571,107 @@ mod tests {
                 .unwrap()
                 .name,
             "Rust"
+        );
+    }
+
+    #[test]
+    fn create_workspace_correctly_applies_bundled_syntaxes() {
+        let preferences = Rc::new(RefCell::new(Preferences::new(None)));
+        let (event_channel, _) = mpsc::channel();
+        let mut view = View::new(preferences.clone(), event_channel.clone()).unwrap();
+
+        let args = vec![String::new(), String::from("shell.nix")];
+        let workspace = super::create_workspace(&mut view, &preferences.borrow(), &args).unwrap();
+
+        assert_eq!(
+            workspace
+                .current_buffer
+                .as_ref()
+                .unwrap()
+                .syntax_definition
+                .as_ref()
+                .unwrap()
+                .name,
+            "Nix"
+        );
+    }
+
+    #[test]
+    fn create_workspace_correctly_applies_user_syntaxes() {
+        let preferences = Rc::new(RefCell::new(Preferences::new(None)));
+        let (event_channel, _) = mpsc::channel();
+        let mut view = View::new(preferences.clone(), event_channel.clone()).unwrap();
+
+        let args = vec![String::new(), String::from("src/test.amp")];
+        let workspace = super::create_workspace(&mut view, &preferences.borrow(), &args).unwrap();
+
+        assert_eq!(
+            workspace
+                .current_buffer
+                .as_ref()
+                .unwrap()
+                .syntax_definition
+                .as_ref()
+                .unwrap()
+                .name,
+            "Amp"
+        );
+    }
+
+    #[test]
+    fn application_workspace_correctly_tokenizes_with_complex_grammars() {
+        let mut app = Application::new(&vec![String::new(), String::from("shell.nix")]).unwrap();
+
+        app.workspace
+            .current_buffer
+            .as_mut()
+            .unwrap()
+            .insert("shellHook = ''\n  echo \"${pkgs.lib.getName pkgs.git}\"\n'';\n");
+
+        let token_set = app.workspace.current_buffer_tokens().unwrap();
+        let tokens: Vec<_> = token_set
+            .iter()
+            .unwrap()
+            .filter_map(|token| match token {
+                Token::Lexeme(lexeme) => Some((
+                    lexeme.value.to_string(),
+                    format!("{}", lexeme.scope)
+                        .split_whitespace()
+                        .last()
+                        .unwrap_or("source.nix")
+                        .to_string(),
+                )),
+                Token::Newline => None,
+            })
+            .collect();
+
+        assert_eq!(
+            tokens,
+            [
+                ("shellHook", "entity.other.attribute-name.nix"),
+                (" ", "source.nix"),
+                ("=", "keyword.operator.assignment.nix"),
+                (" ", "source.nix"),
+                ("''", "punctuation.definition.string.begin.nix"),
+                ("  echo \"", "string.quoted.other.multiline.nix"),
+                ("${", "punctuation.section.interpolation.begin.nix"),
+                ("pkgs", "variable.other.nix"),
+                (".", "keyword.operator.accessor.nix"),
+                ("lib", "variable.other.nix"),
+                (".", "keyword.operator.accessor.nix"),
+                ("getName", "variable.other.nix"),
+                (" ", "meta.interpolation.nix"),
+                ("pkgs", "variable.other.nix"),
+                (".", "keyword.operator.accessor.nix"),
+                ("git", "variable.other.nix"),
+                ("}", "punctuation.section.interpolation.end.nix"),
+                ("\"", "string.quoted.other.multiline.nix"),
+                ("''", "punctuation.definition.string.end.nix"),
+                (";", "punctuation.terminator.nix"),
+            ]
+            .into_iter()
+            .map(|(value, scope)| (value.to_string(), scope.to_string()))
+            .collect::<Vec<_>>()
         );
     }
 

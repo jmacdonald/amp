@@ -2,14 +2,19 @@ use regex::Regex;
 use std::env;
 use std::fs::{self, read_to_string, File};
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::result::Result;
+use syntect::dumps::dump_to_uncompressed_file;
+use syntect::parsing::SyntaxSet;
 
 const COMMAND_REGEX: &str = r"pub fn (.*)\(app: &mut Application\) -> Result";
+const APP_SYNTAX_DIR: &str = "syntaxes";
+const APP_SYNTAX_SOURCE: &str = "app_syntaxes.packdump";
 
 fn main() {
     generate_commands();
+    bake_app_syntaxes();
     set_build_revision();
 }
 
@@ -110,4 +115,20 @@ fn set_build_revision() {
 
     // Write the hash as an environment variable
     println!("cargo:rustc-env=BUILD_REVISION={}", build_revision.trim());
+}
+
+fn bake_app_syntaxes() {
+    let out_dir = env::var("OUT_DIR").expect("The compiler did not provide $OUT_DIR");
+    let output_path = PathBuf::from(out_dir).join(APP_SYNTAX_SOURCE);
+    let syntax_dir = Path::new(APP_SYNTAX_DIR);
+    let mut builder = SyntaxSet::load_defaults_newlines().into_builder();
+
+    if syntax_dir.exists() {
+        builder
+            .add_from_folder(syntax_dir, true)
+            .expect("Failed to load bundled syntax definitions");
+    }
+
+    dump_to_uncompressed_file(&builder.build(), output_path)
+        .expect("Failed to write bundled syntax dump");
 }

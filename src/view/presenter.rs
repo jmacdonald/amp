@@ -220,7 +220,7 @@ mod tests {
         let mut view = View::new(preferences, tx).unwrap();
 
         // Set up a Rust-categorized buffer.
-        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
         let mut buffer = Buffer::new();
         buffer.id = Some(0);
         buffer.path = Some(PathBuf::from("rust.rs"));
