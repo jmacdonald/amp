@@ -1,0 +1,196 @@
+%YAML 1.2
+---
+# Sublime Text 3 compatible Nix syntax.
+name: Nix
+file_extensions:
+  - nix
+scope: source.nix
+
+variables:
+  identifier: '[A-Za-z_][A-Za-z0-9_''-]*'
+  attr_identifier: '[A-Za-z_][A-Za-z0-9_''-]*'
+  path_chunk: '[A-Za-z0-9._+-]+'
+
+contexts:
+  prototype:
+    - include: comments
+
+  main:
+    - include: expressions
+
+  expressions:
+    - include: whitespace
+    - include: keywords
+    - include: constants
+    - include: numbers
+    - include: strings
+    - include: paths
+    - include: search-path
+    - include: uri
+    - include: delimiters
+    - include: function-arguments
+    - include: attribute-names
+    - include: operators
+    - include: identifiers
+
+  whitespace:
+    - match: \s+
+
+  comments:
+    - match: /\*
+      scope: punctuation.definition.comment.begin.nix
+      push: block-comment
+    - match: '#'
+      scope: punctuation.definition.comment.nix
+      push: line-comment
+
+  line-comment:
+    - meta_scope: comment.line.number-sign.nix
+    - match: \n
+      pop: true
+
+  block-comment:
+    - meta_scope: comment.block.nix
+    - match: \*/
+      scope: punctuation.definition.comment.end.nix
+      pop: true
+
+  keywords:
+    - match: \b(let|in|if|then|else|assert|with|inherit|rec)\b
+      scope: keyword.control.nix
+    - match: \b(import|abort|baseNameOf|builtins|derivation|dirOf|fetchTarball|fetchGit|fromJSON|fromTOML|importJSON|map|removeAttrs|throw|toFile|toJSON|toPath|trace)\b
+      scope: support.function.nix
+
+  constants:
+    - match: \b(true|false|null)\b
+      scope: constant.language.nix
+    - match: \b(or)\b
+      scope: keyword.operator.word.nix
+    - match: \.\.\.
+      scope: keyword.operator.ellipsis.nix
+
+  numbers:
+    - match: '\b\d+\.\d+([eE][+-]?\d+)?\b'
+      scope: constant.numeric.float.nix
+    - match: '\b\d+[eE][+-]?\d+\b'
+      scope: constant.numeric.float.nix
+    - match: '\b\d+\b'
+      scope: constant.numeric.integer.nix
+
+  strings:
+    - match: '"'
+      scope: punctuation.definition.string.begin.nix
+      push: double-quoted-string
+    - match: "''"
+      scope: punctuation.definition.string.begin.nix
+      push: indented-string
+
+  double-quoted-string:
+    - meta_scope: string.quoted.double.nix
+    - match: '"'
+      scope: punctuation.definition.string.end.nix
+      pop: true
+    - include: interpolation
+    - match: '\\.'
+      scope: constant.character.escape.nix
+
+  indented-string:
+    - meta_scope: string.quoted.other.multiline.nix
+    - match: "''"
+      scope: punctuation.definition.string.end.nix
+      pop: true
+    - include: interpolation
+    - match: "''[$']"
+      scope: constant.character.escape.nix
+
+  interpolation:
+    - match: '\$\{'
+      scope: punctuation.section.interpolation.begin.nix
+      push: interpolation-body
+
+  interpolation-body:
+    - meta_scope: meta.interpolation.nix
+    - match: '\}'
+      scope: punctuation.section.interpolation.end.nix
+      pop: true
+    - include: expressions
+
+  paths:
+    - match: '(?x)
+        (?:
+          \~/
+          |
+          \.\.?/
+          |
+          /
+        )
+        {{path_chunk}}(?:/{{path_chunk}})*
+      '
+      scope: string.unquoted.path.nix
+
+  search-path:
+    - match: '<[A-Za-z0-9._+-]+(?:/[A-Za-z0-9._+-]+)*>'
+      scope: string.unquoted.search-path.nix
+
+  uri:
+    - match: '\b[a-zA-Z][a-zA-Z0-9+.-]*:(?:\/\/)?[^\s\]\[\(\)\{\};,"]+'
+      scope: string.unquoted.uri.nix
+
+  delimiters:
+    - match: '\{'
+      scope: punctuation.section.mapping.begin.nix
+    - match: '\}'
+      scope: punctuation.section.mapping.end.nix
+    - match: '\['
+      scope: punctuation.section.sequence.begin.nix
+    - match: '\]'
+      scope: punctuation.section.sequence.end.nix
+    - match: '\('
+      scope: punctuation.section.group.begin.nix
+    - match: '\)'
+      scope: punctuation.section.group.end.nix
+    - match: ';'
+      scope: punctuation.terminator.nix
+    - match: ','
+      scope: punctuation.separator.sequence.nix
+
+  operators:
+    - match: '(//|\+\+|==|!=|<=|>=|&&|\|\|)'
+      scope: keyword.operator.nix
+    - match: '(?<!\.)\.(?!\.)'
+      scope: keyword.operator.accessor.nix
+    - match: '(?<![<>=!:-])=(?!=)'
+      scope: keyword.operator.assignment.nix
+    - match: ':'
+      scope: keyword.operator.lambda.nix
+    - match: '@'
+      scope: keyword.operator.bind.nix
+    - match: '\?'
+      scope: keyword.operator.optional.nix
+    - match: '->'
+      scope: keyword.operator.arrow.nix
+    - match: '[+\-*/<>!]'
+      scope: keyword.operator.nix
+
+  function-arguments:
+    - match: '({{identifier}})(\s*)(:)'
+      captures:
+        1: variable.parameter.nix
+        3: keyword.operator.lambda.nix
+    - match: '(\})(\s*)(:)'
+      captures:
+        1: punctuation.section.mapping.end.nix
+        3: keyword.operator.lambda.nix
+    - match: '({{identifier}})(\s*)(\?)'
+      captures:
+        1: variable.parameter.nix
+        3: keyword.operator.optional.nix
+
+  attribute-names:
+    - match: '({{attr_identifier}})(\s*)(?==)'
+      captures:
+        1: entity.other.attribute-name.nix
+
+  identifiers:
+    - match: '{{identifier}}'
+      scope: variable.other.nix

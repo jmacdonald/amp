@@ -26,6 +26,7 @@ use std::mem;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender};
+use syntect::parsing::SyntaxDefinition;
 
 pub struct Application {
     pub mode: Mode,
@@ -415,8 +416,10 @@ fn create_workspace(
     }
 
     let workspace_dir = env::current_dir()?;
-    let syntax_path = user_syntax_path()?;
-    let mut workspace = Workspace::new(&workspace_dir, syntax_path.as_deref())
+    let mut workspace = Workspace::builder(&workspace_dir)
+        .add_syntax_definitions(load_app_syntax_definitions()?)
+        .with_user_syntaxes(user_syntax_path()?)
+        .build()
         .context(WORKSPACE_INIT_FAILED)?;
 
     // If the first argument was a directory, we've navigated into
@@ -468,26 +471,28 @@ fn create_workspace(
     Ok(workspace)
 }
 
-#[cfg(not(test))]
-fn user_syntax_path() -> Result<Option<PathBuf>> {
-    Preferences::syntax_path().map(Some)
+fn load_app_syntax_definitions() -> Result<Vec<SyntaxDefinition>> {
+    include!(concat!(env!("OUT_DIR"), "/app_syntaxes.rs"))
 }
 
-// Building/linking user syntaxes is expensive, which is most obvious in the
-// test suite, as it creates application instances in rapid succession. Bypass
-// these in test and benchmark environments.
+#[cfg(not(test))]
+fn user_syntax_path() -> Result<PathBuf> {
+    Preferences::syntax_path()
+}
+
 #[cfg(test)]
-fn user_syntax_path() -> Result<Option<PathBuf>> {
-    Ok(None)
+fn user_syntax_path() -> Result<PathBuf> {
+    Ok(PathBuf::from("tests/fixtures/user_syntaxes"))
 }
 
 #[cfg(test)]
 mod tests {
     use super::preferences::Preferences;
-    use super::{Application, Mode, ModeKey};
+    use super::{load_app_syntax_definitions, user_syntax_path, Application, Mode, ModeKey};
     use crate::view::View;
 
-    use scribe::Buffer;
+    use scribe::buffer::Token;
+    use scribe::{Buffer, Workspace};
     use std::cell::RefCell;
     use std::env;
     use std::path::Path;
@@ -557,6 +562,51 @@ mod tests {
                 .unwrap()
                 .name,
             "Rust"
+        );
+    }
+
+    #[test]
+    fn create_workspace_correctly_applies_bundled_nix_syntax_when_opening_buffer_from_command_line()
+    {
+        let preferences = Rc::new(RefCell::new(Preferences::new(None)));
+        let (event_channel, _) = mpsc::channel();
+        let mut view = View::new(preferences.clone(), event_channel.clone()).unwrap();
+
+        let args = vec![String::new(), String::from("shell.nix")];
+        let workspace = super::create_workspace(&mut view, &preferences.borrow(), &args).unwrap();
+
+        assert_eq!(
+            workspace
+                .current_buffer
+                .as_ref()
+                .unwrap()
+                .syntax_definition
+                .as_ref()
+                .unwrap()
+                .name,
+            "Nix"
+        );
+    }
+
+    #[test]
+    fn create_workspace_correctly_applies_user_syntax_when_opening_buffer_from_command_line() {
+        let preferences = Rc::new(RefCell::new(Preferences::new(None)));
+        let (event_channel, _) = mpsc::channel();
+        let mut view = View::new(preferences.clone(), event_channel.clone()).unwrap();
+
+        let args = vec![String::new(), String::from("src/test.amp")];
+        let workspace = super::create_workspace(&mut view, &preferences.borrow(), &args).unwrap();
+
+        assert_eq!(
+            workspace
+                .current_buffer
+                .as_ref()
+                .unwrap()
+                .syntax_definition
+                .as_ref()
+                .unwrap()
+                .name,
+            "Amp"
         );
     }
 

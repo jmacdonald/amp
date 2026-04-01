@@ -1,0 +1,13 @@
+%YAML 1.2
+---
+name: Amp
+file_extensions:
+  - amp
+scope: source.amp
+
+contexts:
+  main:
+    - match: \b(component|effect|query|state)\b
+      scope: keyword.control.amp
+    - match: \b[a-zA-Z_][a-zA-Z0-9_]*\b
+      scope: variable.other.amp
