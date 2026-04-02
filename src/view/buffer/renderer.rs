@@ -440,7 +440,7 @@ mod tests {
     fn tabs_beyond_terminal_width_dont_panic() {
         // Set up a workspace and buffer; the workspace will
         // handle setting up the buffer's syntax definition.
-        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\t\t\t");
         workspace.add_buffer(buffer);
@@ -476,7 +476,7 @@ mod tests {
     fn aligned_tabs_expand_to_correct_number_of_spaces() {
         // Set up a workspace and buffer; the workspace will
         // handle setting up the buffer's syntax definition.
-        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
         let mut buffer = Buffer::new();
         // The renderer will draw to the full width of the terminal, so we pad
         // the tabs with characters (which will also show us where the whitespace ends).
@@ -521,7 +521,7 @@ mod tests {
     fn unaligned_tabs_expand_to_correct_number_of_spaces() {
         // Set up a workspace and buffer; the workspace will
         // handle setting up the buffer's syntax definition.
-        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
         let mut buffer = Buffer::new();
         // The renderer will draw to the full width of the terminal, so we pad
         // the tabs with characters (which will also show us where the whitespace ends).
@@ -566,7 +566,7 @@ mod tests {
     fn render_wraps_lines_correctly() {
         // Set up a workspace and buffer; the workspace will
         // handle setting up the buffer's syntax definition.
-        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("amp editor\nsecond line\n");
         workspace.add_buffer(buffer);
@@ -611,7 +611,7 @@ mod tests {
     fn render_uses_lexeme_mapper() {
         // Set up a workspace and buffer; the workspace will
         // handle setting up the buffer's syntax definition.
-        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("original");
         workspace.add_buffer(buffer);
@@ -648,7 +648,7 @@ mod tests {
     fn render_returns_cursor_position_when_at_the_start_of_an_empty_line() {
         // Set up a workspace and buffer; the workspace will
         // handle setting up the buffer's syntax definition.
-        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
         let mut buffer = Buffer::new();
         buffer.insert("\n");
         workspace.add_buffer(buffer);
@@ -681,7 +681,7 @@ mod tests {
     fn render_caches_state_using_correct_frequency_excluding_first_line() {
         // Set up a workspace and buffer; the workspace will
         // handle setting up the buffer's syntax definition.
-        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
         let mut buffer = Buffer::new();
 
         for _ in 0..500 {
@@ -716,7 +716,7 @@ mod tests {
 
     #[test]
     fn render_uses_cached_state() {
-        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
         let mut buffer = Buffer::new();
         buffer.path = Some(PathBuf::from("test.rs"));
 
@@ -782,7 +782,7 @@ mod tests {
 
     #[test]
     fn render_skips_lines_correctly_when_using_cached_state() {
-        let mut workspace = Workspace::new(Path::new("."), None).unwrap();
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
         let mut buffer = Buffer::new();
         buffer.path = Some(PathBuf::from("test.rs"));
 

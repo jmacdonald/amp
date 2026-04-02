@@ -417,11 +417,9 @@ fn create_workspace(
     }
 
     let workspace_dir = env::current_dir()?;
-    let mut workspace = Workspace::builder(&workspace_dir)
-        .with_base_syntax_set(load_app_syntax_set()?)
-        .with_user_syntaxes(user_syntax_path()?)
-        .build()
-        .context(WORKSPACE_INIT_FAILED)?;
+    let syntax_set = build_workspace_syntax_set()?;
+    let mut workspace =
+        Workspace::with_syntax_set(&workspace_dir, syntax_set).context(WORKSPACE_INIT_FAILED)?;
 
     // If the first argument was a directory, we've navigated into
     // it; skip it before evaluating file args, lest we interpret
@@ -478,6 +476,12 @@ fn load_app_syntax_set() -> Result<SyntaxSet> {
         "/app_syntaxes.packdump"
     )))
     .context("Couldn't load bundled syntax definitions")
+}
+
+fn build_workspace_syntax_set() -> Result<SyntaxSet> {
+    let mut builder = load_app_syntax_set()?.into_builder();
+    builder.add_from_folder(user_syntax_path()?, true)?;
+    Ok(builder.build())
 }
 
 #[cfg(not(test))]
