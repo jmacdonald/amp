@@ -26,7 +26,8 @@ use std::mem;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender};
-use syntect::parsing::SyntaxDefinition;
+use syntect::dumps::from_uncompressed_data;
+use syntect::parsing::SyntaxSet;
 
 pub struct Application {
     pub mode: Mode,
@@ -417,7 +418,7 @@ fn create_workspace(
 
     let workspace_dir = env::current_dir()?;
     let mut workspace = Workspace::builder(&workspace_dir)
-        .add_syntax_definitions(load_app_syntax_definitions()?)
+        .with_base_syntax_set(load_app_syntax_set()?)
         .with_user_syntaxes(user_syntax_path()?)
         .build()
         .context(WORKSPACE_INIT_FAILED)?;
@@ -471,8 +472,12 @@ fn create_workspace(
     Ok(workspace)
 }
 
-fn load_app_syntax_definitions() -> Result<Vec<SyntaxDefinition>> {
-    include!(concat!(env!("OUT_DIR"), "/app_syntaxes.rs"))
+fn load_app_syntax_set() -> Result<SyntaxSet> {
+    from_uncompressed_data(include_bytes!(concat!(
+        env!("OUT_DIR"),
+        "/app_syntaxes.packdump"
+    )))
+    .context("Couldn't load bundled syntax definitions")
 }
 
 #[cfg(not(test))]
@@ -488,11 +493,10 @@ fn user_syntax_path() -> Result<PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::preferences::Preferences;
-    use super::{load_app_syntax_definitions, user_syntax_path, Application, Mode, ModeKey};
+    use super::{Application, Mode, ModeKey};
     use crate::view::View;
 
-    use scribe::buffer::Token;
-    use scribe::{Buffer, Workspace};
+    use scribe::Buffer;
     use std::cell::RefCell;
     use std::env;
     use std::path::Path;

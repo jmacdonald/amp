@@ -5,10 +5,12 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::result::Result;
+use syntect::dumps::dump_to_uncompressed_file;
+use syntect::parsing::SyntaxSet;
 
 const COMMAND_REGEX: &str = r"pub fn (.*)\(app: &mut Application\) -> Result";
 const APP_SYNTAX_DIR: &str = "syntaxes";
-const APP_SYNTAX_SOURCE: &str = "app_syntaxes.rs";
+const APP_SYNTAX_SOURCE: &str = "app_syntaxes.packdump";
 
 fn main() {
     generate_commands();
@@ -121,53 +123,14 @@ fn bake_app_syntaxes() {
     let out_dir = env::var("OUT_DIR").expect("The compiler did not provide $OUT_DIR");
     let output_path = PathBuf::from(out_dir).join(APP_SYNTAX_SOURCE);
     let syntax_dir = Path::new(APP_SYNTAX_DIR);
-    let mut output = File::create(&output_path).expect("Failed to create bundled syntax source");
-    output
-        .write_all(b"{\n    let mut syntaxes = Vec::new();\n")
-        .expect("Failed to start bundled syntax source");
+    let mut builder = SyntaxSet::load_defaults_newlines().into_builder();
 
     if syntax_dir.exists() {
-        for syntax_path in syntax_files(syntax_dir).expect("Failed to enumerate bundled syntaxes") {
-            write_syntax_loader(&mut output, &syntax_path)
-                .expect("Failed to write bundled syntax source");
-        }
+        builder
+            .add_from_folder(syntax_dir, true)
+            .expect("Failed to load bundled syntax definitions");
     }
 
-    output
-        .write_all(b"    Ok(syntaxes)\n}\n")
-        .expect("Failed to finish bundled syntax source");
-}
-
-fn syntax_files(root: &Path) -> Result<Vec<PathBuf>, String> {
-    let mut paths = Vec::new();
-
-    for entry in fs::read_dir(root).map_err(|_| "Failed to read bundled syntax directory")? {
-        let path = entry
-            .map_err(|_| "Failed to read bundled syntax directory entry")?
-            .path();
-
-        if path.is_dir() {
-            paths.extend(syntax_files(&path)?);
-        } else if path.extension().map(|ext| ext == "sublime-syntax") == Some(true) {
-            paths.push(path);
-        }
-    }
-
-    paths.sort();
-    Ok(paths)
-}
-
-fn write_syntax_loader(output: &mut File, syntax_path: &Path) -> Result<usize, &'static str> {
-    let syntax_path = syntax_path
-        .canonicalize()
-        .map_err(|_| "Failed to canonicalize bundled syntax path")?;
-
-    output
-        .write(
-            format!(
-                "    syntaxes.push(syntect::parsing::SyntaxDefinition::load_from_str(include_str!({syntax_path:?}), true, None)?);\n"
-            )
-            .as_bytes(),
-        )
-        .map_err(|_| "Failed to write bundled syntax source")
+    dump_to_uncompressed_file(&builder.build(), output_path)
+        .expect("Failed to write bundled syntax dump");
 }
