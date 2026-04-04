@@ -1,0 +1,278 @@
+%YAML 1.2
+---
+# Sublime Text 3 compatible Justfile syntax.
+name: Justfile
+file_extensions:
+  - Justfile
+  - justfile
+scope: source.just
+
+variables:
+  identifier: '[A-Za-z_][A-Za-z0-9_-]*'
+
+contexts:
+  main:
+    - include: recipe-bodies
+    - include: whitespace
+    - include: comments
+    - include: attributes
+    - include: recipe-headers
+    - include: keywords
+    - include: constants
+    - include: numbers
+    - include: strings
+    - include: shell-expansions
+    - include: operators
+    - include: punctuation
+    - include: identifiers
+
+  whitespace:
+    - match: \s+
+
+  comments:
+    - match: '#'
+      scope: punctuation.definition.comment.just
+      push: line-comment
+
+  line-comment:
+    - meta_scope: comment.line.number-sign.just
+    - match: \n
+      pop: true
+
+  attributes:
+    - match: '^(\s*)(\[)'
+      captures:
+        2: punctuation.definition.annotation.begin.just
+      push: attribute-body
+
+  attribute-body:
+    - meta_scope: meta.annotation.just
+    - match: '\]'
+      scope: punctuation.definition.annotation.end.just
+      pop: true
+    - include: strings
+    - include: numbers
+    - match: '{{identifier}}'
+      scope: storage.modifier.just
+    - match: ','
+      scope: punctuation.separator.sequence.just
+    - match: '\('
+      scope: punctuation.section.group.begin.just
+    - match: '\)'
+      scope: punctuation.section.group.end.just
+
+  recipe-headers:
+    - match: '^(@?)({{identifier}})(?=[^\n#]*:(?![=]))'
+      captures:
+        1: keyword.operator.silent.just
+        2: entity.name.function.just
+    - match: '\b({{identifier}})(?=\s*=)'
+      captures:
+        1: variable.parameter.just
+
+  recipe-bodies:
+    - match: '^(?=[ \t]+)'
+      push: recipe-body
+
+  recipe-body:
+    - meta_scope: meta.recipe.just
+    - match: '^(?![ \t])'
+      pop: true
+    - match: '[ \t]+'
+      scope: meta.whitespace.leading.just
+    - include: shell-shebang
+    - include: shell-comments
+    - include: shell-command-substitution
+    - include: shell-variables
+    - include: interpolation
+    - include: shell-strings
+    - include: numbers
+    - include: shell-operators
+    - include: shell-identifiers
+
+  shell-shebang:
+    - match: '#!.*$'
+      scope: comment.line.shebang.shell.just
+
+  shell-comments:
+    - match: '#'
+      scope: punctuation.definition.comment.shell.just
+      push: shell-line-comment
+
+  shell-line-comment:
+    - meta_scope: comment.line.number-sign.shell.just
+    - match: \n
+      pop: true
+
+  shell-command-substitution:
+    - match: '\$\('
+      scope: punctuation.section.subshell.begin.shell.just
+      push: shell-command-substitution-body
+
+  shell-command-substitution-body:
+    - meta_scope: meta.subshell.shell.just
+    - match: '\)'
+      scope: punctuation.section.subshell.end.shell.just
+      pop: true
+    - include: shell-shebang
+    - include: shell-comments
+    - include: shell-command-substitution
+    - include: shell-variables
+    - include: interpolation
+    - include: shell-strings
+    - include: numbers
+    - include: shell-operators
+    - include: shell-identifiers
+
+  shell-variables:
+    - match: '\$\{'
+      scope: punctuation.definition.variable.begin.shell.just
+      push: shell-braced-variable
+    - match: '\$[A-Za-z_][A-Za-z0-9_]*'
+      scope: variable.other.shell.just
+
+  shell-braced-variable:
+    - meta_scope: meta.variable.shell.just
+    - match: '\}'
+      scope: punctuation.definition.variable.end.shell.just
+      pop: true
+    - match: '[A-Za-z_][A-Za-z0-9_]*'
+      scope: variable.other.shell.just
+
+  shell-operators:
+    - match: '(2>|&&|\|\|)'
+      scope: keyword.operator.shell.just
+    - match: '[|<>=]'
+      scope: keyword.operator.shell.just
+    - match: '-[A-Za-z0-9-]+'
+      scope: variable.parameter.option.shell.just
+
+  shell-identifiers:
+    - match: '[A-Za-z_./-][A-Za-z0-9_./-]*'
+      scope: support.function.shell.just
+
+  shell-strings:
+    - match: '"'
+      scope: punctuation.definition.string.begin.just
+      push: shell-double-quoted-string
+    - match: "'"
+      scope: punctuation.definition.string.begin.just
+      push: shell-single-quoted-string
+
+  shell-double-quoted-string:
+    - meta_scope: string.quoted.double.just
+    - match: '"'
+      scope: punctuation.definition.string.end.just
+      pop: true
+    - include: interpolation
+    - include: shell-variables
+    - match: '\\.'
+      scope: constant.character.escape.just
+
+  shell-single-quoted-string:
+    - meta_scope: string.quoted.single.just
+    - match: "'"
+      scope: punctuation.definition.string.end.just
+      pop: true
+
+  keywords:
+    - match: '\b(alias|export|if|import|mod|set|unexport)\b'
+      scope: keyword.control.just
+    - match: '\bin\b'
+      scope: keyword.operator.word.just
+
+  constants:
+    - match: '\b(true|false)\b'
+      scope: constant.language.boolean.just
+
+  numbers:
+    - match: '\b\d+\.\d+\b'
+      scope: constant.numeric.float.just
+    - match: '\b\d+\b'
+      scope: constant.numeric.integer.just
+
+  strings:
+    - match: '"'
+      scope: punctuation.definition.string.begin.just
+      push: double-quoted-string
+    - match: "'"
+      scope: punctuation.definition.string.begin.just
+      push: single-quoted-string
+
+  double-quoted-string:
+    - meta_scope: string.quoted.double.just
+    - match: '"'
+      scope: punctuation.definition.string.end.just
+      pop: true
+    - include: interpolation
+    - match: '\\.'
+      scope: constant.character.escape.just
+
+  single-quoted-string:
+    - meta_scope: string.quoted.single.just
+    - match: "'"
+      scope: punctuation.definition.string.end.just
+      pop: true
+
+  shell-expansions:
+    - match: '`'
+      scope: punctuation.definition.string.begin.just
+      push: shell-expansion
+
+  shell-expansion:
+    - meta_scope: string.interpolated.backtick.just
+    - match: '`'
+      scope: punctuation.definition.string.end.just
+      pop: true
+    - include: interpolation
+    - match: '\\.'
+      scope: constant.character.escape.just
+
+  interpolation:
+    - match: '\{\{'
+      scope: punctuation.section.interpolation.begin.just
+      push: interpolation-body
+
+  interpolation-body:
+    - meta_scope: meta.interpolation.just
+    - match: '\}\}'
+      scope: punctuation.section.interpolation.end.just
+      pop: true
+    - include: whitespace
+    - include: keywords
+    - include: constants
+    - include: numbers
+    - include: strings
+    - include: operators
+    - include: punctuation
+    - include: identifiers
+
+  operators:
+    - match: '(:=|\+=|\?=|==|!=|<=|>=|&&|\|\|)'
+      scope: keyword.operator.just
+    - match: ':'
+      scope: keyword.operator.recipe.just
+    - match: '='
+      scope: keyword.operator.assignment.just
+    - match: '[+\-*/%<>!]'
+      scope: keyword.operator.just
+
+  punctuation:
+    - match: '\('
+      scope: punctuation.section.group.begin.just
+    - match: '\)'
+      scope: punctuation.section.group.end.just
+    - match: '\['
+      scope: punctuation.section.sequence.begin.just
+    - match: '\]'
+      scope: punctuation.section.sequence.end.just
+    - match: '\{'
+      scope: punctuation.section.block.begin.just
+    - match: '\}'
+      scope: punctuation.section.block.end.just
+    - match: ','
+      scope: punctuation.separator.sequence.just
+
+  identifiers:
+    - match: '{{identifier}}'
+      scope: variable.other.just

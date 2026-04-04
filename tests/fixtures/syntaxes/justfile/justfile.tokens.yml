@@ -1,0 +1,60 @@
+buffer_path: Justfile
+expectations:
+  - text: stderr_file
+    scope: variable.other.just
+  - text: :=
+    scope: keyword.operator.just
+  - text: "["
+    scope: punctuation.definition.annotation.begin.just
+  - text: group
+    scope: storage.modifier.just
+  - text: "'"
+    scope: punctuation.definition.string.begin.just
+  - text: docs
+    scope: string.quoted.single.just
+  - text: "'"
+    scope: punctuation.definition.string.end.just
+  - text: "]"
+    scope: punctuation.definition.annotation.end.just
+  - text: debug
+    scope: entity.name.function.just
+  - text: ":"
+    scope: keyword.operator.recipe.just
+  - text: "#!/bin/sh"
+    scope: comment.line.shebang.shell.just
+  - text: touch
+    scope: support.function.shell.just
+  - text: "{{"
+    scope: punctuation.section.interpolation.begin.just
+  - text: stderr_file
+    scope: variable.other.just
+  - text: "}}"
+    scope: punctuation.section.interpolation.end.just
+  - text: tail_pane_id
+    scope: support.function.shell.just
+  - text: "="
+    scope: keyword.operator.shell.just
+  - text: "$("
+    scope: punctuation.section.subshell.begin.shell.just
+  - text: tmux
+    scope: support.function.shell.just
+  - text: -v
+    scope: variable.parameter.option.shell.just
+  - text: "'"
+    scope: punctuation.definition.string.begin.just
+  - text: "#{pane_id}"
+    scope: string.quoted.single.just
+  - text: "'"
+    scope: punctuation.definition.string.end.just
+  - text: ")"
+    scope: punctuation.section.subshell.end.shell.just
+  - text: docker
+    scope: support.function.shell.just
+  - text: "${"
+    scope: punctuation.definition.variable.begin.shell.just
+  - text: PWD
+    scope: variable.other.shell.just
+  - text: "}"
+    scope: punctuation.definition.variable.end.shell.just
+  - text: "$tail_pane_id"
+    scope: variable.other.shell.just
