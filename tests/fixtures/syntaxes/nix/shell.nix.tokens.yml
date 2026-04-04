@@ -1,0 +1,22 @@
+buffer_path: shell.nix
+expectations:
+  - text: shellHook
+    scope: entity.other.attribute-name.nix
+  - text: "="
+    scope: keyword.operator.assignment.nix
+  - text: "''"
+    scope: punctuation.definition.string.begin.nix
+  - text: "${"
+    scope: punctuation.section.interpolation.begin.nix
+  - text: pkgs
+    scope: variable.other.nix
+  - text: .
+    scope: keyword.operator.accessor.nix
+  - text: getName
+    scope: variable.other.nix
+  - text: "}"
+    scope: punctuation.section.interpolation.end.nix
+  - text: "''"
+    scope: punctuation.definition.string.end.nix
+  - text: ";"
+    scope: punctuation.terminator.nix
