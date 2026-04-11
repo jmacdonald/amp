@@ -2,8 +2,9 @@ use crate::errors::*;
 use std::collections::BTreeMap;
 use std::ffi::OsStr;
 use std::fs::File;
-use std::io::{BufReader, Cursor, Read, Seek};
+use std::io::{BufReader, Read, Seek};
 use std::path::PathBuf;
+use syntect::dumps::from_uncompressed_data;
 use syntect::highlighting::{Theme, ThemeSet};
 
 pub struct ThemeLoader {
@@ -55,14 +56,14 @@ impl ThemeLoader {
     }
 
     fn load_defaults(&mut self) -> Result<()> {
-        self.insert_theme(
-            "solarized_dark",
-            Cursor::new(include_str!("../../themes/solarized_dark.tmTheme")),
-        )?;
-        self.insert_theme(
-            "solarized_light",
-            Cursor::new(include_str!("../../themes/solarized_light.tmTheme")),
-        )?;
+        self.themes.extend(
+            from_uncompressed_data::<ThemeSet>(include_bytes!(concat!(
+                env!("OUT_DIR"),
+                "/app_themes.packdump"
+            )))
+            .context("Couldn't load bundled themes")?
+            .themes,
+        );
 
         Ok(())
     }
@@ -76,5 +77,21 @@ impl ThemeLoader {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ThemeLoader;
+    use std::path::PathBuf;
+
+    #[test]
+    fn load_includes_bundled_and_fixture_themes() {
+        let theme_set = ThemeLoader::new(PathBuf::from("tests/fixtures/user_themes"))
+            .load()
+            .unwrap();
+
+        assert!(theme_set.themes.contains_key("solarized_dark"));
+        assert!(theme_set.themes.contains_key("fixture_theme"));
     }
 }
