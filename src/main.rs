@@ -1,6 +1,7 @@
 use amp::Application;
 use amp::Error;
 use log::debug;
+use std::backtrace::BacktraceStatus;
 use std::env;
 
 fn main() {
@@ -26,8 +27,11 @@ fn handle_error(error: &Error) {
         eprintln!("caused by: {e}");
     }
 
-    // Print the backtrace, if available.
-    eprintln!("backtrace: {:?}", error.backtrace());
+    // Print the backtrace in a readable, frame-per-line format when it exists.
+    let backtrace = error.backtrace();
+    if backtrace.status() == BacktraceStatus::Captured {
+        eprintln!("backtrace:\n{backtrace}");
+    }
 
     // Exit with an error code.
     ::std::process::exit(1);
