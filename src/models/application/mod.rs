@@ -53,7 +53,13 @@ impl Application {
         let clipboard = Clipboard::new();
 
         // Set up a workspace in the current directory.
-        let workspace = create_workspace(&mut view, &preferences.borrow(), args)?;
+        let workspace = match create_workspace(&mut view, &preferences.borrow(), args) {
+            Ok(workspace) => workspace,
+            Err(error) => {
+                view.shutdown();
+                return Err(error);
+            }
+        };
 
         let mut app = Application {
             current_mode: ModeKey::Normal,
@@ -70,7 +76,10 @@ impl Application {
             events,
         };
 
-        app.create_modes()?;
+        if let Err(error) = app.create_modes() {
+            app.view.shutdown();
+            return Err(error);
+        }
 
         Ok(app)
     }
