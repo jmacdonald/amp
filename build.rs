@@ -122,12 +122,9 @@ fn bake_app_syntaxes() {
     let output_path = PathBuf::from(out_dir).join(APP_SYNTAX_SOURCE);
     let syntax_dir = Path::new(APP_SYNTAX_DIR);
     let mut builder = SyntaxSet::load_defaults_newlines().into_builder();
-
-    if syntax_dir.exists() {
-        builder
-            .add_from_folder(syntax_dir, true)
-            .expect("Failed to load bundled syntax definitions");
-    }
+    builder
+        .add_from_folder(syntax_dir, true)
+        .expect("Failed to load bundled syntax definitions");
 
     dump_to_uncompressed_file(&builder.build(), output_path)
         .expect("Failed to write bundled syntax dump");
