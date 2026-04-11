@@ -254,6 +254,10 @@ impl Terminal for TermionTerminal {
         }
     }
 
+    fn restore(&self) {
+        self.deinit();
+    }
+
     fn width(&self) -> usize {
         let (width, _) = terminal_size();
 

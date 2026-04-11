@@ -32,6 +32,7 @@ pub trait Terminal {
     #[cfg(test)]
     fn clear(&self);
     fn present(&self);
+    fn restore(&self);
     fn width(&self) -> usize;
     fn height(&self) -> usize;
     fn set_cursor(&self, _: Option<Position>);

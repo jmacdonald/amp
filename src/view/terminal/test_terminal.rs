@@ -83,6 +83,7 @@ impl Terminal for TestTerminal {
         }
     }
     fn present(&self) {}
+    fn restore(&self) {}
     fn width(&self) -> usize {
         WIDTH
     }

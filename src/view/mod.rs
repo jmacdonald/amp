@@ -164,6 +164,11 @@ impl View {
         Ok(status)
     }
 
+    pub fn shutdown(&mut self) {
+        let _ = self.event_listener_killswitch.send(());
+        self.terminal.restore();
+    }
+
     pub fn last_key(&self) -> &Option<Key> {
         &self.last_key
     }
@@ -198,9 +203,8 @@ impl View {
 
 impl Drop for View {
     fn drop(&mut self) {
-        debug!("drop triggered; killing event listener");
-
-        let _ = self.event_listener_killswitch.send(());
+        debug!("drop triggered; shutting down view");
+        self.shutdown();
     }
 }
 
