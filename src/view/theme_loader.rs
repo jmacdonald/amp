@@ -57,11 +57,11 @@ impl ThemeLoader {
     fn load_defaults(&mut self) -> Result<()> {
         self.insert_theme(
             "solarized_dark",
-            Cursor::new(include_str!("../themes/solarized_dark.tmTheme")),
+            Cursor::new(include_str!("../../themes/solarized_dark.tmTheme")),
         )?;
         self.insert_theme(
             "solarized_light",
-            Cursor::new(include_str!("../themes/solarized_light.tmTheme")),
+            Cursor::new(include_str!("../../themes/solarized_light.tmTheme")),
         )?;
 
         Ok(())
