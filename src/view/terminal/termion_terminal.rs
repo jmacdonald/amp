@@ -376,8 +376,7 @@ impl Terminal for TermionTerminal {
 
 impl Drop for TermionTerminal {
     fn drop(&mut self) {
-        self.restore_cursor();
-        self.set_cursor(Some(Position { line: 0, offset: 0 }));
+        self.deinit();
     }
 }
 
