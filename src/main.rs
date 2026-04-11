@@ -11,8 +11,14 @@ fn main() {
     env_logger::init();
 
     // Instantiate, run, and handle errors for the application.
-    if let Some(e) = Application::new(&args).and_then(|mut app| app.run()).err() {
-        handle_error(&e)
+    match Application::new(&args) {
+        Ok(mut app) => {
+            if let Err(error) = app.run() {
+                app.view.shutdown();
+                handle_error(&error)
+            }
+        }
+        Err(error) => handle_error(&error),
     }
 
     debug!("exiting");
