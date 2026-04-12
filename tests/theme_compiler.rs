@@ -55,7 +55,7 @@ rules:
     )
     .unwrap_err();
 
-    assert!(error.contains("unsupported key: selection"));
+    assert!(error.contains("selection"));
 }
 
 #[test]
@@ -95,7 +95,8 @@ rules:
     )
     .unwrap_err();
 
-    assert!(error.contains("scope must be a string"));
+    assert!(error.contains("invalid type"));
+    assert!(error.contains("sequence"));
 }
 
 #[test]

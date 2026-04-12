@@ -4,9 +4,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
+use serde::de::{self, Deserializer};
+use serde::Deserialize;
 use syntect::highlighting::ScopeSelectors;
-use yaml_rust::yaml::{Hash, Yaml};
-use yaml_rust::YamlLoader;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ThemeSource {
@@ -31,6 +31,54 @@ pub struct ThemeRuleSource {
     pub foreground: Option<String>,
     pub background: Option<String>,
     pub font_style: Option<Vec<String>>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawThemeSource {
+    name: String,
+    #[serde(default)]
+    palette: BTreeMap<String, HexColor>,
+    settings: RawThemeSettingsSource,
+    rules: Vec<RawThemeRuleSource>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawThemeSettingsSource {
+    foreground: ColorRef,
+    background: ColorRef,
+    line_highlight: ColorRef,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct RawThemeRuleSource {
+    name: Option<String>,
+    scope: ScopeSelectorString,
+    foreground: Option<ColorRef>,
+    background: Option<ColorRef>,
+    font_style: Option<Vec<FontStyle>>,
+}
+
+#[derive(Debug, Clone)]
+struct HexColor(String);
+
+#[derive(Debug, Clone)]
+enum ColorRef {
+    Literal(HexColor),
+    Palette(String),
+}
+
+#[derive(Debug, Clone)]
+struct ScopeSelectorString(String);
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum FontStyle {
+    Bold,
+    Italic,
+    Underline,
 }
 
 pub fn compile_themes(source_dir: &Path, output_dir: &Path) -> Result<Vec<PathBuf>, String> {
@@ -83,29 +131,9 @@ pub fn compile_themes(source_dir: &Path, output_dir: &Path) -> Result<Vec<PathBu
 }
 
 pub fn parse_theme_source(theme_key: &str, content: &str) -> Result<ThemeSource, String> {
-    let documents = YamlLoader::load_from_str(content)
+    let raw: RawThemeSource = serde_yaml::from_str(content)
         .map_err(|error| format!("Failed to parse {theme_key}.yml: {error}"))?;
-    let document = documents
-        .into_iter()
-        .next()
-        .ok_or_else(|| format!("{theme_key}.yml is empty"))?;
-    let root = as_hash(&document, theme_key, "root")?;
-
-    let allowed_root_keys = ["name", "palette", "settings", "rules"];
-    ensure_only_keys(root, theme_key, "root", &allowed_root_keys)?;
-
-    let name = required_string(root, theme_key, "root", "name")?;
-    let palette = parse_palette(root, theme_key)?;
-    let settings = parse_settings(root, theme_key, &palette)?;
-    let rules = parse_rules(root, theme_key, &palette)?;
-
-    Ok(ThemeSource {
-        key: theme_key.to_string(),
-        name,
-        palette,
-        settings,
-        rules,
-    })
+    normalize_theme_source(theme_key, raw)
 }
 
 pub fn render_tmtheme(source: &ThemeSource) -> String {
@@ -158,108 +186,59 @@ pub fn render_tmtheme(source: &ThemeSource) -> String {
     output
 }
 
-fn parse_palette(root: &Hash, theme_key: &str) -> Result<BTreeMap<String, String>, String> {
-    let Some(value) = root.get(&Yaml::String("palette".into())) else {
-        return Ok(BTreeMap::new());
-    };
+fn normalize_theme_source(theme_key: &str, raw: RawThemeSource) -> Result<ThemeSource, String> {
+    let palette = raw
+        .palette
+        .into_iter()
+        .map(|(key, value)| (key, value.0))
+        .collect::<BTreeMap<_, _>>();
 
-    let palette_hash = as_hash(value, theme_key, "palette")?;
-    let mut palette = BTreeMap::new();
-    for (key, value) in palette_hash {
-        let key = key
-            .as_str()
-            .ok_or_else(|| format!("{theme_key}.yml palette keys must be strings"))?;
-        let color = value
-            .as_str()
-            .ok_or_else(|| format!("{theme_key}.yml palette value for {key} must be a string"))?;
-        validate_literal_color(theme_key, &format!("palette.{key}"), color)?;
-        if palette.insert(key.to_string(), color.to_string()).is_some() {
-            return Err(format!(
-                "{theme_key}.yml has a duplicate palette key: {key}"
-            ));
-        }
-    }
-
-    Ok(palette)
-}
-
-fn parse_settings(
-    root: &Hash,
-    theme_key: &str,
-    palette: &BTreeMap<String, String>,
-) -> Result<ThemeSettingsSource, String> {
-    let settings = as_hash(
-        root.get(&Yaml::String("settings".into()))
-            .ok_or_else(|| format!("{theme_key}.yml is missing required key: settings"))?,
-        theme_key,
-        "settings",
-    )?;
-
-    let allowed_keys = ["foreground", "background", "line_highlight"];
-    ensure_only_keys(settings, theme_key, "settings", &allowed_keys)?;
-
-    Ok(ThemeSettingsSource {
-        foreground: resolve_color(
-            required_string(settings, theme_key, "settings", "foreground")?.as_str(),
+    let settings = ThemeSettingsSource {
+        foreground: resolve_color_ref(
             theme_key,
             "settings.foreground",
-            palette,
+            raw.settings.foreground,
+            &palette,
         )?,
-        background: resolve_color(
-            required_string(settings, theme_key, "settings", "background")?.as_str(),
+        background: resolve_color_ref(
             theme_key,
             "settings.background",
-            palette,
+            raw.settings.background,
+            &palette,
         )?,
-        line_highlight: resolve_color(
-            required_string(settings, theme_key, "settings", "line_highlight")?.as_str(),
+        line_highlight: resolve_color_ref(
             theme_key,
             "settings.line_highlight",
-            palette,
+            raw.settings.line_highlight,
+            &palette,
         )?,
-    })
-}
+    };
 
-fn parse_rules(
-    root: &Hash,
-    theme_key: &str,
-    palette: &BTreeMap<String, String>,
-) -> Result<Vec<ThemeRuleSource>, String> {
-    let rules = root
-        .get(&Yaml::String("rules".into()))
-        .ok_or_else(|| format!("{theme_key}.yml is missing required key: rules"))?;
-    let rules = rules
-        .as_vec()
-        .ok_or_else(|| format!("{theme_key}.yml rules must be an array"))?;
+    if raw.rules.is_empty() {
+        return Err(format!("{theme_key}.yml rules must not be empty"));
+    }
 
-    let mut parsed = Vec::new();
-    for (index, rule) in rules.iter().enumerate() {
+    let mut rules = Vec::with_capacity(raw.rules.len());
+    for (index, raw_rule) in raw.rules.into_iter().enumerate() {
         let path = format!("rules[{index}]");
-        let rule = as_hash(rule, theme_key, &path)?;
-        let allowed_keys = ["name", "scope", "foreground", "background", "font_style"];
-        ensure_only_keys(rule, theme_key, &path, &allowed_keys)?;
-
-        let name = optional_string(rule, "name");
-        let scope = required_string(rule, theme_key, &path, "scope")?;
-        ScopeSelectors::from_str(&scope).map_err(|error| {
-            format!("{theme_key}.yml {path}.scope is not a valid selector: {error}")
-        })?;
-
-        let foreground = optional_resolved_color(
-            rule,
-            "foreground",
-            theme_key,
-            &format!("{path}.foreground"),
-            palette,
-        )?;
-        let background = optional_resolved_color(
-            rule,
-            "background",
-            theme_key,
-            &format!("{path}.background"),
-            palette,
-        )?;
-        let font_style = optional_font_style(rule, theme_key, &path)?;
+        let foreground = raw_rule
+            .foreground
+            .map(|value| {
+                resolve_color_ref(theme_key, &format!("{path}.foreground"), value, &palette)
+            })
+            .transpose()?;
+        let background = raw_rule
+            .background
+            .map(|value| {
+                resolve_color_ref(theme_key, &format!("{path}.background"), value, &palette)
+            })
+            .transpose()?;
+        let font_style = raw_rule.font_style.map(|styles| {
+            styles
+                .into_iter()
+                .map(|style| style.as_str().to_string())
+                .collect::<Vec<_>>()
+        });
 
         if foreground.is_none() && background.is_none() && font_style.is_none() {
             return Err(format!(
@@ -267,89 +246,87 @@ fn parse_rules(
             ));
         }
 
-        parsed.push(ThemeRuleSource {
-            name,
-            scope,
+        rules.push(ThemeRuleSource {
+            name: raw_rule.name,
+            scope: raw_rule.scope.0,
             foreground,
             background,
             font_style,
         });
     }
 
-    if parsed.is_empty() {
-        return Err(format!("{theme_key}.yml rules must not be empty"));
-    }
-
-    Ok(parsed)
+    Ok(ThemeSource {
+        key: theme_key.to_string(),
+        name: raw.name,
+        palette,
+        settings,
+        rules,
+    })
 }
 
-fn optional_font_style(
-    rule: &Hash,
+fn resolve_color_ref(
     theme_key: &str,
     path: &str,
-) -> Result<Option<Vec<String>>, String> {
-    let Some(value) = rule.get(&Yaml::String("font_style".into())) else {
-        return Ok(None);
-    };
-
-    let values = value
-        .as_vec()
-        .ok_or_else(|| format!("{theme_key}.yml {path}.font_style must be an array of strings"))?;
-
-    let mut parsed = Vec::new();
-    for item in values {
-        let style = item.as_str().ok_or_else(|| {
-            format!("{theme_key}.yml {path}.font_style must contain only strings")
-        })?;
-        match style {
-            "bold" | "italic" | "underline" => parsed.push(style.to_string()),
-            _ => {
-                return Err(format!(
-                    "{theme_key}.yml {path}.font_style contains unsupported style: {style}"
-                ))
-            }
-        }
-    }
-
-    Ok(Some(parsed))
-}
-
-fn optional_resolved_color(
-    rule: &Hash,
-    key: &str,
-    theme_key: &str,
-    path: &str,
-    palette: &BTreeMap<String, String>,
-) -> Result<Option<String>, String> {
-    let Some(value) = rule.get(&Yaml::String(key.into())) else {
-        return Ok(None);
-    };
-
-    let value = value
-        .as_str()
-        .ok_or_else(|| format!("{theme_key}.yml {path} must be a string"))?;
-
-    Ok(Some(resolve_color(value, theme_key, path, palette)?))
-}
-
-fn resolve_color(
-    value: &str,
-    theme_key: &str,
-    path: &str,
+    color_ref: ColorRef,
     palette: &BTreeMap<String, String>,
 ) -> Result<String, String> {
-    if value.starts_with('#') {
-        validate_literal_color(theme_key, path, value)?;
-        return Ok(value.to_string());
+    match color_ref {
+        ColorRef::Literal(color) => Ok(color.0),
+        ColorRef::Palette(key) => palette
+            .get(&key)
+            .cloned()
+            .ok_or_else(|| format!("{theme_key}.yml {path} references unknown palette key: {key}")),
     }
-
-    palette
-        .get(value)
-        .cloned()
-        .ok_or_else(|| format!("{theme_key}.yml {path} references unknown palette key: {value}"))
 }
 
-fn validate_literal_color(theme_key: &str, path: &str, color: &str) -> Result<(), String> {
+impl<'de> Deserialize<'de> for HexColor {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = String::deserialize(deserializer)?;
+        validate_literal_color(&value).map_err(de::Error::custom)?;
+        Ok(HexColor(value))
+    }
+}
+
+impl<'de> Deserialize<'de> for ColorRef {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = String::deserialize(deserializer)?;
+        if value.starts_with('#') {
+            validate_literal_color(&value).map_err(de::Error::custom)?;
+            Ok(ColorRef::Literal(HexColor(value)))
+        } else {
+            Ok(ColorRef::Palette(value))
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for ScopeSelectorString {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = String::deserialize(deserializer)?;
+        ScopeSelectors::from_str(&value).map_err(de::Error::custom)?;
+        Ok(ScopeSelectorString(value))
+    }
+}
+
+impl FontStyle {
+    fn as_str(&self) -> &'static str {
+        match self {
+            FontStyle::Bold => "bold",
+            FontStyle::Italic => "italic",
+            FontStyle::Underline => "underline",
+        }
+    }
+}
+
+fn validate_literal_color(color: &str) -> Result<(), String> {
     let is_valid = matches!(color.len(), 4 | 7 | 9)
         && color.starts_with('#')
         && color.chars().skip(1).all(|char| char.is_ascii_hexdigit());
@@ -357,49 +334,8 @@ fn validate_literal_color(theme_key: &str, path: &str, color: &str) -> Result<()
     if is_valid {
         Ok(())
     } else {
-        Err(format!(
-            "{theme_key}.yml {path} must be a hex color in #RGB, #RRGGBB, or #RRGGBBAA format"
-        ))
+        Err("must be a hex color in #RGB, #RRGGBB, or #RRGGBBAA format".to_string())
     }
-}
-
-fn ensure_only_keys(
-    hash: &Hash,
-    theme_key: &str,
-    path: &str,
-    allowed: &[&str],
-) -> Result<(), String> {
-    for key in hash.keys() {
-        let key = key
-            .as_str()
-            .ok_or_else(|| format!("{theme_key}.yml {path} keys must be strings"))?;
-        if !allowed.contains(&key) {
-            return Err(format!(
-                "{theme_key}.yml {path} contains unsupported key: {key}"
-            ));
-        }
-    }
-    Ok(())
-}
-
-fn as_hash<'a>(value: &'a Yaml, theme_key: &str, path: &str) -> Result<&'a Hash, String> {
-    value
-        .as_hash()
-        .ok_or_else(|| format!("{theme_key}.yml {path} must be a mapping"))
-}
-
-fn required_string(hash: &Hash, theme_key: &str, path: &str, key: &str) -> Result<String, String> {
-    hash.get(&Yaml::String(key.into()))
-        .ok_or_else(|| format!("{theme_key}.yml {path} is missing required key: {key}"))?
-        .as_str()
-        .map(str::to_string)
-        .ok_or_else(|| format!("{theme_key}.yml {path}.{key} must be a string"))
-}
-
-fn optional_string(hash: &Hash, key: &str) -> Option<String> {
-    hash.get(&Yaml::String(key.into()))
-        .and_then(Yaml::as_str)
-        .map(str::to_string)
 }
 
 fn write_key_string(output: &mut String, indent: usize, key: &str, value: &str) {
