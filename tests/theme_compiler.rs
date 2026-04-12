@@ -1,4 +1,4 @@
-#[path = "../build/theme_compiler.rs"]
+#[path = "../build/theme_compiler/mod.rs"]
 mod theme_compiler;
 
 use std::fs;
@@ -10,7 +10,7 @@ use syntect::highlighting::ThemeSet;
 
 #[test]
 fn parse_theme_source_resolves_palette_references() {
-    let source = theme_compiler::parse_theme_source(
+    let theme = theme_compiler::parse_theme(
         "test_theme",
         r##"
 name: Test Theme
@@ -31,15 +31,15 @@ rules:
     )
     .unwrap();
 
-    assert_eq!(source.settings.foreground, "#112233");
-    assert_eq!(source.settings.background, "#445566");
-    assert_eq!(source.settings.line_highlight, "#778899");
-    assert_eq!(source.rules[0].foreground.as_deref(), Some("#112233"));
+    assert_eq!(theme.settings.foreground, "#112233");
+    assert_eq!(theme.settings.background, "#445566");
+    assert_eq!(theme.settings.line_highlight, "#778899");
+    assert_eq!(theme.rules[0].foreground.as_deref(), Some("#112233"));
 }
 
 #[test]
 fn parse_theme_source_rejects_unknown_keys() {
-    let error = theme_compiler::parse_theme_source(
+    let error = theme_compiler::parse_theme(
         "bad_theme",
         r##"
 name: Bad Theme
@@ -60,7 +60,7 @@ rules:
 
 #[test]
 fn parse_theme_source_rejects_invalid_rule_color_reference() {
-    let error = theme_compiler::parse_theme_source(
+    let error = theme_compiler::parse_theme(
         "bad_theme",
         r##"
 name: Bad Theme
@@ -80,7 +80,7 @@ rules:
 
 #[test]
 fn parse_theme_source_rejects_non_string_scope() {
-    let error = theme_compiler::parse_theme_source(
+    let error = theme_compiler::parse_theme(
         "bad_theme",
         r##"
 name: Bad Theme
@@ -101,7 +101,7 @@ rules:
 
 #[test]
 fn render_tmtheme_is_parseable_and_preserves_empty_font_style() {
-    let source = theme_compiler::parse_theme_source(
+    let theme = theme_compiler::parse_theme(
         "test_theme",
         r##"
 name: Test Theme
@@ -117,7 +117,7 @@ rules:
     )
     .unwrap();
 
-    let rendered = theme_compiler::render_tmtheme(&source);
+    let rendered = theme_compiler::render_tmtheme(&theme);
     assert!(rendered.contains("<key>fontStyle</key>"));
     assert!(rendered.contains("<string></string>"));
 
@@ -162,4 +162,32 @@ rules:
     ThemeSet::load_from_reader(&mut reader).unwrap();
 
     fs::remove_dir_all(base).unwrap();
+}
+
+#[test]
+fn stage_pipeline_parses_validates_and_renders() {
+    let parsed = theme_compiler::parse_parsed_theme(
+        "test_theme",
+        r##"
+name: Test Theme
+palette:
+  fg: "#112233"
+  bg: "#445566"
+  line: "#778899"
+settings:
+  foreground: fg
+  background: bg
+  line_highlight: line
+rules:
+  - scope: comment
+    foreground: fg
+"##,
+    )
+    .unwrap();
+
+    let theme = theme_compiler::validate_theme("test_theme", parsed).unwrap();
+    let rendered = theme_compiler::render_tmtheme(&theme);
+    let mut cursor = Cursor::new(rendered.into_bytes());
+
+    ThemeSet::load_from_reader(&mut cursor).unwrap();
 }
