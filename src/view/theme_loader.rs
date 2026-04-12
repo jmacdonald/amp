@@ -31,6 +31,10 @@ impl ThemeLoader {
     }
 
     fn load_user(&mut self) -> Result<()> {
+        if !self.path.is_dir() {
+            return Ok(());
+        }
+
         let theme_dir_entries = self
             .path
             .read_dir()
@@ -93,5 +97,15 @@ mod tests {
 
         assert!(theme_set.themes.contains_key("solarized_dark"));
         assert!(theme_set.themes.contains_key("fixture_theme"));
+    }
+
+    #[test]
+    fn load_ignores_missing_user_theme_directory() {
+        let missing_path = PathBuf::from("tests/fixtures/missing_themes");
+        assert!(!missing_path.exists());
+
+        let theme_set = ThemeLoader::new(missing_path).load().unwrap();
+
+        assert!(theme_set.themes.contains_key("solarized_dark"));
     }
 }
