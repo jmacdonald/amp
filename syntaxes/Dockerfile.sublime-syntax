@@ -1,0 +1,137 @@
+%YAML 1.2
+---
+# Sublime Text 3 compatible Dockerfile syntax.
+name: Dockerfile
+file_extensions:
+  - Dockerfile
+  - dockerfile
+  - Containerfile
+  - containerfile
+scope: source.dockerfile
+
+variables:
+  identifier: '[A-Za-z_][A-Za-z0-9_]*'
+  instruction: '(?i:from|run|cmd|label|expose|env|add|copy|entrypoint|volume|user|workdir|arg|onbuild|stopsignal|healthcheck|shell|maintainer)'
+
+contexts:
+  prototype:
+    - include: comments
+
+  main:
+    - include: whitespace
+    - include: line-continuation
+    - include: parser-directives
+    - include: instructions
+    - include: keywords
+    - include: strings
+    - include: variables
+    - include: options
+    - include: numbers
+    - include: operators
+    - include: punctuation
+    - include: identifiers
+
+  whitespace:
+    - match: \s+
+
+  comments:
+    - match: '#'
+      scope: punctuation.definition.comment.dockerfile
+      push: line-comment
+
+  line-comment:
+    - meta_scope: comment.line.number-sign.dockerfile
+    - match: \n
+      pop: true
+
+  line-continuation:
+    - match: '\\$'
+      scope: punctuation.separator.continuation.line.dockerfile
+
+  parser-directives:
+    - match: '^(#)(\s*)(syntax|escape|check)(=)'
+      captures:
+        1: punctuation.definition.comment.dockerfile
+        3: keyword.other.directive.dockerfile
+        4: keyword.operator.assignment.dockerfile
+
+  instructions:
+    - match: '^\s*({{instruction}})\b'
+      captures:
+        1: keyword.control.dockerfile
+
+  keywords:
+    - match: '\b(?i:as|json)\b'
+      scope: keyword.other.dockerfile
+
+  strings:
+    - match: '"'
+      scope: punctuation.definition.string.begin.dockerfile
+      push: double-quoted-string
+    - match: "'"
+      scope: punctuation.definition.string.begin.dockerfile
+      push: single-quoted-string
+
+  double-quoted-string:
+    - meta_scope: string.quoted.double.dockerfile
+    - match: '"'
+      scope: punctuation.definition.string.end.dockerfile
+      pop: true
+    - include: variables
+    - match: '\\.'
+      scope: constant.character.escape.dockerfile
+
+  single-quoted-string:
+    - meta_scope: string.quoted.single.dockerfile
+    - match: "'"
+      scope: punctuation.definition.string.end.dockerfile
+      pop: true
+
+  variables:
+    - match: '\$\{'
+      scope: punctuation.definition.variable.begin.dockerfile
+      push: braced-variable
+    - match: '(\$)({{identifier}})\b'
+      captures:
+        1: punctuation.definition.variable.dockerfile
+        2: variable.other.dockerfile
+
+  braced-variable:
+    - meta_scope: meta.variable.dockerfile
+    - match: '\}'
+      scope: punctuation.definition.variable.end.dockerfile
+      pop: true
+    - match: '{{identifier}}'
+      scope: variable.other.dockerfile
+
+  options:
+    - match: '--[A-Za-z0-9][A-Za-z0-9_-]*'
+      scope: variable.parameter.option.dockerfile
+    - match: '-[A-Za-z0-9][A-Za-z0-9_-]*'
+      scope: variable.parameter.option.dockerfile
+
+  numbers:
+    - match: '\b\d+(?:\.\d+){2,}\b'
+      scope: constant.numeric.float.dockerfile
+    - match: '\b\d+\.\d+\b'
+      scope: constant.numeric.float.dockerfile
+    - match: '\b\d+\b'
+      scope: constant.numeric.integer.dockerfile
+
+  operators:
+    - match: '='
+      scope: keyword.operator.assignment.dockerfile
+    - match: '&&|\|\|'
+      scope: keyword.operator.dockerfile
+
+  punctuation:
+    - match: ','
+      scope: punctuation.separator.sequence.dockerfile
+    - match: '\['
+      scope: punctuation.section.sequence.begin.dockerfile
+    - match: '\]'
+      scope: punctuation.section.sequence.end.dockerfile
+
+  identifiers:
+    - match: '[^\s#,"\[\]=]+'
+      scope: variable.other.dockerfile

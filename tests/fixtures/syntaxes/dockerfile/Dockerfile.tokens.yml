@@ -1,0 +1,72 @@
+buffer_path: Dockerfile
+expectations:
+  - text: "#"
+    scope: punctuation.definition.comment.dockerfile
+  - text: ARG
+    scope: keyword.control.dockerfile
+  - text: BASE
+    scope: variable.other.dockerfile
+  - text: "="
+    scope: keyword.operator.assignment.dockerfile
+  - text: FROM
+    scope: keyword.control.dockerfile
+  - text: "${"
+    scope: punctuation.definition.variable.begin.dockerfile
+  - text: BASE
+    scope: variable.other.dockerfile
+  - text: "}"
+    scope: punctuation.definition.variable.end.dockerfile
+  - text: AS
+    scope: keyword.other.dockerfile
+  - text: COPY
+    scope: keyword.control.dockerfile
+  - text: --from
+    scope: variable.parameter.option.dockerfile
+  - text: "["
+    scope: punctuation.section.sequence.begin.dockerfile
+  - text: "\""
+    scope: punctuation.definition.string.begin.dockerfile
+  - text: src/
+    scope: string.quoted.double.dockerfile
+  - text: "\""
+    scope: punctuation.definition.string.end.dockerfile
+  - text: RUN
+    scope: keyword.control.dockerfile
+  - text: "\""
+    scope: punctuation.definition.string.begin.dockerfile
+  - text: $
+    scope: punctuation.definition.variable.dockerfile
+  - text: TARGETPLATFORM
+    scope: variable.other.dockerfile
+  - text: "\""
+    scope: punctuation.definition.string.end.dockerfile
+  - text: "&&"
+    scope: keyword.operator.dockerfile
+  - text: -v
+    scope: variable.parameter.option.dockerfile
+  - text: --help
+    scope: variable.parameter.option.dockerfile
+  - text: $
+    scope: punctuation.definition.variable.dockerfile
+  - text: FOO
+    scope: variable.other.dockerfile
+  - text: "${"
+    scope: punctuation.definition.variable.begin.dockerfile
+  - text: BAR
+    scope: variable.other.dockerfile
+  - text: "}"
+    scope: punctuation.definition.variable.end.dockerfile
+  - text: "3.3.6"
+    scope: constant.numeric.float.dockerfile
+  - text: PORT
+    scope: variable.other.dockerfile
+  - text: "8080"
+    scope: constant.numeric.integer.dockerfile
+  - text: CMD
+    scope: keyword.control.dockerfile
+  - text: "${"
+    scope: punctuation.definition.variable.begin.dockerfile
+  - text: PORT
+    scope: variable.other.dockerfile
+  - text: "}"
+    scope: punctuation.definition.variable.end.dockerfile
