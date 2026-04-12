@@ -1,3 +1,6 @@
+#[path = "build/theme_compiler.rs"]
+mod theme_compiler;
+
 use regex::Regex;
 use std::env;
 use std::fs::{self, read_to_string, File};
@@ -137,8 +140,11 @@ fn bake_app_syntaxes() {
 fn bake_app_themes() {
     let out_dir = env::var("OUT_DIR").expect("The compiler did not provide $OUT_DIR");
     let output_path = PathBuf::from(out_dir).join(APP_THEME_SOURCE);
-    let theme_dir = Path::new(APP_THEME_DIR);
-    let theme_set = ThemeSet::load_from_folder(theme_dir).expect("Failed to load bundled themes");
+    let generated_theme_dir = PathBuf::from(env::var("OUT_DIR").unwrap()).join("generated_themes");
+    theme_compiler::compile_themes(Path::new(APP_THEME_DIR), &generated_theme_dir)
+        .expect("Failed to compile bundled theme sources");
+    let theme_set = ThemeSet::load_from_folder(&generated_theme_dir)
+        .expect("Failed to load generated bundled themes");
 
     dump_to_uncompressed_file(&theme_set, output_path).expect("Failed to write bundled theme dump");
 }

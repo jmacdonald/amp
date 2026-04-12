@@ -1,0 +1,86 @@
+name: Monokai Extended
+palette:
+  foreground: "#F8F8F2"
+  background: "#222222"
+  line: "#333333"
+  comment: "#75715E"
+  string: "#E6DB74"
+  escape: "#F6AA11"
+  number: "#BE84FF"
+  keyword: "#F92672"
+  function: "#A6E22E"
+  type: "#66D9EF"
+  variable: "#F4F1DE"
+  parameter: "#FD971F"
+  punctuation: "#908F88"
+  white: "#FFFFFF"
+settings:
+  foreground: foreground
+  background: background
+  line_highlight: line
+rules:
+  - name: Comments
+    scope: "comment, comment.block.documentation, punctuation.definition.comment"
+    foreground: comment
+    font_style: [italic]
+  - name: Strings
+    scope: "string, string.quoted, string.unquoted"
+    foreground: string
+  - name: String Escapes and Regex
+    scope: "constant.character.escape, constant.other.escape, string.regexp, punctuation.definition.string"
+    foreground: escape
+  - name: Numbers
+    scope: constant.numeric
+    foreground: number
+  - name: Constants
+    scope: "constant.language, constant.character, constant.other, support.constant"
+    foreground: number
+  - name: Keywords
+    scope: "keyword, keyword.control, keyword.declaration, keyword.other, punctuation.definition.keyword"
+    foreground: keyword
+  - name: Storage and Modifiers
+    scope: "storage, storage.type, storage.modifier"
+    foreground: keyword
+  - name: Function Names
+    scope: "entity.name.function, variable.function"
+    foreground: function
+  - name: Function Calls and Builtins
+    scope: "meta.function-call, support.function, support.function.builtin, support.macro"
+    foreground: type
+  - name: Types
+    scope: "entity.name.type, entity.name.class, entity.name.struct, entity.name.enum, entity.name.trait, support.type, support.class"
+    foreground: type
+  - name: Namespaces and Modules
+    scope: "entity.name.namespace, entity.name.module, support.module"
+    foreground: type
+  - name: Macros and Preprocessor
+    scope: "entity.name.macro, meta.preprocessor"
+    foreground: number
+  - name: Local Variables
+    scope: "variable.other, variable.object, variable.other.member"
+    foreground: variable
+  - name: Parameters
+    scope: variable.parameter
+    foreground: parameter
+  - name: Language Variables
+    scope: "variable.language, support.variable"
+    foreground: white
+  - name: Attributes and Annotations
+    scope: "entity.other.attribute-name, storage.annotation, punctuation.definition.annotation"
+    foreground: function
+  - name: Semantic Operators
+    scope: "keyword.operator, keyword.operator.assignment, keyword.operator.accessor, keyword.operator.range"
+    foreground: keyword
+  - name: Structural Punctuation
+    scope: "punctuation.separator, punctuation.terminator, punctuation.section, meta.brace, meta.delimiter"
+    foreground: punctuation
+  - name: Tags
+    scope: "entity.name.tag, meta.tag, punctuation.definition.tag"
+    foreground: keyword
+  - name: Markup and Diff
+    scope: "markup.heading, markup.bold, markup.italic, markup.inserted, markup.deleted, markup.changed"
+    foreground: function
+  - name: Invalid
+    scope: "invalid, invalid.deprecated"
+    foreground: foreground
+    background: keyword

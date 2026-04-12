@@ -3,7 +3,7 @@
 ## Project Structure & Module Organization
 - `src/` contains the Rust source: `main.rs` bootstraps the app, `lib.rs` exposes core logic.
 - Key modules live under `src/commands/`, `src/models/`, `src/view/`, `src/input/`, `src/presenters/`, and `src/util/`.
-- Themes and defaults are stored under `src/themes/` and `src/models/application/preferences/`.
+- Bundled theme sources and defaults are stored under `themes/` and `src/models/application/preferences/`.
 - Documentation sources live in `documentation/` (Zensical/MkDocs content).
 - Benchmarks live in `benches/`.
 - For a deeper walkthrough of module roles, the event loop, and command/keymap mechanics, see `docs/architecture.md`.

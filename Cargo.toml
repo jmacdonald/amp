@@ -15,6 +15,7 @@ edition="2021"
 [build-dependencies]
 regex = "1.10"
 syntect = "5.1"
+yaml-rust = "0.4"
 
 [dependencies]
 app_dirs2 = "2.5"
