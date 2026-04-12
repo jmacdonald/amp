@@ -2,6 +2,7 @@ mod clipboard;
 mod event;
 pub mod modes;
 mod preferences;
+mod syntax_loader;
 
 // Published API
 pub use self::clipboard::ClipboardContent;
@@ -11,6 +12,7 @@ pub use self::preferences::Preferences;
 
 use self::clipboard::Clipboard;
 use self::modes::*;
+use self::syntax_loader::SyntaxLoader;
 use crate::commands;
 use crate::errors::*;
 use crate::presenters;
@@ -26,7 +28,6 @@ use std::mem;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender};
-use syntect::dumps::from_uncompressed_data;
 use syntect::parsing::SyntaxSet;
 
 pub struct Application {
@@ -471,18 +472,7 @@ fn create_workspace(
 }
 
 fn build_full_syntax_set() -> Result<SyntaxSet> {
-    // Load syntect default + app-bundled syntax sets serialized in build.rs
-    let mut builder = from_uncompressed_data::<SyntaxSet>(include_bytes!(concat!(
-        env!("OUT_DIR"),
-        "/app_syntaxes.packdump"
-    )))
-    .context("Couldn't load bundled syntax definitions")?
-    .into_builder();
-
-    // Add user syntaxes to built-in set
-    builder.add_from_folder(user_syntax_path()?, true)?;
-
-    Ok(builder.build())
+    SyntaxLoader::new(user_syntax_path()?).load()
 }
 
 #[cfg(not(test))]
