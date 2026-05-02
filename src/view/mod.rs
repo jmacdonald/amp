@@ -54,7 +54,7 @@ impl View {
         event_channel: Sender<Event>,
     ) -> Result<View> {
         let terminal = build_terminal().context("Failed to initialize terminal")?;
-        let theme_path = user_theme_path(&preferences.borrow())?;
+        let theme_path = user_theme_path()?;
         let theme_set = ThemeLoader::new(theme_path).load()?;
 
         let (killswitch_tx, killswitch_rx) = mpsc::sync_channel(0);
@@ -198,12 +198,12 @@ impl View {
 }
 
 #[cfg(not(test))]
-fn user_theme_path(preferences: &Preferences) -> Result<PathBuf> {
-    preferences.theme_path()
+fn user_theme_path() -> Result<PathBuf> {
+    Preferences::theme_path()
 }
 
 #[cfg(test)]
-fn user_theme_path(_: &Preferences) -> Result<PathBuf> {
+fn user_theme_path() -> Result<PathBuf> {
     Ok(PathBuf::from("tests/fixtures/user_themes"))
 }
 

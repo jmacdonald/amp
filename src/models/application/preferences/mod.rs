@@ -102,6 +102,12 @@ impl Preferences {
             .context("Couldn't build a path to the user syntax directory.")
     }
 
+    /// Returns the theme path, making sure the directory exists.
+    pub fn theme_path() -> Result<PathBuf> {
+        config_subdirectory(THEME_PATH)
+            .context("Couldn't build a path to the user themes directory.")
+    }
+
     /// Returns the preference file loaded into a buffer for editing.
     /// If the file doesn't already exist, it will return a new in-memory buffer
     /// with a pre-populated path, creating the parent config directories
@@ -150,12 +156,6 @@ impl Preferences {
         self.default[THEME_KEY]
             .as_str()
             .expect("Couldn't find default theme name!")
-    }
-
-    /// Returns the theme path, making sure the directory exists.
-    pub fn theme_path(&self) -> Result<PathBuf> {
-        config_subdirectory(THEME_PATH)
-            .context("Couldn't build a path to the user themes directory.")
     }
 
     /// Updates the in-memory theme value.
