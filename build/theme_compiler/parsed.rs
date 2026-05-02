@@ -18,9 +18,9 @@ pub struct Theme {
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Settings {
-    pub foreground: ColorRef,
-    pub background: ColorRef,
-    pub line_highlight: ColorRef,
+    pub foreground: PaletteKey,
+    pub background: PaletteKey,
+    pub line_highlight: PaletteKey,
 }
 
 #[derive(Debug, Deserialize)]
@@ -28,8 +28,8 @@ pub struct Settings {
 pub struct Rule {
     pub name: Option<String>,
     pub scope: ScopeSelector,
-    pub foreground: Option<ColorRef>,
-    pub background: Option<ColorRef>,
+    pub foreground: Option<PaletteKey>,
+    pub background: Option<PaletteKey>,
     pub font_style: Option<Vec<FontStyle>>,
 }
 
@@ -37,10 +37,7 @@ pub struct Rule {
 pub struct HexColor(pub String);
 
 #[derive(Debug, Clone)]
-pub enum ColorRef {
-    Literal(HexColor),
-    Palette(String),
-}
+pub struct PaletteKey(pub String);
 
 #[derive(Debug, Clone)]
 pub struct ScopeSelector(pub String);
@@ -69,7 +66,7 @@ impl<'de> Deserialize<'de> for HexColor {
     }
 }
 
-impl<'de> Deserialize<'de> for ColorRef {
+impl<'de> Deserialize<'de> for PaletteKey {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -77,9 +74,11 @@ impl<'de> Deserialize<'de> for ColorRef {
         let value = String::deserialize(deserializer)?;
         if value.starts_with('#') {
             validate_literal_color(&value).map_err(de::Error::custom)?;
-            Ok(ColorRef::Literal(HexColor(value)))
+            Err(de::Error::custom(
+                "must reference a palette key; literal colors belong in palette",
+            ))
         } else {
-            Ok(ColorRef::Palette(value))
+            Ok(PaletteKey(value))
         }
     }
 }

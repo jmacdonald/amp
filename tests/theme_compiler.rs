@@ -214,8 +214,8 @@ rules:
 }
 
 #[test]
-fn validate_theme_rejects_literal_colors_outside_palette() {
-    let parsed = theme_compiler::parse_parsed_theme(
+fn parse_theme_source_rejects_literal_colors_outside_palette() {
+    let error = theme_compiler::parse_theme(
         "bad_theme",
         r##"
 name: Bad Theme
@@ -231,9 +231,8 @@ rules:
     foreground: bg
 "##,
     )
-    .unwrap();
+    .unwrap_err();
 
-    let error = theme_compiler::validate_theme("bad_theme", parsed).unwrap_err();
-    assert!(error.contains("settings.foreground must reference a palette key"));
-    assert!(error.contains("#112233"));
+    assert!(error.contains("must reference a palette key"));
+    assert!(error.contains("literal colors belong in palette"));
 }

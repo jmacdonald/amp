@@ -35,19 +35,19 @@ impl Theme {
             .collect::<BTreeMap<_, _>>();
 
         let settings = Settings {
-            foreground: resolve_palette_color_ref(
+            foreground: resolve_palette_key(
                 theme_key,
                 "settings.foreground",
                 parsed_theme.settings.foreground,
                 &palette,
             )?,
-            background: resolve_palette_color_ref(
+            background: resolve_palette_key(
                 theme_key,
                 "settings.background",
                 parsed_theme.settings.background,
                 &palette,
             )?,
-            line_highlight: resolve_palette_color_ref(
+            line_highlight: resolve_palette_key(
                 theme_key,
                 "settings.line_highlight",
                 parsed_theme.settings.line_highlight,
@@ -65,7 +65,7 @@ impl Theme {
             let foreground = parsed_rule
                 .foreground
                 .map(|value| {
-                    resolve_palette_color_ref(
+                    resolve_palette_key(
                         theme_key,
                         &format!("{path}.foreground"),
                         value,
@@ -76,7 +76,7 @@ impl Theme {
             let background = parsed_rule
                 .background
                 .map(|value| {
-                    resolve_palette_color_ref(
+                    resolve_palette_key(
                         theme_key,
                         &format!("{path}.background"),
                         value,
@@ -115,20 +115,15 @@ impl Theme {
     }
 }
 
-fn resolve_palette_color_ref(
+fn resolve_palette_key(
     theme_key: &str,
     path: &str,
-    color_ref: parsed::ColorRef,
+    color_ref: parsed::PaletteKey,
     palette: &BTreeMap<String, String>,
 ) -> Result<String, String> {
-    match color_ref {
-        parsed::ColorRef::Literal(color) => Err(format!(
-            "{theme_key}.yml {path} must reference a palette key, found literal color: {}",
-            color.0
-        )),
-        parsed::ColorRef::Palette(key) => palette
-            .get(&key)
-            .cloned()
-            .ok_or_else(|| format!("{theme_key}.yml {path} references unknown palette key: {key}")),
-    }
+    let key = color_ref.0;
+    palette
+        .get(&key)
+        .cloned()
+        .ok_or_else(|| format!("{theme_key}.yml {path} references unknown palette key: {key}"))
 }
