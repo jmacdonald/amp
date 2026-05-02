@@ -235,7 +235,7 @@ mod tests {
     use syntect::highlighting::{Highlighter, ThemeSet};
 
     #[test]
-    fn new_loads_fixture_user_themes_in_tests() {
+    fn new_populates_theme_set_via_theme_loader() {
         let preferences = Rc::new(RefCell::new(Preferences::new(None)));
         let (tx, _) = mpsc::channel();
         let view = View::new(preferences, tx).unwrap();
