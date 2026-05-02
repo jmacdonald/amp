@@ -32,16 +32,18 @@ The YAML source is the authored artifact. Amp's build compiles it into a generat
 - Treat `palette` as the single source of truth for authored colors:
   - define hex literals in `palette`
   - reference palette keys from `settings` and `rules`
-  - do not place inline hex literals directly in `settings` or `rules` unless the user explicitly asks for an exception
+  - do not place inline hex literals directly in `settings` or `rules`
 - Match the actual compiler schema in `build/theme_compiler/`:
   - required top-level keys: `name`, `settings`, `rules`
   - optional top-level key: `palette`
+  - `palette` values must be hex colors
   - required `settings` keys: `foreground`, `background`, `line_highlight`
+  - `settings.foreground`, `settings.background`, and `settings.line_highlight` must reference palette keys
   - `rules` must not be empty
   - each rule may contain `name`, `scope`, `foreground`, `background`, `font_style`
+  - `rules[*].foreground` and `rules[*].background`, when present, must reference palette keys
   - each rule must define at least one of `foreground`, `background`, or `font_style`
   - `scope` must be a single valid TextMate selector string
-  - the compiler accepts hex literals or references to keys defined in `palette`, but this skill should prefer palette references everywhere outside `palette`
   - `font_style` values are `bold`, `italic`, and `underline`
 - Treat unknown YAML keys as invalid rather than inventing extra structure.
 
@@ -102,5 +104,6 @@ When the user does not provide a complete scope list, do not stop at a small "pr
 
 - Prefer `cargo check` as the main smoke test. It runs `build.rs`, compiles `themes/*.yml`, and loads the generated bundled themes.
 - Use `cargo test --test theme_compiler` when validating compiler-schema behavior or debugging theme-source failures.
+- Treat inline color literals outside `palette` as source-format errors.
 - If there is no dedicated theme test for a specific change, still perform at least a build-path smoke check before finishing.
 - When updating a bundled example theme, prefer adding or running a test that confirms the compiled theme loads and that key token families are represented by explicit scope rules.

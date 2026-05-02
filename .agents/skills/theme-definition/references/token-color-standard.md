@@ -2,7 +2,7 @@
 
 Use this reference when generating or updating a bundled YAML theme source in `themes/` and the user has not provided a detailed scope map. The authored file is YAML, but the rule scopes should still target stable TextMate token families because Amp compiles the source into a `.tmTheme` during the build.
 
-For authored theme sources in this repo, treat `palette` as the only place for literal hex colors. `settings` and `rules` should reference palette keys so color intent stays named and reviewable.
+For authored theme sources in this repo, `palette` is the only place for literal hex colors. `settings` and `rules` must reference palette keys so color intent stays named and reviewable.
 
 ## Goal
 
