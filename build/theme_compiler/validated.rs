@@ -35,19 +35,19 @@ impl Theme {
             .collect::<BTreeMap<_, _>>();
 
         let settings = Settings {
-            foreground: resolve_color_ref(
+            foreground: resolve_palette_color_ref(
                 theme_key,
                 "settings.foreground",
                 parsed_theme.settings.foreground,
                 &palette,
             )?,
-            background: resolve_color_ref(
+            background: resolve_palette_color_ref(
                 theme_key,
                 "settings.background",
                 parsed_theme.settings.background,
                 &palette,
             )?,
-            line_highlight: resolve_color_ref(
+            line_highlight: resolve_palette_color_ref(
                 theme_key,
                 "settings.line_highlight",
                 parsed_theme.settings.line_highlight,
@@ -65,13 +65,23 @@ impl Theme {
             let foreground = parsed_rule
                 .foreground
                 .map(|value| {
-                    resolve_color_ref(theme_key, &format!("{path}.foreground"), value, &palette)
+                    resolve_palette_color_ref(
+                        theme_key,
+                        &format!("{path}.foreground"),
+                        value,
+                        &palette,
+                    )
                 })
                 .transpose()?;
             let background = parsed_rule
                 .background
                 .map(|value| {
-                    resolve_color_ref(theme_key, &format!("{path}.background"), value, &palette)
+                    resolve_palette_color_ref(
+                        theme_key,
+                        &format!("{path}.background"),
+                        value,
+                        &palette,
+                    )
                 })
                 .transpose()?;
             let font_style = parsed_rule.font_style.map(|styles| {
@@ -105,14 +115,17 @@ impl Theme {
     }
 }
 
-fn resolve_color_ref(
+fn resolve_palette_color_ref(
     theme_key: &str,
     path: &str,
     color_ref: parsed::ColorRef,
     palette: &BTreeMap<String, String>,
 ) -> Result<String, String> {
     match color_ref {
-        parsed::ColorRef::Literal(color) => Ok(color.0),
+        parsed::ColorRef::Literal(color) => Err(format!(
+            "{theme_key}.yml {path} must reference a palette key, found literal color: {}",
+            color.0
+        )),
         parsed::ColorRef::Palette(key) => palette
             .get(&key)
             .cloned()

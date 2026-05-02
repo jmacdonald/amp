@@ -43,14 +43,19 @@ fn parse_theme_source_rejects_unknown_keys() {
         "bad_theme",
         r##"
 name: Bad Theme
+palette:
+  fg: "#112233"
+  bg: "#445566"
+  line: "#778899"
+  selection_color: "#000000"
 settings:
-  foreground: "#112233"
-  background: "#445566"
-  line_highlight: "#778899"
-  selection: "#000000"
+  foreground: fg
+  background: bg
+  line_highlight: line
+  selection: selection_color
 rules:
   - scope: comment
-    foreground: "#112233"
+    foreground: fg
 "##,
     )
     .unwrap_err();
@@ -64,10 +69,14 @@ fn parse_theme_source_rejects_invalid_rule_color_reference() {
         "bad_theme",
         r##"
 name: Bad Theme
+palette:
+  fg: "#112233"
+  bg: "#445566"
+  line: "#778899"
 settings:
-  foreground: "#112233"
-  background: "#445566"
-  line_highlight: "#778899"
+  foreground: fg
+  background: bg
+  line_highlight: line
 rules:
   - scope: comment
     foreground: missing
@@ -84,13 +93,17 @@ fn parse_theme_source_rejects_non_string_scope() {
         "bad_theme",
         r##"
 name: Bad Theme
+palette:
+  fg: "#112233"
+  bg: "#445566"
+  line: "#778899"
 settings:
-  foreground: "#112233"
-  background: "#445566"
-  line_highlight: "#778899"
+  foreground: fg
+  background: bg
+  line_highlight: line
 rules:
   - scope: [comment]
-    foreground: "#112233"
+    foreground: fg
 "##,
     )
     .unwrap_err();
@@ -105,13 +118,17 @@ fn render_tmtheme_is_parseable_and_preserves_empty_font_style() {
         "test_theme",
         r##"
 name: Test Theme
+palette:
+  fg: "#112233"
+  bg: "#445566"
+  line: "#778899"
 settings:
-  foreground: "#112233"
-  background: "#445566"
-  line_highlight: "#778899"
+  foreground: fg
+  background: bg
+  line_highlight: line
 rules:
   - scope: comment
-    foreground: "#112233"
+    foreground: fg
     font_style: []
 "##,
     )
@@ -140,13 +157,17 @@ fn compile_themes_writes_generated_tmtheme_files() {
         source_dir.join("sample.yml"),
         r##"
 name: Sample Theme
+palette:
+  fg: "#112233"
+  bg: "#445566"
+  line: "#778899"
 settings:
-  foreground: "#112233"
-  background: "#445566"
-  line_highlight: "#778899"
+  foreground: fg
+  background: bg
+  line_highlight: line
 rules:
   - scope: comment
-    foreground: "#112233"
+    foreground: fg
 "##,
     )
     .unwrap();
@@ -190,4 +211,29 @@ rules:
     let mut cursor = Cursor::new(rendered.into_bytes());
 
     ThemeSet::load_from_reader(&mut cursor).unwrap();
+}
+
+#[test]
+fn validate_theme_rejects_literal_colors_outside_palette() {
+    let parsed = theme_compiler::parse_parsed_theme(
+        "bad_theme",
+        r##"
+name: Bad Theme
+palette:
+  bg: "#445566"
+  line: "#778899"
+settings:
+  foreground: "#112233"
+  background: bg
+  line_highlight: line
+rules:
+  - scope: comment
+    foreground: bg
+"##,
+    )
+    .unwrap();
+
+    let error = theme_compiler::validate_theme("bad_theme", parsed).unwrap_err();
+    assert!(error.contains("settings.foreground must reference a palette key"));
+    assert!(error.contains("#112233"));
 }

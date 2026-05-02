@@ -8,6 +8,7 @@ palette:
   base01: "#93A1A1"
   base02: "#b2b2b2"
   base3_light: "#EEE8D5"
+  line: "#303030"
   yellow: "#B58900"
   orange: "#CB4B16"
   red: "#DC322F"
@@ -19,7 +20,7 @@ palette:
 settings:
   foreground: base02
   background: base3
-  line_highlight: "#303030"
+  line_highlight: line
 rules:
   - name: Comment
     scope: "comment, comment.block.documentation, punctuation.definition.comment"
