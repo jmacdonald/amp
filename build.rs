@@ -140,11 +140,11 @@ fn bake_app_syntaxes() {
 fn bake_app_themes() {
     let out_dir = env::var("OUT_DIR").expect("The compiler did not provide $OUT_DIR");
     let output_path = PathBuf::from(out_dir).join(APP_THEME_SOURCE);
-    let generated_theme_dir = PathBuf::from(env::var("OUT_DIR").unwrap()).join("generated_themes");
-    theme_compiler::compile_themes(Path::new(APP_THEME_DIR), &generated_theme_dir)
+    let compiled_theme_dir = PathBuf::from(env::var("OUT_DIR").unwrap()).join("compiled_themes");
+    theme_compiler::compile_themes(Path::new(APP_THEME_DIR), &compiled_theme_dir)
         .expect("Failed to compile bundled theme sources");
-    let theme_set = ThemeSet::load_from_folder(&generated_theme_dir)
-        .expect("Failed to load generated bundled themes");
+    let theme_set = ThemeSet::load_from_folder(&compiled_theme_dir)
+        .expect("Failed to load compiled bundled themes");
 
     dump_to_uncompressed_file(&theme_set, output_path).expect("Failed to write bundled theme dump");
 }
