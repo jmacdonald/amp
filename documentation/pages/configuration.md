@@ -23,6 +23,21 @@ Used to specify the default theme. Values can be located through Amp's theme mod
     It's handy for temporarily changing to a lighter theme when working outdoors,
     or vice-versa.
 
+### Transparent Background
+
+**:lucide-tag: v0.8.0+**
+
+```yaml
+transparent_background: false
+```
+
+When set to `true`, Amp avoids rendering the theme's background color, instead
+relying on your terminal emulator's background. This may be helpful if you want
+Amp to more closely match your terminal theme, or if you want to use a
+transparent background but your terminal renders Amp's content as opaque.
+Cursor-line highlighting is always rendered, in addition to (admittedly rare)
+token-specific background colors.
+
 ### Tab Width
 
 ```yaml

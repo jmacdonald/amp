@@ -7,7 +7,7 @@ pub use self::colors::Colors;
 // Define and export a trait for mapping
 // convenience Colors to printable equivalents.
 mod map;
-pub use self::map::ColorMap;
+pub use self::map::{theme_background, theme_line_highlight, ColorMap};
 
 // Re-export external RGB/RGBA types.
 pub use self::termion::color::Rgb as RGBColor;

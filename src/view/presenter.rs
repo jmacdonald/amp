@@ -76,12 +76,13 @@ impl<'p> Presenter<'p> {
 
     pub fn present(&mut self) -> Result<()> {
         debug!("rendering terminal buffer to terminal");
+        let transparent_background = self.view.preferences.borrow().transparent_background();
 
         for (position, cell) in self.terminal_buffer.iter() {
             self.view.terminal.print(
                 &position,
                 cell.style,
-                self.theme.map_colors(cell.colors),
+                self.theme.map_colors(cell.colors, transparent_background),
                 &cell.content,
             )?;
         }
