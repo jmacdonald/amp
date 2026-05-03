@@ -9,15 +9,11 @@
         <dict>
             <key>settings</key>
             <dict>
-                <key>background</key>
-                <string>#101820</string>
-                <key>caret</key>
-                <string>#f2aa4c</string>
                 <key>foreground</key>
                 <string>#f8f4e3</string>
-                <key>lineHighlight</key>
-                <string>#1d2731</string>
-                <key>selection</key>
+                <key>background</key>
+                <string>#101820</string>
+                <key>line_highlight</key>
                 <string>#2f3e46</string>
             </dict>
         </dict>
