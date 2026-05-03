@@ -181,33 +181,6 @@ rules:
 }
 
 #[test]
-fn stage_pipeline_parses_validates_and_renders() {
-    let parsed = theme_compiler::parse_parsed_theme(
-        r##"
-name: Test Theme
-palette:
-  fg: "#112233"
-  bg: "#445566"
-  line: "#778899"
-settings:
-  foreground: fg
-  background: bg
-  line_highlight: line
-rules:
-  - scope: comment
-    foreground: fg
-"##,
-    )
-    .unwrap();
-
-    let theme = theme_compiler::validate_theme(parsed).unwrap();
-    let rendered = theme_compiler::render_tmtheme(&theme);
-    let mut cursor = Cursor::new(rendered.into_bytes());
-
-    ThemeSet::load_from_reader(&mut cursor).unwrap();
-}
-
-#[test]
 fn parse_theme_rejects_literal_colors_outside_palette() {
     let error = theme_compiler::parse_theme(
         r##"

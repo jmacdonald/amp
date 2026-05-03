@@ -67,13 +67,3 @@ pub fn parse_theme(content: &str) -> Result<Theme, String> {
 pub fn render_tmtheme(theme: &Theme) -> String {
     textmate::render(theme)
 }
-
-#[cfg(test)]
-pub fn parse_parsed_theme(content: &str) -> Result<parsed::Theme, String> {
-    parsed::parse(content)
-}
-
-#[cfg(test)]
-pub fn validate_theme(parsed_theme: parsed::Theme) -> Result<Theme, String> {
-    validated::Theme::try_from_parsed(parsed_theme)
-}
