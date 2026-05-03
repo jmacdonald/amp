@@ -102,7 +102,7 @@ impl Preferences {
             .context("Couldn't build a path to the user syntax directory.")
     }
 
-    /// Returns the theme path, making sure the directory exists.
+    /// A path pointing to the user theme directory.
     pub fn theme_path() -> Result<PathBuf> {
         config_subdirectory(THEME_PATH)
             .context("Couldn't build a path to the user themes directory.")
