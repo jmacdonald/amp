@@ -214,12 +214,15 @@ mod tests {
         let config = SearchSelectConfig::default();
         let mut mode = SymbolJumpMode::new(config.clone()).unwrap();
         let mut app = Application::new(&[]).unwrap();
-        app.workspace.open_buffer(&Path::new("build.rs")).unwrap();
+
+        // Open this file so the test can search for its own function symbol.
+        let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(file!());
+        app.workspace.open_buffer(&path).unwrap();
         let token_set = app.workspace.current_buffer_tokens().unwrap();
 
         // Do an initial reset to get the results populated
         mode.reset(&token_set, config.clone()).unwrap();
-        mode.query().push_str("main");
+        mode.query().push_str("reset_clears_query_mode_and_results");
         mode.set_insert_mode(false);
         mode.search();
 
