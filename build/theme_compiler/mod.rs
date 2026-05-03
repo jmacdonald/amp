@@ -26,7 +26,7 @@ pub fn compile_themes(source_dir: &Path, output_dir: &Path) -> Result<Vec<PathBu
             .map_err(|error| format!("Failed to read theme source entry: {error}"))?
             .path();
         if !path.is_file() || path.extension().and_then(|ext| ext.to_str()) != Some("yml") {
-            continue;
+            continue; // skip non-yaml files
         }
 
         let key = path
