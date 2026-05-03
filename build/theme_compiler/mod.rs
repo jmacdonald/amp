@@ -46,8 +46,6 @@ pub fn compile_themes(source_dir: &Path, output_dir: &Path) -> Result<Vec<PathBu
         themes.push((key.clone(), theme));
     }
 
-    themes.sort_by(|left, right| left.0.cmp(&right.0));
-
     let mut outputs = Vec::new();
     for (key, theme) in themes {
         let output_path = output_dir.join(format!("{key}.tmTheme"));
