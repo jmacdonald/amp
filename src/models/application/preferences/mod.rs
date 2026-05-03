@@ -32,6 +32,7 @@ const SOFT_TABS_KEY: &str = "soft_tabs";
 const SYNTAX_PATH: &str = "syntaxes";
 const TAB_WIDTH_KEY: &str = "tab_width";
 const THEME_KEY: &str = "theme";
+const TRANSPARENT_BACKGROUND_KEY: &str = "transparent_background";
 const THEME_PATH: &str = "themes";
 const TYPES_KEY: &str = "types";
 const TYPES_SYNTAX_KEY: &str = "syntax";
@@ -161,6 +162,23 @@ impl Preferences {
     /// Updates the in-memory theme value.
     pub fn set_theme<T: Into<String>>(&mut self, theme: T) {
         self.theme = Some(theme.into());
+    }
+
+    pub fn transparent_background(&self) -> bool {
+        self.data
+            .as_ref()
+            .and_then(|data| {
+                if let Yaml::Boolean(value) = data[TRANSPARENT_BACKGROUND_KEY] {
+                    Some(value)
+                } else {
+                    None
+                }
+            })
+            .unwrap_or_else(|| {
+                self.default[TRANSPARENT_BACKGROUND_KEY]
+                    .as_bool()
+                    .expect("Couldn't find default transparent background setting!")
+            })
     }
 
     pub fn tab_width(&self, path: Option<&PathBuf>) -> usize {
@@ -502,6 +520,21 @@ mod tests {
         let preferences = Preferences::new(None);
 
         assert_eq!(preferences.theme(), "solarized_dark");
+    }
+
+    #[test]
+    fn preferences_returns_user_defined_transparent_background() {
+        let data = YamlLoader::load_from_str("transparent_background: true").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+
+        assert!(preferences.transparent_background());
+    }
+
+    #[test]
+    fn preferences_returns_default_transparent_background_when_user_defined_data_not_found() {
+        let preferences = Preferences::new(None);
+
+        assert!(!preferences.transparent_background());
     }
 
     #[test]

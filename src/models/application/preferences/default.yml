@@ -1,4 +1,5 @@
 theme: solarized_dark
+transparent_background: false
 tab_width: 2
 soft_tabs: true
 line_length_guide: 80

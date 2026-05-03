@@ -2,7 +2,7 @@ use crate::errors::*;
 use crate::models::application::Preferences;
 use crate::view::buffer::line_numbers::*;
 use crate::view::buffer::{LexemeMapper, MappedLexeme, RenderState};
-use crate::view::color::to_rgb_color;
+use crate::view::color::{theme_background, theme_line_highlight, to_rgb_color};
 use crate::view::terminal::{Cell, Terminal, TerminalBuffer};
 use crate::view::{Colors, RGBColor, Style, RENDER_CACHE_FREQUENCY};
 use scribe::buffer::{Buffer, Position, Range};
@@ -142,7 +142,7 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
         }
     }
 
-    fn current_char_style(&self, token_color: RGBColor) -> (Style, Colors) {
+    fn current_char_style(&self, token_fg: RGBColor, token_bg: RGBColor) -> (Style, Colors) {
         let (style, colors) = match self.highlights {
             Some(highlight_ranges) => {
                 for range in highlight_ranges {
@@ -159,22 +159,36 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
 
                 // We aren't inside one of the highlighted areas.
                 // Fall back to other styling considerations.
-                if self.on_cursor_line() {
-                    (Style::Default, Colors::CustomFocusedForeground(token_color))
-                } else {
-                    (Style::Default, Colors::CustomForeground(token_color))
-                }
+                (Style::Default, self.token_colors(token_fg, token_bg))
             }
-            None => {
-                if self.on_cursor_line() {
-                    (Style::Default, Colors::CustomFocusedForeground(token_color))
-                } else {
-                    (Style::Default, Colors::CustomForeground(token_color))
-                }
-            }
+            None => (Style::Default, self.token_colors(token_fg, token_bg)),
         };
 
         (style, colors)
+    }
+
+    fn token_colors(&self, token_fg: RGBColor, token_bg: RGBColor) -> Colors {
+        let theme_bg = theme_background(self.theme);
+
+        // Theme-driven token background highlighting; applied
+        // regardless of transparency preference (rare)
+        if token_bg != theme_bg {
+            return Colors::Custom(token_fg, token_bg);
+        }
+
+        if self.on_cursor_line() {
+            return if self.preferences.transparent_background() {
+                Colors::CustomFocusedForeground(token_fg)
+            } else {
+                Colors::Custom(token_fg, theme_line_highlight(self.theme))
+            };
+        }
+
+        if self.preferences.transparent_background() {
+            Colors::CustomForeground(token_fg)
+        } else {
+            Colors::Custom(token_fg, token_bg)
+        }
     }
 
     fn print_lexeme<L: Into<Cow<'p, str>>>(&mut self, lexeme: L) {
@@ -187,8 +201,9 @@ impl<'a, 'p> BufferRenderer<'a, 'p> {
             self.set_cursor();
 
             // Determine the style we'll use to print.
-            let token_color = to_rgb_color(self.current_style.foreground);
-            let (style, color) = self.current_char_style(token_color);
+            let token_fg = to_rgb_color(self.current_style.foreground);
+            let token_bg = to_rgb_color(self.current_style.background);
+            let (style, color) = self.current_char_style(token_fg, token_bg);
 
             if self.preferences.line_wrapping()
                 && self.screen_position.offset == self.terminal.width()
