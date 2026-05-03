@@ -9,9 +9,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use syntect::highlighting::ThemeSet;
 
 #[test]
-fn parse_theme_source_resolves_palette_references() {
+fn parse_theme_resolves_palette_references() {
     let theme = theme_compiler::parse_theme(
-        "test_theme",
         r##"
 name: Test Theme
 palette:
@@ -38,9 +37,8 @@ rules:
 }
 
 #[test]
-fn parse_theme_source_rejects_unknown_keys() {
+fn parse_theme_rejects_unknown_keys() {
     let error = theme_compiler::parse_theme(
-        "bad_theme",
         r##"
 name: Bad Theme
 palette:
@@ -64,9 +62,8 @@ rules:
 }
 
 #[test]
-fn parse_theme_source_rejects_invalid_rule_color_reference() {
+fn parse_theme_rejects_invalid_rule_color_reference() {
     let error = theme_compiler::parse_theme(
-        "bad_theme",
         r##"
 name: Bad Theme
 palette:
@@ -88,9 +85,8 @@ rules:
 }
 
 #[test]
-fn parse_theme_source_rejects_non_string_scope() {
+fn parse_theme_rejects_non_string_scope() {
     let error = theme_compiler::parse_theme(
-        "bad_theme",
         r##"
 name: Bad Theme
 palette:
@@ -115,7 +111,6 @@ rules:
 #[test]
 fn render_tmtheme_is_parseable_and_preserves_empty_font_style() {
     let theme = theme_compiler::parse_theme(
-        "test_theme",
         r##"
 name: Test Theme
 palette:
@@ -188,7 +183,6 @@ rules:
 #[test]
 fn stage_pipeline_parses_validates_and_renders() {
     let parsed = theme_compiler::parse_parsed_theme(
-        "test_theme",
         r##"
 name: Test Theme
 palette:
@@ -206,7 +200,7 @@ rules:
     )
     .unwrap();
 
-    let theme = theme_compiler::validate_theme("test_theme", parsed).unwrap();
+    let theme = theme_compiler::validate_theme(parsed).unwrap();
     let rendered = theme_compiler::render_tmtheme(&theme);
     let mut cursor = Cursor::new(rendered.into_bytes());
 
@@ -214,9 +208,8 @@ rules:
 }
 
 #[test]
-fn parse_theme_source_rejects_literal_colors_outside_palette() {
+fn parse_theme_rejects_literal_colors_outside_palette() {
     let error = theme_compiler::parse_theme(
-        "bad_theme",
         r##"
 name: Bad Theme
 palette:

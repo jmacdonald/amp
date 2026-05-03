@@ -4,7 +4,6 @@ use super::parsed;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Theme {
-    pub key: String,
     pub name: String,
     pub settings: Settings,
     pub rules: Vec<Rule>,
@@ -27,7 +26,7 @@ pub struct Rule {
 }
 
 impl Theme {
-    pub fn try_from_parsed(theme_key: &str, parsed_theme: parsed::Theme) -> Result<Self, String> {
+    pub fn try_from_parsed(parsed_theme: parsed::Theme) -> Result<Self, String> {
         let palette = parsed_theme
             .palette
             .into_iter()
@@ -35,20 +34,9 @@ impl Theme {
             .collect::<BTreeMap<_, _>>();
 
         let settings = Settings {
-            foreground: resolve_palette_key(
-                theme_key,
-                "settings.foreground",
-                parsed_theme.settings.foreground,
-                &palette,
-            )?,
-            background: resolve_palette_key(
-                theme_key,
-                "settings.background",
-                parsed_theme.settings.background,
-                &palette,
-            )?,
+            foreground: resolve_palette_key("settings.foreground", parsed_theme.settings.foreground, &palette)?,
+            background: resolve_palette_key("settings.background", parsed_theme.settings.background, &palette)?,
             line_highlight: resolve_palette_key(
-                theme_key,
                 "settings.line_highlight",
                 parsed_theme.settings.line_highlight,
                 &palette,
@@ -56,7 +44,7 @@ impl Theme {
         };
 
         if parsed_theme.rules.is_empty() {
-            return Err(format!("{theme_key}.yml rules must not be empty"));
+            return Err("rules must not be empty".to_string());
         }
 
         let mut rules = Vec::with_capacity(parsed_theme.rules.len());
@@ -64,25 +52,11 @@ impl Theme {
             let path = format!("rules[{index}]");
             let foreground = parsed_rule
                 .foreground
-                .map(|value| {
-                    resolve_palette_key(
-                        theme_key,
-                        &format!("{path}.foreground"),
-                        value,
-                        &palette,
-                    )
-                })
+                .map(|value| resolve_palette_key(&format!("{path}.foreground"), value, &palette))
                 .transpose()?;
             let background = parsed_rule
                 .background
-                .map(|value| {
-                    resolve_palette_key(
-                        theme_key,
-                        &format!("{path}.background"),
-                        value,
-                        &palette,
-                    )
-                })
+                .map(|value| resolve_palette_key(&format!("{path}.background"), value, &palette))
                 .transpose()?;
             let font_style = parsed_rule.font_style.map(|styles| {
                 styles
@@ -93,7 +67,7 @@ impl Theme {
 
             if foreground.is_none() && background.is_none() && font_style.is_none() {
                 return Err(format!(
-                    "{theme_key}.yml {path} must define at least one of foreground, background, or font_style"
+                    "{path} must define at least one of foreground, background, or font_style"
                 ));
             }
 
@@ -107,7 +81,6 @@ impl Theme {
         }
 
         Ok(Self {
-            key: theme_key.to_string(),
             name: parsed_theme.name,
             settings,
             rules,
@@ -116,7 +89,6 @@ impl Theme {
 }
 
 fn resolve_palette_key(
-    theme_key: &str,
     path: &str,
     color_ref: parsed::PaletteKey,
     palette: &BTreeMap<String, String>,
@@ -125,5 +97,5 @@ fn resolve_palette_key(
     palette
         .get(&key)
         .cloned()
-        .ok_or_else(|| format!("{theme_key}.yml {path} references unknown palette key: {key}"))
+        .ok_or_else(|| format!("{path} references unknown palette key: {key}"))
 }

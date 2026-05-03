@@ -41,14 +41,16 @@ pub fn compile_themes(source_dir: &Path, output_dir: &Path) -> Result<Vec<PathBu
 
         let content = fs::read_to_string(&path)
             .map_err(|error| format!("Failed to read {}: {error}", path.display()))?;
-        themes.push(parse_theme(&key, &content)?);
+        let theme = parse_theme(&content)
+            .map_err(|error| format!("Failed to compile {key}.yml: {error}"))?;
+        themes.push((key.clone(), theme));
     }
 
-    themes.sort_by(|left, right| left.key.cmp(&right.key));
+    themes.sort_by(|left, right| left.0.cmp(&right.0));
 
     let mut outputs = Vec::new();
-    for theme in themes {
-        let output_path = output_dir.join(format!("{}.tmTheme", theme.key));
+    for (key, theme) in themes {
+        let output_path = output_dir.join(format!("{key}.tmTheme"));
         fs::write(&output_path, render_tmtheme(&theme))
             .map_err(|error| format!("Failed to write {}: {error}", output_path.display()))?;
         outputs.push(output_path);
@@ -57,9 +59,9 @@ pub fn compile_themes(source_dir: &Path, output_dir: &Path) -> Result<Vec<PathBu
     Ok(outputs)
 }
 
-pub fn parse_theme(theme_key: &str, content: &str) -> Result<Theme, String> {
-    let parsed_theme = parsed::parse(theme_key, content)?;
-    validated::Theme::try_from_parsed(theme_key, parsed_theme)
+pub fn parse_theme(content: &str) -> Result<Theme, String> {
+    let parsed_theme = parsed::parse(content)?;
+    validated::Theme::try_from_parsed(parsed_theme)
 }
 
 pub fn render_tmtheme(theme: &Theme) -> String {
@@ -67,11 +69,11 @@ pub fn render_tmtheme(theme: &Theme) -> String {
 }
 
 #[cfg(test)]
-pub fn parse_parsed_theme(theme_key: &str, content: &str) -> Result<parsed::Theme, String> {
-    parsed::parse(theme_key, content)
+pub fn parse_parsed_theme(content: &str) -> Result<parsed::Theme, String> {
+    parsed::parse(content)
 }
 
 #[cfg(test)]
-pub fn validate_theme(theme_key: &str, parsed_theme: parsed::Theme) -> Result<Theme, String> {
-    validated::Theme::try_from_parsed(theme_key, parsed_theme)
+pub fn validate_theme(parsed_theme: parsed::Theme) -> Result<Theme, String> {
+    validated::Theme::try_from_parsed(parsed_theme)
 }

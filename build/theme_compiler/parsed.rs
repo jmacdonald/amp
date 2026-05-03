@@ -50,9 +50,8 @@ pub enum FontStyle {
     Underline,
 }
 
-pub fn parse(theme_key: &str, content: &str) -> Result<Theme, String> {
-    serde_yaml::from_str(content)
-        .map_err(|error| format!("Failed to parse {theme_key}.yml: {error}"))
+pub fn parse(content: &str) -> Result<Theme, String> {
+    serde_yaml::from_str(content).map_err(|error| error.to_string())
 }
 
 impl<'de> Deserialize<'de> for HexColor {
