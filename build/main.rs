@@ -1,4 +1,3 @@
-#[path = "build/theme_compiler/mod.rs"]
 mod theme_compiler;
 
 use regex::Regex;
