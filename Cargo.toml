@@ -11,9 +11,12 @@ readme = "README.md"
 license-file = "LICENSE"
 keywords = ["text", "editor", "terminal", "modal"]
 edition="2021"
+build = "build/main.rs"
 
 [build-dependencies]
 regex = "1.10"
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9"
 syntect = "5.1"
 
 [dependencies]
@@ -50,6 +53,8 @@ default-features = false # removes unused openssl dependency
 
 [dev-dependencies]
 criterion = "0.5"
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.9"
 
 [[bench]]
 name = "draw_buffer"

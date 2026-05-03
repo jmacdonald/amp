@@ -16,7 +16,7 @@ Amp is a terminal text editor with a clear separation between state, command log
 - `src/view/`: terminal rendering, scroll regions, render caches, theming, and event listening.
 - `src/presenters/`: mode-specific renderers that format workspace state into view components.
 - `src/util/`: shared helpers (tokens, lexing, selection helpers).
-- `src/themes/`: bundled TextMate theme files.
+- `themes/`: bundled YAML theme sources compiled into TextMate themes at build time.
 
 ## Modes and Presentation
 Modes are defined in `src/models/application/modes/` and collected into the `Mode` enum. Each mode has a corresponding presenter under `src/presenters/modes/` that renders the UI for that mode using a `Presenter` built from the `View`.

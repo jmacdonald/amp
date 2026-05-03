@@ -1,0 +1,110 @@
+name: Solarized Dark
+palette:
+  base3: "#002B36"
+  base2: "#073642"
+  base1: "#586E75"
+  base0: "#657B83"
+  base00: "#839496"
+  base01: "#93A1A1"
+  base02: "#b2b2b2"
+  base3_light: "#EEE8D5"
+  line: "#303030"
+  yellow: "#B58900"
+  orange: "#CB4B16"
+  red: "#DC322F"
+  magenta: "#D33682"
+  violet: "#6C71C4"
+  blue: "#268BD2"
+  cyan: "#2AA198"
+  green: "#859900"
+settings:
+  foreground: base02
+  background: base3
+  line_highlight: line
+rules:
+  - name: Comment
+    scope: "comment, comment.block.documentation, punctuation.definition.comment"
+    foreground: base1
+    font_style: []
+  - name: String
+    scope: "string, string.quoted.double, string.quoted.single"
+    foreground: cyan
+  - name: Regexp
+    scope: "string.regexp, constant.character.escape, punctuation.definition.string.begin, punctuation.definition.string.end"
+    foreground: red
+  - name: Number
+    scope: constant.numeric
+    foreground: magenta
+  - name: Variable
+    scope: "variable.language, variable.other"
+    foreground: blue
+  - name: Keyword
+    scope: "keyword, keyword.control"
+    foreground: green
+  - name: Storage
+    scope: "storage, storage.type.class.python, storage.type.function.python, storage.modifier.global.python"
+    foreground: green
+    font_style: []
+  - name: Functions
+    scope: "entity.name.function, support.function, support.function.builtin.shell, meta.function.js, entity.name.function.js"
+    foreground: blue
+  - name: Support Constructs
+    scope: "support.function.construct, keyword.other.new, support.function.construct.php"
+    foreground: red
+  - name: Types
+    scope: "entity.name.class, entity.name.type.class, entity.name.type, support.type.exception, support.class"
+    foreground: blue
+  - name: Support Types
+    scope: "support.type, storage.type.c, storage.type.js, storage.type.php"
+    foreground: green
+  - name: Built-in Constant
+    scope: "constant.language, meta.preprocessor, keyword.control.import.define.c, keyword.control.import.include.c"
+    foreground: yellow
+  - name: User-defined Constant
+    scope: "constant.character, constant.other, keyword.other.special-method, keyword.control.import.include.php"
+    foreground: orange
+  - name: Parameters
+    scope: "variable.parameter, variable.parameter.function.latex, variable.parameter.definition.label.latex"
+    foreground: orange
+  - name: Operators
+    scope: "keyword.operator, punctuation.separator.continuation, punctuation.definition.array.begin, punctuation.definition.array.end"
+    foreground: red
+  - name: Structural Punctuation
+    scope: "punctuation.separator, punctuation.terminator, punctuation.section, meta.brace, meta.delimiter"
+    foreground: base0
+  - name: Tags
+    scope: "entity.name.tag, punctuation.definition.tag.html, punctuation.definition.tag.begin, punctuation.definition.tag.end"
+    foreground: blue
+  - name: Attributes
+    scope: "entity.other.attribute-name, entity.other.attribute-name.class.css, entity.other.attribute-name.id, entity.other.attribute-name.pseudo-element.css, entity.other.attribute-name.pseudo-class.css"
+    foreground: base01
+  - name: Markup
+    scope: "markup.heading, markup.quote, markup.list, meta.separator.markdown"
+    foreground: blue
+  - name: Diff Deleted
+    scope: "markup.deleted, markup.deleted.git_gutter"
+    foreground: red
+    background: base3_light
+    font_style: []
+  - name: Diff Changed
+    scope: "markup.changed, markup.changed.git_gutter"
+    foreground: orange
+    background: base3_light
+    font_style: []
+  - name: Diff Inserted
+    scope: "markup.inserted, markup.inserted.git_gutter, other.add"
+    foreground: cyan
+    background: base3_light
+  - name: Invalid
+    scope: "invalid, invalid.deprecated, sublimelinter.underline.illegal"
+    foreground: base3_light
+    background: red
+  - name: Underline Warning
+    scope: "sublimelinter.underline.warning, sublimelinter.underline.violation"
+    background: yellow
+  - name: Tex Functions
+    scope: "support.function.be.latex, support.function.section.latex, support.function.general.tex, keyword.control.ref.latex, keyword.control.label.latex"
+    foreground: cyan
+  - name: Markdown Styles
+    scope: "markup.italic, markup.bold, markup.underline.link.markdown, meta.link.reference.markdown constant.other.reference"
+    foreground: yellow

@@ -2,7 +2,7 @@ use crate::errors::*;
 use crate::input::KeyMap;
 use crate::models::application::modes::open;
 use crate::models::application::modes::SearchSelectConfig;
-use app_dirs2::{app_dir, app_root, get_app_root, AppDataType, AppInfo};
+use app_dirs2::{app_root, get_app_root, AppDataType, AppInfo};
 use bloodhound::ExclusionPattern;
 use scribe::Buffer;
 use std::fs::OpenOptions;
@@ -98,8 +98,14 @@ impl Preferences {
 
     /// A path pointing to the user syntax definition directory.
     pub fn syntax_path() -> Result<PathBuf> {
-        app_dir(AppDataType::UserConfig, &APP_INFO, SYNTAX_PATH)
-            .context("Couldn't create syntax directory or build a path to it.")
+        config_subdirectory(SYNTAX_PATH)
+            .context("Couldn't build a path to the user syntax directory.")
+    }
+
+    /// A path pointing to the user theme directory.
+    pub fn theme_path() -> Result<PathBuf> {
+        config_subdirectory(THEME_PATH)
+            .context("Couldn't build a path to the user themes directory.")
     }
 
     /// Returns the preference file loaded into a buffer for editing.
@@ -150,12 +156,6 @@ impl Preferences {
         self.default[THEME_KEY]
             .as_str()
             .expect("Couldn't find default theme name!")
-    }
-
-    /// Returns the theme path, making sure the directory exists.
-    pub fn theme_path(&self) -> Result<PathBuf> {
-        app_dir(AppDataType::UserConfig, &APP_INFO, THEME_PATH)
-            .context("Couldn't create themes directory or build a path to it.")
     }
 
     /// Updates the in-memory theme value.
@@ -437,6 +437,14 @@ fn load_document() -> Result<Option<Yaml>> {
     let parsed_data =
         YamlLoader::load_from_str(&data).context("Couldn't parse config file")?;
     Ok(parsed_data.into_iter().next())
+}
+
+fn config_subdirectory(path: &str) -> Result<PathBuf> {
+    let mut directory = app_root(AppDataType::UserConfig, &APP_INFO)
+        .context("Couldn't create preferences directory or build a path to it.")?;
+    directory.push(path);
+
+    Ok(directory)
 }
 
 fn load_default_document() -> Result<Yaml> {

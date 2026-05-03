@@ -28,6 +28,7 @@ use std::cell::RefCell;
 use std::cmp;
 use std::collections::HashMap;
 use std::ops::Drop;
+use std::path::PathBuf;
 use std::process::Command;
 use std::rc::Rc;
 use std::sync::mpsc::{self, Sender, SyncSender};
@@ -53,7 +54,7 @@ impl View {
         event_channel: Sender<Event>,
     ) -> Result<View> {
         let terminal = build_terminal().context("Failed to initialize terminal")?;
-        let theme_path = preferences.borrow().theme_path()?;
+        let theme_path = user_theme_path()?;
         let theme_set = ThemeLoader::new(theme_path).load()?;
 
         let (killswitch_tx, killswitch_rx) = mpsc::sync_channel(0);
@@ -196,6 +197,16 @@ impl View {
     }
 }
 
+#[cfg(not(test))]
+fn user_theme_path() -> Result<PathBuf> {
+    Preferences::theme_path()
+}
+
+#[cfg(test)]
+fn user_theme_path() -> Result<PathBuf> {
+    Ok(PathBuf::from("tests/fixtures/user_themes"))
+}
+
 impl Drop for View {
     fn drop(&mut self) {
         debug!("drop triggered; killing event listener");
@@ -222,6 +233,15 @@ mod tests {
     use std::rc::Rc;
     use std::sync::mpsc;
     use syntect::highlighting::{Highlighter, ThemeSet};
+
+    #[test]
+    fn new_populates_theme_set_via_theme_loader() {
+        let preferences = Rc::new(RefCell::new(Preferences::new(None)));
+        let (tx, _) = mpsc::channel();
+        let view = View::new(preferences, tx).unwrap();
+
+        assert!(view.theme_set.themes.contains_key("fixture_theme"));
+    }
 
     #[test]
     fn scroll_down_prevents_scrolling_completely_beyond_buffer() {
