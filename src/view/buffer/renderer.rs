@@ -441,14 +441,17 @@ mod tests {
     use super::{BufferRenderer, LexemeMapper, MappedLexeme};
     use crate::models::application::Preferences;
     use crate::view::terminal::*;
-    use scribe::buffer::Position;
+    use crate::view::{Colors, RGBColor, Style};
+    use scribe::buffer::{Position, Range};
     use scribe::util::LineIterator;
     use scribe::{Buffer, Workspace};
     use std::cell::RefCell;
     use std::collections::HashMap;
     use std::path::{Path, PathBuf};
     use std::rc::Rc;
-    use syntect::highlighting::ThemeSet;
+    use syntect::highlighting::{
+        Color, FontStyle, Style as ThemeStyle, Theme, ThemeSet, ThemeSettings,
+    };
     use yaml_rust::yaml::YamlLoader;
 
     #[test]
@@ -858,6 +861,285 @@ mod tests {
         assert_eq!(
             &terminal_buffer.content()[0..expected_content.len()],
             expected_content
+        );
+    }
+
+    fn theme_with_backgrounds() -> Theme {
+        Theme {
+            name: Some(String::from("Test Theme")),
+            settings: ThemeSettings {
+                foreground: Some(Color {
+                    r: 0x11,
+                    g: 0x22,
+                    b: 0x33,
+                    a: 0xFF,
+                }),
+                background: Some(Color {
+                    r: 0x22,
+                    g: 0x33,
+                    b: 0x44,
+                    a: 0xFF,
+                }),
+                line_highlight: Some(Color {
+                    r: 0x33,
+                    g: 0x44,
+                    b: 0x55,
+                    a: 0xFF,
+                }),
+                ..ThemeSettings::default()
+            },
+            ..Theme::default()
+        }
+    }
+
+    fn token_style(foreground: RGBColor, background: RGBColor) -> ThemeStyle {
+        ThemeStyle {
+            foreground: Color {
+                r: foreground.0,
+                g: foreground.1,
+                b: foreground.2,
+                a: 0xFF,
+            },
+            background: Color {
+                r: background.0,
+                g: background.1,
+                b: background.2,
+                a: 0xFF,
+            },
+            font_style: FontStyle::empty(),
+        }
+    }
+
+    fn single_char_cell(buffer: &TerminalBuffer<'_>) -> (Style, Colors) {
+        buffer
+            .iter()
+            .find(|(_, cell)| cell.content == "x")
+            .map(|(_, cell)| (cell.style, cell.colors))
+            .unwrap()
+    }
+
+    #[test]
+    fn current_char_style_uses_line_highlight_when_token_background_matches_theme_on_cursor_line() {
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("x");
+        workspace.add_buffer(buffer);
+
+        let terminal = build_terminal().unwrap();
+        let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
+        let theme = theme_with_backgrounds();
+        let preferences = Preferences::new(None);
+        let render_cache = Rc::new(RefCell::new(HashMap::new()));
+
+        let mut renderer = BufferRenderer::new(
+            workspace.current_buffer.as_ref().unwrap(),
+            None,
+            0,
+            &**terminal,
+            &theme,
+            &preferences,
+            &render_cache,
+            &workspace.syntax_set,
+            &mut terminal_buffer,
+        );
+        renderer.current_style = token_style(RGBColor(1, 2, 3), RGBColor(0x22, 0x33, 0x44));
+        renderer.print_line_number();
+        renderer.print_lexeme("x");
+
+        assert_eq!(
+            single_char_cell(&terminal_buffer),
+            (
+                Style::Default,
+                Colors::Custom(RGBColor(1, 2, 3), RGBColor(0x33, 0x44, 0x55))
+            )
+        );
+    }
+
+    #[test]
+    fn current_char_style_preserves_explicit_token_background_on_cursor_line() {
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("x");
+        workspace.add_buffer(buffer);
+
+        let terminal = build_terminal().unwrap();
+        let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
+        let theme = theme_with_backgrounds();
+        let preferences = Preferences::new(None);
+        let render_cache = Rc::new(RefCell::new(HashMap::new()));
+
+        let mut renderer = BufferRenderer::new(
+            workspace.current_buffer.as_ref().unwrap(),
+            None,
+            0,
+            &**terminal,
+            &theme,
+            &preferences,
+            &render_cache,
+            &workspace.syntax_set,
+            &mut terminal_buffer,
+        );
+        renderer.current_style = token_style(RGBColor(1, 2, 3), RGBColor(9, 8, 7));
+        renderer.print_line_number();
+        renderer.print_lexeme("x");
+
+        assert_eq!(
+            single_char_cell(&terminal_buffer),
+            (
+                Style::Default,
+                Colors::Custom(RGBColor(1, 2, 3), RGBColor(9, 8, 7))
+            )
+        );
+    }
+
+    #[test]
+    fn current_char_style_preserves_theme_background_off_cursor_line() {
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("x");
+        *buffer.cursor = Position { line: 1, offset: 0 };
+        workspace.add_buffer(buffer);
+
+        let terminal = build_terminal().unwrap();
+        let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
+        let theme = theme_with_backgrounds();
+        let preferences = Preferences::new(None);
+        let render_cache = Rc::new(RefCell::new(HashMap::new()));
+
+        let mut renderer = BufferRenderer::new(
+            workspace.current_buffer.as_ref().unwrap(),
+            None,
+            0,
+            &**terminal,
+            &theme,
+            &preferences,
+            &render_cache,
+            &workspace.syntax_set,
+            &mut terminal_buffer,
+        );
+        renderer.current_style = token_style(RGBColor(1, 2, 3), RGBColor(0x22, 0x33, 0x44));
+        renderer.print_line_number();
+        renderer.print_lexeme("x");
+
+        assert_eq!(
+            single_char_cell(&terminal_buffer),
+            (
+                Style::Default,
+                Colors::Custom(RGBColor(1, 2, 3), RGBColor(0x22, 0x33, 0x44))
+            )
+        );
+    }
+
+    #[test]
+    fn current_char_style_selection_overrides_token_backgrounds() {
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("x");
+        workspace.add_buffer(buffer);
+
+        let terminal = build_terminal().unwrap();
+        let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
+        let theme = theme_with_backgrounds();
+        let preferences = Preferences::new(None);
+        let render_cache = Rc::new(RefCell::new(HashMap::new()));
+        let highlights = vec![Range::new(
+            Position { line: 0, offset: 0 },
+            Position { line: 0, offset: 1 },
+        )];
+
+        let mut renderer = BufferRenderer::new(
+            workspace.current_buffer.as_ref().unwrap(),
+            Some(&highlights),
+            0,
+            &**terminal,
+            &theme,
+            &preferences,
+            &render_cache,
+            &workspace.syntax_set,
+            &mut terminal_buffer,
+        );
+        renderer.current_style = token_style(RGBColor(1, 2, 3), RGBColor(9, 8, 7));
+        renderer.print_line_number();
+        renderer.print_lexeme("x");
+
+        assert_eq!(
+            single_char_cell(&terminal_buffer),
+            (Style::Bold, Colors::SelectMode)
+        );
+    }
+
+    #[test]
+    fn current_char_style_uses_terminal_background_when_theme_background_matches_off_cursor_line() {
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("x");
+        *buffer.cursor = Position { line: 1, offset: 0 };
+        workspace.add_buffer(buffer);
+
+        let terminal = build_terminal().unwrap();
+        let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
+        let theme = theme_with_backgrounds();
+        let data = YamlLoader::load_from_str("transparent_background: true").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+        let render_cache = Rc::new(RefCell::new(HashMap::new()));
+
+        let mut renderer = BufferRenderer::new(
+            workspace.current_buffer.as_ref().unwrap(),
+            None,
+            0,
+            &**terminal,
+            &theme,
+            &preferences,
+            &render_cache,
+            &workspace.syntax_set,
+            &mut terminal_buffer,
+        );
+        renderer.current_style = token_style(RGBColor(1, 2, 3), RGBColor(0x22, 0x33, 0x44));
+        renderer.print_line_number();
+        renderer.print_lexeme("x");
+
+        assert_eq!(
+            single_char_cell(&terminal_buffer),
+            (Style::Default, Colors::CustomForeground(RGBColor(1, 2, 3)))
+        );
+    }
+
+    #[test]
+    fn current_char_style_uses_line_highlight_when_theme_background_matches_on_cursor_line_and_transparency_enabled(
+    ) {
+        let mut workspace = Workspace::new(Path::new(".")).unwrap();
+        let mut buffer = Buffer::new();
+        buffer.insert("x");
+        workspace.add_buffer(buffer);
+
+        let terminal = build_terminal().unwrap();
+        let mut terminal_buffer = TerminalBuffer::new(terminal.width(), terminal.height());
+        let theme = theme_with_backgrounds();
+        let data = YamlLoader::load_from_str("transparent_background: true").unwrap();
+        let preferences = Preferences::new(data.into_iter().nth(0));
+        let render_cache = Rc::new(RefCell::new(HashMap::new()));
+
+        let mut renderer = BufferRenderer::new(
+            workspace.current_buffer.as_ref().unwrap(),
+            None,
+            0,
+            &**terminal,
+            &theme,
+            &preferences,
+            &render_cache,
+            &workspace.syntax_set,
+            &mut terminal_buffer,
+        );
+        renderer.current_style = token_style(RGBColor(1, 2, 3), RGBColor(0x22, 0x33, 0x44));
+        renderer.print_line_number();
+        renderer.print_lexeme("x");
+
+        assert_eq!(
+            single_char_cell(&terminal_buffer),
+            (
+                Style::Default,
+                Colors::CustomFocusedForeground(RGBColor(1, 2, 3))
+            )
         );
     }
 }
