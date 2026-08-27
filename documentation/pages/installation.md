@@ -122,6 +122,12 @@ Available via [Homebrew](https://brew.sh):
 brew install amp
 ```
 
+Also available via [MacPorts](https://www.macports.org/):
+
+```bash
+sudo port install amp
+```
+
 ## Manual installation
 
 ### Dependencies
